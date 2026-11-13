@@ -1,7 +1,8 @@
-# zynq-selfmap — proposal (draft v0.2, 2026-11-13)
+# zynq-selfmap — proposal (draft v0.3, 2026-11-13)
 
-Status: proposal only. No code, nothing on a board. v0.2 folds in the owner's decisions of
-2026-11-13 (section 12).
+Status: proposal only. No code, nothing on a board. v0.3 folds in the owner's decisions of
+2026-11-13 (section 12). The only thing built so far is the return-to-U-Boot test of section 11,
+question 8, and its pre-run check; it has not been on a board.
 
 ## 1. In one sentence
 
@@ -58,22 +59,25 @@ Every result is labelled as one of:
 
 ## 4. The structure description
 
-The shape follows zynq-fabricmap's self map; no file of that project is referenced (this
-project defines its own schema).
+zynq-fabricmap's structure description is used as it is. `schemas/self_map_v2.schema.json` is
+a byte-for-byte copy (provenance in `schemas/IMPORT.json`); it is not edited here.
 
 - Coordinates: `FAR/word/bit`.
-- Per entry: address, role, confidence (unknown / decoded / confirmed / no effect /
-  contradiction), and the observation ids it rests on.
-- Collateral rules, e.g. the frame ECC field in word 50 when anything else in the frame
-  changes.
+- Per entry: the address, its relation (which LUT, which INIT position), a confidence
+  (0 contradiction, 1 decoded from the code probes only, 2 confirmed by a single probe), a
+  state (unknown / decoded / confirmed / no effect / contradiction), the transition actually
+  observed, and the record numbers it rests on.
+- Interaction edges between entries, and the binding of a map to the run that produced it.
 
-Three additions:
+That schema describes LUT content, which is what S2, S4 and S5 produce. The mirror image of
+fabricmap's B1 applies: B1 set configuration bits and observed function; here user logic sets
+the content and configuration readback is observed, with the same code probes followed by
+single confirmations.
 
-- Frame-level records: exists or not, block type, whether readback is stable.
-- Roles: LUT RAM, shift register, flip-flop state, ordinary LUT content, block RAM content,
-  and "read but never written" for bits whose role is unknown.
-- How it was observed: readback only / written through user logic then read back / written
-  through configuration then observed functionally.
+Two things it has no place for are recorded beside it, in documents modelled on it and added
+only when their stage is reached: the frame census of S1 (which addresses exist, block type,
+whether readback is stable) and flip-flop state (S3). The copied schema is never extended in
+place.
 
 ## 5. The prober
 
@@ -85,6 +89,11 @@ Three additions:
   word by word through U-Boot" to "the PS program issues it".
 - **Who decides.** The prober chooses what to read and in which order. The host prepares the
   card, starts the run and collects the results.
+- **No bitstream is interpreted or generated.** The one bitstream involved is the probe design,
+  built by Vivado and loaded as an opaque file; its hash is recorded only to say which design
+  was loaded. What the prober sends to PCAP are short configuration command packets it builds
+  itself from UG470 (synchronisation, a frame address, a read command), and from S4 on frames
+  it has just read from the device and changed.
 - **Where results go.** Raw readback is kept in DDR and saved whole to the card; the UART
   carries progress and a digest of every saved block. Nothing is summarised before it is
   saved.
@@ -96,13 +105,26 @@ Three additions:
 
 Lighter than zynq-fabricmap's ruling-per-session regime. Four fixed points:
 
-1. **The program is checked for safety before it runs.** The code that builds configuration
-   command sequences is compiled for the host as well. A host dry run produces every sequence
-   the planned run can emit and a checker — a real packet parser, not a word-by-word pattern
-   match — holds them to the stage's allow-list (read-only stages: no WCFG, no FDRI, no
-   GRESTORE, no IPROG, no write to any register outside the listed ones). The same allow-list
-   is enforced again inside the prober at run time. The prober's and the bitstream's sha256
-   are written into the run record; a binary whose hash was not checked is not run.
+1. **The program is checked for safety before it runs — by rule, not by enumeration.** A
+   census of unknown frames cannot be dry-run as a fixed list: where the prober goes next
+   depends on what the device answers. So the check is on the *form* of what the prober can
+   send and on an *envelope* it must stay inside:
+   - every device access goes through a few helpers; the same source compiled for the host
+     logs each access, and a test holds the log to an allow-list written in the test, not
+     derived from the source;
+   - configuration command packets are produced by one generator whose only free parameters
+     are the frame address and the length; a real packet parser (not a word-by-word pattern
+     match) checks that for any parameter value a read-only stage can only produce
+     read commands — no WCFG, no FDRI, no GRESTORE, no IPROG, no register outside the list;
+   - the host gives each run an address envelope and budgets (frames, time, anomalies); the
+     prober chooses freely inside it and refuses to step outside. The envelope is a safety
+     limit and may be drawn with any knowledge; it restricts where the prober may go, not
+     what it may conclude, so it does not break the closed-book rule;
+   - the same rules are enforced again inside the prober at run time, and after the run the
+     host replays the logged packets through the parser;
+   - the board image is inspected for what a host run cannot show (the register U-Boot
+     reserves, privileged instructions, sections that would need startup code), and its
+     sha256 goes into the run record. An image whose hash was not checked is not run.
 2. **The closed-book rule** of section 3, including a check that the prober's build inputs
    contain none of the forbidden sources.
 3. **All raw readback is archived**, unmodified, with digests, before any interpretation.
@@ -111,12 +133,29 @@ Lighter than zynq-fabricmap's ruling-per-session regime. Four fixed points:
 A stage that writes configuration memory (S4 onwards) additionally needs the owner's go-ahead
 once, when that stage is first reached.
 
+**Small first, then wider.** Every stage starts on a small range where the answer is already
+known from our own earlier board work (the frames zynq-psmap read on this die), to confirm the
+method. The envelope is then widened in steps — one column, one row, one block type, the
+device — and each step is reviewed before the next.
+
+**Anomalies (proposed; the owner raised both halves).** An anomaly is recorded with everything
+needed to analyse it (the packet sent, the raw reply, the status registers) and then one of
+two things happens:
+
+- *record and skip* when the configuration interface is still healthy — checked by re-reading
+  a fixed reference frame and comparing it with its first reading, and by the status
+  registers. The run continues and the host analyses all recorded anomalies at the end;
+- *stop and report* when that health check fails, when a transfer does not complete, when
+  PCFG_DONE drops, or when the anomaly budget of the run is used up. Data taken after a failed
+  health check would not be trustworthy, and continuing could hide the cause.
+
 ## 7. Stages
 
 | stage | content | writes configuration memory? | output |
 |---|---|---|---|
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
-| S1 | Read-only census: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 |
+| S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range |
+| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 |
 | S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
@@ -192,11 +231,30 @@ To be settled from documents or on the board:
    zynq-xpart established only that GRESTORE disturbs a running design.
 7. **How are shift-register and LUT-RAM bits laid out within the 64 bits?** On UltraScale the
    shift-register state occupies only the odd bits. For the 7 series this is what S2 is for.
-8. **Getting results off the board.** Whether the prober can return to U-Boot so that U-Boot
-   writes the DDR buffer to the card, or the prober needs its own card writer, or the bulk
-   goes over the UART.
-9. **The PS-to-PL path under a bare-metal program.** Which clock and reset state the U-Boot
-   hand-off leaves, and what the prober must set up itself before touching the probe circuit.
+8. **Getting results off the board, and returning to U-Boot.** The earlier PS program on this
+   board (zynq-psoracle's, started with `go 0x02000000`) brought its own startup code and
+   took the machine over; it never returned. The prober is meant to be a function in U-Boot's
+   context that returns, so that U-Boot can save the DDR buffer (this U-Boot has `go`, FAT
+   write and ext4 write). `probes/ret2uboot` tests exactly that and nothing else: it prints
+   two lines, snapshots PS registers read-only, fills a 64 KiB buffer and returns 0. Its
+   pre-run check passes on the host (`tests/test_ret2uboot.py`, 11 tests; five mutants
+   killed). Not yet run on a board.
+9. **The PS-to-PL path under a bare-metal program.** What is already known, from our own
+   earlier work, none of it re-verified for this project:
+   - this U-Boot's `fpga loadb` enables the PS-PL level shifters and releases the FPGA resets
+     after a load (`zynq_slcr_devcfg_enable()` in its source);
+   - on the 4203 the boot loader leaves FCLK0 at 50 MHz (measured on `17A6`); it must still
+     be decoded and confirmed, never assumed;
+   - zynq-psoracle's PS program read and wrote an AXI-Lite slave at `0x43C00000` on M_AXI_GP0
+     from bare metal on this board, and did PCAP readback by DMA;
+   - zynq-fabricmap has the eligibility check for the clock path (PLL lock, FCLK0 source and
+     divisors) and an AXI-Lite carrier in RTL;
+   - the JTAG smoke test of the 4203 names the three registers that let a load "succeed" into
+     a dark fabric (PCFG_PROG_B, LVL_SHFTR_EN, FPGA_RST_CTRL).
+   `probes/ret2uboot` records these registers as U-Boot leaves them, which is the baseline
+   the prober's own check will be written against. What remains open is whether anything
+   differs when the reader is a returning function rather than a stand-alone image (caches
+   and DMA buffers in particular).
 
 Decided on 2026-11-13: see section 12.
 
@@ -210,6 +268,10 @@ Decided on 2026-11-13: see section 12.
 - XC7K70T work, if any, is a separate project. This one is limited to the XC7Z010.
 - Exploring without prjxray-db is the point; prjxray-db is the grader, not the teacher.
 - The two attack papers that could not be analysed are dropped from the survey.
+- Later the same day: zynq-fabricmap's structure description is used as it is; a run starts
+  on a small known range and is widened once the principle is confirmed; the safety check is
+  by rule and envelope because unknown frames cannot be enumerated in advance; the first
+  board test is whether a bare-metal function returns to U-Boot cleanly.
 
 ## 13. Relation to other projects
 

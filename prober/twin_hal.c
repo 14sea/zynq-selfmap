@@ -13,7 +13,10 @@
  *   ctrl lpbk nodone dcache stale   a gate or the stale-status check fails
  *   err@N timeout@N                 command N ends with an error bit / never completes
  *   drop@N dropafter@N              PCFG_DONE falls during command N / between command N and the next
- *   short@R padnz@R flip@R          read R delivers 150 words / a nonzero pad word / one flipped frame bit
+ *   short@R padnz@R flip@R          frame read R delivers 150 words / a nonzero pad word / one flipped frame bit
+ *   farshort@K farflip@K            FAR-register read K delivers nothing / a changed value
+ * SM_FAR_RULE=skip makes the FAR register end one frame further than the last frame delivered (the pad counted);
+ * the default leaves it at the next unread frame. Which the device does is what S1b.0 is to find out.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +28,7 @@
 static uint32_t ddr[DDR_WORDS];
 static uint32_t reg_ctrl = 0x4E00E07Fu, reg_mctrl = 0x30800100u, reg_sts = 0x50021004u, reg_status = 0x40000A30u;
 static uint32_t dma_src, dma_dst, dma_slen, sctlr = 0x08C51879u;   /* data cache off, as after U-Boot's `dcache off` */
-static unsigned n_dma, n_read_dma; static int done_pending, drop_on_next_clear;
+static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_next_clear, far_skips;
 static char uart[4096]; static unsigned uart_n;
 
 /* frames */
@@ -43,8 +46,10 @@ static int fault_at(const char *name, unsigned index)
     char key[64]; const char *p;
     if (!fault) return 0;
     snprintf(key, sizeof key, "%s@%u", name, index);
-    p = strstr(fault, key);
-    return p && (p[strlen(key)] == 0 || p[strlen(key)] == ',');
+    for (p = strstr(fault, key); p; p = strstr(p + 1, key))                  /* a whole entry: "flip@5" is not inside "farflip@5" */
+        if ((p == fault || p[-1] == ',') && (p[strlen(key)] == 0 || p[strlen(key)] == ','))
+            return 1;
+    return 0;
 }
 static int fault_on(const char *name)
 {
@@ -83,7 +88,8 @@ static void engine_feed(const uint32_t *w, uint32_t n)
                     else printf("VIOLATION write to register %u\n", reg);
                 }
             } else if (op == 1u) {                       /* read header */
-                if (reg != 3u || count != 0u) printf("VIOLATION read of register %u count %u\n", reg, count);
+                if (reg == 1u && count == 1u) { q_n = q_at = 0; queue[q_n++] = far_reg; }             /* the FAR register */
+                else if (reg != 3u || count != 0u) printf("VIOLATION read of register %u count %u\n", reg, count);
             } else printf("VIOLATION type-1 op %u\n", op);
         } else if (type == 2u) {
             count = x & 0x07FFFFFFu;
@@ -93,6 +99,7 @@ static void engine_feed(const uint32_t *w, uint32_t n)
             for (k = 0; k < FRAME_WORDS && q_n < count; k++) queue[q_n++] = 0u;          /* the pad frame */
             for (f = far_reg; q_n < count; f++)
                 for (k = 0; k < FRAME_WORDS && q_n < count; k++) queue[q_n++] = frame(f)[k];
+            far_reg = f + (far_skips ? 1u : 0u);         /* the register moves on as frames are read; by which rule is the open question */
         } else printf("VIOLATION header %08x\n", x);
     }
 }
@@ -112,13 +119,20 @@ static void dma_execute(uint32_t dlen)
         engine_feed(&ddr[(a - DDR_BASE) / 4u], dma_slen);
     } else if (dma_src == PCAP_ENDPOINT && (dma_dst & 3u) == DMA_HOLD_TAG && dma_slen == 0u) {
         uint32_t a = dma_dst & ~3u;
-        n_read_dma++;
-        if (!in(a, DST_BUF, 256u)) printf("VIOLATION read destination %08x\n", a);
+        if (!in(a, DST_BUF, DATA2_WORDS)) printf("VIOLATION read destination %08x\n", a);
         n = dlen;
-        if (fault_at("short", n_read_dma)) n = 150u;
-        for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
-        if (fault_at("padnz", n_read_dma)) ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u;
-        if (fault_at("flip", n_read_dma)) ddr[(a - DDR_BASE) / 4u + FRAME_WORDS + 3u] ^= 0x00010000u;
+        if (dlen == 1u) {                                                     /* a register read */
+            n_far_read++;
+            if (fault_at("farshort", n_far_read)) n = 0u;
+            for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
+            if (n && fault_at("farflip", n_far_read)) ddr[(a - DDR_BASE) / 4u] ^= 0x00000004u;
+        } else {
+            n_read_dma++;
+            if (fault_at("short", n_read_dma)) n = 150u;
+            for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
+            if (fault_at("padnz", n_read_dma)) ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u;
+            if (fault_at("flip", n_read_dma)) ddr[(a - DDR_BASE) / 4u + FRAME_WORDS + 3u] ^= 0x00010000u;
+        }
     } else {
         printf("VIOLATION dma shape\n");
         reg_sts |= 0x00008000u;                                               /* DMA_CMD_ERR */
@@ -161,14 +175,14 @@ void hal_wr(uint32_t a, uint32_t v)
 
 uint32_t hal_mem_rd(uint32_t a)
 {
-    if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, READ_WORDS)))
+    if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
         { printf("VIOLATION memory read %08x\n", a); return 0; }
     return ddr[(a - DDR_BASE) / 4u];
 }
 
 void hal_mem_wr(uint32_t a, uint32_t v)
 {
-    if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, CMD_BUF, STREAM_WORDS) || in(a, DST_BUF, READ_WORDS)))
+    if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, CMD_BUF, STREAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
         { printf("VIOLATION memory write %08x\n", a); return; }
     ddr[(a - DDR_BASE) / 4u] = v;
 }
@@ -210,6 +224,7 @@ int main(int argc, char **argv)
         static uint32_t all[MAX_FRAMES * (FRAME_WORDS + 1)];
         FILE *f; unsigned long rc; uint32_t total;
         fault = getenv("SM_FAULT");
+        far_skips = getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skip");
         n = load_words(argv[2], all, MAX_FRAMES * (FRAME_WORDS + 1));
         if (n < 0 || n % (int)(FRAME_WORDS + 1)) return 2;
         for (i = 0; i < (unsigned)n / (FRAME_WORDS + 1); i++) {

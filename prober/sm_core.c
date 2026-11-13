@@ -273,12 +273,252 @@ static uint32_t finish(uint32_t status, uint32_t n_records, uint32_t n_anomalies
     return status == S_DONE ? 0u : status;
 }
 
+/* ================================================================== stage 2 (S1b.0)
+ * Each operation reads n frames in one FDRO read and then, in the same session, the FAR register.
+ * The record layout differs from stage 1 (REC2_WORDS); the header is the same. */
+static void r2_wr(uint32_t rec, uint32_t field, uint32_t v) { res_wr(HDR_WORDS + rec * REC2_WORDS + field, v); }
+static uint32_t r2_rd(uint32_t rec, uint32_t field)         { return res_rd(HDR_WORDS + rec * REC2_WORDS + field); }
+
+static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, uint32_t repeat, uint32_t op,
+                        uint32_t far_lo, uint32_t far_hi, uint32_t poll_limit)
+{
+    uint32_t stream[STREAM_WORDS], farrd[FARRD_WORDS], clean[CLEANUP_WORDS];
+    uint32_t words = FRAME_WORDS * (n + 1u), i, code, g, sts = 0u, polls = 0u, survivors = 0u, w, value;
+
+    for (i = 0; i < REC2_WORDS; i++)
+        r2_wr(rec, i, 0u);
+    r2_wr(rec, R_FAR, far);
+    r2_wr(rec, R_KIND, kind);
+    r2_wr(rec, R_REPEAT, repeat);
+    r2_wr(rec, R_REF_EQUAL, 0xFFFFFFFFu);
+    r2_wr(rec, R_NFRAMES, n);
+    r2_wr(rec, R_OP, op);
+
+    sm_frames_stream(far, n, stream);
+    sm_far_read_stream(farrd);
+    sm_cleanup_stream(clean);
+    g = sm_guard(stream, STREAM_WORDS, far_lo, far_hi, words);
+    if (g == 0u)
+        g = sm_guard(farrd, FARRD_WORDS, far_lo, far_hi, words);
+    if (g == 0u)
+        g = sm_guard(clean, CLEANUP_WORDS, far_lo, far_hi, words);
+    r2_wr(rec, R_GUARD, g);
+    for (i = 0; i < STREAM_WORDS; i++)
+        r2_wr(rec, R_STREAM + i, stream[i]);
+    for (i = 0; i < FARRD_WORDS; i++)
+        r2_wr(rec, R_STREAM + STREAM_WORDS + i, farrd[i]);
+    for (i = 0; i < CLEANUP_WORDS; i++)
+        r2_wr(rec, R_STREAM + STREAM_WORDS + FARRD_WORDS + i, clean[i]);
+    if (g != 0u) {
+        r2_wr(rec, R_CODE, C_GUARD);
+        return C_GUARD;
+    }
+
+    for (i = 0; i < STREAM_WORDS; i++)
+        hal_mem_wr(CMD_BUF + 4u * i, stream[i]);
+    for (i = 0; i < words; i++)
+        hal_mem_wr(DST_BUF + 4u * i, SENTINEL);
+
+    code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, STREAM_WORDS, 0u, poll_limit, &sts, &polls);
+    r2_wr(rec, R_STS_CMD, sts); r2_wr(rec, R_POLLS_CMD, polls);
+    if (code == C_OK) {
+        code = dma(PCAP_ENDPOINT, DST_BUF | DMA_HOLD_TAG, 0u, words, poll_limit, &sts, &polls);
+        r2_wr(rec, R_STS_READ, sts); r2_wr(rec, R_POLLS_READ, polls);
+    }
+    for (i = 0; i < words; i++) {                       /* the raw words, whatever happened */
+        w = hal_mem_rd(DST_BUF + 4u * i);
+        r2_wr(rec, REC2_DATA + i, w);
+        if (w == SENTINEL)
+            survivors++;
+    }
+    r2_wr(rec, R_SURVIVORS, survivors);
+
+    if (code == C_OK) {                                 /* the FAR register, as this read left it */
+        for (i = 0; i < FARRD_WORDS; i++)
+            hal_mem_wr(CMD_BUF + 4u * i, farrd[i]);
+        hal_mem_wr(DST_BUF, SENTINEL);
+        code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, FARRD_WORDS, 0u, poll_limit, &sts, &polls);
+        r2_wr(rec, REC2_FARBLK + F_STS_CMD, sts); r2_wr(rec, REC2_FARBLK + F_POLLS_CMD, polls);
+        if (code == C_OK) {
+            code = dma(PCAP_ENDPOINT, DST_BUF | DMA_HOLD_TAG, 0u, 1u, poll_limit, &sts, &polls);
+            r2_wr(rec, REC2_FARBLK + F_STS_READ, sts); r2_wr(rec, REC2_FARBLK + F_POLLS_READ, polls);
+            value = hal_mem_rd(DST_BUF);
+            r2_wr(rec, REC2_FARBLK + F_VALUE, value);
+            r2_wr(rec, REC2_FARBLK + F_UNREAD, value == SENTINEL ? 1u : 0u);
+        }
+    }
+    if (code == C_OK) {                                 /* leave the engine desynchronised */
+        for (i = 0; i < CLEANUP_WORDS; i++)
+            hal_mem_wr(CMD_BUF + 4u * i, clean[i]);
+        code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, CLEANUP_WORDS, 0u, poll_limit, &sts, &polls);
+        r2_wr(rec, R_STS_CLEAN, sts); r2_wr(rec, R_POLLS_CLEAN, polls);
+    }
+    r2_wr(rec, R_STATUS_AFTER, hal_rd(DEVCFG_STATUS));
+
+    if (code == C_OK && !(hal_rd(DEVCFG_INT_STS) & STS_PCFG_DONE))
+        code = C_DONE_DROPPED;
+    if (code == C_OK && survivors != 0u)
+        code = C_SURVIVORS;
+    if (code == C_OK) {
+        for (i = 0; i < FRAME_WORDS; i++)
+            if (r2_rd(rec, REC2_DATA + i) != 0u) {
+                code = C_PAD_NONZERO;
+                break;
+            }
+    }
+    if (code == C_OK && r2_rd(rec, REC2_FARBLK + F_UNREAD))
+        code = C_FAR_UNREAD;
+    r2_wr(rec, R_CODE, code);
+    return code;
+}
+
+/* are the first n frames after the pad equal in two stage-2 records? */
+static int same_data(uint32_t rec_a, uint32_t rec_b, uint32_t n)
+{
+    uint32_t i;
+    for (i = FRAME_WORDS; i < FRAME_WORDS * (n + 1u); i++)
+        if (r2_rd(rec_a, REC2_DATA + i) != r2_rd(rec_b, REC2_DATA + i))
+            return 0;
+    return 1;
+}
+
+/* a reference read is healthy if it is clean and equals the baseline, frame and FAR value alike */
+static uint32_t ref_healthy(uint32_t rec, uint32_t code)
+{
+    return (code == C_OK && same_data(0u, rec, 1u)
+            && r2_rd(rec, REC2_FARBLK + F_VALUE) == r2_rd(0u, REC2_FARBLK + F_VALUE)) ? 1u : 0u;
+}
+
+static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalies, uint32_t stop_record)
+{
+    res_wr(H_STATUS, status);
+    if (status == S_BAD_PARAMS) {
+        put("SM2 end status="); puthex(status); put("\r\n");
+        res_wr(H_TOTAL_WORDS, HDR_WORDS);
+        return status;
+    }
+    res_wr(H_N_RECORDS, n_records);
+    res_wr(H_N_ANOMALIES, n_anomalies);
+    res_wr(H_TOTAL_WORDS, HDR_WORDS + n_records * REC2_WORDS);
+    res_wr(H_STOP_RECORD, stop_record);
+    res_wr(H_INT_STS1, hal_rd(DEVCFG_INT_STS));
+    res_wr(H_STATUS1, hal_rd(DEVCFG_STATUS));
+    put("SM2 end status="); puthex(status);
+    put(" records="); puthex(n_records);
+    put(" anomalies="); puthex(n_anomalies);
+    put(" words="); puthex(HDR_WORDS + n_records * REC2_WORDS);
+    put("\r\n");
+    return status == S_DONE ? 0u : status;
+}
+
+static uint32_t op_frames(uint32_t k)
+{
+    return (par(k < 8u ? P_NFRAMES_LO : P_NFRAMES_HI) >> (4u * (k & 7u))) & 0xFu;
+}
+
+static uint32_t run_s2(void)
+{
+    uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v, n, far, first;
+    uint32_t far_lo, far_hi, ref_far, n_ops, repeats, budget, poll_limit;
+
+    put("SM2 start\r\n");
+    for (i = 0; i < HDR_WORDS; i++)
+        res_wr(i, 0u);
+    res_wr(H_MAGIC, RESULT_MAGIC);
+    res_wr(H_VERSION, 1u);
+    res_wr(H_REC_WORDS, REC2_WORDS);
+    res_wr(H_HDR_WORDS, HDR_WORDS);
+    res_wr(H_STOP_RECORD, 0xFFFFFFFFu);
+    for (i = 0; i < PARAM_WORDS; i++)
+        res_wr(H_PARAMS + i, par(i));
+    res_wr(H_SCTLR, hal_cpu(CPU_SCTLR));
+    res_wr(H_CPSR, hal_cpu(CPU_CPSR));
+    res_wr(H_SP, hal_cpu(CPU_SP));
+    res_wr(H_R9, hal_cpu(CPU_R9));
+
+    far_lo = par(P_FAR_LO); far_hi = par(P_FAR_HI); ref_far = par(P_REF_FAR);
+    n_ops = par(P_N_FARS); repeats = par(P_REPEATS); budget = par(P_ANOMALY_BUDGET); poll_limit = par(P_POLL_LIMIT);
+    if (par(P_VERSION) != 1u || far_lo > far_hi || ref_far < far_lo || ref_far > far_hi
+        || n_ops == 0u || n_ops > MAX_FARS || repeats == 0u || repeats > MAX_REPEATS
+        || budget > 64u || poll_limit == 0u || poll_limit > 0x10000000u)
+        return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+    for (k = 0; k < n_ops; k++) {
+        far = par(P_FARS + k); n = op_frames(k);
+        if (n == 0u || n > MAX_READ_FRAMES || far < far_lo || far > far_hi || far + (n - 1u) > far_hi || far + (n - 1u) < far)
+            return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+    }
+
+    v = hal_rd(DEVCFG_CTRL);   res_wr(H_CTRL, v);
+    if ((v & CTRL_PCAP_MASK) != CTRL_PCAP_MASK)
+        return finish2(S_GATE_CTRL, 0u, 0u, 0xFFFFFFFFu);
+    v = hal_rd(DEVCFG_MCTRL);  res_wr(H_MCTRL, v);
+    if (v & MCTRL_PCAP_LPBK)
+        return finish2(S_GATE_LPBK, 0u, 0u, 0xFFFFFFFFu);
+    v = hal_rd(DEVCFG_INT_STS); res_wr(H_INT_STS0, v);
+    res_wr(H_STATUS0, hal_rd(DEVCFG_STATUS));
+    if (!(v & STS_PCFG_DONE))
+        return finish2(S_GATE_NOT_DONE, 0u, 0u, 0xFFFFFFFFu);
+    if (hal_cpu(CPU_SCTLR) & 0x4u)
+        return finish2(S_GATE_DCACHE, 0u, 0u, 0xFFFFFFFFu);
+
+    code = read_op(rec, ref_far, 1u, KIND_BASELINE, 0u, 0xFFFFFFFFu, far_lo, far_hi, poll_limit);
+    rec++;
+    if (code != C_OK)
+        return finish2(S_STOP_BASELINE | code, rec, 0u, 0u);
+
+    for (r = 0; r < repeats; r++) {
+        for (k = 0; k < n_ops; k++) {
+            far = par(P_FARS + k); n = op_frames(k);
+            code = read_op(rec, far, n, KIND_TARGET, r, k, far_lo, far_hi, poll_limit);
+            if (code == C_OK) {                         /* against the first clean run of this same operation */
+                first = 0xFFFFFFFFu;
+                for (i = 1u; i < rec; i++)
+                    if (r2_rd(i, R_KIND) == KIND_TARGET && r2_rd(i, R_OP) == k && r2_rd(i, R_CODE) == C_OK) {
+                        first = i;
+                        break;
+                    }
+                if (first != 0xFFFFFFFFu) {
+                    if (!same_data(first, rec, n))
+                        code = C_REPEAT_DIFFERS;
+                    else if (r2_rd(first, REC2_FARBLK + F_VALUE) != r2_rd(rec, REC2_FARBLK + F_VALUE))
+                        code = C_FAR_DIFFERS;
+                    r2_wr(rec, R_CODE, code);
+                }
+            }
+            rec++;
+            if (code == C_OK)
+                continue;
+            anomalies++;
+            if (IS_INTERFACE(code))
+                return finish2(S_STOP_INTERFACE | code, rec, anomalies, rec - 1u);
+            code = read_op(rec, ref_far, 1u, KIND_HEALTH, r, 0xFFFFFFFFu, far_lo, far_hi, poll_limit);
+            v = ref_healthy(rec, code);
+            r2_wr(rec, R_REF_EQUAL, v);
+            rec++;
+            if (!v)
+                return finish2(S_STOP_HEALTH, rec, anomalies, rec - 1u);
+            if (anomalies > budget)
+                return finish2(S_STOP_BUDGET, rec, anomalies, rec - 2u);
+        }
+    }
+
+    code = read_op(rec, ref_far, 1u, KIND_FINAL, repeats, 0xFFFFFFFFu, far_lo, far_hi, poll_limit);
+    v = ref_healthy(rec, code);
+    r2_wr(rec, R_REF_EQUAL, v);
+    rec++;
+    if (!v)
+        return finish2(S_STOP_HEALTH, rec, anomalies, rec - 1u);
+    return finish2(S_DONE, rec, anomalies, 0xFFFFFFFFu);
+}
+
 /* ------------------------------------------------------------------ stage S1a */
 uint32_t sm_run(void)
 {
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v;
     uint32_t far_lo, far_hi, ref_far, n_fars, repeats, budget, poll_limit, far, first;
 
+    if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 2u)
+        return run_s2();
     put("SM1 start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
         res_wr(i, 0u);

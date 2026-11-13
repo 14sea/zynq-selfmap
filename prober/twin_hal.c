@@ -5,6 +5,7 @@
  * logged as VIOLATION.
  *
  *   twin gen <far-hex>                      print the readback stream and the cleanup stream
+ *   twin genframes <far-hex> <n>            print the stream reading n frames, and the FAR-register read stream
  *   twin guard <lo> <hi> <max> <w0> <w1>..  run the guard on a stream; print its return value
  *   twin run <frames.txt> <params.txt> <result.bin>   run S1a; SM_FAULT selects injected faults
  *
@@ -191,6 +192,13 @@ int main(int argc, char **argv)
         sm_readback_stream((uint32_t)strtoul(argv[2], 0, 16), s); sm_cleanup_stream(c);
         for (i = 0; i < STREAM_WORDS; i++) printf("%08x%c", s[i], i + 1 < STREAM_WORDS ? ' ' : '\n');
         for (i = 0; i < CLEANUP_WORDS; i++) printf("%08x%c", c[i], i + 1 < CLEANUP_WORDS ? ' ' : '\n');
+        return 0;
+    }
+    if (argc >= 4 && !strcmp(argv[1], "genframes")) {
+        uint32_t f[FARRD_WORDS];
+        sm_frames_stream((uint32_t)strtoul(argv[2], 0, 16), (uint32_t)strtoul(argv[3], 0, 10), s); sm_far_read_stream(f);
+        for (i = 0; i < STREAM_WORDS; i++) printf("%08x%c", s[i], i + 1 < STREAM_WORDS ? ' ' : '\n');
+        for (i = 0; i < FARRD_WORDS; i++) printf("%08x%c", f[i], i + 1 < FARRD_WORDS ? ' ' : '\n');
         return 0;
     }
     if (argc >= 5 && !strcmp(argv[1], "guard")) {

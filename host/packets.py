@@ -7,6 +7,7 @@ whole words — so the two cannot share a mistake of form. tests/ hold them agai
 from __future__ import annotations
 
 DUMMY, SYNC, NOOP = 0xFFFFFFFF, 0xAA995566, 0x20000000
+FRAME_WORDS = 101
 REG = {0: "CRC", 1: "FAR", 2: "FDRI", 3: "FDRO", 4: "CMD", 5: "CTL0", 6: "MASK", 7: "STAT", 8: "LOUT",
        9: "COR0", 10: "MFWR", 11: "CBC", 12: "IDCODE", 13: "AXSS", 14: "COR1", 16: "WBSTAR", 17: "TIMER",
        22: "BOOTSTS", 24: "CTL1", 31: "BSPI"}
@@ -58,6 +59,7 @@ def readonly_problems(words: list[int], far_lo: int, far_hi: int, max_read: int)
     if not words:
         return ["an empty stream"]
     rcfg = far = False
+    far_value = 0
     pending_read = False
     for p in decode(words):
         k = p["kind"]
@@ -86,12 +88,14 @@ def readonly_problems(words: list[int], far_lo: int, far_hi: int, max_read: int)
                 value = p["payload"][0]
                 if not far_lo <= value <= far_hi:
                     problems.append(f"{where}: FAR {value:#010x} outside the envelope {far_lo:#010x}..{far_hi:#010x}")
-                far = True
+                far = True; far_value = value
             else:
                 problems.append(f"{where}: a write to {reg}")
         elif op == "read":
-            if reg != "FDRO":
-                problems.append(f"{where}: a read of {reg}")
+            if reg == "FAR" and k == "type1" and count == 1:
+                pass                                 # one word of the FAR register: a read, of a readable register
+            elif reg != "FDRO":
+                problems.append(f"{where}: a read of {reg}" + (f" ({count} words)" if reg == "FAR" else ""))
             elif k == "type1":
                 if count != 0:
                     problems.append(f"{where}: a type-1 FDRO read of {count} words")
@@ -101,6 +105,10 @@ def readonly_problems(words: list[int], far_lo: int, far_hi: int, max_read: int)
                     problems.append(f"{where}: a type-2 read without the FDRO header before it")
                 if not 1 <= count <= max_read:
                     problems.append(f"{where}: a read of {count} words (limit {max_read})")
+                elif count % FRAME_WORDS or count < 2 * FRAME_WORDS:
+                    problems.append(f"{where}: a read of {count} words is not a pad frame plus whole frames")
+                elif far and far_value + count // FRAME_WORDS - 2 > far_hi:
+                    problems.append(f"{where}: the read runs past the envelope (from {far_value:#010x}, {count // FRAME_WORDS - 1} frames)")
                 if not (rcfg and far):
                     problems.append(f"{where}: a read before RCFG and a FAR were given in this stream")
                 pending_read = False

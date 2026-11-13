@@ -71,6 +71,56 @@ class Generator(unittest.TestCase):
             self.assertEqual(packets.readonly_problems(clean, LO, HI, MAXR), [])
 
 
+def genframes(far: int, n: int) -> tuple[list[int], list[int]]:
+    out = subprocess.run([str(TWIN), "genframes", f"{far:x}", str(n)], check=True, capture_output=True, text=True).stdout.splitlines()
+    return [int(w, 16) for w in out[0].split()], [int(w, 16) for w in out[1].split()]
+
+
+class StageTwoStreams(unittest.TestCase):
+    """Reading several frames in one read, and reading the FAR register back."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        build()
+
+    def both(self, words: list[int], maxr: int) -> tuple[bool, bool]:
+        return guard(words, maxr=maxr) == 0, packets.readonly_problems(words, LO, HI, maxr) == []
+
+    def test_the_far_register_read_is_ug470_table_6_1_with_the_far_address(self) -> None:
+        _, farrd = genframes(0xB98, 1)
+        self.assertEqual(farrd, [0x20000000, 0x28002001, 0x20000000, 0x20000000])
+        self.assertEqual(0x28002001, 0x2800E001 & ~(0x3FFF << 13) | (1 << 13), "the STAT read header of table 6-1 with register 1")
+        self.assertEqual(self.both(farrd, 404), (True, True))
+
+    def test_the_frames_stream_differs_from_the_pinned_one_only_in_its_length(self) -> None:
+        one, _ = gen(0xB98)
+        for n in (1, 2, 3):
+            stream, _ = genframes(0xB98, n)
+            self.assertEqual([i for i in range(43) if stream[i] != one[i]], [] if n == 1 else [10])
+            self.assertEqual(stream[10], 0x48000000 | 101 * (n + 1))
+
+    def test_a_multi_frame_read_must_stay_inside_the_envelope_and_the_allowed_length(self) -> None:
+        for far, n, maxr, ok in ((0xB98, 3, 404, True), (0xB98, 2, 404, True), (0xB99, 2, 404, True), (0xB9A, 1, 404, True),
+                                 (0xB99, 3, 404, False), (0xB9A, 2, 404, False), (0xB98, 3, 303, False), (0xB98, 2, 202, False)):
+            with self.subTest(far=far, n=n, maxr=maxr):
+                stream, _ = genframes(far, n)
+                self.assertEqual(self.both(stream, maxr), (ok, ok))
+
+    def test_a_read_that_is_not_a_pad_plus_whole_frames_is_refused(self) -> None:
+        stream, _ = genframes(0xB98, 1)
+        for count in (1, 100, 101, 201, 203, 300, 302, 304, 403):
+            with self.subTest(count=count):
+                s = list(stream); s[10] = 0x48000000 | count
+                self.assertEqual(self.both(s, 404), (False, False))
+
+    def test_only_the_far_register_and_only_one_word_of_it(self) -> None:
+        for header, what in ((0x28002000, "a zero-word FAR read"), (0x28002002, "a two-word FAR read"), (0x2800E001, "a STAT read"),
+                             (0x28012001, "a COR0 read"), (0x28018001, "an IDCODE read"), (0x28000001, "a CRC read"),
+                             (0x30002001, "a FAR write without a value in the envelope")):
+            with self.subTest(what):
+                self.assertEqual(self.both([0x20000000, header, 0x20000000, 0x20000000], 404), (False, False))
+
+
 class Guard(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

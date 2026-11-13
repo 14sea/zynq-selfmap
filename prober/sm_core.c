@@ -21,6 +21,22 @@ void sm_readback_stream(uint32_t far, uint32_t out[STREAM_WORDS])
         out[i++] = W_NOOP;
 }
 
+/* the same stream reading n_frames frames in one FDRO read: only the length differs */
+void sm_frames_stream(uint32_t far, uint32_t n_frames, uint32_t out[STREAM_WORDS])
+{
+    sm_readback_stream(far, out);
+    out[10] = W_T2_READ | (FRAME_WORDS * (n_frames + 1u));
+}
+
+/* read the FAR register, inside a session that is already synchronised (UG470 table 6-1, steps 6 to 9) */
+void sm_far_read_stream(uint32_t out[FARRD_WORDS])
+{
+    out[0] = W_NOOP;
+    out[1] = W_RD_FAR_1;
+    out[2] = W_NOOP;
+    out[3] = W_NOOP;
+}
+
 void sm_cleanup_stream(uint32_t out[CLEANUP_WORDS])
 {
     out[0] = W_NOOP;
@@ -33,9 +49,19 @@ void sm_cleanup_stream(uint32_t out[CLEANUP_WORDS])
 /* ------------------------------------------------------------------ guard
  * Accepts only what a read-only stage may send. Returns 0, or ((index + 1) << 8) | reason. */
 #define REFUSE(i, why) ((((i) + 1u) << 8) | (why))
+/* how many whole frames a word count is; no division, the image has no runtime library */
+static uint32_t whole_frames(uint32_t words)
+{
+    uint32_t n = 0u;
+    while (words >= FRAME_WORDS) {
+        words -= FRAME_WORDS;
+        n++;
+    }
+    return words ? 0xFFFFFFFFu : n;
+}
 uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_hi, uint32_t max_read)
 {
-    uint32_t i = 0, x, v;
+    uint32_t i = 0, x, v, far_value = 0u;
     int rcfg = 0, far = 0, hdr = 0;
 
     if (n == 0u)
@@ -53,6 +79,11 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
             v = x & 0x07FFFFFFu;
             if ((x & 0xF8000000u) != W_T2_READ || v == 0u || v > max_read || !rcfg || !far)
                 return REFUSE(i, 3u);
+            v = whole_frames(v);                                         /* v <= max_read was checked just above */
+            if (v == 0xFFFFFFFFu || v < 2u)                             /* a pad frame and whole frames */
+                return REFUSE(i, 10u);
+            if (far_value + (v - 2u) > far_hi)                          /* the last frame read is still inside */
+                return REFUSE(i, 11u);
             hdr = 0; i++;
             continue;
         }
@@ -73,10 +104,12 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
             v = w[i + 1u];
             if (v < far_lo || v > far_hi)
                 return REFUSE(i + 1u, 7u);
-            far = 1;
+            far = 1; far_value = v;
             i += 2u;
         } else if (x == W_RD_FDRO_0) {
             hdr = 1; i++;
+        } else if (x == W_RD_FAR_1) {                   /* one word of the FAR register: a read, of a readable register */
+            i++;
         } else {
             return REFUSE(i, 8u);
         }

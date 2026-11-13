@@ -29,12 +29,16 @@
 #define W_WR_FAR_1         0x30002001u
 #define W_RD_FDRO_0        0x28006000u
 #define W_T2_READ          0x48000000u
+#define W_RD_FAR_1         0x28002001u   /* read the FAR register, one word (UG470 table 6-1 with the FAR address) */
 #define CMD_RCFG           0x00000004u
 #define CMD_DESYNC         0x0000000Du
 #define FRAME_WORDS        101u
 #define READ_WORDS         202u          /* (frames to read + 1) x 101: the first frame out is a pad */
 #define STREAM_WORDS       43u
 #define CLEANUP_WORDS      5u
+#define FARRD_WORDS        4u            /* NOOP, the read header, NOOP, NOOP */
+#define MAX_READ_FRAMES    3u            /* stage 2: frames per FDRO read */
+#define DATA2_WORDS        (FRAME_WORDS * (MAX_READ_FRAMES + 1u))   /* 404 */
 
 /* ---- DDR areas ---- */
 #define RESULT_ADDR        0x10000000u
@@ -49,6 +53,8 @@
 #define PARAM_MAGIC        0x31504D53u   /* "SMP1" */
 enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_REPEATS,
        P_ANOMALY_BUDGET, P_POLL_LIMIT, P_FARS = 16 };
+#define P_NFRAMES_LO       10u           /* stage 2: frames per read, 4 bits per entry, entries 0..7 */
+#define P_NFRAMES_HI       11u           /*          entries 8..15 */
 #define MAX_FARS           16u
 #define MAX_REPEATS        8u
 
@@ -57,6 +63,13 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define HDR_WORDS          64u
 #define REC_HDR_WORDS      16u
 #define REC_WORDS          (REC_HDR_WORDS + STREAM_WORDS + CLEANUP_WORDS + READ_WORDS)   /* 266 */
+/* stage 2 record: header, the three streams, eight words about the FAR read, the raw data */
+#define REC2_FARBLK        (REC_HDR_WORDS + STREAM_WORDS + FARRD_WORDS + CLEANUP_WORDS)   /* 68 */
+#define REC2_DATA          (REC2_FARBLK + 8u)                                             /* 76 */
+#define REC2_WORDS         (REC2_DATA + DATA2_WORDS)                                      /* 480 */
+enum { F_STS_CMD, F_POLLS_CMD, F_STS_READ, F_POLLS_READ, F_VALUE, F_UNREAD };           /* the FAR-read block */
+#define R_NFRAMES          14u           /* stage 2 only; zero in stage 1 */
+#define R_OP               15u
 enum { H_MAGIC, H_VERSION, H_STATUS, H_N_RECORDS, H_N_ANOMALIES, H_TOTAL_WORDS, H_REC_WORDS, H_HDR_WORDS,
        H_CTRL, H_MCTRL, H_INT_STS0, H_STATUS0, H_SCTLR, H_CPSR, H_SP, H_R9,
        H_INT_STS1, H_STATUS1, H_STOP_RECORD, H_PARAMS = 32 };
@@ -69,6 +82,8 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define C_SURVIVORS        0x10u         /* data class: a short read */
 #define C_PAD_NONZERO      0x11u
 #define C_REPEAT_DIFFERS   0x12u
+#define C_FAR_DIFFERS      0x13u         /* stage 2: the FAR read back differs from the first time */
+#define C_FAR_UNREAD       0x14u         /* stage 2: the FAR read delivered nothing */
 #define C_STALE            0x20u         /* interface class */
 #define C_DEVERR           0x21u
 #define C_TIMEOUT          0x22u
@@ -101,6 +116,8 @@ void     hal_putc(char c);
 /* ---- sm_core.c ---- */
 void     sm_readback_stream(uint32_t far, uint32_t out[STREAM_WORDS]);
 void     sm_cleanup_stream(uint32_t out[CLEANUP_WORDS]);
+void     sm_frames_stream(uint32_t far, uint32_t n_frames, uint32_t out[STREAM_WORDS]);
+void     sm_far_read_stream(uint32_t out[FARRD_WORDS]);
 uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_hi, uint32_t max_read);
 uint32_t sm_run(void);
 

@@ -44,6 +44,31 @@ return to U-Boot cleanly?
 | CPSR | `600001d3` | SVC mode, ARM state, IRQ and FIQ masked |
 | SP / r9 | `1eacabb0` / `1ead0ec0` | U-Boot's stack and its `gd`; identical on all three runs |
 
+## Saving the buffer to the card from U-Boot (same day, same power-on, then across a reset)
+
+After a fourth run of the program (buffers cleared first):
+
+| step | observed |
+|---|---|
+| `crc32 10000000 10000` (the whole 64 KiB buffer) | `3f2e0e62` |
+| `fatwrite mmc 0:1 10000000 smr0.bin 10000` | `65536 bytes written in 24 ms` |
+| `fatls mmc 0:1` | `smr0.bin`, 65536 bytes, beside the three boot files and the environment |
+| `mmc rescan`, `fatload mmc 0:1 11000000 smr0.bin`, `crc32 11000000 10000` | `3f2e0e62` |
+| `cmp.b 10000000 11000000 10000` | `Total of 65536 byte(s) were the same` |
+| `reset`; the board returns to the prompt with no key pressed (`bootdelay=-1` from the card) | banner: `Model: Ebang EBAZ4203`, `DRAM: ECC disabled 512 MiB` |
+| after the reset: read-back area cleared, `fatload` again, `crc32 11000000 10000` | `3f2e0e62`; pattern part `4caaaa26` |
+
+So a result buffer left in DDR by a returning program can be written to the card by U-Boot
+and read back identical after a reset. Only the FAT partition was tried; the ext4 partition
+was not. The file has not yet been read on the host.
+
+One thing seen at the reset: `Loading Environment from FAT... *** Warning - some problems
+detected reading environment; recovered successfully`. The environment was saved once, so
+only one of the two redundant copies exists (`uboot-redund.env`); the value read back is the
+saved one (`bootdelay=-1`). Not changed.
+
+Raw console traffic for this part: `console_fatwrite.log`.
+
 ## What this does and does not establish
 
 - A function that keeps to U-Boot's context (its stack, r9 untouched, no VFP, no mode change)
@@ -51,8 +76,8 @@ return to U-Boot cleanly?
   working and the function can be run again.
 - The data cache is on. A prober that uses DMA through PCAP must flush and invalidate its
   buffers itself; nothing here tested that.
-- Nothing here touched the PL, PCAP, or the card from inside the program. Saving a buffer to the
-  card from U-Boot after a run was not tried.
-- One board, one power-on, three runs.
+- Nothing here touched the PL or PCAP, and the program itself never touches the card; the card
+  is written by U-Boot after the program has returned.
+- One board, one power-on (plus one soft reset), four runs.
 
 Raw console traffic, including every byte sent: `console.log`.

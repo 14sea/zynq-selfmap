@@ -240,8 +240,9 @@ To be settled from documents or on the board:
    pre-run check passes on the host (`tests/test_ret2uboot.py`, 11 tests; five mutants
    killed). **Run on `17A6` on 2026-11-13: it returns cleanly** — three runs in one power-on,
    every value as fixed beforehand, U-Boot intact afterwards
-   (`evidence/ret2uboot_17A6_2026-11-13/RESULT.md`). Saving the buffer to the card from U-Boot
-   after a run has not been tried yet.
+   (`evidence/ret2uboot_17A6_2026-11-13/RESULT.md`). Saving the buffer to the card works too:
+   `fatwrite` of the 64 KiB buffer, read back identical after `mmc rescan` and again after a
+   reset (FAT partition only; ext4 untried). This question is closed for S1-sized data.
 9. **The PS-to-PL path under a bare-metal program.** What is already known, from our own
    earlier work, none of it re-verified for this project:
    - this U-Boot's `fpga loadb` enables the PS-PL level shifters and releases the FPGA resets

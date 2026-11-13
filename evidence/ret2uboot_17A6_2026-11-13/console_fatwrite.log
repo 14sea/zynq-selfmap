@@ -1,0 +1,127 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'crc32 02000000 17c\r'>>
+crc32 02000000 17c
+crc32 for 02000000 ... 0200017b ==> 0226ee98
+Zynq> 
+<<TX b'mw.l 10000000 0 4000\r'>>
+mw.l 10000000 0 4000
+Zynq> 
+<<TX b'mw.l 11000000 0 4000\r'>>
+mw.l 11000000 0 4000
+Zynq> 
+<<TX b'go 0x02000000\r'>>
+go 0x02000000
+## Starting application at 0x02000000 ...
+SMR0 enter
+SMR0 exit rc=0
+## Application terminated, rc = 0x0
+Zynq> 
+<<TX b'crc32 10001000 f000\r'>>
+crc32 10001000 f000
+crc32 for 10001000 ... 1000ffff ==> 4caaaa26
+Zynq> 
+<<TX b'crc32 10000000 10000\r'>>
+crc32 10000000 10000
+crc32 for 10000000 ... 1000ffff ==> 3f2e0e62
+Zynq> 
+<<TX b'fatwrite mmc 0:1 10000000 smr0.bin 10000\r'>>
+fatwrite mmc 0:1 10000000 smr0.bin 10000
+65536 bytes written in 24 ms (2.6 MiB/s)
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+
+5 file(s), 0 dir(s)
+
+Zynq> 
+<<TX b'mmc rescan\r'>>
+mmc rescan
+Zynq> 
+<<TX b'fatload mmc 0:1 11000000 smr0.bin\r'>>
+fatload mmc 0:1 11000000 smr0.bin
+65536 bytes read in 11 ms (5.7 MiB/s)
+Zynq> 
+<<TX b'crc32 11000000 10000\r'>>
+crc32 11000000 10000
+crc32 for 11000000 ... 1100ffff ==> 3f2e0e62
+Zynq> 
+<<TX b'crc32 11001000 f000\r'>>
+crc32 11001000 f000
+crc32 for 11001000 ... 1100ffff ==> 4caaaa26
+Zynq> 
+<<TX b'cmp.b 10000000 11000000 10000\r'>>
+cmp.b 10000000 11000000 10000
+Total of 65536 byte(s) were the same
+Zynq> 
+<<TX b'printenv bootdelay\r'>>
+printenv bootdelay
+bootdelay=-1
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'reset\r'>>
+reset
+U-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+Silicon version:	3
+Trying to boot from MMC1
+
+
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+CPU:   Zynq 7z010
+Silicon: v3.1
+Model: Ebang EBAZ4203
+DRAM:  ECC disabled 512 MiB
+Core:  20 devices, 14 uclasses, devicetree: separate
+Flash: 0 Bytes
+NAND:  0 MiB
+MMC:   mmc@e0100000: 0
+Loading Environment from FAT... *** Warning - some problems detected reading environment; recovered successfully
+OK
+In:    serial@e0001000
+Out:   serial@e0001000
+Err:   serial@e0001000
+Net:   Could not get PHY for eth0: addr 0
+No ethernet found.
+
+Zynq> 
+<<TX b'printenv bootdelay\r'>>
+printenv bootdelay
+bootdelay=-1
+Zynq> 
+<<TX b'mw.l 11000000 0 4000\r'>>
+mw.l 11000000 0 4000
+Zynq> 
+<<TX b'crc32 11000000 10000\r'>>
+crc32 11000000 10000
+crc32 for 11000000 ... 1100ffff ==> d7978eeb
+Zynq> 
+<<TX b'fatload mmc 0:1 11000000 smr0.bin\r'>>
+fatload mmc 0:1 11000000 smr0.bin
+65536 bytes read in 10 ms (6.2 MiB/s)
+Zynq> 
+<<TX b'crc32 11000000 10000\r'>>
+crc32 11000000 10000
+crc32 for 11000000 ... 1100ffff ==> 3f2e0e62
+Zynq> 
+<<TX b'crc32 11001000 f000\r'>>
+crc32 11001000 f000
+crc32 for 11001000 ... 1100ffff ==> 4caaaa26
+Zynq> 
+<<TX b'md.l 11000000 4\r'>>
+md.l 11000000 4
+11000000: 30524d53 00000001 0000000e 00000004  SMR0............
+Zynq> 

@@ -1,0 +1,61 @@
+{
+ "stage": "S1a",
+ "image": "prober.bin",
+ "image_bytes": 4023,
+ "image_sha256": "9476223594791f48377e1103be0bbeeb60185f08633c1ea9b325c9ad0fda3152",
+ "image_crc32": "bfad1be8",
+ "load_address": "0x02000000",
+ "result_address": "0x10000000",
+ "param_address": "0x10100000",
+ "pl_design": {
+  "sha256": "8c3369e8e4755da5aceeb7844690d5e132b2e65647004c0a46c0e868e34f0b8a",
+  "bytes": 2083863,
+  "note": "the bitstream that was loaded when these frames were read; loaded here as an opaque file"
+ },
+ "params": [
+  "31504d53",
+  "00000001",
+  "00000001",
+  "00000b98",
+  "00000b9a",
+  "00000b99",
+  "00000003",
+  "00000003",
+  "00000004",
+  "00200000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000b98",
+  "00000b99",
+  "00000b9a",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000"
+ ],
+ "records": 11,
+ "result_words": 2990,
+ "console": [
+  "SM1 start",
+  "SM1 end status=00000001 records=0000000b anomalies=00000000 words=00000bae"
+ ],
+ "return_code": 0,
+ "frames": {
+  "0x00000b99": "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f",
+  "0x00000b98": "09e6542e15d2236ef806ab934ff70db967cde6d248bda996b753d6542839351c",
+  "0x00000b9a": "80f782b962888a97d6a663d116d3b6158ff4d7408626ce6b83f43ba855356477"
+ }
+}

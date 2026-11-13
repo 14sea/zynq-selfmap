@@ -154,7 +154,7 @@ two things happens:
 | stage | content | writes configuration memory? | output |
 |---|---|---|---|
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
-| S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range |
+| S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range — **done 2026-11-13, PASS** (`evidence/s1a_17A6_2026-11-13/`) |
 | S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 |
 | S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |

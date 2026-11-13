@@ -7,13 +7,10 @@ a known range and S1b may widen it.
 
 **No board run happens before the owner has reviewed this plan and the built image.**
 
-**Status, 2026-11-13: steps 1 to 5 are done on the host and were revised after a first review
-three times (sections 10 to 12); step 6, the owner's review, is next.** What there is to review: this plan;
-`prober/`; the plan the run script prints with `host/s1a_run.py --dry-run`; the image
-`build/prober/prober.bin`, whose size and sha256 are fixed in `build/prober/expected.json` by
-the test suite. The suite is 82 tests. `tests/mutants.py` re-runs 63 deliberate defects in the
-prober, the judge and the run script on a scratch copy; its last output is
-`evidence/host_checks/mutants_2026-11-13.txt` (all failed by the suite).
+**Status, 2026-11-13: all seven steps are done. The run on `17A6` passed on the first attempt**
+(`evidence/s1a_17A6_2026-11-13/RESULT.md`), after three rounds of review of the host side
+(sections 10 to 12) and the owner's go-ahead. The suite is 82 tests; `tests/mutants.py` carries
+63 deliberate defects, all failed by the suite (`evidence/host_checks/mutants_2026-11-13.txt`).
 
 ## 1. What is known going in
 
@@ -135,7 +132,7 @@ Recorded and not judged, because no criterion is defined for them: the DEVCFG `S
 | 4 | the board image and its inspection; `expected.json` | host | built, hash fixed |
 | 5 | the run script: what the host types into U-Boot, in order (`host/s1a_run.py`; `--dry-run` prints it), and the judge (`host/s1a_judge.py`) | host | reviewed text, not yet executed |
 | 6 | **owner review** of this plan, the image and the run script | — | the owner's go-ahead |
-| 7 | the run on `17A6`; results saved to the card and pulled over the UART | board | verdict written |
+| 7 | the run on `17A6`; results saved to the card and pulled over the UART | board | **done 2026-11-13: PASS** — `evidence/s1a_17A6_2026-11-13/RESULT.md` |
 
 ## 7. The board run, as it will be proposed in step 5
 

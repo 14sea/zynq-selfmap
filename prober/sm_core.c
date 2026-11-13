@@ -84,6 +84,7 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
                 return REFUSE(i, 10u);
             if (far_value + (v - 2u) > far_hi)                          /* the last frame read is still inside */
                 return REFUSE(i, 11u);
+            far = 0;                                    /* the register has moved on: another read needs a new, checked address */
             hdr = 0; i++;
             continue;
         }

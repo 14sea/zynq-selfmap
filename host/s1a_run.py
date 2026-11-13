@@ -45,6 +45,7 @@ PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
 PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR, SCRATCH_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000, 0x11000000
 PAR_WORDS = 32
+MAX_RESULT_WORDS = max(m["judge"].HDR + m["judge"].MAX_RECORDS * m["judge"].REC for m in STAGES.values())
 PL_CARD_NAME = "carrier.bit"
 
 
@@ -82,7 +83,7 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
 
 
 AFTER_GO = [
-    (f"md.l {RES_ADDR:08x} 40", "the result header", "magic, version, sizes consistent; gives the record count N"),
+    (f"md.l {RES_ADDR:08x} 40", "the result header", "magic and version; gives the record count N and the record size (any known layout is saved whole)"),
     (f"crc32 {RES_ADDR:08x} <4*(64+266*N)>", "the result checksum on the board", "recorded"),
     (f"fatwrite mmc 0:1 {RES_ADDR:08x} <name>.bin <bytes>", "save the result to the card under a name unique to this run", "'<bytes> bytes written'"),
     (f"fatload mmc 0:1 {0x11000000:08x} <name>.bin", "read the card copy back to a scratch address", "'<bytes> bytes read'"),
@@ -166,11 +167,24 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         # ---- from here on: save first, judge afterwards
         hdr = md_words(do(f"md.l {RES_ADDR:08x} 40", "the result header"))
         (out / "header.bin").write_bytes(b"".join(struct.pack("<I", x) for x in hdr))
-        if len(hdr) < 64 or hdr[0] != 0x31524D53 or hdr[1] != 1:
-            raise Stop("no result header at the result address (magic or version)")
+        if len(hdr) < 64:
+            raise Stop("the result header could not be read")
+        has_header = hdr[0] == 0x31524D53 and hdr[1] == 1
         n, total = hdr[3], hdr[5]
-        if (hdr[6], hdr[7]) != (J.REC, J.HDR) or n > J.MAX_RECORDS or total != J.HDR + n * J.REC:
-            raise Stop(f"the result header's sizes do not add up (records {n}, words {total}); only the header was saved")
+        # How much to save does not depend on the stage that was asked for: a result that is consistent in itself is
+        # saved whole and left to the judge. Only if the header fits no layout at all is the size not its own to give;
+        # then everything a result could occupy is saved.
+        layouts = {(m["judge"].HDR, m["judge"].REC): name for name, m in STAGES.items()}
+        fits = layouts.get((hdr[7], hdr[6]))
+        if has_header and fits and n <= STAGES[fits]["judge"].MAX_RECORDS and total == hdr[7] + n * hdr[6]:
+            record["result_layout"] = fits
+            if fits != stage:
+                problems.append(f"the result has the layout of stage {fits}, not of the stage that was run ({stage})")
+        else:
+            record["result_layout"] = None
+            problems.append(("the result header's sizes fit no known layout" if has_header else "there is no result header at the result address (magic or version)")
+                            + f" (records {n}, words {total}, record size {hdr[6]}); the largest possible result ({MAX_RESULT_WORDS} words) is saved instead")
+            total = MAX_RESULT_WORDS
         nbytes = total * 4
         record["result_words"] = total
         m = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {RES_ADDR:08x} {nbytes:x}", "the result checksum on the board", 20))
@@ -191,11 +205,11 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
             if not record["card_verified"]:
                 problems.append("the file read back from the card is not the result (size or crc32 differs)")
 
-        words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", "pull the result over the console", 180))
+        words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", "pull the result over the console", 180 if total < 20000 else 600))
         raw = b"".join(struct.pack("<I", x) for x in words)
         host_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
         record["host_crc32"] = host_crc
-        if len(words) != total or host_crc != record["board_crc32"]:
+        if len(words) != total or host_crc != record["board_crc32"]:        # `total` words were asked for, whichever way it was sized
             (out / "result_unverified.bin").write_bytes(raw)
             raise Stop(f"the pulled copy ({len(words)} words, crc32 {host_crc}) is not the board's ({total} words, crc32 {record['board_crc32']})")
         (out / "result.bin").write_bytes(raw)

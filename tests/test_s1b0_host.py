@@ -154,12 +154,29 @@ class ThroughTheRunScript(unittest.TestCase):
                 self.assertEqual((rec["result_words"], rec["verdict"], rec.get("stop")), (64 + records * 480, "FAIL", None))
                 self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
 
-    def test_stage_one_parameters_given_to_the_stage_two_run_fail(self) -> None:
-        """The parameter block is replaced by stage 1's after its crc32 check: the prober runs stage 1, clean."""
+    def test_a_valid_result_of_the_other_stage_is_saved_whole_and_fails(self) -> None:
+        """The parameter block is replaced after its crc32 check, so the prober runs the other stage, cleanly. Whatever
+        was asked for, a result that is consistent in itself is archived complete; that it is the wrong one is the verdict."""
         exp1 = json.loads(fake.s1a_run.EXPECTED.read_text())
-        rec, u, out = fake.run(stage="s1b0", params_swapped_before_go={i: int(w, 16) for i, w in enumerate(exp1["params"])})
-        self.assertEqual(rec["verdict"], "FAIL")
-        self.assertIn("sizes do not add up", rec["stop"])
+        exp2 = json.loads(fake.s1a_run.STAGES["s1b0"]["expected"].read_text())
+        for asked, got, exp_other, words in (("s1b0", "s1a", exp1, 64 + 11 * 266), ("s1a", "s1b0", exp2, 64 + 11 * 480)):
+            with self.subTest(asked=asked, got=got):
+                rec, u, out = fake.run(stage=asked, params_swapped_before_go={i: int(w, 16) for i, w in enumerate(exp_other["params"])})
+                self.assertEqual((rec["result_words"], rec["result_layout"], rec.get("stop")), (words, got, None))
+                self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+                self.assertEqual(u.card["s0000001.bin"], u.twin_result)
+                self.assertTrue(rec["card_verified"])
+                self.assertEqual((rec["verdict"], rec["judge"]), ("FAIL", "INVALID"))
+                self.assertTrue(any(f"layout of stage {got}" in p for p in rec["problems"]))
+
+    def test_a_header_that_fits_no_layout_gets_everything_a_result_could_occupy_saved(self) -> None:
+        rec, u, out = fake.run(stage="s1b0", header_words_after_go={6: 300})
+        self.assertEqual((rec["result_layout"], rec["result_words"]), (None, fake.s1a_run.MAX_RESULT_WORDS))
+        saved = (out / "result.bin").read_bytes()
+        self.assertEqual(len(saved), 4 * fake.s1a_run.MAX_RESULT_WORDS)
+        self.assertEqual(saved[28:len(u.twin_result)], u.twin_result[28:], "everything the prober wrote is in it")
+        self.assertEqual((rec["verdict"], rec.get("stop")), ("FAIL", None))
+        self.assertTrue(any("fit no known layout" in p for p in rec["problems"]))
 
     def test_the_dry_run_of_stage_two_differs_from_stage_one_only_in_parameters_and_sizes(self) -> None:
         import subprocess

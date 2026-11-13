@@ -106,6 +106,23 @@ class StageTwoStreams(unittest.TestCase):
                 stream, _ = genframes(far, n)
                 self.assertEqual(self.both(stream, maxr), (ok, ok))
 
+    def test_one_fdro_read_per_frame_address(self) -> None:
+        """After a read the device's address has moved on. A second read in the same stream would start wherever
+        that is — past the envelope, in the first case here — while the only address ever checked is the first."""
+        s3, _ = genframes(0xB98, 3)                          # reads b98..b9a, the whole envelope
+        for second, what in ((404, "three more frames, which would be b9b..b9d"), (202, "one more frame, which would be b9b")):
+            with self.subTest(what):
+                stream = s3[:11] + [0x28006000, 0x48000000 | second] + s3[13:]
+                self.assertEqual(self.both(stream, 404), (False, False))
+        s1, _ = genframes(0xB98, 1)
+        again = s1[:11] + [0x28006000, 0x48000000 | 202] + s1[13:]          # even where the second read would still be inside
+        self.assertEqual(self.both(again, 404), (False, False))
+        with_far = s1[:11] + [0x30002001, 0xB99, 0x28006000, 0x48000000 | 202] + s1[15:]   # a new, checked address before it
+        self.assertEqual(self.both(with_far, 404), (True, True))
+        outside = s1[:11] + [0x30002001, 0xB9B, 0x28006000, 0x48000000 | 202] + s1[15:]
+        self.assertEqual(self.both(outside, 404), (False, False))
+        self.assertEqual(self.both(s1[:11] + [0x20000000, 0x28002001] + s1[13:], 404), (True, True), "a FAR register read after the read is fine")
+
     def test_a_read_that_is_not_a_pad_plus_whole_frames_is_refused(self) -> None:
         stream, _ = genframes(0xB98, 1)
         for count in (1, 100, 101, 201, 203, 300, 302, 304, 403):

@@ -1,100 +1,105 @@
-unmutated: Ran 118 OK; 0 test(s): 
-KILLED   the generator sends WCFG                                       Ran 118 FAILED (failures=184, errors=44); 63 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_changed_reference_frame_or_an_exhausted_b
-KILLED   the guard accepts any CMD value                                Ran 118 FAILED (failures=2); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
-KILLED   the guard ignores the envelope                                 Ran 118 FAILED (failures=3); 3 test(s): both_readers_accept_what_the_generator_make, only_the_far_register_and_only_one_word_of_
-KILLED   the guard allows any read length                               Ran 118 FAILED (failures=2); 1 test(s): a_multi_frame_read_must_stay_inside_the_env
-KILLED   no clear before a command                                      Ran 118 FAILED (failures=32, errors=33); 38 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
-KILLED   the clear is not verified                                      Ran 118 FAILED (failures=2); 2 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
-KILLED   the clear also clears PCFG_DONE                                Ran 118 FAILED (failures=68, errors=77); 65 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_changed_reference_frame_or_an_exhausted_b
-KILLED   PCFG_DONE not checked before queuing                           Ran 118 FAILED (failures=5); 2 test(s): any_interface_failure_stops_at_that_command, pcfg_done_found_clear_before_a_command_mean
-KILLED   PCFG_DONE not checked while polling                            Ran 118 FAILED (failures=8); 2 test(s): for_every_fault_the_judge_rederives_exactly, for_every_fault_the_judge_rederives_what_th
-KILLED   SRC and DST written in the wrong order                         Ran 118 FAILED (failures=2); 2 test(s): every_dma_command_is_clear_verify_program_i, five_commands_per_operation_each_cleared_ve
-KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 118 FAILED (failures=108); 21 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_file_passes_and_any_extra_byte_make
-KILLED   error bits are not checked                                     Ran 118 FAILED (failures=30); 6 test(s): a_failure_on_the_very_first_read_is_reporte, an_error_bit_stops_the_run_and_nothing_foll
-KILLED   the poll limit is ignored below 5000                           Ran 118 FAILED (failures=10); 3 test(s): a_command_that_never_completes_times_out_at, for_every_fault_the_judge_rederives_exactly
-KILLED   no data-cache gate                                             Ran 118 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_must_show_that_gate_failing
-KILLED   stage 2: no data-cache gate                                    Ran 118 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
-KILLED   no loopback gate                                               Ran 118 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
-KILLED   stage 2: no loopback gate                                      Ran 118 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
-KILLED   stage 2: no PCFG_DONE gate                                     Ran 118 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
-KILLED   no PCFG_DONE gate                                              Ran 118 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
-KILLED   no CTRL gate                                                   Ran 118 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
-KILLED   stage 2: no CTRL gate                                          Ran 118 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
-KILLED   no sentinel prefill                                            Ran 118 FAILED (failures=5); 5 test(s): a_run_with_an_anomaly_is_saved_whole_then_j, a_short_read_is_recorded_and_the_run_goes_o
-KILLED   stage 2: no sentinel prefill of the data                       Ran 118 FAILED (failures=4); 4 test(s): a_changed_reference_frame_or_an_exhausted_b, a_far_value_that_differs_on_the_reference_r
-KILLED   stage 2: no sentinel before the FAR read                       Ran 118 FAILED (failures=2); 2 test(s): anomalies_and_stops_are_saved_whole_and_fai, data_anomalies_are_recorded_and_skipped_whi
-KILLED   the health check always passes                                 Ran 118 FAILED (failures=4); 3 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
-KILLED   no anomaly budget                                              Ran 118 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_anomaly_budget_stops_the_run
-KILLED   stage 2: no anomaly budget                                     Ran 118 FAILED (failures=2); 2 test(s): a_changed_reference_frame_or_an_exhausted_b, for_every_fault_the_judge_rederives_what_th
-KILLED   a repeat that differs is not noticed                           Ran 118 FAILED (failures=2); 2 test(s): a_repeat_that_differs_is_recorded_and_the_r, for_every_fault_the_judge_rederives_exactly
-KILLED   the pad is not checked                                         Ran 118 FAILED (failures=4); 2 test(s): a_nonzero_pad_is_recorded_and_the_run_goes_, for_every_fault_the_judge_rederives_exactly
-KILLED   a frame outside the envelope is accepted in the parameters     Ran 118 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register_at_all
-KILLED   a PL read is added                                             Ran 118 FAILED (failures=27, errors=33); 27 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
-KILLED   an SLCR write is added                                         Ran 118 FAILED (failures=27, errors=33); 27 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
-KILLED   the cleanup stream is skipped                                  Ran 118 FAILED (failures=19); 10 test(s): a_command_that_never_completes_times_out_at, an_error_bit_stops_the_run_and_nothing_foll
-KILLED   stage 2: the cleanup stream is skipped                         Ran 118 FAILED (failures=18); 5 test(s): any_interface_failure_stops_at_that_command, everything_sent_is_read_only_inside_the_env
-KILLED   the final reference read is not compared                       Ran 118 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
-KILLED   the guard accepts a read that is not a pad plus whole frames   Ran 118 FAILED (failures=8); 1 test(s): a_read_that_is_not_a_pad_plus_whole_frames_
-KILLED   the guard lets a read run past the envelope                    Ran 92 FAILED (errors=293); 76 test(s): Class, a_card_copy_of_the_wrong_size_is_not_used
-KILLED   the guard accepts a one-word read of any register              Ran 118 FAILED (failures=4); 1 test(s): only_the_far_register_and_only_one_word_of_
-KILLED   stage 2: the FAR register is not read                          Ran 118 FAILED (failures=34, errors=24); 17 test(s): a_changed_reference_frame_or_an_exhausted_b, a_clean_run_passes_and_names_the_rule_the_r
-KILLED   stage 2: a repeat's data is not compared                       Ran 118 FAILED (failures=8); 3 test(s): a_difference_in_a_later_frame_of_a_multi_fr, data_anomalies_are_recorded_and_skipped_whi
-KILLED   stage 2: a repeat's FAR value is not compared                  Ran 118 FAILED (failures=4); 3 test(s): anomalies_and_stops_are_saved_whole_and_fai, data_anomalies_are_recorded_and_skipped_whi
-KILLED   stage 2: an unread FAR is not noticed                          Ran 118 FAILED (failures=6); 3 test(s): anomalies_and_stops_are_saved_whole_and_fai, data_anomalies_are_recorded_and_skipped_whi
-KILLED   stage 2: the reference's FAR value is not part of its health   Ran 118 FAILED (failures=5); 2 test(s): a_far_value_that_differs_on_the_reference_r, for_every_fault_the_judge_rederives_what_th
-KILLED   stage 2: an operation running past the envelope is accepted    Ran 118 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
-KILLED   stage 2: more frames per read than the buffer holds            Ran 118 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
-KILLED   stage 2: only the first frame of a repeat is compared          Ran 118 FAILED (failures=5); 2 test(s): a_difference_in_a_later_frame_of_a_multi_fr, for_every_fault_the_judge_rederives_what_th
-KILLED   stage 2: the pad is not checked                                Ran 118 FAILED (failures=3); 2 test(s): data_anomalies_are_recorded_and_skipped_whi, for_every_fault_the_judge_rederives_what_th
-KILLED   judge2: the FAR values need not follow one rule                Ran 118 FAILED (failures=1); 1 test(s): the_far_register_must_follow_one_rule
-KILLED   judge2: only the first frame of a read is compared with the known frames Ran 118 FAILED (failures=2); 1 test(s): every_frame_of_a_multi_frame_read_is_compar
-KILLED   judge2: the echoed parameters are not compared with the planned ones Ran 118 FAILED (failures=5); 1 test(s): a_run_that_was_not_the_planned_one_fails
-KILLED   judge2: a repeat's FAR value is not derived                    Ran 118 FAILED (failures=2); 1 test(s): for_every_fault_the_judge_rederives_what_th
-KILLED   judge2: a repeat's data is not derived                         Ran 118 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_what_th
-KILLED   judge2: the unused tail is not checked                         Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge2: the FAR read stream is not compared with the pinned one Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge2: the reference's health ignores the FAR value           Ran 118 FAILED (failures=4); 1 test(s): for_every_fault_the_judge_rederives_what_th
-KILLED   judge2: the FAR value and its unread flag are not held together Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge2: the order of records is not checked                    Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge2: the code is not compared with the derivation           Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge2: an unread FAR is not derived                           Ran 118 FAILED (failures=4); 1 test(s): for_every_fault_the_judge_rederives_what_th
-KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 118 FAILED (failures=2, errors=6); 3 test(s): a_clean_run_passes_under_either_rule_and_ev, anomalies_and_stops_are_saved_whole_and_fai
-KILLED   judge: a nonzero pad is not derived                            Ran 118 FAILED (failures=4); 2 test(s): a_nonzero_pad_under_a_clean_code_fails, for_every_fault_the_judge_rederives_exactly
-KILLED   judge: sentinel survivors are not derived                      Ran 118 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_exactly
-KILLED   judge: a differing repeat is not derived                       Ran 118 FAILED (failures=1); 1 test(s): for_every_fault_the_judge_rederives_exactly
-KILLED   judge: the code is not compared with the derivation            Ran 118 FAILED (failures=1); 1 test(s): a_nonzero_pad_under_a_clean_code_fails
-KILLED   judge: the order of records is not checked                     Ran 118 FAILED (failures=4); 2 test(s): eleven_copies_of_the_baseline_fail, tampered_buffers_fail
-KILLED   judge: missing records are not noticed                         Ran 118 FAILED (failures=3); 1 test(s): a_run_cut_short_before_its_last_reads_fails
-KILLED   judge: the anomaly count is not cross-checked                  Ran 118 FAILED (failures=1); 1 test(s): a_header_that_counts_an_anomaly_no_record_s
-KILLED   judge: the status is not cross-checked                         Ran 118 FAILED (failures=3); 1 test(s): a_stopped_run_relabelled_as_done_fails
-KILLED   judge: the stop record is not cross-checked                    Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge: a frame differing from the known one passes             Ran 118 FAILED (failures=1); 1 test(s): a_frame_that_differs_from_the_known_one_fai
-KILLED   judge: recorded streams are not compared with the pinned words Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge: the survivor count is not recounted                     Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge: trailing words are accepted                             Ran 118 FAILED (failures=3); 2 test(s): a_clean_file_passes_and_any_extra_byte_make, truncated_padded_or_foreign_data_is_invalid
-KILLED   judge: an incomplete run can pass                              Ran 118 FAILED (failures=7); 2 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
-KILLED   judge: the echoed parameters are not compared with the planned ones Ran 118 FAILED (failures=7); 3 test(s): a_run_that_did_less_than_was_planned_fails_, a_run_that_did_not_do_what_was_planned_fail
-KILLED   judge: gate readings that fail a gate are accepted on a run that went on Ran 118 FAILED (failures=5); 1 test(s): gate_readings_that_contradict_a_run_that_we
-KILLED   judge: a gate stop is not held to its own readings             Ran 118 FAILED (failures=1); 1 test(s): a_gate_stop_must_show_that_gate_failing
-KILLED   judge: the final INT_STS is not judged                         Ran 118 FAILED (failures=2); 1 test(s): gate_readings_that_contradict_a_run_that_we
-KILLED   judge: the data-cache reading is not a gate                    Ran 118 FAILED (failures=3); 3 test(s): a_gate_stop_must_show_that_gate_failing, for_every_fault_the_judge_rederives_exactly
-KILLED   judge: reserved header words are not checked                   Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge: reserved record words are not checked                   Ran 118 FAILED (failures=1); 1 test(s): tampered_buffers_fail
-KILLED   judge: a file length that is not a multiple of four is rounded down Ran 118 FAILED (errors=7); 1 test(s): a_clean_file_passes_and_any_extra_byte_make
-KILLED   run: a card copy of the PL design of the wrong size is used    Ran 118 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
-KILLED   run: the image is not re-checked after the run                 Ran 118 FAILED (failures=1); 1 test(s): an_image_that_changed_in_ram_during_the_run
-KILLED   run: the judge is given the echoed parameters as the plan      Ran 118 FAILED (failures=1); 1 test(s): a_run_that_did_not_do_what_was_planned_fail
-KILLED   run: the live status afterwards is only recorded               Ran 118 FAILED (failures=2); 1 test(s): the_live_status_afterwards_is_a_condition_n
-KILLED   run: the card copy is not read back                            Ran 118 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
-KILLED   run: the card read-back checksum is not compared               Ran 118 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
-KILLED   run: an unconfirmed card write is ignored                      Ran 118 FAILED (failures=2); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
-KILLED   run: a short card write is accepted                            Ran 118 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
-KILLED   run: the pulled copy is not compared with the board            Ran 118 FAILED (errors=1); 1 test(s): a_pulled_copy_that_differs_from_the_board_i
-KILLED   run: the return code is not compared with the result           Ran 118 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
-KILLED   run: a wrong crc32 before go is accepted                       Ran 118 FAILED (failures=1, errors=1); 2 test(s): a_damaged_card_copy_stops_the_run_before_th, any_failed_check_before_go_means_go_is_neve
-KILLED   run: the PCFG_DONE bit is not checked before go                Ran 118 FAILED (errors=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
-KILLED   run: the cache state is not checked before go                  Ran 118 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
-KILLED   run: the result size is taken as the clean size                Ran 118 FAILED (failures=9, errors=5); 6 test(s): a_clean_run_passes_under_either_rule_and_ev, a_gate_stop_on_the_board_is_saved_too
-KILLED   run: PASS without the judge                                    Ran 118 FAILED (failures=12); 5 test(s): a_gate_stop_on_the_board_is_saved_too, a_run_that_did_not_do_what_was_planned_fail
-restored: Ran 118 OK; 0 test(s): 
-97 mutants, 0 survived
+unmutated: Ran 121 OK; 0 test(s): 
+KILLED   the generator sends WCFG                                       Ran 121 FAILED (failures=187, errors=44); 65 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_changed_reference_frame_or_an_exhausted_b
+KILLED   the guard accepts any CMD value                                Ran 121 FAILED (failures=2); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard ignores the envelope                                 Ran 121 FAILED (failures=3); 3 test(s): both_readers_accept_what_the_generator_make, only_the_far_register_and_only_one_word_of_
+KILLED   the guard allows any read length                               Ran 121 FAILED (failures=2); 1 test(s): a_multi_frame_read_must_stay_inside_the_env
+KILLED   no clear before a command                                      Ran 121 FAILED (failures=32, errors=36); 40 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   the clear is not verified                                      Ran 121 FAILED (failures=2); 2 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+KILLED   the clear also clears PCFG_DONE                                Ran 121 FAILED (failures=68, errors=80); 67 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_changed_reference_frame_or_an_exhausted_b
+KILLED   PCFG_DONE not checked before queuing                           Ran 121 FAILED (failures=5); 2 test(s): any_interface_failure_stops_at_that_command, pcfg_done_found_clear_before_a_command_mean
+KILLED   PCFG_DONE not checked while polling                            Ran 121 FAILED (failures=8); 2 test(s): for_every_fault_the_judge_rederives_exactly, for_every_fault_the_judge_rederives_what_th
+KILLED   SRC and DST written in the wrong order                         Ran 121 FAILED (failures=2); 2 test(s): every_dma_command_is_clear_verify_program_i, five_commands_per_operation_each_cleared_ve
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 121 FAILED (failures=108); 21 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_file_passes_and_any_extra_byte_make
+KILLED   error bits are not checked                                     Ran 121 FAILED (failures=30); 6 test(s): a_failure_on_the_very_first_read_is_reporte, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   the poll limit is ignored below 5000                           Ran 121 FAILED (failures=10); 3 test(s): a_command_that_never_completes_times_out_at, for_every_fault_the_judge_rederives_exactly
+KILLED   no data-cache gate                                             Ran 121 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_must_show_that_gate_failing
+KILLED   stage 2: no data-cache gate                                    Ran 121 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no loopback gate                                               Ran 121 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
+KILLED   stage 2: no loopback gate                                      Ran 121 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: no PCFG_DONE gate                                     Ran 121 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no PCFG_DONE gate                                              Ran 121 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   no CTRL gate                                                   Ran 121 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   stage 2: no CTRL gate                                          Ran 121 FAILED (failures=3); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no sentinel prefill                                            Ran 121 FAILED (failures=5); 5 test(s): a_run_with_an_anomaly_is_saved_whole_then_j, a_short_read_is_recorded_and_the_run_goes_o
+KILLED   stage 2: no sentinel prefill of the data                       Ran 121 FAILED (failures=4); 4 test(s): a_changed_reference_frame_or_an_exhausted_b, a_far_value_that_differs_on_the_reference_r
+KILLED   stage 2: no sentinel before the FAR read                       Ran 121 FAILED (failures=2); 2 test(s): anomalies_and_stops_are_saved_whole_and_fai, data_anomalies_are_recorded_and_skipped_whi
+KILLED   the health check always passes                                 Ran 121 FAILED (failures=4); 3 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   no anomaly budget                                              Ran 121 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_anomaly_budget_stops_the_run
+KILLED   stage 2: no anomaly budget                                     Ran 121 FAILED (failures=2); 2 test(s): a_changed_reference_frame_or_an_exhausted_b, for_every_fault_the_judge_rederives_what_th
+KILLED   a repeat that differs is not noticed                           Ran 121 FAILED (failures=2); 2 test(s): a_repeat_that_differs_is_recorded_and_the_r, for_every_fault_the_judge_rederives_exactly
+KILLED   the pad is not checked                                         Ran 121 FAILED (failures=4); 2 test(s): a_nonzero_pad_is_recorded_and_the_run_goes_, for_every_fault_the_judge_rederives_exactly
+KILLED   a frame outside the envelope is accepted in the parameters     Ran 121 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register_at_all
+KILLED   a PL read is added                                             Ran 121 FAILED (failures=27, errors=36); 29 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   an SLCR write is added                                         Ran 121 FAILED (failures=27, errors=36); 29 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   the cleanup stream is skipped                                  Ran 121 FAILED (failures=19); 10 test(s): a_command_that_never_completes_times_out_at, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   stage 2: the cleanup stream is skipped                         Ran 121 FAILED (failures=18); 5 test(s): any_interface_failure_stops_at_that_command, everything_sent_is_read_only_inside_the_env
+KILLED   the final reference read is not compared                       Ran 121 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
+KILLED   the guard accepts a read that is not a pad plus whole frames   Ran 121 FAILED (failures=8); 1 test(s): a_read_that_is_not_a_pad_plus_whole_frames_
+KILLED   the guard lets a read run past the envelope                    Ran 94 FAILED (errors=296); 78 test(s): Class, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the guard accepts a one-word read of any register              Ran 121 FAILED (failures=4); 1 test(s): only_the_far_register_and_only_one_word_of_
+KILLED   the guard allows a second read on an address that has moved on Ran 121 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   reader: a second read on an address that has moved on is accepted Ran 121 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   run: a result of another stage's layout is not saved whole     Ran 121 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 121 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 121 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   stage 2: the FAR register is not read                          Ran 121 FAILED (failures=35, errors=24); 18 test(s): a_changed_reference_frame_or_an_exhausted_b, a_clean_run_passes_and_names_the_rule_the_r
+KILLED   stage 2: a repeat's data is not compared                       Ran 121 FAILED (failures=8); 3 test(s): a_difference_in_a_later_frame_of_a_multi_fr, data_anomalies_are_recorded_and_skipped_whi
+KILLED   stage 2: a repeat's FAR value is not compared                  Ran 121 FAILED (failures=4); 3 test(s): anomalies_and_stops_are_saved_whole_and_fai, data_anomalies_are_recorded_and_skipped_whi
+KILLED   stage 2: an unread FAR is not noticed                          Ran 121 FAILED (failures=6); 3 test(s): anomalies_and_stops_are_saved_whole_and_fai, data_anomalies_are_recorded_and_skipped_whi
+KILLED   stage 2: the reference's FAR value is not part of its health   Ran 121 FAILED (failures=5); 2 test(s): a_far_value_that_differs_on_the_reference_r, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: an operation running past the envelope is accepted    Ran 121 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: more frames per read than the buffer holds            Ran 121 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: only the first frame of a repeat is compared          Ran 121 FAILED (failures=5); 2 test(s): a_difference_in_a_later_frame_of_a_multi_fr, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: the pad is not checked                                Ran 121 FAILED (failures=3); 2 test(s): data_anomalies_are_recorded_and_skipped_whi, for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the FAR values need not follow one rule                Ran 121 FAILED (failures=1); 1 test(s): the_far_register_must_follow_one_rule
+KILLED   judge2: only the first frame of a read is compared with the known frames Ran 121 FAILED (failures=2); 1 test(s): every_frame_of_a_multi_frame_read_is_compar
+KILLED   judge2: the echoed parameters are not compared with the planned ones Ran 121 FAILED (failures=5); 1 test(s): a_run_that_was_not_the_planned_one_fails
+KILLED   judge2: a repeat's FAR value is not derived                    Ran 121 FAILED (failures=2); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: a repeat's data is not derived                         Ran 121 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the unused tail is not checked                         Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the FAR read stream is not compared with the pinned one Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the reference's health ignores the FAR value           Ran 121 FAILED (failures=4); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the FAR value and its unread flag are not held together Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the order of records is not checked                    Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the code is not compared with the derivation           Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: an unread FAR is not derived                           Ran 121 FAILED (failures=4); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 121 FAILED (failures=3); 2 test(s): a_clean_run_passes_under_either_rule_and_ev, a_valid_result_of_the_other_stage_is_saved_
+KILLED   judge: a nonzero pad is not derived                            Ran 121 FAILED (failures=4); 2 test(s): a_nonzero_pad_under_a_clean_code_fails, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: sentinel survivors are not derived                      Ran 121 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: a differing repeat is not derived                       Ran 121 FAILED (failures=1); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the code is not compared with the derivation            Ran 121 FAILED (failures=1); 1 test(s): a_nonzero_pad_under_a_clean_code_fails
+KILLED   judge: the order of records is not checked                     Ran 121 FAILED (failures=4); 2 test(s): eleven_copies_of_the_baseline_fail, tampered_buffers_fail
+KILLED   judge: missing records are not noticed                         Ran 121 FAILED (failures=3); 1 test(s): a_run_cut_short_before_its_last_reads_fails
+KILLED   judge: the anomaly count is not cross-checked                  Ran 121 FAILED (failures=1); 1 test(s): a_header_that_counts_an_anomaly_no_record_s
+KILLED   judge: the status is not cross-checked                         Ran 121 FAILED (failures=3); 1 test(s): a_stopped_run_relabelled_as_done_fails
+KILLED   judge: the stop record is not cross-checked                    Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a frame differing from the known one passes             Ran 121 FAILED (failures=1); 1 test(s): a_frame_that_differs_from_the_known_one_fai
+KILLED   judge: recorded streams are not compared with the pinned words Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: the survivor count is not recounted                     Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: trailing words are accepted                             Ran 121 FAILED (failures=3); 2 test(s): a_clean_file_passes_and_any_extra_byte_make, truncated_padded_or_foreign_data_is_invalid
+KILLED   judge: an incomplete run can pass                              Ran 121 FAILED (failures=7); 2 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the echoed parameters are not compared with the planned ones Ran 121 FAILED (failures=7); 3 test(s): a_run_that_did_less_than_was_planned_fails_, a_run_that_did_not_do_what_was_planned_fail
+KILLED   judge: gate readings that fail a gate are accepted on a run that went on Ran 121 FAILED (failures=5); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: a gate stop is not held to its own readings             Ran 121 FAILED (failures=1); 1 test(s): a_gate_stop_must_show_that_gate_failing
+KILLED   judge: the final INT_STS is not judged                         Ran 121 FAILED (failures=2); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: the data-cache reading is not a gate                    Ran 121 FAILED (failures=3); 3 test(s): a_gate_stop_must_show_that_gate_failing, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: reserved header words are not checked                   Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: reserved record words are not checked                   Ran 121 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a file length that is not a multiple of four is rounded down Ran 121 FAILED (errors=7); 1 test(s): a_clean_file_passes_and_any_extra_byte_make
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 121 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 121 FAILED (failures=1); 1 test(s): an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 121 FAILED (failures=1); 1 test(s): a_run_that_did_not_do_what_was_planned_fail
+KILLED   run: the live status afterwards is only recorded               Ran 121 FAILED (failures=2); 1 test(s): the_live_status_afterwards_is_a_condition_n
+KILLED   run: the card copy is not read back                            Ran 121 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
+KILLED   run: the card read-back checksum is not compared               Ran 121 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
+KILLED   run: an unconfirmed card write is ignored                      Ran 121 FAILED (failures=2); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 121 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the pulled copy is not compared with the board            Ran 121 FAILED (errors=1); 1 test(s): a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: the return code is not compared with the result           Ran 121 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 121 FAILED (failures=1, errors=1); 2 test(s): a_damaged_card_copy_stops_the_run_before_th, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 121 FAILED (errors=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 121 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 121 FAILED (failures=15); 7 test(s): a_clean_run_passes_under_either_rule_and_ev, a_gate_stop_on_the_board_is_saved_too
+KILLED   run: PASS without the judge                                    Ran 121 FAILED (failures=12); 5 test(s): a_gate_stop_on_the_board_is_saved_too, a_run_that_did_not_do_what_was_planned_fail
+restored: Ran 121 OK; 0 test(s): 
+102 mutants, 0 survived

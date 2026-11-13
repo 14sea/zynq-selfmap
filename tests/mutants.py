@@ -62,6 +62,11 @@ MUTANTS = [
     (CORE, "the guard accepts a read that is not a pad plus whole frames", "            if (v == 0xFFFFFFFFu || v < 2u)", "            if (v < 2u)"),
     (CORE, "the guard lets a read run past the envelope", "            if (far_value + (v - 2u) > far_hi)", "            if (0)"),
     (CORE, "the guard accepts a one-word read of any register", "        } else if (x == W_RD_FAR_1) {", "        } else if ((x & 0xF8001FFFu) == 0x28000001u) {"),
+    (CORE, "the guard allows a second read on an address that has moved on", "            far = 0;                                    /* the register has moved on: another read needs a new, checked address */\n", ""),
+    ("host/packets.py", "reader: a second read on an address that has moved on is accepted", "                far = False                              # the register has moved on: another read needs a new, checked address\n", ""),
+    (RUN, "run: a result of another stage's layout is not saved whole", "        layouts = {(m[\"judge\"].HDR, m[\"judge\"].REC): name for name, m in STAGES.items()}", "        layouts = {(J.HDR, J.REC): stage}"),
+    (RUN, "run: another stage's result is not called a problem", "            if fits != stage:", "            if False:"),
+    (RUN, "run: a missing result header is taken at its word for the size", "        if has_header and fits and n <=", "        if fits and n <="),
     # ---- the prober: stage 2
     (CORE, "stage 2: the FAR register is not read", "        code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, FARRD_WORDS, 0u, poll_limit, &sts, &polls);", "        code = C_OK;"),
     (CORE, "stage 2: a repeat's data is not compared", "                    if (!same_data(first, rec, n))", "                    if (0)"),

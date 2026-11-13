@@ -129,7 +129,7 @@ three additions to the guard); `host/s1b0_judge.py`; the plan printed by
 
 - **The twin does not know the answer.** Its FAR register follows either rule by a switch, and
   the tests run both; a board result is not predicted by it.
-- **Tests and mutants:** 118 tests; `tests/mutants.py` carries 97 deliberate defects across the
+- **Tests and mutants:** 121 tests; `tests/mutants.py` carries 102 deliberate defects across the
   prober (both stages), both judges and the run script, all failed by the suite
   (`evidence/host_checks/mutants_2026-11-13.txt`). The first run of the enlarged set had one
   survivor — a repeat of a three-frame read compared on its first frame only — which showed a
@@ -137,3 +137,16 @@ three additions to the guard); `host/s1b0_judge.py`; the plan printed by
 
 New compared with S1a, and so what could go wrong on the board: a one-word read through PCAP;
 a 404-word read; five commands per session instead of three. None writes configuration memory.
+
+## 6. Changes after the first review of S1b.0 (2026-11-13)
+
+Two gaps were found by the reviewer and reproduced before they were fixed.
+
+| finding | fix | held by |
+|---|---|---|
+| The guard (and the independent reader) accepted a second FDRO read in one stream while still judging the range by the first frame address — but after a read the device's address has moved on, so the second read would start past what was checked | a read uses up the frame address: another read needs a new address, which is checked like the first | `test_one_fdro_read_per_frame_address` |
+| With stage S1b.0 selected, a valid result of stage S1a (or the reverse) was not saved: only its header was kept, because the size was checked against the selected stage — and an earlier test had asserted exactly that | how much is saved no longer depends on the stage asked for: a result consistent with any known layout is saved whole, to the card and to the host, and then judged; a header that fits no layout, or no header at all, gets everything a result could occupy saved | `test_a_valid_result_of_the_other_stage_is_saved_whole_and_fails`, `test_a_header_that_fits_no_layout…`, `test_sizes_are_believed_only_under_a_valid_magic`, `test_with_no_result_header…` |
+
+The generator never produces a second read, so no board run was affected; the guard exists for
+the day the generator is wrong. The board image changed with the guard and its hash is fixed
+again in `build/prober/expected_s1b0.json`.

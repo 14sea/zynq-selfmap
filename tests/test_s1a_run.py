@@ -127,6 +127,8 @@ class FakeUBoot:
         self.twin_result = raw
         uart = bytes(int(x, 16) for x in [e for e in out if e.startswith("UART")][0].split()[1:]).decode()
         rc = int([e for e in out if e.startswith("RC")][0].split()[1], 16) ^ self.q.get("rc_xor", 0)
+        for index, value in self.q.get("header_words_after_go", {}).items():
+            self.mem[0x10000000 + 4 * index] = value
         if self.q.get("image_changes_during_go"):
             blob = self.blobs[0x02000000]; self.blobs[0x02000000] = blob[:8] + bytes([blob[8] ^ 1]) + blob[9:]
         if self.q.get("done_lost_afterwards"):
@@ -239,11 +241,19 @@ class AfterGo(unittest.TestCase):
         self.assertEqual((rec["judge"], rec["verdict"]), ("PASS", "FAIL"))
         self.assertTrue(any("return code" in p for p in rec["problems"]))
 
-    def test_no_result_header_is_reported_as_such_and_the_header_words_are_kept(self) -> None:
-        rec, _, out = run(no_result=True)
-        self.assertEqual(rec["verdict"], "FAIL")
-        self.assertIn("no result header", rec["stop"])
+    def test_sizes_are_believed_only_under_a_valid_magic(self) -> None:
+        rec, u, out = run(header_words_after_go={0: 0})      # everything else in the header is consistent
+        self.assertEqual((rec["result_layout"], rec["result_words"], rec["verdict"]), (None, s1a_run.MAX_RESULT_WORDS, "FAIL"))
+        self.assertTrue(any("no result header" in p for p in rec["problems"]))
+
+    def test_with_no_result_header_everything_a_result_could_occupy_is_still_saved(self) -> None:
+        rec, u, out = run(no_result=True)
+        self.assertEqual((rec["verdict"], rec.get("stop"), rec["result_layout"]), ("FAIL", None, None))
+        self.assertTrue(any("no result header" in p for p in rec["problems"]))
         self.assertEqual(len((out / "header.bin").read_bytes()), 256)
+        self.assertEqual(len((out / "result.bin").read_bytes()), 4 * s1a_run.MAX_RESULT_WORDS)
+        self.assertEqual(len(u.card["s0000001.bin"]), 4 * s1a_run.MAX_RESULT_WORDS)
+        self.assertEqual(json.loads((out / "verdict.json").read_text())["verdict"], "INVALID")
 
 
 class PlDesign(unittest.TestCase):

@@ -110,7 +110,8 @@ def readonly_problems(words: list[int], far_lo: int, far_hi: int, max_read: int)
                 elif far and far_value + count // FRAME_WORDS - 2 > far_hi:
                     problems.append(f"{where}: the read runs past the envelope (from {far_value:#010x}, {count // FRAME_WORDS - 1} frames)")
                 if not (rcfg and far):
-                    problems.append(f"{where}: a read before RCFG and a FAR were given in this stream")
+                    problems.append(f"{where}: a read with no RCFG, or with no frame address given since the last read")
+                far = False                              # the register has moved on: another read needs a new, checked address
                 pending_read = False
         else:
             problems.append(f"{where}: reserved opcode")

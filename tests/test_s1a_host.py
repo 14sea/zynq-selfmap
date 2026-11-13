@@ -202,5 +202,37 @@ class Judge(unittest.TestCase):
                 self.assertEqual(int(v["expected_return_code"], 16), r.rc)
 
 
+class CommandLine(unittest.TestCase):
+    """The judge run by hand on a file: the same strictness as through the run script."""
+
+    def run_cli(self, data: bytes, planned: list[int]):
+        import tempfile
+        d = Path(tempfile.mkdtemp(prefix="smjudge_"))
+        (d / "result.bin").write_bytes(data)
+        (d / "expected.json").write_text(json.dumps({"params": [f"{w:08x}" for w in planned]}))
+        p = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_judge.py"), str(d / "result.bin"), str(d / "expected.json")],
+                           capture_output=True, text=True)
+        return p.returncode, json.loads(p.stdout)["verdict"]
+
+    def test_a_clean_file_passes_and_any_extra_byte_makes_it_invalid(self) -> None:
+        import struct
+        run = Run()
+        raw = b"".join(struct.pack("<I", w) for w in run.words)
+        self.assertEqual(self.run_cli(raw, run.params), (0, "PASS"))
+        for extra in (1, 2, 3, 4, 5, 8):
+            with self.subTest(extra=extra):
+                self.assertEqual(self.run_cli(raw + bytes(extra), run.params), (1, "INVALID"))
+        for cut in (1, 2, 3, 4):
+            with self.subTest(cut=cut):
+                self.assertEqual(self.run_cli(raw[:-cut], run.params), (1, "INVALID"))
+        self.assertEqual(self.run_cli(b"", run.params), (1, "INVALID"))
+
+    def test_the_exit_status_follows_the_verdict(self) -> None:
+        import struct
+        run = Run("short@2")
+        raw = b"".join(struct.pack("<I", w) for w in run.words)
+        self.assertEqual(self.run_cli(raw, run.params), (1, "FAIL"))
+
+
 if __name__ == "__main__":
     unittest.main()

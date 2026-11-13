@@ -282,7 +282,10 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
 
 def main(argv: list[str]) -> int:
     raw = Path(argv[1]).read_bytes()
-    words = list(struct.unpack("<%dI" % (len(raw) // 4), raw[:len(raw) // 4 * 4]))
+    if len(raw) % 4:                                 # never round a length down: stray bytes are not part of a result
+        print(json.dumps({"verdict": "INVALID", "problems": [f"the file is {len(raw)} bytes, not a whole number of 32-bit words"]}, indent=1))
+        return 1
+    words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
     known = json.loads((ROOT / "data" / "known_frames_17A6.json").read_text())
     expected = json.loads(Path(argv[2] if len(argv) > 2 else ROOT / "build" / "prober" / "expected.json").read_text())
     result = judge(words, known, [int(w, 16) for w in expected["params"]])

@@ -8,10 +8,10 @@ a known range and S1b may widen it.
 **No board run happens before the owner has reviewed this plan and the built image.**
 
 **Status, 2026-11-13: steps 1 to 5 are done on the host and were revised after a first review
-twice (sections 10 and 11); step 6, the owner's review, is next.** What there is to review: this plan;
+three times (sections 10 to 12); step 6, the owner's review, is next.** What there is to review: this plan;
 `prober/`; the plan the run script prints with `host/s1a_run.py --dry-run`; the image
 `build/prober/prober.bin`, whose size and sha256 are fixed in `build/prober/expected.json` by
-the test suite. The suite is 80 tests. `tests/mutants.py` re-runs 62 deliberate defects in the
+the test suite. The suite is 82 tests. `tests/mutants.py` re-runs 63 deliberate defects in the
 prober, the judge and the run script on a scratch copy; its last output is
 `evidence/host_checks/mutants_2026-11-13.txt` (all failed by the suite).
 
@@ -193,3 +193,10 @@ Added in the same pass, looking for more of the same kind (something trusted or 
 recorded): the card copy is read back and checksummed instead of taking U-Boot's word for the
 write; the prober image is checksummed again after the run; reserved words of the header and
 of the records must be zero.
+
+## 12. Changes after the third review (2026-11-13)
+
+No defect in the board run itself. One gap at a side entrance: run by hand on a file, the judge
+rounded the file length down to whole words and so ignored one to three trailing bytes. It now
+refuses any length that is not a multiple of four (`CommandLine` in `tests/test_s1a_host.py`).
+The run script was not affected: it compares length and crc32 before it judges.

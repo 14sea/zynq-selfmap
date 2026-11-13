@@ -76,6 +76,7 @@ MUTANTS = [
     (JUDGE, "judge: the data-cache reading is not a gate", "else 0x103 if not sts0 & PCFG_DONE else 0x104 if sctlr & SCTLR_C else 0)", "else 0x103 if not sts0 & PCFG_DONE else 0)"),
     (JUDGE, "judge: reserved header words are not checked", "    if any(words[19:32]):", "    if False:"),
     (JUDGE, "judge: reserved record words are not checked", "        if r[14] or r[15]:", "        if False:"),
+    (JUDGE, "judge: a file length that is not a multiple of four is rounded down", "    if len(raw) % 4:", "    if False:"),
     # ---- the run script
     (RUN, "run: the image is not re-checked after the run", "        if not m or m.group(1) != exp[\"image_crc32\"]:", "        if not m:"),
     (RUN, "run: the judge is given the echoed parameters as the plan", "        verdict = s1a_judge.judge(words, known, [int(w, 16) for w in exp[\"params\"]])", "        verdict = s1a_judge.judge(words, known, words[32:64])"),

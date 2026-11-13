@@ -1,139 +1,222 @@
-# xc7_selfmap 提案（草稿 v0.1，2026-11-13）
+# zynq-selfmap — proposal (draft v0.2, 2026-11-13)
 
-狀態：只有這份提案，沒有程式、沒有上板、沒有任何裁定。目錄名是暫定的。
+Status: proposal only. No code, nothing on a board. v0.2 folds in the owner's decisions of
+2026-11-13 (section 12).
 
-## 1. 一句話
+## 1. In one sentence
 
-讓一顆 7-series 裝置在**不看任何位元資料庫**的情況下，自己找出自己的組態記憶體裡「哪些位元是什麼」，把結果寫成一份帶證據的結構描述；做完之後才拿既有資料對答案。
+Let a Zynq-7010 find out, **without consulting any bit database**, which bits of its own PL
+configuration memory are what, write the result down as a structure description that carries
+its evidence, and only afterwards grade that description against existing data.
 
-第一階段用 Zynq-7010 的 PS（經 PCAP）去讀 PL；後期把同一套方法搬到沒有 PS 的 XC7K70T。
+The prober is a program running on the PS. It reads the PL configuration through PCAP and
+drives a small probe circuit in the PL.
 
-## 2. 範圍
+## 2. Scope
 
-做：
+In scope:
 
-- 清點實際存在的 frame（以裝置為準，不以任何清單為準）。
-- 定位「記憶體性質」的位元：LUT RAM、移位暫存器、暫存器狀態；BRAM 放最後。
-- 定位一般 LUT 的內容位元，並做 LUT 級的讀－改－寫與寫後讀回。
-- 從 LUT 腳位觀察連線關係（哪顆 LUT 的輸出接到哪顆的哪支腳）。
+- A census of the configuration frames that actually exist on the device (the device is the
+  authority, not any list).
+- Locating the memory-like bits: LUT RAM, shift registers, flip-flop state. Block RAM last.
+- Locating the content bits of ordinary LUTs, then LUT-level read-modify-write with
+  read-after-write verification.
+- Connectivity as seen through LUT pins (which LUT output reaches which pin of which LUT).
 
-不做：
+Out of scope:
 
-- 繞線開關、IO、時脈、組態中心位元的意義。這些只能靠盲寫未知位元來找，有多重驅動風險，也無法從片內觀測任意一條線。
-- 解讀 bitstream 檔。初始設計由 Vivado 產生並載入，之後當成不透明的東西。
-- 任何「首創」主張（見 §8）。
+- The meaning of routing switches, I/O, clocking and configuration-centre bits. They can only
+  be found by writing unknown bits blind, which risks multiple drivers, and an arbitrary wire
+  cannot be observed from inside the device.
+- Interpreting bitstream files. The initial design is built by Vivado and loaded; after that
+  it is opaque.
+- Any other device. This project is limited to the XC7Z010. A no-PS device such as the
+  XC7K70T would be a separate project with its own access path; nothing here is designed
+  for it.
+- Any claim of being first (section 9).
 
-## 3. 閉卷規則
+## 3. The closed-book rule
 
-探測過程中**可以用**：
+During probing the prober and its author **may use**:
 
-- 官方文件：UG470（frame 格式、FAR、指令、讀回）、UG585（PCAP）。
-- 自己設計的原始碼與約束（知道自己放了什麼、放在哪個 site）。
+- Official documents: UG470 (frame format, FAR, commands, readback), UG585 (PCAP).
+- The source and constraints of our own probe design (what we placed, and on which site).
 
-探測過程中**不可以用**：
+During probing they **may not use**:
 
-- prjxray-db 或任何第三方位元資料庫。
-- Vivado 的 logic location file（`.ll`）、essential bits、mask 檔。
-- 對 bitstream 檔做差分。
+- prjxray-db or any third-party bit database.
+- Vivado's logic location file (`.ll`), essential-bits files, mask files.
+- Differencing of bitstream files.
 
-做完之後用來**對答案**：prjxray-db（zynq7、kintex7）與 `.ll`。對答案的結果另外記錄，不回頭修改探測得到的描述。
+Used **afterwards, for grading only**: prjxray-db (zynq7) and the `.ll` file. Grading results
+are recorded separately and never edited back into the probed description.
 
-每筆結果要標明是哪一種：
+Every result is labelled as one of:
 
-- 閉卷：只靠裝置上的觀測。
-- 半開卷：用到「自己設計裡放了什麼值」。
+- closed-book: rests on observations made on the device only;
+- half-open: also uses "what value our own design put there".
 
-## 4. 結構描述
+## 4. The structure description
 
-沿用 zynq-fabricmap 的形狀，不引用它的檔案（新專案自己定 schema）：
+The shape follows zynq-fabricmap's self map; no file of that project is referenced (this
+project defines its own schema).
 
-- 座標：`FAR/word/bit`。
-- 每筆：位址、角色、信心等級（未知／已解碼／已確認／無作用／矛盾）、依據的觀測編號。
-- 附帶規則：例如同 frame 改動時 word 50 的 ECC 欄位。
+- Coordinates: `FAR/word/bit`.
+- Per entry: address, role, confidence (unknown / decoded / confirmed / no effect /
+  contradiction), and the observation ids it rests on.
+- Collateral rules, e.g. the frame ECC field in word 50 when anything else in the frame
+  changes.
 
-要新增的三樣：
+Three additions:
 
-- frame 層級的記錄：存在與否、block type、讀回是否穩定。
-- 角色類別：LUT RAM、移位暫存器、暫存器狀態、一般 LUT 內容、BRAM 內容、「只讀過、沒寫過」的未知位元。
-- 觀測方式：純讀回／使用者邏輯寫入後讀回／改寫組態後看功能。
+- Frame-level records: exists or not, block type, whether readback is stable.
+- Roles: LUT RAM, shift register, flip-flop state, ordinary LUT content, block RAM content,
+  and "read but never written" for bits whose role is unknown.
+- How it was observed: readback only / written through user logic then read back / written
+  through configuration then observed functionally.
 
-## 5. 存取層
+## 5. The prober
 
-上層只看到三個動作，後端可以換：
+- **Where it runs.** A bare-metal program on the PS of an EBAZ4203. The board boots from a TF
+  card into the U-Boot already used on these boards; U-Boot loads the probe bitstream
+  (`fpga loadb`) and the prober from the card and starts it.
+- **What it starts from.** The PCAP readback sequence that zynq-psmap derived from UG585 and
+  verified on this die (two unidirectional DMA commands), moved from "the host issues it
+  word by word through U-Boot" to "the PS program issues it".
+- **Who decides.** The prober chooses what to read and in which order. The host prepares the
+  card, starts the run and collects the results.
+- **Where results go.** Raw readback is kept in DDR and saved whole to the card; the UART
+  carries progress and a digest of every saved block. Nothing is summarised before it is
+  saved.
+- **Separation.** The probing logic does not call PCAP directly; frame access sits behind a
+  small interface so that the same logic runs on the host against recorded or simulated
+  frames. This is for testing, not a commitment to other devices.
 
-| 動作 | Zynq 後端（第一階段） | K7 後端（後期） |
-|---|---|---|
-| 讀一段 frame | PS 經 PCAP 讀回 | 待定：JTAG 讀回，或片內軟核經 ICAPE2 |
-| 寫一段 frame | PS 經 PCAP 部分重組態 | 同上 |
-| 經使用者邏輯讀寫 | PS 經 AXI 存取 PL 裡的探測電路 | 待定：JTAG-UART 或片內軟核 |
+## 6. Discipline
 
-**PS 後端不能搬到 K7**（K7 沒有 PS）。能搬的是：結構描述、探測演算法、frame 位址處理、對答案的流程。所以從第一天起，探測邏輯不可以直接呼叫 PCAP 的東西。
+Lighter than zynq-fabricmap's ruling-per-session regime. Four fixed points:
 
-## 6. 階段
+1. **The program is checked for safety before it runs.** The code that builds configuration
+   command sequences is compiled for the host as well. A host dry run produces every sequence
+   the planned run can emit and a checker — a real packet parser, not a word-by-word pattern
+   match — holds them to the stage's allow-list (read-only stages: no WCFG, no FDRI, no
+   GRESTORE, no IPROG, no write to any register outside the listed ones). The same allow-list
+   is enforced again inside the prober at run time. The prober's and the bitstream's sha256
+   are written into the run record; a binary whose hash was not checked is not run.
+2. **The closed-book rule** of section 3, including a check that the prober's build inputs
+   contain none of the forbidden sources.
+3. **All raw readback is archived**, unmodified, with digests, before any interpretation.
+4. **Grading happens afterwards** and is kept apart from the probed description.
 
-| 階段 | 內容 | 寫組態記憶體嗎 | 產出 |
+A stage that writes configuration memory (S4 onwards) additionally needs the owner's go-ahead
+once, when that stage is first reached.
+
+## 7. Stages
+
+| stage | content | writes configuration memory? | output |
 |---|---|---|---|
-| S0 | 只在主機上：存取層介面、schema、測試；把 zynq-psmap 已驗證過的 PCAP 讀回序列複製進來 | 否 | 可測的骨架 |
-| S1 | 只讀清點：走遍 FAR 空間，記錄哪些位址存在、每種 block type 有幾個 frame | 否 | frame 清單，與 prjxray 的 5144 對照 |
-| S2 | LUT RAM 定位：探測電路把已知圖樣寫進 LUT RAM，讀回，找出圖樣落在哪些位元；順便確認讀回遮罩（GLUTMASK）與移位暫存器的位元排列 | 否（只有使用者邏輯在寫） | SLICEM 的 LUT 位元表（閉卷） |
-| S3 | 暫存器狀態：用 GCAPTURE 擷取 | 否 | 暫存器位元表（閉卷）；可選 |
-| S4 | LUT 級讀－改－寫＋寫後讀回，**只寫 S2 自己找到的位元** | 是 | 第一次組態寫入；驗證「找到的位元確實是 LUT 內容」 |
-| S5 | 一般 LUT（SLICEL）：設計裡放已知 INIT、腳位鎖定，讀回後搜尋；再做腳位連線探測 | 是 | SLICEL 的 LUT 位元表（半開卷）、連線圖 |
-| S6 | 對答案：prjxray-db、`.ll`；寫報告 | 否 | 差異清單 |
-| K | 搬到 XC7K70T：換存取後端，重跑 S1–S6 | — | 第二個型號的描述 |
+| S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
+| S1 | Read-only census: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 |
+| S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
+| S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
+| S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
+| S5 | Ordinary LUTs (SLICEL): known INIT values with locked pins in our design, searched for in readback; then pin-connectivity probing | yes | bit table for SLICEL LUTs (half-open); a connectivity graph |
+| S6 | Grading against prjxray-db and `.ll`; the report | no | a list of differences |
 
-S1–S3 完全不寫組態記憶體，風險最低，應該先做完再決定 S4 之後要不要繼續。
+S1–S3 never write configuration memory. They are finished and reviewed before S4 is decided.
 
-## 7. 設備
+## 8. Equipment
 
-- 第一階段：一片 EBAZ4203（XC7Z010，TF 卡開機，U-Boot 控制面已在 17A6 上驗過）。用哪一片待定。
-- EBAZ4205 不用於本專案（它是基準板）。
-- 後期：XC7K70T ×2（已驗收；目前那條線是擱置的，要先由使用者解除）。
-- 工具：Vivado 2025.2（只用來產生初始設計，以及最後對答案時產生 `.ll`）。
+- Board: EBAZ4203 `17A6` (XC7Z010, TF-card boot). The stages above carry no risk of damaging
+  the board. A 4203 keeps no state on the board itself; this project uses **its own TF
+  card** and leaves the card and saved environment of other projects untouched.
+- The EBAZ4205 is not used (it is the reference board).
+- Tools: Vivado 2025.2 (to build the probe design, and at the very end to produce the `.ll`
+  file for grading); an ARM bare-metal toolchain for the prober.
 
-## 8. 先例與能主張的範圍
+## 9. Prior work, and what can be claimed
 
-依 2026-11 的檢索（`/home/test/ehw_research/analysis/g8_selfprobe_batch_2026_11_13.md`）：
+From the search as of 2026-11 (notes kept outside this repository):
 
-- 片上讀回已有先例：軟核經 ICAP 讀暫存器（Morales-Villanueva 2013）、硬核經 ICAP 讀 LUT RAM（Jozwik 2013）、Zynq 的 ARM 經 PCAP 讀寫 BRAM frame（XBERT 2021）。
-- 位元位置的來源，讀過的每一篇都是廠商工具差分、廠商的 `.ll`，或作者離線分析（Ziener 2006、Ceschia 2003、Bellato 2004、Kalte 2005、Choi 2020、StateMover 2020、Bitfiltrator 2022）。
-- 未找到：不用 `.ll`、不用資料庫，由裝置自己用「使用者邏輯寫入＋組態讀回」找出位置。
+- On-chip readback has precedent: a soft core reading flip-flop state through ICAP
+  (Morales-Villanueva and Gordon-Ross, FCCM 2013); a hard core reading LUT RAM through ICAP
+  (Jozwik et al., IJRC 2013); a Zynq ARM core reading and writing block-RAM frames through
+  PCAP (Hofmann et al., XBERT, FCCM 2021).
+- In every paper read, bit positions came from vendor-tool differencing, the vendor's `.ll`
+  file, or the authors' offline analysis (Ziener 2006; Ceschia 2003; Bellato 2004; Kalte and
+  Porrmann 2005; Choi and Yoo 2020; Attia and Betz 2020; Kashani et al. 2022).
+- Not found: a device locating the bits itself, with no `.ll` and no database, by writing
+  through user logic and reading back through the configuration port.
 
-所以只能寫「依 2026-11 的檢索未找到先例」，而且只針對這個組合。有兩篇攻擊研究沒有讀，另有 13 項候選沒有下載。
+So the only statement available is "not found in a search as of 2026-11", and only for that
+combination. Two papers on the list were not read and thirteen candidates were not obtained.
 
-我們自己的相關工作：zynq-fabricmap B1 已讓板子閉卷重建 292 個 LUT INIT 位址的對照表，但它的位址白名單來自 prjxray，觀測的是功能而不是組態讀回。
+Our own related work: zynq-fabricmap B1 had a board rebuild, closed-book, the map of 292 LUT
+INIT addresses — but its address whitelist came from prjxray, and it observed function, not
+configuration readback.
 
-## 9. 風險
+This project is engineering and measurement. It makes no claim of a new mechanism.
 
-- S1–S3 不寫組態，主要風險是讀回本身：UG470 說讀 BRAM 內容會干擾使用者功能，Jozwik 2013 在實際系統裡 BRAM 讀回出過問題。所以 BRAM frame 排到最後，而且探測電路不可以依賴 BRAM。
-- 讀未知的 block type、不存在的 FAR，後果沒有人驗過。
-- S4 之後開始寫組態；只寫自己定位過、屬於探測電路的 LUT 位元。
-- PL 的 AXI 時脈若被關掉，PS 讀 PL 會卡死到只能斷電（4205 上的已知現象）；在 U-Boot 下不會發生，但探測電路一載入就要先確認時脈。
-- 5 V 與 12 V 的電源插頭相同，插錯會燒板；K7 階段才會用到 12 V。
+## 10. Risks
 
-## 10. 還不確定的問題
+- S1–S3 do not write configuration memory; the risk is in readback itself. UG470 says reading
+  block-RAM content interferes with user functions, and Jozwik et al. report block-RAM
+  readback failing in their final system. Block-RAM frames therefore come last, and the probe
+  circuit does not depend on block RAM.
+- The effect of reading an unknown block type, or a FAR that does not exist, is untested.
+- From S4 on configuration memory is written, and only at LUT bits that the project located
+  itself and that belong to the probe circuit.
+- If the PL-side AXI clock is not running, a PS read of the PL never returns and only a power
+  cycle recovers. The prober confirms the clock before its first PL access.
+- A wedged configuration interface or a hung PS is not damage: power-cycle and continue. Only
+  a failed acceptance retest counts as damage.
 
-要查文件或上板才知道的：
+## 11. Open questions
 
-1. **讀遍整個 FAR 空間可行嗎？** zynq-psmap 只驗過少數幾個指定的 frame（三個不同的 frame、同一個 FAR 讀十次）。整顆讀回、跨 block type、跨列邊界的行為沒驗過。
-2. **FAR 走到不存在的位址會怎樣？** 是回零、報錯、繞回，還是讓組態邏輯卡住。
-3. **block type 010 裡有什麼、PCAP 讀得到嗎？** UG470 列為有效，prjxray 沒有收。
-4. **LUT RAM 經 PCAP 讀回時會不會被遮罩？** 7-series 依 UG470 是全域的 GLUTMASK；UltraScale 上 StateMover 遇到的是每個 frame 各自的遮罩，要改 bitstream 才能關。7-series 實際如何沒試過。
-5. **讀回時設計要不要先停？** StateMover 說 UltraScale 不支援不停時脈讀回；zynq-psmap 的「讀回不擾動」只在它那幾個 frame 上驗過。
-6. **GCAPTURE 經 PCAP 能用嗎、會不會干擾？** 我們從沒用過；zynq-xpart 驗過的是 GRESTORE 會干擾運行中的設計。
-7. **移位暫存器與 LUT RAM 的位元怎麼排在 64 個位元裡？** StateMover 在 UltraScale 上發現移位暫存器只佔奇數位；7-series 要自己找，這本身就是 S2 的題目。
+To be settled from documents or on the board:
 
-要先決定的：
+1. **Can the whole FAR space be read?** zynq-psmap verified a handful of chosen frames (three
+   distinct frames; one FAR read ten times). A full-device read, across block types and row
+   boundaries, has not been verified.
+2. **What happens at a FAR that does not exist?** Zeros, an error, a wrap, or a stuck
+   configuration interface.
+3. **What is in block type 010, and can PCAP read it?** UG470 lists it as valid; prjxray does
+   not carry it.
+4. **Is LUT RAM masked in PCAP readback?** UG470 describes a global GLUTMASK for the 7 series;
+   on UltraScale, Attia and Betz had to edit the bitstream to clear per-frame mask bits.
+   Untested here.
+5. **Must the design be stopped for readback?** Attia and Betz say UltraScale does not support
+   readback with clocks running; zynq-psmap's non-perturbation result covers only its few
+   frames.
+6. **Does GCAPTURE work through PCAP, and does it disturb the design?** Never used by us;
+   zynq-xpart established only that GRESTORE disturbs a running design.
+7. **How are shift-register and LUT-RAM bits laid out within the 64 bits?** On UltraScale the
+   shift-register state occupies only the odd bits. For the 7 series this is what S2 is for.
+8. **Getting results off the board.** Whether the prober can return to U-Boot so that U-Boot
+   writes the DDR buffer to the card, or the prober needs its own card writer, or the bulk
+   goes over the UART.
+9. **The PS-to-PL path under a bare-metal program.** Which clock and reset state the U-Boot
+   hand-off leaves, and what the prober must set up itself before touching the probe circuit.
 
-8. **「自己」到什麼程度？** 第一步可以沿用 zynq-psmap 的做法（主機經 U-Boot 指令驅動 PCAP），最快；但那是主機在決定讀什麼。要讓裝置自己決定探測順序，得在 PS 上跑一支程式。建議 S1 先用主機驅動，S2 起改成 PS 上的程式。
-9. **證據紀律要多重？** 像 fabricmap 那樣每場上板都要裁定與預先登記，還是輕量一些（閉卷規則＋原始讀回資料全數存檔＋事後對答案）。
-10. **用哪一片 4203？** 17A6 是 fabricmap 的驗證板，F8B3 的佈建還沒做完，3671 是備品，08EB 預定當犧牲板。
-11. **K7 的控制通道。** J7 的 UART 排針沒焊。選項：只用 JTAG（主機讀回，zynq-psmap 有一支只讀的 JTAG 讀 frame 腳本可以參考，是否上板驗過要再查）、片內軟核加 JTAG-UART、或焊排針。
-12. **K7 階段的「裝置自己」怎麼定義？** 若只用 JTAG，執行探測的是主機，不是裝置；要維持「自己探測」就得放軟核，而軟核的記憶體通常在 BRAM，和 §9 的 BRAM 風險衝突。
-13. **對外定位。** 這是工程與量測，不是機制創新；要不要公開、何時公開、和 fabricmap 的關係怎麼寫。
+Decided on 2026-11-13: see section 12.
 
-## 11. 和其他專案的關係
+## 12. Decisions (owner, 2026-11-13)
 
-- 新的獨立目錄，不修改任何既有專案；需要的檔案複製進來並記下來源 commit。
-- 可複製的來源（都是自己的專案）：zynq-psmap `0bd984f`（PCAP 讀回序列、UG585 條文對照、frame 位址工具）、zynq-xpart `74208fa`（ICAP 筆記，K7 階段用）、zynq_ehw_parity `e23b4e6`（`xbus_icap`，讀模式有 ABORT 問題待修，K7 階段用）。
-- zynq-fabricmap 的 schema 只當參考，不引用；它的板子與儀器（17A6、zynq-psoracle 的 checkout）不動。
+- Name: zynq-selfmap. This document in English.
+- The prober follows zynq-psmap's method but runs on the PS; the TF card may be used.
+- Discipline: a safety check of the program before it runs; the closed-book rule; all raw
+  readback archived; grading afterwards.
+- Board: `17A6`, on the grounds that these stages cannot damage it.
+- XC7K70T work, if any, is a separate project. This one is limited to the XC7Z010.
+- Exploring without prjxray-db is the point; prjxray-db is the grader, not the teacher.
+- The two attack papers that could not be analysed are dropped from the survey.
+
+## 13. Relation to other projects
+
+- A new standalone directory. No existing project is modified; anything needed is copied in
+  with its source commit recorded.
+- Sources that may be copied (all our own): zynq-psmap `0bd984f` (the PCAP readback
+  sequence, the UG585 discharge, frame-address helpers); zynq-xpart `74208fa` (notes on the
+  PCAP/ICAP hand-off).
+- zynq-fabricmap's schema is a reference only. Its board time on `17A6`, its card and the
+  zynq-psoracle checkout it pins are not touched; the two projects share the board by turns.

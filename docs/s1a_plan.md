@@ -9,8 +9,10 @@ a known range and S1b may widen it.
 
 **Status, 2026-11-13: all seven steps are done. The run on `17A6` passed on the first attempt**
 (`evidence/s1a_17A6_2026-11-13/RESULT.md`), after three rounds of review of the host side
-(sections 10 to 12) and the owner's go-ahead. The suite is 82 tests; `tests/mutants.py` carries
-63 deliberate defects, all failed by the suite (`evidence/host_checks/mutants_2026-11-13.txt`).
+(sections 10 to 12) and the owner's go-ahead. At the time of that run the suite was 82 tests and
+`tests/mutants.py` carried 63 deliberate defects, all failed by the suite; both have grown with
+S1b (`docs/s1b_plan.md`), and the image has been rebuilt since — the one that ran is kept in
+`evidence/s1a_17A6_2026-11-13/prober.bin`.
 
 ## 1. What is known going in
 

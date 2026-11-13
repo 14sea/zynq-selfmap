@@ -78,6 +78,14 @@ class Image(unittest.TestCase):
             "frames": {far: v["frame_sha256"] for far, v in known["frames"].items()},
         }
         (BUILD / "expected.json").write_text(json.dumps(expected, indent=1) + "\n")
+        # stage 2 (S1b.0): the same image; one frame at 0xb98, one at 0xb99, three from 0xb98, each followed by a FAR read
+        p2 = [0] * 32
+        p2[0:10] = [0x31504D53, 1, 2, 0xB98, 0xB9A, 0xB99, 3, 3, 4, 0x00200000]
+        p2[10] = 1 | 1 << 4 | 3 << 8
+        p2[16:19] = [0xB98, 0xB99, 0xB98]
+        e2 = dict(expected, stage="S1b.0", params=[f"{w:08x}" for w in p2], result_words=64 + records * 480,
+                  console=["SM2 start", "SM2 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (records, 64 + records * 480)])
+        (BUILD / "expected_s1b0.json").write_text(json.dumps(e2, indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

@@ -118,6 +118,7 @@ class FakeUBoot:
         env = dict(os.environ); env.pop("SM_FAULT", None)
         if self.fault:
             env["SM_FAULT"] = self.fault
+        env["SM_FAR_RULE"] = self.q.get("far_rule", "next")
         out = subprocess.run([str(TWIN), "run", str(tmp / "frames.txt"), str(tmp / "params.txt"), str(tmp / "r.bin")],
                              check=True, capture_output=True, text=True, env=env).stdout.splitlines()
         raw = (tmp / "r.bin").read_bytes()
@@ -142,13 +143,13 @@ class FakeUBoot:
         return "%d bytes written in 12 ms (1.2 MiB/s)\r\n" % (n - self.q.get("card_short", 0))
 
 
-def run(fault: str = "", **quirks):
+def run(fault: str = "", stage: str = "s1a", **quirks):
     subprocess.run([sys.executable, "-B", "-m", "unittest", "tests.test_prober_image"], cwd=ROOT, check=True, capture_output=True)
-    exp = json.loads(s1a_run.EXPECTED.read_text())
+    exp = json.loads(s1a_run.STAGES[stage]["expected"].read_text())
     pl = s1a_run.PL.read_bytes()
     out = Path(tempfile.mkdtemp(prefix="smout_"))
     u = FakeUBoot(fault, **quirks)
-    rec = s1a_run.execute(u, exp, out, lambda con, cmd, path: con.load(cmd, path), KNOWN, len(pl), f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}", "s0000001.bin")
+    rec = s1a_run.execute(u, exp, out, lambda con, cmd, path: con.load(cmd, path), KNOWN, len(pl), f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}", "s0000001.bin", stage)
     return rec, u, out
 
 

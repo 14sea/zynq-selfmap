@@ -185,6 +185,12 @@ class Data(unittest.TestCase):
                 health = r.record(at + 1)
                 self.assertEqual((health["kind"], health["far"], health["n"], health["code"], health["ref_equal"]), (1, REF, 1, 0, 1))
 
+    def test_a_difference_in_a_later_frame_of_a_multi_frame_repeat_is_noticed(self) -> None:
+        r = Run("flip3@7")                                   # the three-frame read of the second repeat: its third frame differs
+        rec = r.record(6)
+        self.assertEqual((rec["far"], rec["n"], rec["repeat"], rec["code"]), (0xB98, 3, 1, 0x12))
+        self.assertEqual((r.status, r.n_anomalies), (1, 1))
+
     def test_a_far_value_that_differs_on_the_reference_read_is_a_health_failure(self) -> None:
         r = Run("short@2,farflip@3")                         # the health read's frame is fine, its FAR value is not
         self.assertEqual((r.status, r.n_records, r.record(2)["ref_equal"]), (0x300, 3, 0))

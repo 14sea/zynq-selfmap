@@ -13,7 +13,7 @@
  *   ctrl lpbk nodone dcache stale   a gate or the stale-status check fails
  *   err@N timeout@N                 command N ends with an error bit / never completes
  *   drop@N dropafter@N              PCFG_DONE falls during command N / between command N and the next
- *   short@R padnz@R flip@R          frame read R delivers 150 words / a nonzero pad word / one flipped frame bit
+ *   short@R padnz@R flip@R flip3@R  frame read R delivers 150 words / a nonzero pad word / one flipped bit in its first / third frame
  *   farshort@K farflip@K            FAR-register read K delivers nothing / a changed value
  * SM_FAR_RULE=skip makes the FAR register end one frame further than the last frame delivered (the pad counted);
  * the default leaves it at the next unread frame. Which the device does is what S1b.0 is to find out.
@@ -132,6 +132,7 @@ static void dma_execute(uint32_t dlen)
             for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
             if (fault_at("padnz", n_read_dma)) ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u;
             if (fault_at("flip", n_read_dma)) ddr[(a - DDR_BASE) / 4u + FRAME_WORDS + 3u] ^= 0x00010000u;
+            if (fault_at("flip3", n_read_dma) && dlen >= 4u * FRAME_WORDS) ddr[(a - DDR_BASE) / 4u + 3u * FRAME_WORDS + 3u] ^= 0x00010000u;
         }
     } else {
         printf("VIOLATION dma shape\n");

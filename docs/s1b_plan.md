@@ -95,3 +95,45 @@ logic and finds them in the readback, which checks content without any external 
 3. No bitstream parsing on the host, for grading or otherwise. The grader is prjxray-db's
    existing content (the frame list now; bit roles in later stages). Vivado is used to build the
    PL design and for nothing else.
+
+## 5. S1b.0 as built (host side; nothing on a board yet)
+
+**What there is to review:** this plan; stage 2 in `prober/sm_core.c` (`read_op`, `run_s2`, and the
+three additions to the guard); `host/s1b0_judge.py`; the plan printed by
+`host/s1a_run.py --stage s1b0 --dry-run`; the image and parameters fixed in
+`build/prober/expected_s1b0.json`.
+
+- **One image for both stages.** The prober picks the stage from the parameter block. Stage 1 runs
+  as before (its tests are unchanged), but the image is a new build and has a new hash.
+- **Parameters of the run:** envelope `0x00000b98..0x00000b9a`, reference `0x00000b99`; three
+  operations — one frame at `b98`, one frame at `b99`, three frames from `b98` — each three
+  times; anomaly budget 4; poll limit 0x200000.
+- **Each operation, in one session:** the frame read (the pinned stream with the length of
+  n + 1 frames), the FAR register read (`NOOP`, `28002001`, `NOOP`, `NOOP`, then one word), the
+  cleanup. Five DMA commands, each cleared, verified, ordered and waited for as in S1a, each
+  with `PCFG_DONE` checked before and during.
+- **Record:** 480 words — the three streams as sent, the status and poll count of all five
+  commands, the FAR value read back, up to 404 raw data words.
+- **Anomalies:** as in S1a, plus two of the data class: the FAR value differs from the first run
+  of the same operation; the FAR read delivered nothing. The reference read is healthy only if
+  both its frame and its FAR value equal the baseline's.
+- **What the board is expected to answer and what would count as which outcome:**
+
+| outcome | meaning | consequence |
+|---|---|---|
+| PASS, rule "next" | after reading n frames from F the register holds F + n | the walk of S1b.1 uses the value as the next address |
+| PASS, rule "next but one" | it holds F + n + 1 (the pad frame counted) | the walk uses value − 1 |
+| FAIL: values consistent but fitting neither rule | the register does something else | recorded; S1b.1 is redesigned before it is planned |
+| FAIL: the FAR read never completes, or delivers nothing | a one-word register read does not work through PCAP as sent | recorded; an interface stop may need a power cycle; the walk needs another way |
+| FAIL: the three-frame read does not return the three known frames | reading across frames in one read does not behave as UG470 says here | recorded; long reads are not used |
+
+- **The twin does not know the answer.** Its FAR register follows either rule by a switch, and
+  the tests run both; a board result is not predicted by it.
+- **Tests and mutants:** 118 tests; `tests/mutants.py` carries 97 deliberate defects across the
+  prober (both stages), both judges and the run script, all failed by the suite
+  (`evidence/host_checks/mutants_2026-11-13.txt`). The first run of the enlarged set had one
+  survivor — a repeat of a three-frame read compared on its first frame only — which showed a
+  gap in the twin's faults (none could touch a later frame); a fault and a test were added.
+
+New compared with S1a, and so what could go wrong on the board: a one-word read through PCAP;
+a 404-word read; five commands per session instead of three. None writes configuration memory.

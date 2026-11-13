@@ -1,4 +1,4 @@
-# S1b — plan for the first widening (draft for the owner's review, 2026-11-13)
+# S1b — plan for the first widening (2026-11-13; the walk and step S1b.0 agreed by the owner the same day)
 
 S1a showed the method on three known frames. S1b widens the range step by step until the device
 has listed its own frames. Each step gets its plan reviewed, its host side built and tested, and
@@ -68,16 +68,30 @@ planned ones.
 | S1b.3 | all of block type 0, both halves | — | the frame list of block type 0 |
 | later, a separate decision | block type 1 (block-RAM content) and block type 2 | — | UG470 warns that reading block-RAM content interferes with user functions; the carrier design must be checked for block RAM first |
 
-From S1b.1 on most frames have no known answer. During the walk the only criteria are internal:
-every frame read twice and identical, the three known frames still equal to their known values,
-the reference frame unchanged. Afterwards, as grading and not as input, the frames are compared
-with the loaded bitstream and the frame list with prjxray's.
+From S1b.1 on most frames have no known answer, and none is manufactured: **no bitstream is
+parsed on the host, not even for grading** (owner, 2026-11-13 — the method has to carry over to
+devices where that is not practical). What S1b claims is therefore limited to what it can stand
+behind:
 
-## 4. Questions for the owner
+- *which frames exist*, as named by the device — graded afterwards against prjxray-db's frame
+  list for this part, where such a database exists;
+- *that reading them is repeatable and independent of the path*: every frame is read twice, and
+  once more as part of one long read that relies on the address incrementing by itself; all
+  must be identical. An address that silently returned another frame's content would have to
+  do so identically on both paths;
+- the three known frames still equal to their known values; the reference frame unchanged.
 
-1. Is "follow the address the device names" the walk you want, rather than stepping through
-   addresses?
-2. S1b.0 adds one kind of packet the verified sequence never used: a read of the FAR register.
-   It is a read, of a register UG470 documents as readable. Agreed as the first new thing to try?
-3. For S1b.1 and later: the frames without a known answer are graded afterwards against the
-   loaded bitstream. That needs a frame parser on the host — as a grader only. Acceptable?
+It does not claim that the content read from the other frames is what the PL holds. That is
+established later and differently: from S2 on the prober writes known patterns through user
+logic and finds them in the readback, which checks content without any external description.
+
+## 4. Decisions (owner, 2026-11-13)
+
+1. The walk follows the address the device names; addresses are not stepped through.
+2. Reading the FAR register is accepted as the first new kind of packet, tried on the known
+   frames first. Its words are UG470 table 6-1 with the FAR address in the header: `NOOP`,
+   `28002001`, `NOOP`, `NOOP`, then one word read. It is sent in the same session as the frame
+   read, before the cleanup stream, so that it shows the address as that read left it.
+3. No bitstream parsing on the host, for grading or otherwise. The grader is prjxray-db's
+   existing content (the frame list now; bit roles in later stages). Vivado is used to build the
+   PL design and for nothing else.

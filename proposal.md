@@ -49,8 +49,11 @@ During probing they **may not use**:
 - Vivado's logic location file (`.ll`), essential-bits files, mask files.
 - Differencing of bitstream files.
 
-Used **afterwards, for grading only**: prjxray-db (zynq7) and the `.ll` file. Grading results
-are recorded separately and never edited back into the probed description.
+Used **afterwards, for grading only**: what prjxray-db (zynq7) already contains. Grading results
+are recorded separately and never edited back into the probed description. No bitstream is
+parsed on the host and no Vivado report file is used, not even for grading (owner, 2026-11-13):
+the method is meant to carry over to parts where neither is practical, so nothing may lean on
+them. Where no open database exists, a result stands on the device's own evidence alone.
 
 Every result is labelled as one of:
 
@@ -160,7 +163,7 @@ two things happens:
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
 | S5 | Ordinary LUTs (SLICEL): known INIT values with locked pins in our design, searched for in readback; then pin-connectivity probing | yes | bit table for SLICEL LUTs (half-open); a connectivity graph |
-| S6 | Grading against prjxray-db and `.ll`; the report | no | a list of differences |
+| S6 | Grading against prjxray-db; the report | no | a list of differences |
 
 S1–S3 never write configuration memory. They are finished and reviewed before S4 is decided.
 
@@ -170,8 +173,8 @@ S1–S3 never write configuration memory. They are finished and reviewed before 
   the board. A 4203 keeps no state on the board itself; this project uses **its own TF
   card** and leaves the card and saved environment of other projects untouched.
 - The EBAZ4205 is not used (it is the reference board).
-- Tools: Vivado 2025.2 (to build the probe design, and at the very end to produce the `.ll`
-  file for grading); an ARM bare-metal toolchain for the prober.
+- Tools: Vivado 2025.2, to build the probe design and for nothing else; an ARM bare-metal
+  toolchain for the prober.
 
 ## 9. Prior work, and what can be claimed
 

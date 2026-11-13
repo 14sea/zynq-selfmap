@@ -78,6 +78,7 @@ MUTANTS = [
     (JUDGE, "judge: reserved record words are not checked", "        if r[14] or r[15]:", "        if False:"),
     (JUDGE, "judge: a file length that is not a multiple of four is rounded down", "    if len(raw) % 4:", "    if False:"),
     # ---- the run script
+    (RUN, "run: a card copy of the PL design of the wrong size is used", "                if not m or int(m.group(1)) != s[\"size\"]:            # not on the card (or not this size): send it", "                if not m:"),
     (RUN, "run: the image is not re-checked after the run", "        if not m or m.group(1) != exp[\"image_crc32\"]:", "        if not m:"),
     (RUN, "run: the judge is given the echoed parameters as the plan", "        verdict = s1a_judge.judge(words, known, [int(w, 16) for w in exp[\"params\"]])", "        verdict = s1a_judge.judge(words, known, words[32:64])"),
     (RUN, "run: the live status afterwards is only recorded", "        if not live or not live[0] & s1a_judge.PCFG_DONE or live[0] & s1a_judge.ERR_MASK:", "        if False:"),

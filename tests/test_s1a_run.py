@@ -32,6 +32,12 @@ class FakeUBoot:
         self.fault, self.q = fault, quirks
         self.commands: list[str] = []
         self.card: dict[str, bytes] = {}
+        if quirks.get("card_has_pl"):
+            self.card["carrier.bit"] = s1a_run.PL.read_bytes()
+        if quirks.get("card_pl_damaged"):
+            pl = s1a_run.PL.read_bytes(); self.card["carrier.bit"] = pl[:5000] + bytes([pl[5000] ^ 1]) + pl[5001:]
+        if quirks.get("card_pl_short"):
+            self.card["carrier.bit"] = s1a_run.PL.read_bytes()[:-7]
 
     # ---- the console interface the run script uses
     def interrupt(self, tries: int = 3):
@@ -95,7 +101,7 @@ class FakeUBoot:
         data = self.card.get(w[4])
         if data is None:
             return "Failed to load '%s'\r\n" % w[4]
-        if self.q.get("card_corrupt"):
+        if self.q.get("card_corrupt") and w[4] != "carrier.bit":
             data = data[:100] + bytes([data[100] ^ 1]) + data[101:]
         self.blobs[int(w[3], 16)] = data
         return "%d bytes read in 9 ms (1.5 MiB/s)\r\n" % len(data)
@@ -237,6 +243,28 @@ class AfterGo(unittest.TestCase):
         self.assertEqual(rec["verdict"], "FAIL")
         self.assertIn("no result header", rec["stop"])
         self.assertEqual(len((out / "header.bin").read_bytes()), 256)
+
+
+class PlDesign(unittest.TestCase):
+    def test_from_the_card_when_it_is_there_and_nothing_is_sent(self) -> None:
+        rec, u, _ = run(card_has_pl=True)
+        self.assertEqual((rec["verdict"], rec["pl_source"]), ("PASS", "card"))
+        self.assertFalse([c for c in u.commands if c.startswith("loady 04000000")])
+
+    def test_by_ymodem_when_the_card_does_not_have_it(self) -> None:
+        rec, u, _ = run()
+        self.assertEqual((rec["verdict"], rec["pl_source"]), ("PASS", "ymodem"))
+        self.assertIn("loady 04000000", u.commands)
+
+    def test_a_card_copy_of_the_wrong_size_is_not_used(self) -> None:
+        rec, u, _ = run(card_pl_short=True)
+        self.assertEqual((rec["verdict"], rec["pl_source"]), ("PASS", "ymodem"))
+
+    def test_a_damaged_card_copy_stops_the_run_before_the_pl_is_touched(self) -> None:
+        rec, u, _ = run(card_pl_damaged=True)
+        self.assertEqual(rec["verdict"], "FAIL")
+        self.assertIn("crc32", rec["stop"])
+        self.assertFalse([c for c in u.commands if c.startswith(("fpga", "go"))])
 
 
 class BeforeGo(unittest.TestCase):

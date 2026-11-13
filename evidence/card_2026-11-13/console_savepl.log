@@ -1,0 +1,67 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50033004                             .0.P
+Zynq> 
+<<TX b'crc32 04000000 1fcc17\r'>>
+crc32 04000000 1fcc17
+crc32 for 04000000 ... 041fcc16 ==> df7aea69
+Zynq> 
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'loady 04000000\r'>>
+loady 04000000
+## Ready for binary (ymodem) download to 0x04000000 at 115200 bps...
+C## Total Size      = 0x001fcc17 = 2083863 Bytes
+## Start Addr      = 0x04000000
+Zynq> 
+<<TX b'crc32 04000000 1fcc17\r'>>
+crc32 04000000 1fcc17
+crc32 for 04000000 ... 041fcc16 ==> 72887bf4
+Zynq> 
+<<TX b'fatwrite mmc 0:1 04000000 carrier.bit 1fcc17\r'>>
+fatwrite mmc 0:1 04000000 carrier.bit 1fcc17
+2083863 bytes written in 499 ms (4 MiB/s)
+Zynq> 
+<<TX b'mmc rescan\r'>>
+mmc rescan
+Zynq> 
+<<TX b'mw.l 11000000 0 1000\r'>>
+mw.l 11000000 0 1000
+Zynq> 
+<<TX b'fatload mmc 0:1 11000000 carrier.bit\r'>>
+fatload mmc 0:1 11000000 carrier.bit
+2083863 bytes read in 401 ms (5 MiB/s)
+Zynq> 
+<<TX b'crc32 11000000 1fcc17\r'>>
+crc32 11000000 1fcc17
+crc32 for 11000000 ... 111fcc16 ==> 72887bf4
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+
+7 file(s), 0 dir(s)
+
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50033004                             .0.P
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 

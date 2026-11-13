@@ -39,6 +39,7 @@ PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
 PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR, SCRATCH_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000, 0x11000000
 PAR_WORDS = 32
+PL_CARD_NAME = "carrier.bit"
 
 
 class Stop(Exception):
@@ -55,9 +56,9 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     add("status before the PL load", "md.l f800700c 1", "recorded")
     add("clear the sticky PCFG_DONE bit so that the load is seen as an edge (as the verified run did)", "mw.l f800700c 00000004 1", "prompt")
     add("status after the clear", "md.l f800700c 1", "bit 2 clear", bit=(2, False))
-    add(f"send the PL design ({pl_bytes} bytes, sha256 {exp['pl_design']['sha256'][:8]}…) by YMODEM", f"loady {PL_ADDR:08x}",
-        "U-Boot reports the same size", ymodem=str(PL), size=pl_bytes)
-    add("the design in RAM is the file", f"crc32 {PL_ADDR:08x} {pl_bytes:x}", f"crc32 {pl_crc}", crc=pl_crc)
+    add(f"the PL design ({pl_bytes} bytes, sha256 {exp['pl_design']['sha256'][:8]}…) from the card; by YMODEM if the card does not have it",
+        f"fatload mmc 0:1 {PL_ADDR:08x} {PL_CARD_NAME}", "U-Boot reports the same size", card_or_ymodem=str(PL), size=pl_bytes, timeout=60)
+    add("the design in RAM is the file, whichever way it came", f"crc32 {PL_ADDR:08x} {pl_bytes:x}", f"crc32 {pl_crc}", crc=pl_crc)
     add("configure the PL", f"fpga loadb 0 {PL_ADDR:08x} {pl_bytes:x}", "no error", timeout=60)
     add("status after the load", "md.l f800700c 1", "bit 2 (PCFG_DONE) set", bit=(2, True))
     add("zero the parameter block", f"mw.l {PAR_ADDR:08x} 0 {PAR_WORDS:x}", "prompt")
@@ -126,6 +127,18 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
                     raise Stop(f"the transfer for {s['cmd']!r} did not report {s['size']} bytes")
                 continue
             text = do(s["cmd"], s["what"], s.get("timeout", 10))
+            if "card_or_ymodem" in s:
+                m = re.search(r"(\d+) bytes read", text)
+                record["pl_source"] = "card"
+                if not m or int(m.group(1)) != s["size"]:            # not on the card (or not this size): send it
+                    record["pl_source"] = "ymodem"
+                    reply, ok = send_file(con, f"loady {PL_ADDR:08x}", s["card_or_ymodem"])
+                    text = reply.decode("utf-8", "replace")
+                    record["steps"].append({"n": len(record["steps"]) + 1, "what": "the PL design by YMODEM", "cmd": f"loady {PL_ADDR:08x}", "reply": text[-400:]})
+                    m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)
+                    if not ok or not m or int(m.group(1), 16) != s["size"]:
+                        raise Stop(f"the PL design could not be loaded from the card or sent ({s['size']} bytes)")
+                continue
             if "expect" in s and not re.search(s["expect"], text):
                 raise Stop(f"{s['cmd']!r}: {s['check']}")
             if "bit" in s:

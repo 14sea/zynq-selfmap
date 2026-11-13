@@ -91,7 +91,18 @@ class FakeUBoot:
             self.int_sts = 0x50021004
         return "  design filename = \"pretend\"\r\n"
 
+    def c_fatload(self, w):
+        data = self.card.get(w[4])
+        if data is None:
+            return "Failed to load '%s'\r\n" % w[4]
+        if self.q.get("card_corrupt"):
+            data = data[:100] + bytes([data[100] ^ 1]) + data[101:]
+        self.blobs[int(w[3], 16)] = data
+        return "%d bytes read in 9 ms (1.5 MiB/s)\r\n" % len(data)
+
     def c_go(self, w):
+        for index, value in self.q.get("params_swapped_before_go", {}).items():    # after their crc32 was checked
+            self.mem[0x10100000 + 4 * index] = value
         if self.q.get("no_result"):
             return "## Starting application at 0x02000000 ...\r\n## Application terminated, rc = 0x0\r\n"
         tmp = Path(tempfile.mkdtemp(prefix="smrun_"))
@@ -109,6 +120,12 @@ class FakeUBoot:
         self.twin_result = raw
         uart = bytes(int(x, 16) for x in [e for e in out if e.startswith("UART")][0].split()[1:]).decode()
         rc = int([e for e in out if e.startswith("RC")][0].split()[1], 16) ^ self.q.get("rc_xor", 0)
+        if self.q.get("image_changes_during_go"):
+            blob = self.blobs[0x02000000]; self.blobs[0x02000000] = blob[:8] + bytes([blob[8] ^ 1]) + blob[9:]
+        if self.q.get("done_lost_afterwards"):
+            self.int_sts &= ~4
+        if self.q.get("error_afterwards"):
+            self.int_sts |= 0x00040000
         return "## Starting application at 0x02000000 ...\r\n" + uart + "## Application terminated, rc = 0x%X\r\n" % rc
 
     def c_fatwrite(self, w):
@@ -171,6 +188,37 @@ class AfterGo(unittest.TestCase):
                 self.assertTrue(any("card write was not confirmed" in p for p in rec["problems"]))
                 self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
 
+    def test_the_card_copy_is_checked_by_reading_it_back(self) -> None:
+        rec, u, out = run()
+        self.assertTrue(rec["card_verified"])
+        self.assertIn("fatload mmc 0:1 11000000 s0000001.bin", u.commands)
+        rec, u, out = run(card_corrupt=True)                 # U-Boot said it wrote the file; what comes back is not the result
+        self.assertEqual((rec["judge"], rec["verdict"], rec["card_written"], rec["card_verified"]), ("PASS", "FAIL", True, False))
+        self.assertTrue(any("read back from the card is not the result" in p for p in rec["problems"]))
+        self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+
+    def test_a_run_that_did_not_do_what_was_planned_fails(self) -> None:
+        """The parameter block is changed after its crc32 was checked: one frame, read once. The three records are
+        clean, self-consistent and match the known frame. It is saved whole, and it is not a pass."""
+        rec, u, out = run(params_swapped_before_go={6: 1, 7: 1, 16: 0xB99})
+        self.assertEqual(rec["result_words"], 64 + 3 * 266)
+        self.assertEqual((rec["judge"], rec["verdict"]), ("FAIL", "FAIL"))
+        self.assertTrue(any("not the planned ones" in p for p in json.loads((out / "verdict.json").read_text())["problems"]))
+        self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+
+    def test_an_image_that_changed_in_ram_during_the_run_fails(self) -> None:
+        rec, u, out = run(image_changes_during_go=True)
+        self.assertEqual((rec["judge"], rec["verdict"]), ("PASS", "FAIL"))
+        self.assertTrue(any("what ran may not be what was checked" in p for p in rec["problems"]))
+
+    def test_the_live_status_afterwards_is_a_condition_not_a_note(self) -> None:
+        for quirk in ({"done_lost_afterwards": True}, {"error_afterwards": True}):
+            with self.subTest(str(quirk)):
+                rec, u, out = run(**quirk)
+                self.assertEqual((rec["judge"], rec["verdict"]), ("PASS", "FAIL"))
+                self.assertTrue(any("live status after the run" in p for p in rec["problems"]))
+                self.assertTrue((out / "result.bin").exists())
+
     def test_a_pulled_copy_that_differs_from_the_board_is_not_accepted(self) -> None:
         rec, u, out = run(corrupt_dump=True)
         self.assertEqual(rec["verdict"], "FAIL")
@@ -216,7 +264,7 @@ class Plan(unittest.TestCase):
         out = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--dry-run"], capture_output=True, text=True, check=True, env=env).stdout
         self.assertIn("Dry run: nothing was sent.", out)
         cmds = [line.split("#")[0].split(".", 1)[1].strip() for line in out.splitlines() if "#" in line and line.strip()[0].isdigit()]
-        self.assertEqual({c.split()[0] for c in cmds}, {"version", "dcache", "md.l", "mw.l", "loady", "crc32", "fpga", "go", "fatwrite"})
+        self.assertEqual({c.split()[0] for c in cmds}, {"version", "dcache", "md.l", "mw.l", "loady", "crc32", "fpga", "go", "fatwrite", "fatload"})
         for c in [c for c in cmds if c.startswith("mw.l")]:  # what U-Boot is asked to write: one DEVCFG status clear, the parameter block, the result header
             address = int(c.split()[1], 16)
             self.assertTrue(address == 0xF800700C or 0x10100000 <= address < 0x10100080 or address == 0x10000000, c)

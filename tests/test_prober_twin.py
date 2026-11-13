@@ -42,7 +42,8 @@ class Run:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
         tmp = Path(tempfile.mkdtemp(prefix="smtwin_"))
         (tmp / "frames.txt").write_text("\n".join(" ".join(f"{x:x}" for x in [far] + words) for far, words in FRAMES.items()) + "\n")
-        (tmp / "params.txt").write_text("\n".join(f"{x:x}" for x in params(**over)) + "\n")
+        self.params = params(**over)
+        (tmp / "params.txt").write_text("\n".join(f"{x:x}" for x in self.params) + "\n")
         env = dict(os.environ); env.pop("SM_FAULT", None)
         if fault:
             env["SM_FAULT"] = fault

@@ -9,9 +9,11 @@ After `go` the rule is the opposite — whatever the prober reported, clean or n
 first sized from its own header, checksummed, saved to the card, pulled to the host and compared,
 and only then judged. A run with anomalies or an interface stop is still archived whole.
 
-The overall verdict is PASS only if the judge says PASS, the card write was confirmed, the pulled
-copy has the board's checksum, and the console line and return code are the ones the result
-implies.
+The overall verdict is PASS only if the judge says PASS (which includes: the parameters the
+prober echoed are the planned ones, and the gate readings fit), the card copy was confirmed and
+read back with the board's checksum, the pulled copy has the board's checksum, the console line
+and return code are the ones the result implies, and the live status afterwards still shows the
+PL configured with no error bit.
 """
 from __future__ import annotations
 
@@ -35,7 +37,7 @@ EXPECTED = ROOT / "build" / "prober" / "expected.json"
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
-PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000
+PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR, SCRATCH_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000, 0x11000000
 PAR_WORDS = 32
 
 
@@ -76,8 +78,11 @@ AFTER_GO = [
     (f"md.l {RES_ADDR:08x} 40", "the result header", "magic, version, sizes consistent; gives the record count N"),
     (f"crc32 {RES_ADDR:08x} <4*(64+266*N)>", "the result checksum on the board", "recorded"),
     (f"fatwrite mmc 0:1 {RES_ADDR:08x} <name>.bin <bytes>", "save the result to the card under a name unique to this run", "'<bytes> bytes written'"),
+    (f"fatload mmc 0:1 {0x11000000:08x} <name>.bin", "read the card copy back to a scratch address", "'<bytes> bytes read'"),
+    (f"crc32 {0x11000000:08x} <bytes>", "the card copy is the result", "the board's crc32 of the result"),
     (f"md.l {RES_ADDR:08x} <64+266*N>", "pull the result over the console", "the host copy has the board's crc32"),
-    ("md.l f800700c 1", "status afterwards", "recorded"),
+    ("md.l f800700c 1", "status afterwards", "bit 2 (PCFG_DONE) set and no error bit"),
+    (f"crc32 {IMG_ADDR:08x} <image bytes>", "the prober image in RAM after the run", "still the checked image"),
     ("version", "U-Boot still answers", "U-Boot answers"),
 ]
 
@@ -158,6 +163,13 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         record["card_written"] = bool(m) and int(m.group(1)) == nbytes
         if not record["card_written"]:
             problems.append(f"the card write was not confirmed for {nbytes} bytes: {text.strip()[-120:]!r}")
+        else:                                        # by content, not by U-Boot's word: read the file back and checksum it
+            text = do(f"fatload mmc 0:1 {SCRATCH_ADDR:08x} {card_name}", "read the card copy back to a scratch address", 60)
+            m = re.search(r"(\d+) bytes read", text)
+            m2 = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {SCRATCH_ADDR:08x} {nbytes:x}", "the card copy is the result", 20))
+            record["card_verified"] = bool(m) and int(m.group(1)) == nbytes and bool(m2) and m2.group(1) == record["board_crc32"]
+            if not record["card_verified"]:
+                problems.append("the file read back from the card is not the result (size or crc32 differs)")
 
         words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", "pull the result over the console", 180))
         raw = b"".join(struct.pack("<I", x) for x in words)
@@ -168,15 +180,21 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
             raise Stop(f"the pulled copy ({len(words)} words, crc32 {host_crc}) is not the board's ({total} words, crc32 {record['board_crc32']})")
         (out / "result.bin").write_bytes(raw)
 
-        verdict = s1a_judge.judge(words, known)
+        verdict = s1a_judge.judge(words, known, [int(w, 16) for w in exp["params"]])
         (out / "verdict.json").write_text(json.dumps(verdict, indent=1) + "\n")
         record["judge"] = verdict["verdict"]
         if record["return_code"] != verdict.get("expected_return_code"):
             problems.append(f"the return code was {record['return_code']}, the result implies {verdict.get('expected_return_code')}")
         if record["console"] != verdict.get("expected_console"):
             problems.append(f"the console showed {record['console']}, the result implies {verdict.get('expected_console')}")
-        for cmd, what in (("md.l f800700c 1", "status afterwards"), ("version", "U-Boot still answers")):
-            do(cmd, what)
+        live = md_words(do("md.l f800700c 1", "status afterwards"))
+        record["int_sts_afterwards"] = f"{live[0]:08x}" if live else None
+        if not live or not live[0] & s1a_judge.PCFG_DONE or live[0] & s1a_judge.ERR_MASK:
+            problems.append(f"the live status after the run is {record['int_sts_afterwards']}: PCFG_DONE clear or an error bit set")
+        m = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {IMG_ADDR:08x} {exp['image_bytes']:x}", "the prober image in RAM after the run"))
+        if not m or m.group(1) != exp["image_crc32"]:
+            problems.append(f"the prober image in RAM after the run has crc32 {m.group(1) if m else None}, not {exp['image_crc32']}: what ran may not be what was checked")
+        do("version", "U-Boot still answers")
     except Stop as e:
         record["stop"] = str(e)
         problems.append(str(e))

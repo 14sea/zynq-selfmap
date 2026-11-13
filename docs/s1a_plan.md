@@ -8,12 +8,12 @@ a known range and S1b may widen it.
 **No board run happens before the owner has reviewed this plan and the built image.**
 
 **Status, 2026-11-13: steps 1 to 5 are done on the host and were revised after a first review
-(section 10); step 6, the owner's review, is next.** What there is to review: this plan;
+twice (sections 10 and 11); step 6, the owner's review, is next.** What there is to review: this plan;
 `prober/`; the plan the run script prints with `host/s1a_run.py --dry-run`; the image
 `build/prober/prober.bin`, whose size and sha256 are fixed in `build/prober/expected.json` by
-the test suite. The suite is 72 tests. `tests/mutants.py` re-runs 50 deliberate defects in the
+the test suite. The suite is 80 tests. `tests/mutants.py` re-runs 62 deliberate defects in the
 prober, the judge and the run script on a scratch copy; its last output is
-`evidence/host_checks/mutants_2026-11-13.txt` (50 of 50 failed by the suite).
+`evidence/host_checks/mutants_2026-11-13.txt` (all failed by the suite).
 
 ## 1. What is known going in
 
@@ -99,8 +99,9 @@ as sent, the raw 202 words). No summarising on the board.
 **The host saves first and judges afterwards.** After `go`, whatever the console and the
 return code say, the host reads the header, takes the size from it, checksums the result on
 the board, writes it to the card (and requires U-Boot's `N bytes written` for exactly that
-size), pulls it over the console and requires the same checksum. A run with anomalies or an
-interface stop is archived whole in the same way as a clean one.
+size), reads the file back from the card to a scratch address and requires the board's checksum
+of it, pulls the result over the console and requires the same checksum again. A run with
+anomalies or an interface stop is archived whole in the same way as a clean one.
 
 **The judge does not take the board's word.** From the raw words alone it re-derives every
 record's code (sentinel survivors, the pad, a differing repeat, the outcome of each of the
@@ -110,6 +111,19 @@ derives the status, the anomaly count and the stop record the header ought to ca
 disagreement is a failure. Only then are the frames compared with
 `data/known_frames_17A6.json`, which the board does not carry. The console line and the return
 code are compared with what the result implies.
+
+**The result must be the result of the run that was planned.** The parameter block the prober
+echoes is compared word for word with the planned one; the schedule is what was planned, not
+what the result says was asked. The gate readings in the header are judged against the gates:
+a run that went on must show every gate satisfied and, if it reports done, a final status with
+`PCFG_DONE` set and no error bit; a run stopped at a gate must show that gate failing.
+
+**After the run** the live `INT_STS` must still show `PCFG_DONE` with no error bit, and the
+prober image in RAM must still have the checked crc32. Either failing fails the run; the result
+is kept either way.
+
+Recorded and not judged, because no criterion is defined for them: the DEVCFG `STATUS` word
+(before, after, and per record), `CPSR`, the stack pointer and r9.
 
 ## 6. Steps
 
@@ -167,3 +181,15 @@ A review of the first version found four defects; each was reproduced before it 
 Also corrected: the parameter block is 32 words, not 64; the handling of a failed baseline and
 of the final reference read is now stated in section 4; the mutants are a script in the
 repository with its output kept, where before they were only a claim.
+
+## 11. Changes after the second review (2026-11-13)
+
+| finding | fix | held by |
+|---|---|---|
+| The judge rebuilt the schedule from the parameters the result echoed, and nothing compared them with the planned ones: a run changed to one frame, read once, passed | the judge takes the planned parameter block and requires the echo to equal it | `test_a_run_that_did_less_than_was_planned_fails…`, `test_any_changed_parameter_word_fails`, `test_a_run_that_did_not_do_what_was_planned_fails` |
+| The gate readings in the header and the status afterwards were printed, not judged | the judge holds the readings to the gates and to the status; the run script requires the live status afterwards | `test_gate_readings_that_contradict…`, `test_a_gate_stop_must_show_that_gate_failing`, `test_the_live_status_afterwards_is_a_condition_not_a_note` |
+
+Added in the same pass, looking for more of the same kind (something trusted or merely
+recorded): the card copy is read back and checksummed instead of taking U-Boot's word for the
+write; the prober image is checksummed again after the run; reserved words of the header and
+of the records must be zero.

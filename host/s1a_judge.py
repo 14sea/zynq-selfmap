@@ -11,6 +11,10 @@ re-derived here from the raw words the records carry, and the two must agree:
     differs) and against the status words recorded for its three DMA commands;
   * the header's status, anomaly count and stop record against what that walk implies;
   * every stream the record says was sent, against the pinned words and the read-only policy;
+  * the echoed parameters against the parameters planned for this run, word for word — the
+    schedule is rebuilt from what was planned, not from what the result says was asked;
+  * the gate readings in the header against the gates, and against the status: a run that went
+    on must show every gate satisfied, a run stopped at a gate must show that gate failing;
   * and only then the frames against the known answer, which the board does not carry.
 
 PASS means: the run completed, no anomaly, every scheduled read present, every frame equal to
@@ -67,7 +71,11 @@ def _command_outcome(sts: int, polls: int, poll_limit: int) -> int:
     return 0x22 if polls >= poll_limit else -1
 
 
-def judge(words: list[int], known: dict) -> dict:
+CTRL_MASK, MCTRL_LPBK, SCTLR_C = 0x0C000000, 0x00000010, 0x00000004
+
+
+def judge(words: list[int], known: dict, planned: list[int]) -> dict:
+    """`planned` is the 32-word parameter block this run was meant to have."""
     out: dict = {"problems": [], "records": []}
     bad = out["problems"].append
 
@@ -90,12 +98,17 @@ def judge(words: list[int], known: dict) -> dict:
         return invalid(f"sizes do not add up: total {total}, records {n}")
     if len(words) != total:
         return invalid(f"the buffer has {len(words)} words, the header says {total}")
+    if any(words[19:32]):
+        bad("reserved header words are not zero")
 
     # ---- the echoed parameters
     par = words[32:64]
     lo, hi, ref, n_fars, repeats, budget, poll_limit = par[3:10]
     out["params"] = {"far_lo": f"{lo:#010x}", "far_hi": f"{hi:#010x}", "ref_far": f"{ref:#010x}", "n_fars": n_fars,
                      "repeats": repeats, "anomaly_budget": budget, "poll_limit": poll_limit}
+    if list(par) != list(planned):
+        differ = [k for k in range(32) if k >= len(planned) or par[k] != planned[k]]
+        bad(f"the parameters the prober echoed are not the planned ones (word(s) {differ}): the run did not do what was asked")
     if status == 0x500:
         if n:
             bad("a parameter refusal with records")
@@ -107,10 +120,23 @@ def judge(words: list[int], known: dict) -> dict:
     out["params"]["fars"] = [f"{x:#010x}" for x in fars]
     if any(not lo <= f <= hi for f in fars):
         return invalid("an echoed frame address lies outside the echoed envelope")
+    # ---- the gate readings in the header: which gate, if any, do they fail? (the prober's own order; a reading
+    #      after the failing gate was never taken and is zero, which that order never looks at)
+    ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]
+    failing = (0x101 if (ctrl & CTRL_MASK) != CTRL_MASK else 0x102 if mctrl & MCTRL_LPBK
+               else 0x103 if not sts0 & PCFG_DONE else 0x104 if sctlr & SCTLR_C else 0)
     if status in GATE_STATUS:
         if n:
             bad("a gate stop with records")
+        if failing != status:
+            bad(f"the run reports a stop at the {GATE_STATUS[status]}, but the readings in its header "
+                + (f"fail the {GATE_STATUS[failing]}" if failing else "satisfy every gate"))
         bad(f"the run stopped at the {GATE_STATUS[status]}"); out["verdict"] = "FAIL"; return out
+    if failing:
+        bad(f"the readings in the header fail the {GATE_STATUS[failing]} (CTRL {ctrl:08x}, MCTRL {mctrl:08x}, INT_STS {sts0:08x}, "
+            f"SCTLR {sctlr:08x}), yet the run went on")
+    if status == 1 and (not sts1 & PCFG_DONE or sts1 & ERR_MASK):
+        bad(f"the run reports done, but its final INT_STS {sts1:08x} has PCFG_DONE clear or an error bit set")
 
     # ---- every record, re-derived from its own raw words
     frames_known = {int(k, 16): v for k, v in known["frames"].items()}
@@ -125,6 +151,8 @@ def judge(words: list[int], known: dict) -> dict:
                "pad": data[:FRAME], "frame": data[FRAME:], "data": data}
         recs.append(rec)
         far, code = rec["far"], rec["code"]
+        if r[14] or r[15]:
+            bad(f"record {i}: reserved words are not zero")
         if not lo <= far <= hi:
             bad(f"record {i}: frame address {far:#010x} outside the envelope")
         if rec["guard"] != 0 or code == 0x30:
@@ -256,7 +284,8 @@ def main(argv: list[str]) -> int:
     raw = Path(argv[1]).read_bytes()
     words = list(struct.unpack("<%dI" % (len(raw) // 4), raw[:len(raw) // 4 * 4]))
     known = json.loads((ROOT / "data" / "known_frames_17A6.json").read_text())
-    result = judge(words, known)
+    expected = json.loads(Path(argv[2] if len(argv) > 2 else ROOT / "build" / "prober" / "expected.json").read_text())
+    result = judge(words, known, [int(w, 16) for w in expected["params"]])
     print(json.dumps(result, indent=1))
     return 0 if result["verdict"] == "PASS" else 1
 

@@ -11,9 +11,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
 sys.path.insert(0, str(ROOT / "tests"))
 import s1a_judge  # noqa: E402
-from test_prober_twin import Run  # noqa: E402
+from test_prober_twin import Run, params  # noqa: E402
 
 KNOWN = json.loads((ROOT / "data" / "known_frames_17A6.json").read_text())
+PLANNED = params()
+
+
+def judge(words, planned=None):
+    return s1a_judge.judge(words, KNOWN, PLANNED if planned is None else planned)
 
 
 HDR, REC, DATA_AT = 64, 266, 16 + 43 + 5
@@ -27,7 +32,7 @@ def at(record: int, field: int) -> int:
 
 class Judge(unittest.TestCase):
     def test_a_clean_run_passes(self) -> None:
-        v = s1a_judge.judge(Run().words, KNOWN)
+        v = judge(Run().words)
         self.assertEqual((v["verdict"], v["problems"]), ("PASS", []))
         self.assertEqual(len(v["records"]), 11)
         self.assertTrue(all(r["matches_known"] and r["pad_all_zero"] for r in v["records"]))
@@ -41,27 +46,27 @@ class Judge(unittest.TestCase):
                   "padnz@3", "flip@5", "short@2,flip@3", "short@2,short@3", "flip@11", "short@2,padnz@6", "short@1", "padnz@1"]
         for fault in faults:
             with self.subTest(fault):
-                v = s1a_judge.judge(Run(fault, poll_limit=40).words, KNOWN)
+                v = (lambda run: judge(run.words, run.params))(Run(fault, poll_limit=40))
                 self.assertEqual(v["verdict"], "FAIL")
                 odd = [p for p in v["problems"] if not any(h in p for h in HONEST)]
                 self.assertEqual(odd, [])
         for name, over in (("budget", {"budget": 0}), ("bad parameters", {"repeats": 9})):
             with self.subTest(name):
-                v = s1a_judge.judge(Run("short@2", **over).words, KNOWN)
+                v = (lambda run: judge(run.words, run.params))(Run("short@2", **over))
                 self.assertEqual((v["verdict"], [p for p in v["problems"] if not any(h in p for h in HONEST + ("bad parameters",))]), ("FAIL", []))
 
     def test_a_frame_that_differs_from_the_known_one_fails_even_if_the_board_saw_nothing_wrong(self) -> None:
         words = list(Run().words)
         for i in (0, 2, 5, 8, 10):                           # every reading of 0xb99, as if the device returned this consistently
             words[at(i, DATA_AT + 101 + 9)] ^= 1
-        v = s1a_judge.judge(words, KNOWN)
+        v = judge(words)
         self.assertEqual(v["verdict"], "FAIL")
         self.assertTrue(all("differs from the known frame" in p for p in v["problems"]), v["problems"])
 
     # ---- the three results an earlier judge let through
     def test_a_nonzero_pad_under_a_clean_code_fails(self) -> None:
         words = list(Run().words); words[at(2, DATA_AT + 7)] = 0x100
-        v = s1a_judge.judge(words, KNOWN)
+        v = judge(words)
         self.assertEqual(v["verdict"], "FAIL")
         self.assertTrue(any("record 2: code 0x0, but its raw words say 0x11" in p for p in v["problems"]), v["problems"])
 
@@ -69,13 +74,13 @@ class Judge(unittest.TestCase):
         words = list(Run().words); base = words[HDR:HDR + REC]
         for i in range(1, 11):
             words[HDR + i * REC:HDR + (i + 1) * REC] = base
-        v = s1a_judge.judge(words, KNOWN)
+        v = judge(words)
         self.assertEqual(v["verdict"], "FAIL")
         self.assertTrue(any("expected the target read of 0x00000b98" in p for p in v["problems"]), v["problems"])
 
     def test_a_header_that_counts_an_anomaly_no_record_shows_fails(self) -> None:
         words = list(Run().words); words[4] = 1
-        v = s1a_judge.judge(words, KNOWN)
+        v = judge(words)
         self.assertTrue(any("the header counts 1 anomalies; the records show 0" in p for p in v["problems"]), v["problems"])
         self.assertEqual(v["verdict"], "FAIL")
 
@@ -101,18 +106,20 @@ class Judge(unittest.TestCase):
             "a stream addressing another frame than the record says": lambda w: w.__setitem__(at(1, 16 + 8), 0xB9A),
             "a cleanup without DESYNC": lambda w: w.__setitem__(at(2, 16 + 43 + 2), 0),
             "a nonzero guard word": lambda w: w.__setitem__(at(2, 13), 0x101),
+            "a nonzero reserved header word": lambda w: w.__setitem__(25, 1),
+            "a nonzero reserved record word": lambda w: w.__setitem__(at(6, 15), 1),
             "a record address outside the envelope": lambda w: (w.__setitem__(at(1, 0), 0xB97), w.__setitem__(at(1, 16 + 8), 0xB97)),
         }
         for name, change in cases.items():
             with self.subTest(name):
                 words = list(clean); change(words)
-                self.assertEqual(s1a_judge.judge(words, KNOWN)["verdict"], "FAIL")
+                self.assertEqual(judge(words)["verdict"], "FAIL")
 
     def test_a_dropped_record_fails_even_with_the_sizes_repaired(self) -> None:
         words = list(Run().words)
         del words[at(4, 0):at(5, 0)]
         words[3] -= 1; words[5] -= REC
-        v = s1a_judge.judge(words, KNOWN)
+        v = judge(words)
         self.assertEqual(v["verdict"], "FAIL")
 
     def test_a_run_cut_short_before_its_last_reads_fails_even_with_the_sizes_repaired(self) -> None:
@@ -121,7 +128,7 @@ class Judge(unittest.TestCase):
                 words = list(Run().words)
                 del words[at(11 - cut, 0):]
                 words[3] -= cut; words[5] -= cut * REC
-                v = s1a_judge.judge(words, KNOWN)
+                v = judge(words)
                 self.assertEqual(v["verdict"], "FAIL")
                 self.assertTrue(any("is missing" in p for p in v["problems"]), v["problems"])
 
@@ -132,23 +139,65 @@ class Judge(unittest.TestCase):
                 words = list(Run(fault, poll_limit=40).words)
                 self.assertNotEqual(words[2], 1)
                 words[2] = 1
-                v = s1a_judge.judge(words, KNOWN)
+                v = judge(words)
                 self.assertEqual(v["verdict"], "FAIL")
                 self.assertTrue(any("the records imply" in p for p in v["problems"]), v["problems"])
 
     def test_truncated_padded_or_foreign_data_is_invalid(self) -> None:
         clean = Run().words
-        self.assertEqual(s1a_judge.judge(clean[:500], KNOWN)["verdict"], "INVALID")
-        self.assertEqual(s1a_judge.judge(clean + [0], KNOWN)["verdict"], "INVALID")
-        self.assertEqual(s1a_judge.judge([0] * 3000, KNOWN)["verdict"], "INVALID")
+        self.assertEqual(judge(clean[:500])["verdict"], "INVALID")
+        self.assertEqual(judge(clean + [0])["verdict"], "INVALID")
+        self.assertEqual(judge([0] * 3000)["verdict"], "INVALID")
         words = list(clean); words[32 + 7] = 9               # the echoed repeat count out of range
-        self.assertEqual(s1a_judge.judge(words, KNOWN)["verdict"], "INVALID")
+        self.assertEqual(judge(words)["verdict"], "INVALID")
+
+    # ---- the result must be the result of the run that was planned
+    def test_a_run_that_did_less_than_was_planned_fails_however_clean_it_is(self) -> None:
+        """One frame, read once: every record is clean and matches the known frame, and the buffer is entirely
+        self-consistent. It is not the run that was asked for."""
+        small = Run(fars=[0xB99], repeats=1)
+        self.assertEqual(judge(small.words, small.params)["verdict"], "PASS", "sanity: consistent with its own parameters")
+        v = judge(small.words)                               # judged against the planned three frames, three repeats
+        self.assertEqual(v["verdict"], "FAIL")
+        self.assertTrue(any("not the planned ones" in p for p in v["problems"]), v["problems"])
+
+    def test_any_changed_parameter_word_fails(self) -> None:
+        for name, over in (("envelope", {"lo": 0xB97}), ("budget", {"budget": 5}), ("poll limit", {"poll_limit": 999}),
+                           ("fewer repeats", {"repeats": 2}), ("another order", {"fars": [0xB99, 0xB98, 0xB9A]})):
+            with self.subTest(name):
+                run = Run(**over)
+                self.assertEqual(judge(run.words)["verdict"], "FAIL")
+                self.assertTrue(any("not the planned ones" in p for p in judge(run.words)["problems"]))
+
+    # ---- the gate readings in the header are judged, not just printed
+    def test_gate_readings_that_contradict_a_run_that_went_on_fail(self) -> None:
+        clean = Run().words
+        for name, index, value in (("CTRL without PCAP_PR", 8, 0x4600E07F), ("CTRL without PCAP_MODE", 8, 0x4A00E07F),
+                                   ("loopback on", 9, 0x30800110), ("PCFG_DONE clear at the start", 10, 0x50021000),
+                                   ("the data cache on", 12, 0x08C5187D), ("PCFG_DONE clear at the end", 16, 0x50033000),
+                                   ("an error bit at the end", 16, 0x50073004)):
+            with self.subTest(name):
+                words = list(clean); words[index] = value
+                v = judge(words)
+                self.assertEqual(v["verdict"], "FAIL")
+                self.assertTrue(any("gate" in p or "final INT_STS" in p for p in v["problems"]), v["problems"])
+
+    def test_a_gate_stop_must_show_that_gate_failing(self) -> None:
+        for fault in ("ctrl", "lpbk", "nodone", "dcache"):
+            with self.subTest(fault):
+                run = Run(fault)
+                honest = judge(run.words, run.params)
+                self.assertFalse([p for p in honest["problems"] if "but the readings" in p], "a real gate stop is consistent")
+        words = list(Run("dcache").words); words[12] &= ~4       # a data-cache stop whose header shows the cache off
+        self.assertTrue(any("but the readings in its header satisfy every gate" in p for p in judge(words)["problems"]))
+        words = list(Run("lpbk").words); words[2] = 0x101         # relabelled as a CTRL stop
+        self.assertTrue(any("fail the loopback gate" in p for p in judge(words)["problems"]))
 
     def test_the_console_line_and_return_code_the_judge_predicts_are_the_prober_s(self) -> None:
         for fault in ("", "short@2", "err@5", "dcache", "short@2,flip@3"):
             with self.subTest(fault or "clean"):
                 r = Run(fault)
-                v = s1a_judge.judge(r.words, KNOWN)
+                v = judge(r.words, r.params)
                 self.assertEqual("\r\n".join(v["expected_console"]) + "\r\n", r.uart)
                 self.assertEqual(int(v["expected_return_code"], 16), r.rc)
 

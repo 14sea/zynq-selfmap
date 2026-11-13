@@ -7,11 +7,13 @@ a known range and S1b may widen it.
 
 **No board run happens before the owner has reviewed this plan and the built image.**
 
-**Status, 2026-11-13: steps 1 to 5 are done on the host; step 6, the owner's review, is next.**
-What there is to review: this plan; `prober/` (480 lines of C); the plan the run script prints
-with `host/s1a_run.py --dry-run` (41 U-Boot commands); the image `build/prober/prober.bin`,
-3999 bytes, sha256 `40c182dd…` as fixed in `build/prober/expected.json`. The suite is 53 tests;
-25 mutants of the prober were each failed by at least one test.
+**Status, 2026-11-13: steps 1 to 5 are done on the host and were revised after a first review
+(section 10); step 6, the owner's review, is next.** What there is to review: this plan;
+`prober/`; the plan the run script prints with `host/s1a_run.py --dry-run`; the image
+`build/prober/prober.bin`, whose size and sha256 are fixed in `build/prober/expected.json` by
+the test suite. The suite is 72 tests. `tests/mutants.py` re-runs 50 deliberate defects in the
+prober, the judge and the run script on a scratch copy; its last output is
+`evidence/host_checks/mutants_2026-11-13.txt` (50 of 50 failed by the suite).
 
 ## 1. What is known going in
 
@@ -42,7 +44,7 @@ DDR areas (the two DMA buffers are zynq-psmap's):
 |---|---|---|
 | image | `0x0200_0000` | a few KiB |
 | result | `0x1000_0000` | up to 1 MiB |
-| parameters (written by the host before `go`) | `0x1010_0000` | 64 words |
+| parameters (written by the host before `go`) | `0x1010_0000` | 32 words |
 | command buffer | `0x1020_0000` | 43 words |
 | destination buffer | `0x1030_0000` | 202 words |
 
@@ -78,7 +80,10 @@ DDR areas (the two DMA buffers are zynq-psmap's):
 | what | class | action |
 |---|---|---|
 | a gate fails | stop | nothing is sent |
-| a stale status bit does not clear; a DMA does not complete within the poll limit; any bit of the error mask; `PCFG_DONE` drops | interface | stop and report |
+| a stale status bit does not clear; a DMA does not complete within the poll limit; any bit of the error mask | interface | stop and report; no further DMA command is queued |
+| `PCFG_DONE` is found clear — checked before every DMA command is queued, on every poll while it runs, and after the three commands of a read | interface | stop and report; the command in hand is the last one |
+| the very first read (the reference frame's baseline) is not clean, whatever the reason | — | stop: there is nothing to judge health against (status `0x600` + the record's code) |
+| the last read of the run (the reference frame again) is not clean or differs from the baseline | — | the run ends as a health stop (`0x300`), not as done |
 | sentinel words survive (a short read); the pad half is not zero; a repeat differs from the first read of the same frame | data | record, then re-read the reference frame: identical to its first reading → skip and continue; different → stop |
 | more anomalies than the budget | — | stop |
 
@@ -88,10 +93,23 @@ Everything needed to analyse an anomaly is in the record: the stream sent, the r
 ## 5. The result
 
 One buffer, saved whole: a header (status, counts, the parameters echoed, the gate readings)
-and one fixed-size record per read (frame address, kind, code, the status words, the raw 202
-words). No summarising on the board. The host compares the frame half of every record with
-`data/known_frames_17A6.json` and writes the verdict; the comparison is not done on the board,
-which does not carry the known answer.
+and one fixed-size record per read (frame address, kind, code, the status words, the streams
+as sent, the raw 202 words). No summarising on the board.
+
+**The host saves first and judges afterwards.** After `go`, whatever the console and the
+return code say, the host reads the header, takes the size from it, checksums the result on
+the board, writes it to the card (and requires U-Boot's `N bytes written` for exactly that
+size), pulls it over the console and requires the same checksum. A run with anomalies or an
+interface stop is archived whole in the same way as a clean one.
+
+**The judge does not take the board's word.** From the raw words alone it re-derives every
+record's code (sentinel survivors, the pad, a differing repeat, the outcome of each of the
+three DMA commands from its status word and poll count), walks the records against the
+prober's schedule so that no read can be missing, repeated or replaced, and from that walk
+derives the status, the anomaly count and the stop record the header ought to carry. Any
+disagreement is a failure. Only then are the frames compared with
+`data/known_frames_17A6.json`, which the board does not carry. The console line and the return
+code are compared with what the result implies.
 
 ## 6. Steps
 
@@ -134,3 +152,18 @@ half all zero; no anomaly; the reference frame unchanged at the end.
 - Whether the readback disturbs the running design (zynq-psmap's P2 covered only its own
   frames; the carrier's behaviour is not observed here).
 - Reading with the caches on.
+
+## 10. Changes after the first review (2026-11-13)
+
+A review of the first version found four defects; each was reproduced before it was fixed.
+
+| finding | fix | held by |
+|---|---|---|
+| After `PCFG_DONE` dropped during a read, the remaining DMA commands of that read were still queued | `PCFG_DONE` is checked before every command is queued and on every poll | `test_pcfg_done_dropping_stops_the_run_at_that_command`, `…_found_clear_before_a_command…`, `…no_command_follows_the_failing_one` |
+| With any anomaly or stop, the host stopped after `go` and saved nothing; the result size was assumed to be the clean one | the run script saves first and judges afterwards, sizing from the header | `tests/test_s1a_run.py` (a pretend U-Boot whose `go` runs the twin) |
+| The judge passed a nonzero pad under a clean code, eleven copies of the baseline, and an anomaly count no record showed | the judge re-derives codes, order, status and counts from the raw words | `tests/test_s1a_host.py` |
+| A failed card write could still end in PASS | the write must be confirmed for the exact size; otherwise the run fails (the result is still pulled) | `test_an_unconfirmed_card_write_fails_the_run…` |
+
+Also corrected: the parameter block is 32 words, not 64; the handling of a failed baseline and
+of the final reference read is now stated in section 4; the mutants are a script in the
+repository with its output kept, where before they were only a claim.

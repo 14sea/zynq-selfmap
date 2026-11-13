@@ -4,8 +4,14 @@
     s1a_run.py --dry-run          print the whole plan and exit; touches no serial port
     s1a_run.py --go --out DIR     run it (refuses unless the image on disk is the one tests fixed)
 
-The plan is built once by plan() and both modes use it, so what is reviewed is what runs.
-The run stops at the first step whose check fails; nothing is retried.
+Before `go` every step has a check and the first failure stops the run: nothing has been started.
+After `go` the rule is the opposite — whatever the prober reported, clean or not, its result is
+first sized from its own header, checksummed, saved to the card, pulled to the host and compared,
+and only then judged. A run with anomalies or an interface stop is still archived whole.
+
+The overall verdict is PASS only if the judge says PASS, the card write was confirmed, the pulled
+copy has the board's checksum, and the console line and return code are the ones the result
+implies.
 """
 from __future__ import annotations
 
@@ -22,13 +28,23 @@ import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "host"))
+import s1a_judge  # noqa: E402
+
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
+KNOWN = ROOT / "data" / "known_frames_17A6.json"
 PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000
+PAR_WORDS = 32
 
 
-def plan(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
+class Stop(Exception):
+    pass
+
+
+def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
+    """The fixed steps up to and including `go`."""
     p: list[dict] = []
     add = lambda what, cmd, check, **kw: p.append({"what": what, "cmd": cmd, "check": check, **kw})  # noqa: E731
     add("prompt", "version", "U-Boot answers")
@@ -36,32 +52,34 @@ def plan(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     add("cache state", "dcache", "says the data cache is OFF", expect=r"Data \(writethrough\) Cache is OFF")
     add("status before the PL load", "md.l f800700c 1", "recorded")
     add("clear the sticky PCFG_DONE bit so that the load is seen as an edge (as the verified run did)", "mw.l f800700c 00000004 1", "prompt")
-    add("status after the clear", "md.l f800700c 1", "bit 2 clear", bit_clear=("f800700c", 2))
-    add(f"send the PL design ({pl_bytes} bytes, sha256 {exp['pl_design']['sha256'][:8]}…) by YMODEM", f"loady {PL_ADDR:08x}", "U-Boot reports the same size", ymodem=str(PL), size=pl_bytes)
+    add("status after the clear", "md.l f800700c 1", "bit 2 clear", bit=(2, False))
+    add(f"send the PL design ({pl_bytes} bytes, sha256 {exp['pl_design']['sha256'][:8]}…) by YMODEM", f"loady {PL_ADDR:08x}",
+        "U-Boot reports the same size", ymodem=str(PL), size=pl_bytes)
     add("the design in RAM is the file", f"crc32 {PL_ADDR:08x} {pl_bytes:x}", f"crc32 {pl_crc}", crc=pl_crc)
     add("configure the PL", f"fpga loadb 0 {PL_ADDR:08x} {pl_bytes:x}", "no error", timeout=60)
-    add("status after the load", "md.l f800700c 1", "bit 2 (PCFG_DONE) set", bit_set=("f800700c", 2))
+    add("status after the load", "md.l f800700c 1", "bit 2 (PCFG_DONE) set", bit=(2, True))
+    add("zero the parameter block", f"mw.l {PAR_ADDR:08x} 0 {PAR_WORDS:x}", "prompt")
     for i, w in enumerate(exp["params"]):
-        if int(w, 16) or i < 16:
+        if int(w, 16):
             add(f"parameter word {i}", f"mw.l {PAR_ADDR + 4 * i:08x} {w} 1", "prompt")
     par_crc = f"{zlib.crc32(b''.join(struct.pack('<I', int(w, 16)) for w in exp['params'])) & 0xFFFFFFFF:08x}"
-    add("zero the rest of the parameter block first", f"mw.l {PAR_ADDR:08x} 0 20", "prompt", before_params=True)
-    add("the parameter block is as intended", f"crc32 {PAR_ADDR:08x} 80", f"crc32 {par_crc}", crc=par_crc)
+    add("the parameter block is as intended", f"crc32 {PAR_ADDR:08x} {PAR_WORDS * 4:x}", f"crc32 {par_crc}", crc=par_crc)
     add("clear the result header", f"mw.l {RES_ADDR:08x} 0 40", "prompt")
-    add(f"send the prober ({exp['image_bytes']} bytes) by YMODEM", f"loady {IMG_ADDR:08x}", "U-Boot reports the same size", ymodem=str(IMAGE), size=exp["image_bytes"])
+    add(f"send the prober ({exp['image_bytes']} bytes) by YMODEM", f"loady {IMG_ADDR:08x}", "U-Boot reports the same size",
+        ymodem=str(IMAGE), size=exp["image_bytes"])
     add("the prober in RAM is the checked image", f"crc32 {IMG_ADDR:08x} {exp['image_bytes']:x}", f"crc32 {exp['image_crc32']}", crc=exp["image_crc32"])
-    add("RUN", f"go {IMG_ADDR:08x}", "the two console lines and rc = 0x0", go=True, timeout=30)
-    add("result header", f"md.l {RES_ADDR:08x} 40", "magic, status 1", header=True)
-    add("result checksum on the board", f"crc32 {RES_ADDR:08x} {exp['result_words'] * 4:x}", "recorded", result_crc=True)
-    add("save the result to the card", f"fatwrite mmc 0:1 {RES_ADDR:08x} s1a_0001.bin {exp['result_words'] * 4:x}", "bytes written")
-    add("pull the result over the console", f"md.l {RES_ADDR:08x} {exp['result_words']:x}", "host copy has the board's crc32", dump=True, timeout=120)
-    add("status afterwards", "md.l f800700c 1", "bit 2 still set", bit_set=("f800700c", 2))
-    add("U-Boot still answers", "version", "U-Boot answers")
-    # the zeroing step belongs before the parameter words
-    z = [s for s in p if s.get("before_params")][0]; p.remove(z)
-    first = next(i for i, s in enumerate(p) if s["what"].startswith("parameter word"))
-    p.insert(first, z)
+    add("RUN", f"go {IMG_ADDR:08x}", "a prompt afterwards; the console lines and return code are recorded, not required", go=True, timeout=60)
     return p
+
+
+AFTER_GO = [
+    (f"md.l {RES_ADDR:08x} 40", "the result header", "magic, version, sizes consistent; gives the record count N"),
+    (f"crc32 {RES_ADDR:08x} <4*(64+266*N)>", "the result checksum on the board", "recorded"),
+    (f"fatwrite mmc 0:1 {RES_ADDR:08x} <name>.bin <bytes>", "save the result to the card under a name unique to this run", "'<bytes> bytes written'"),
+    (f"md.l {RES_ADDR:08x} <64+266*N>", "pull the result over the console", "the host copy has the board's crc32"),
+    ("md.l f800700c 1", "status afterwards", "recorded"),
+    ("version", "U-Boot still answers", "U-Boot answers"),
+]
 
 
 def md_words(text: str) -> list[int]:
@@ -71,6 +89,118 @@ def md_words(text: str) -> list[int]:
         if m:
             words += [int(x, 16) for x in m.group(2).split()]
     return words
+
+
+def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl_crc: str, card_name: str) -> dict:
+    """Run the plan on a console object (`cmd(line, timeout) -> (bytes, prompt_seen)`, `interrupt()`), sending files
+    with `send_file(con, loady_command, path) -> (bytes, prompt_seen)`. Writes result files into `out`."""
+    record: dict = {"steps": [], "problems": [], "card_file": card_name, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    problems = record["problems"]
+
+    def do(cmd: str, what: str, timeout: float = 10) -> str:
+        reply, ok = con.cmd(cmd, timeout)
+        text = reply.decode("utf-8", "replace")
+        record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd,
+                                "reply": text if len(text) < 2000 else text[:300] + " … " + text[-300:]})
+        if not ok:
+            raise Stop(f"no prompt after {cmd!r}")
+        return text
+
+    try:
+        _, ok = con.interrupt()
+        if not ok:
+            raise Stop("no U-Boot prompt")
+        go_text = ""
+        for s in before_go(exp, pl_bytes, pl_crc):
+            if "ymodem" in s:
+                reply, ok = send_file(con, s["cmd"], s["ymodem"])
+                text = reply.decode("utf-8", "replace")
+                record["steps"].append({"n": len(record["steps"]) + 1, "what": s["what"], "cmd": s["cmd"], "reply": text[-400:]})
+                m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)
+                if not ok or not m or int(m.group(1), 16) != s["size"]:
+                    raise Stop(f"the transfer for {s['cmd']!r} did not report {s['size']} bytes")
+                continue
+            text = do(s["cmd"], s["what"], s.get("timeout", 10))
+            if "expect" in s and not re.search(s["expect"], text):
+                raise Stop(f"{s['cmd']!r}: {s['check']}")
+            if "bit" in s:
+                w = md_words(text)
+                if not w or bool(w[0] >> s["bit"][0] & 1) != s["bit"][1]:
+                    raise Stop(f"{s['cmd']!r}: {s['check']}" + (f" (read {w[0]:08x})" if w else " (nothing read)"))
+            if "crc" in s:
+                m = re.search(r"==> ([0-9a-f]{8})", text)
+                if not m or m.group(1) != s["crc"]:
+                    raise Stop(f"{s['cmd']!r}: crc32 {m.group(1) if m else None}, expected {s['crc']}")
+            if s.get("go"):
+                go_text = text
+        record["went"] = True
+        m = re.search(r"## Application terminated, rc = 0x([0-9A-Fa-f]+)", go_text)
+        record["return_code"] = f"0x{int(m.group(1), 16):x}" if m else None
+        record["console"] = [ln.strip() for ln in go_text.splitlines() if ln.strip().startswith("SM1")]
+
+        # ---- from here on: save first, judge afterwards
+        hdr = md_words(do(f"md.l {RES_ADDR:08x} 40", "the result header"))
+        (out / "header.bin").write_bytes(b"".join(struct.pack("<I", x) for x in hdr))
+        if len(hdr) < 64 or hdr[0] != 0x31524D53 or hdr[1] != 1:
+            raise Stop("no result header at the result address (magic or version)")
+        n, total = hdr[3], hdr[5]
+        if (hdr[6], hdr[7]) != (s1a_judge.REC, s1a_judge.HDR) or n > s1a_judge.MAX_RECORDS or total != s1a_judge.HDR + n * s1a_judge.REC:
+            raise Stop(f"the result header's sizes do not add up (records {n}, words {total}); only the header was saved")
+        nbytes = total * 4
+        record["result_words"] = total
+        m = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {RES_ADDR:08x} {nbytes:x}", "the result checksum on the board", 20))
+        if not m:
+            raise Stop("no crc32 of the result from the board")
+        record["board_crc32"] = m.group(1)
+
+        text = do(f"fatwrite mmc 0:1 {RES_ADDR:08x} {card_name} {nbytes:x}", "save the result to the card", 60)
+        m = re.search(r"(\d+) bytes written", text)
+        record["card_written"] = bool(m) and int(m.group(1)) == nbytes
+        if not record["card_written"]:
+            problems.append(f"the card write was not confirmed for {nbytes} bytes: {text.strip()[-120:]!r}")
+
+        words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", "pull the result over the console", 180))
+        raw = b"".join(struct.pack("<I", x) for x in words)
+        host_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
+        record["host_crc32"] = host_crc
+        if len(words) != total or host_crc != record["board_crc32"]:
+            (out / "result_unverified.bin").write_bytes(raw)
+            raise Stop(f"the pulled copy ({len(words)} words, crc32 {host_crc}) is not the board's ({total} words, crc32 {record['board_crc32']})")
+        (out / "result.bin").write_bytes(raw)
+
+        verdict = s1a_judge.judge(words, known)
+        (out / "verdict.json").write_text(json.dumps(verdict, indent=1) + "\n")
+        record["judge"] = verdict["verdict"]
+        if record["return_code"] != verdict.get("expected_return_code"):
+            problems.append(f"the return code was {record['return_code']}, the result implies {verdict.get('expected_return_code')}")
+        if record["console"] != verdict.get("expected_console"):
+            problems.append(f"the console showed {record['console']}, the result implies {verdict.get('expected_console')}")
+        for cmd, what in (("md.l f800700c 1", "status afterwards"), ("version", "U-Boot still answers")):
+            do(cmd, what)
+    except Stop as e:
+        record["stop"] = str(e)
+        problems.append(str(e))
+    record["verdict"] = "PASS" if record.get("judge") == "PASS" and not problems else "FAIL"
+    (out / "run.json").write_text(json.dumps(record, indent=1) + "\n")
+    return record
+
+
+def ymodem_send(con, loady: str, path: str):
+    """Send one file with `sb` over the console's serial port."""
+    import serial
+    from uboot_console import DEV
+    con.s.reset_input_buffer(); con.tx(loady.encode() + b"\r")
+    end = time.time() + 8; got = b""
+    while time.time() < end and b"## Ready for binary (ymodem) download" not in got:
+        d = con.s.read(4096); got += d; con.log.write(d)
+    if b"## Ready for binary" not in got:
+        return got, False
+    time.sleep(0.5); con.s.close()
+    with open(DEV, "rb+", buffering=0) as port:
+        r = subprocess.run(["sb", "-k", path], stdin=port, stdout=port, stderr=subprocess.PIPE, timeout=900)
+    con.s = serial.Serial(DEV, 115200, timeout=0.1)
+    reply, ok = con.until_prompt(20)
+    return reply, ok and r.returncode == 0
 
 
 def main() -> int:
@@ -85,95 +215,27 @@ def main() -> int:
         print("REFUSED: the image on disk is not the one the tests fixed in expected.json"); return 2
     if hashlib.sha256(pl).hexdigest() != exp["pl_design"]["sha256"] or len(pl) != exp["pl_design"]["bytes"]:
         print("REFUSED: the staged PL design is not the one the known frames were read with"); return 2
-    steps = plan(exp, len(pl), f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}")
+    pl_crc = f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}"
     if a.dry_run or not a.go:
         print(f"image {exp['image_sha256']}  ({exp['image_bytes']} bytes)")
         print(f"PL    {exp['pl_design']['sha256']}  ({len(pl)} bytes)\n")
+        steps = before_go(exp, len(pl), pl_crc)
         for i, s in enumerate(steps, 1):
             print(f"{i:3d}. {s['cmd']:44s} # {s['what']}  ->  {s['check']}")
+        print("     --- after go, whatever it reported: save first, judge afterwards ---")
+        for i, (cmd, what, check) in enumerate(AFTER_GO, len(steps) + 1):
+            print(f"{i:3d}. {cmd:44s} # {what}  ->  {check}")
         print("\nDry run: nothing was sent.")
         return 0
     if not a.out or a.out.exists():
         print("REFUSED: --out must name a directory that does not exist yet"); return 2
     a.out.mkdir(parents=True)
     os.environ["SELFMAP_CONSOLE_LOG"] = str(a.out / "console.log")
-    sys.path.insert(0, str(ROOT / "host"))
-    import serial
-    from uboot_console import UB, DEV
-    from s1a_judge import judge
-    u = UB(); record: dict = {"expected": exp, "steps": [], "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
-
-    def stop(why: str) -> int:
-        record["stop"] = why; (a.out / "run.json").write_text(json.dumps(record, indent=1) + "\n")
-        print("STOP:", why); return 1
-
-    buf, ok = u.interrupt(tries=3)
-    if not ok:
-        return stop("no U-Boot prompt")
-    board_crc = None
-    for i, s in enumerate(steps, 1):
-        if "ymodem" in s:
-            u.s.reset_input_buffer(); u.tx(s["cmd"].encode() + b"\r")
-            end = time.time() + 8; got = b""
-            while time.time() < end and b"## Ready for binary (ymodem) download" not in got:
-                d = u.s.read(4096); got += d; u.log.write(d)
-            if b"## Ready for binary" not in got:
-                return stop(f"step {i}: loady did not become ready")
-            time.sleep(0.5); u.s.close()
-            with open(DEV, "rb+", buffering=0) as port:
-                r = subprocess.run(["sb", "-k", s["ymodem"]], stdin=port, stdout=port, stderr=subprocess.PIPE, timeout=900)
-            u.s = serial.Serial(DEV, 115200, timeout=0.1)
-            out, ok = u.until_prompt(20)
-            m = re.search(rb"## Total Size\s+= 0x([0-9a-fA-F]+)", out)
-            text = out.decode("utf-8", "replace")
-            if r.returncode or not ok or not m or int(m.group(1), 16) != s["size"]:
-                record["steps"].append({"n": i, **s, "reply": text[-400:]}); return stop(f"step {i}: YMODEM transfer")
-        else:
-            out, ok = u.cmd(s["cmd"], s.get("timeout", 10)); text = out.decode("utf-8", "replace")
-        entry = {"n": i, "what": s["what"], "cmd": s["cmd"], "reply": text if len(text) < 2000 else text[:300] + " … " + text[-300:]}
-        record["steps"].append(entry); print(f"[{i:3d}] {s['cmd'][:60]}")
-        if not ok:
-            return stop(f"step {i}: no prompt after {s['cmd']!r}")
-        if "expect" in s and not re.search(s["expect"], text):
-            return stop(f"step {i}: {s['check']}")
-        for key, want in (("bit_set", True), ("bit_clear", False)):
-            if key in s:
-                w = md_words(text)
-                if not w or bool(w[0] >> s[key][1] & 1) != want:
-                    return stop(f"step {i}: {s['check']} (read {w[0]:08x})" if w else f"step {i}: no value read")
-        if "crc" in s or s.get("result_crc"):
-            m = re.search(r"==> ([0-9a-f]{8})", text)
-            if not m:
-                return stop(f"step {i}: no crc32 in the reply")
-            if "crc" in s and m.group(1) != s["crc"]:
-                return stop(f"step {i}: crc32 {m.group(1)}, expected {s['crc']}")
-            if s.get("result_crc"):
-                board_crc = m.group(1)
-        if s.get("go"):
-            lines = [ln.strip() for ln in text.splitlines()]
-            entry["console_ok"] = all(c in lines for c in exp["console"]); entry["returned"] = "## Application terminated, rc = 0x0" in text
-            if not entry["returned"]:
-                return stop(f"step {i}: the prober did not return 0: {text[-300:]!r}")
-            if not entry["console_ok"]:
-                return stop(f"step {i}: console lines differ: {text[-300:]!r}")
-        if s.get("header"):
-            w = md_words(text)
-            if len(w) < 8 or w[0] != 0x31524D53 or w[5] != exp["result_words"]:
-                return stop(f"step {i}: result header unexpected: {[f'{x:08x}' for x in w[:8]]}")
-        if s.get("dump"):
-            w = md_words(text)
-            if len(w) != exp["result_words"]:
-                return stop(f"step {i}: pulled {len(w)} words, expected {exp['result_words']}")
-            raw = b"".join(struct.pack("<I", x) for x in w); (a.out / "result.bin").write_bytes(raw)
-            host_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
-            if host_crc != board_crc:
-                return stop(f"step {i}: the pulled copy has crc32 {host_crc}, the board said {board_crc}")
-            record["result_crc32"] = host_crc
-            verdict = judge(w, json.loads((ROOT / "data" / "known_frames_17A6.json").read_text()))
-            (a.out / "verdict.json").write_text(json.dumps(verdict, indent=1) + "\n"); record["verdict"] = verdict["verdict"]
-    (a.out / "run.json").write_text(json.dumps(record, indent=1) + "\n")
-    print("verdict:", record.get("verdict"))
-    return 0 if record.get("verdict") == "PASS" else 1
+    from uboot_console import UB
+    card_name = "s%07x.bin" % (int(time.time()) & 0xFFFFFFF)
+    record = execute(UB(), exp, a.out, ymodem_send, json.loads(KNOWN.read_text()), len(pl), pl_crc, card_name)
+    print("stop:", record.get("stop")); print("problems:", record["problems"]); print("verdict:", record["verdict"])
+    return 0 if record["verdict"] == "PASS" else 1
 
 
 if __name__ == "__main__":

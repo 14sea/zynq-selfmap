@@ -7,6 +7,12 @@
  *   twin gen <far-hex>                      print the readback stream and the cleanup stream
  *   twin guard <lo> <hi> <max> <w0> <w1>..  run the guard on a stream; print its return value
  *   twin run <frames.txt> <params.txt> <result.bin>   run S1a; SM_FAULT selects injected faults
+ *
+ * Faults (comma separated; N counts DMA commands, R counts read commands, both from 1):
+ *   ctrl lpbk nodone dcache stale   a gate or the stale-status check fails
+ *   err@N timeout@N                 command N ends with an error bit / never completes
+ *   drop@N dropafter@N              PCFG_DONE falls during command N / between command N and the next
+ *   short@R padnz@R flip@R          read R delivers 150 words / a nonzero pad word / one flipped frame bit
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +24,7 @@
 static uint32_t ddr[DDR_WORDS];
 static uint32_t reg_ctrl = 0x4E00E07Fu, reg_mctrl = 0x30800100u, reg_sts = 0x50021004u, reg_status = 0x40000A30u;
 static uint32_t dma_src, dma_dst, dma_slen, sctlr = 0x08C51879u;   /* data cache off, as after U-Boot's `dcache off` */
-static unsigned n_dma, n_read_dma; static int done_pending;
+static unsigned n_dma, n_read_dma; static int done_pending, drop_on_next_clear;
 static char uart[4096]; static unsigned uart_n;
 
 /* frames */
@@ -119,7 +125,8 @@ static void dma_execute(uint32_t dlen)
     }
     reg_sts |= 0x00002000u;                                                   /* DMA_DONE first: UG585 says it may be set before the PCAP has finished */
     done_pending = 1;                                                         /* D_P_DONE appears on the next status read */
-    if (fault_at("drop", n_dma)) reg_sts &= ~STS_PCFG_DONE;
+    if (fault_at("drop", n_dma)) reg_sts &= ~STS_PCFG_DONE;             /* during this command */
+    if (fault_at("dropafter", n_dma)) drop_on_next_clear = 1;             /* between this command and the next */
 }
 
 uint32_t hal_rd(uint32_t a)
@@ -140,7 +147,9 @@ void hal_wr(uint32_t a, uint32_t v)
 {
     printf("W %08x %08x\n", a, v);
     switch (a) {
-    case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u; break;
+    case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
+                          if (drop_on_next_clear) { drop_on_next_clear = 0; reg_sts &= ~STS_PCFG_DONE; }
+                          break;
     case DEVCFG_DMA_SRC:  dma_src = v; break;
     case DEVCFG_DMA_DST:  dma_dst = v; break;
     case DEVCFG_DMA_SLEN: dma_slen = v; break;

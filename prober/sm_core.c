@@ -100,7 +100,9 @@ static uint32_t par(uint32_t i)                     { return hal_mem_rd(PARAM_AD
 
 /* ------------------------------------------------------------------ one DMA command
  * Clear and verify the stale status, program the four registers in the normative order, wait for
- * D_P_DONE. Returns a record code; *sts and *polls are what was seen. */
+ * D_P_DONE. PCFG_DONE is a precondition of every command (UG585: no readback without it) and is
+ * checked before the command is queued and on every poll: if it is ever seen clear, nothing more
+ * is sent. Returns a record code; *sts and *polls are what was seen. */
 static uint32_t dma(uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, uint32_t poll_limit,
                     uint32_t *sts, uint32_t *polls)
 {
@@ -112,6 +114,8 @@ static uint32_t dma(uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, ui
     *sts = s;
     if (s & STS_CLEAR_MASK)
         return C_STALE;
+    if (!(s & STS_PCFG_DONE))
+        return C_DONE_DROPPED;
     hal_wr(DEVCFG_DMA_SRC, src);
     hal_wr(DEVCFG_DMA_DST, dst);
     hal_wr(DEVCFG_DMA_SLEN, slen);
@@ -121,6 +125,8 @@ static uint32_t dma(uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, ui
         *sts = s; *polls = n;
         if (s & STS_ERR_MASK)
             return C_DEVERR;
+        if (!(s & STS_PCFG_DONE))
+            return C_DONE_DROPPED;
         if (s & STS_D_P_DONE)
             return C_OK;
         if (n >= poll_limit)

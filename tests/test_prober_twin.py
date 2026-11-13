@@ -165,9 +165,26 @@ class Interface(unittest.TestCase):
         self.assertEqual((r.status, r.n_records, len(r.dmas)), (0x200 | 0x22, 2, 4))
         self.assertEqual(r.record(1)["polls"][0], 37)
 
-    def test_pcfg_done_dropping_stops_the_run(self) -> None:
-        r = Run("drop@6")
-        self.assertEqual((r.status, r.n_records, len(r.dmas)), (0x200 | 0x23, 2, 6))
+    def test_pcfg_done_dropping_stops_the_run_at_that_command(self) -> None:
+        """Whichever of a read's three commands it falls during, no further command is queued."""
+        for at in (4, 5, 6):
+            with self.subTest(command=at):
+                r = Run(f"drop@{at}")
+                self.assertEqual((r.status, r.n_records, r.stop_record, len(r.dmas)), (0x200 | 0x23, 2, 1, at))
+                self.assertEqual(r.record(1)["code"], 0x23)
+
+    def test_pcfg_done_found_clear_before_a_command_means_the_command_is_not_queued(self) -> None:
+        for after in (3, 4, 5):                              # it falls between two commands
+            with self.subTest(after=after):
+                r = Run(f"dropafter@{after}")
+                self.assertEqual((r.status, len(r.dmas)), (0x200 | 0x23, after))
+        r = Run("dropafter@6")                               # after the last command of a read: the next read finds it
+        self.assertEqual((r.status, len(r.dmas), r.n_records), (0x200 | 0x23, 6, 3))
+
+    def test_after_any_interface_stop_no_command_follows_the_failing_one(self) -> None:
+        for fault, count in (("err@4", 4), ("err@5", 5), ("err@6", 6), ("timeout@5", 5), ("timeout@6", 6), ("drop@4", 4)):
+            with self.subTest(fault):
+                self.assertEqual(len(Run(fault, poll_limit=50).dmas), count)
 
     def test_a_failure_on_the_very_first_read_is_reported_as_the_baseline(self) -> None:
         r = Run("err@1")
@@ -209,7 +226,7 @@ class Data(unittest.TestCase):
         self.assertEqual((r.status, r.record(r.n_records - 1)["ref_equal"]), (0x300, 0))
 
     def test_no_fault_makes_the_model_see_a_forbidden_operation(self) -> None:
-        for fault in ("stale", "err@5", "timeout@4", "drop@6", "short@2", "padnz@3", "flip@5", "short@2,flip@3"):
+        for fault in ("stale", "err@5", "timeout@4", "drop@4", "drop@6", "dropafter@4", "short@2", "padnz@3", "flip@5", "short@2,flip@3"):
             with self.subTest(fault):
                 self.assertEqual(Run(fault).violations, [])
 

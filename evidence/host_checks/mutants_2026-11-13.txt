@@ -1,0 +1,53 @@
+unmutated: Ran 72 OK; 0 test(s): 
+KILLED   the generator sends WCFG                                       Ran 72 FAILED (failures=72, errors=19); 35 test(s): a_clean_run_passes, a_clean_run_passes_and_everything_is_saved
+KILLED   the guard accepts any CMD value                                Ran 72 FAILED (failures=2); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard ignores the envelope                                 Ran 72 FAILED (failures=2); 2 test(s): both_readers_accept_what_the_generator_make, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard allows any read length                               Ran 72 FAILED (failures=1); 1 test(s): reads_of_anything_but_fdro_and_over_long_re
+KILLED   no clear before a command                                      Ran 72 FAILED (failures=19, errors=16); 21 test(s): a_clean_run_passes_and_everything_is_saved, a_command_that_never_completes_times_out_at
+KILLED   the clear is not verified                                      Ran 72 FAILED (failures=2); 2 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+KILLED   the clear also clears PCFG_DONE                                Ran 72 FAILED (failures=35, errors=35); 37 test(s): a_clean_run_passes, a_clean_run_passes_and_everything_is_saved
+KILLED   PCFG_DONE not checked before queuing                           Ran 72 FAILED (failures=4); 1 test(s): pcfg_done_found_clear_before_a_command_mean
+KILLED   PCFG_DONE not checked while polling                            Ran 72 FAILED (failures=2); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   SRC and DST written in the wrong order                         Ran 72 FAILED (failures=1); 1 test(s): every_dma_command_is_clear_verify_program_i
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 72 FAILED (failures=32); 8 test(s): a_clean_run_passes, a_clean_run_passes_and_everything_is_saved
+KILLED   error bits are not checked                                     Ran 72 FAILED (failures=9); 4 test(s): a_failure_on_the_very_first_read_is_reporte, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   the poll limit is ignored below 5000                           Ran 72 FAILED (failures=4); 2 test(s): a_command_that_never_completes_times_out_at, for_every_fault_the_judge_rederives_exactly
+KILLED   no data-cache gate                                             Ran 72 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   no loopback gate                                               Ran 72 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
+KILLED   no PCFG_DONE gate                                              Ran 72 FAILED (failures=1); 1 test(s): a_failed_gate_sends_nothing_and_writes_no_r
+KILLED   no CTRL gate                                                   Ran 72 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   no sentinel prefill                                            Ran 72 FAILED (failures=5); 5 test(s): a_run_with_an_anomaly_is_saved_whole_then_j, a_short_read_is_recorded_and_the_run_goes_o
+KILLED   the health check always passes                                 Ran 72 FAILED (failures=4); 3 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   no anomaly budget                                              Ran 72 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_anomaly_budget_stops_the_run
+KILLED   a repeat that differs is not noticed                           Ran 72 FAILED (failures=2); 2 test(s): a_repeat_that_differs_is_recorded_and_the_r, for_every_fault_the_judge_rederives_exactly
+KILLED   the pad is not checked                                         Ran 72 FAILED (failures=4); 2 test(s): a_nonzero_pad_is_recorded_and_the_run_goes_, for_every_fault_the_judge_rederives_exactly
+KILLED   a frame outside the envelope is accepted in the parameters     Ran 72 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register_at_all
+KILLED   a PL read is added                                             Ran 72 FAILED (failures=28, errors=16); 16 test(s): a_clean_run_passes_and_everything_is_saved, a_failed_gate_sends_nothing_and_writes_no_r
+KILLED   an SLCR write is added                                         Ran 72 FAILED (failures=28, errors=16); 16 test(s): a_clean_run_passes_and_everything_is_saved, a_failed_gate_sends_nothing_and_writes_no_r
+KILLED   the cleanup stream is skipped                                  Ran 72 FAILED (failures=19); 10 test(s): a_command_that_never_completes_times_out_at, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   the final reference read is not compared                       Ran 72 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
+KILLED   judge: a nonzero pad is not derived                            Ran 72 FAILED (failures=4); 2 test(s): a_nonzero_pad_under_a_clean_code_fails, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: sentinel survivors are not derived                      Ran 72 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: a differing repeat is not derived                       Ran 72 FAILED (failures=1); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the code is not compared with the derivation            Ran 72 FAILED (failures=1); 1 test(s): a_nonzero_pad_under_a_clean_code_fails
+KILLED   judge: the order of records is not checked                     Ran 72 FAILED (failures=4); 2 test(s): eleven_copies_of_the_baseline_fail, tampered_buffers_fail
+KILLED   judge: missing records are not noticed                         Ran 72 FAILED (failures=3); 1 test(s): a_run_cut_short_before_its_last_reads_fails
+KILLED   judge: the anomaly count is not cross-checked                  Ran 72 FAILED (failures=1); 1 test(s): a_header_that_counts_an_anomaly_no_record_s
+KILLED   judge: the status is not cross-checked                         Ran 72 FAILED (failures=3); 1 test(s): a_stopped_run_relabelled_as_done_fails
+KILLED   judge: the stop record is not cross-checked                    Ran 72 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a frame differing from the known one passes             Ran 72 FAILED (failures=1); 1 test(s): a_frame_that_differs_from_the_known_one_fai
+KILLED   judge: recorded streams are not compared with the pinned words Ran 72 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: the survivor count is not recounted                     Ran 72 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: trailing words are accepted                             Ran 72 FAILED (failures=1); 1 test(s): truncated_padded_or_foreign_data_is_invalid
+KILLED   judge: an incomplete run can pass                              Ran 72 FAILED (failures=7); 2 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   run: an unconfirmed card write is ignored                      Ran 72 FAILED (failures=2); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 72 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the pulled copy is not compared with the board            Ran 72 FAILED (errors=1); 1 test(s): a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: the return code is not compared with the result           Ran 72 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 72 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 72 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 72 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 72 FAILED (failures=6); 3 test(s): a_gate_stop_on_the_board_is_saved_too, a_run_with_an_anomaly_is_saved_whole_then_j
+KILLED   run: PASS without the judge                                    Ran 72 FAILED (failures=6); 3 test(s): a_gate_stop_on_the_board_is_saved_too, a_run_with_an_anomaly_is_saved_whole_then_j
+restored: Ran 72 OK; 0 test(s): 
+50 mutants, 0 survived

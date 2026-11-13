@@ -2,7 +2,7 @@
 
 Status: proposal only. No code, nothing on a board. v0.3 folds in the owner's decisions of
 2026-11-13 (section 12). The only thing built so far is the return-to-U-Boot test of section 11,
-question 8, and its pre-run check; it has not been on a board.
+question 8, with its pre-run check; it ran on `17A6` on 2026-11-13 and returned cleanly.
 
 ## 1. In one sentence
 
@@ -238,7 +238,10 @@ To be settled from documents or on the board:
    write and ext4 write). `probes/ret2uboot` tests exactly that and nothing else: it prints
    two lines, snapshots PS registers read-only, fills a 64 KiB buffer and returns 0. Its
    pre-run check passes on the host (`tests/test_ret2uboot.py`, 11 tests; five mutants
-   killed). Not yet run on a board.
+   killed). **Run on `17A6` on 2026-11-13: it returns cleanly** — three runs in one power-on,
+   every value as fixed beforehand, U-Boot intact afterwards
+   (`evidence/ret2uboot_17A6_2026-11-13/RESULT.md`). Saving the buffer to the card from U-Boot
+   after a run has not been tried yet.
 9. **The PS-to-PL path under a bare-metal program.** What is already known, from our own
    earlier work, none of it re-verified for this project:
    - this U-Boot's `fpga loadb` enables the PS-PL level shifters and releases the FPGA resets
@@ -251,8 +254,9 @@ To be settled from documents or on the board:
      divisors) and an AXI-Lite carrier in RTL;
    - the JTAG smoke test of the 4203 names the three registers that let a load "succeed" into
      a dark fabric (PCFG_PROG_B, LVL_SHFTR_EN, FPGA_RST_CTRL).
-   `probes/ret2uboot` records these registers as U-Boot leaves them, which is the baseline
-   the prober's own check will be written against. What remains open is whether anything
+   `probes/ret2uboot` recorded these registers as U-Boot leaves them on `17A6` (same result
+   file): FCLK0 at 50 MHz, all PLLs locked, level shifters on, FPGA resets released, the SLCR
+   locked, and the MMU and both caches on. What remains open is whether anything
    differs when the reader is a returning function rather than a stand-alone image (caches
    and DMA buffers in particular).
 

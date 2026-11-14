@@ -26,6 +26,22 @@ STEPS = {"next": {"0": [0], "101": [0], "202": [1], "303": [2]},
          "skipdata": {"0": [0], "101": [0], "202": [2], "303": [3]}}
 
 
+def _pad_only_reads() -> list[int]:
+    """The frame-read numbers of the pad-only reads when each of them is anomalous (a health read follows each)."""
+    reads, k = [], 1
+    for _ in range(3):
+        for _far, n in OPS:
+            if n == NONE:
+                continue
+            k += 1
+            if n == 0:
+                reads.append(k); k += 1
+    return reads
+
+
+PAD_FAULT = ",".join(f"padnz@{x}" for x in _pad_only_reads())      # every pad-only read has a nonzero pad word
+
+
 def judge(words, planned=None):
     return s1b0b_judge.judge(words, KNOWN, PLANNED if planned is None else planned)
 
@@ -94,6 +110,60 @@ class Judge(unittest.TestCase):
             words[at(target(4, r), FARBLK + 4)] += 5
         v = judge(words)
         self.assertEqual((v["verdict"], v["one_step_per_frame_of_words"], v["steps_by_words"]["303"]), ("PASS", False, [8]))
+
+    def test_a_far_value_is_a_measurement_even_in_a_record_that_is_anomalous_for_another_reason(self) -> None:
+        """Found in review: with every pad-only read anomalous (a pad that is not zero) under the rule where the pad
+        does not move the register, all twelve FAR reads succeeded and none had moved — and the table had no 101-word
+        row at all, with the length rule reported as holding. The finding has to be drawn from every value read."""
+        v = judge(Run(PAD_FAULT, rule="skipdata").words)
+        self.assertEqual((v["verdict"], v["steps_by_words"]["101"], v["one_step_per_frame_of_words"]), ("FAIL", [0], False))
+        rows = [row for row in v["far_after"] if row["words"] == 101]
+        self.assertEqual([(row["far"], row["far_read_back"]) for row in rows],
+                         [("0x00000b98", "0x00000b98"), ("0x00000b99", "0x00000b99"), ("0x00000b9a", "0x00000b9a")])
+        self.assertEqual(sum(len(row["records"]) for row in rows), 12)
+        for row in rows:
+            self.assertEqual(set(row["records_with_another_anomaly"].values()), {"0x11"}, "and the table says what else was wrong with them")
+            self.assertEqual(sorted(int(k) for k in row["records_with_another_anomaly"]), row["records"])
+        clean = judge(Run(rule="skipdata").words)
+        self.assertEqual([row["records_with_another_anomaly"] for row in clean["far_after"]], [{}] * 8)
+
+    def test_the_length_rule_has_three_answers(self) -> None:
+        """Holds / does not hold / undetermined. One value that does not fit is enough for "does not hold", wherever it
+        came from; "holds" needs, for every read the plan asked for, a value from a record with nothing else wrong."""
+        v = judge(Run(rule="skip").words)
+        self.assertEqual((v["one_step_per_frame_of_words"], v["reads_without_a_clean_far_value"]), (True, []))
+        v = judge(Run(PAD_FAULT, rule="skip").words)         # every value fits, but the pad-only ones all come from anomalous records
+        self.assertEqual((v["verdict"], v["steps_by_words"]["101"]), ("FAIL", [1]))
+        self.assertIsNone(v["one_step_per_frame_of_words"])
+        self.assertEqual(v["reads_without_a_clean_far_value"], [[f"{far:#010x}", "the pad alone"] for far in (0xB98, 0xB99, 0xB9A)])
+        v = judge(Run("padnz@3", rule="skip").words)         # one anomalous pad-only read; its two repeats are clean
+        self.assertEqual((v["verdict"], v["one_step_per_frame_of_words"], v["reads_without_a_clean_far_value"]), ("FAIL", True, []))
+        v = judge(Run(PAD_FAULT, rule="next").words)
+        self.assertIs(v["one_step_per_frame_of_words"], False, "a contradiction is not softened to undetermined by missing clean values")
+        cut = Run("err@12", rule="skip", poll_limit=30)      # stops in the first pad-only read: most planned reads were never made
+        v = judge(cut.words, cut.params)
+        self.assertIsNone(v["one_step_per_frame_of_words"])
+        self.assertEqual(len(v["reads_without_a_clean_far_value"]), 6)
+
+    def test_a_far_value_that_differs_in_an_anomalous_record_is_in_the_table(self) -> None:
+        v = judge(Run("farflip@12", rule="skip").words)      # the second run of "no read at 0xb98": the prober's code is 0x13
+        self.assertEqual(v["records"][11]["code"], "0x13")
+        rows = [row for row in v["far_after"] if (row["far"], row["read"]) == ("0x00000b98", "no read")]
+        self.assertEqual([(row["far_read_back"], row["records"], row["records_with_another_anomaly"]) for row in rows],
+                         [("0x00000b98", [3, 20], {}), ("0x00000b9c", [11], {"11": "0x13"})])   # 20, not 19: a health read follows record 11
+        self.assertTrue(any("after no read at 0x00000b98 is not the same every time" in p for p in v["problems"]))
+        self.assertIs(v["one_step_per_frame_of_words"], False)
+
+    def test_a_far_read_that_failed_measures_nothing(self) -> None:
+        v = judge(Run("farshort@4", rule="skip").words)      # record 3, "no read at 0xb98": the FAR read delivered nothing
+        self.assertEqual(v["records"][3]["code"], "0x14")
+        self.assertFalse([row for row in v["far_after"] if 3 in row["records"] or row["far_read_back"] == "0xa5a55a5a"])
+        self.assertEqual((v["verdict"], v["one_step_per_frame_of_words"]), ("FAIL", True), "its two repeats are clean and cover the read")
+        for fault in ("err@17", "err@18", "timeout@18"):     # the FAR command or the FAR read of record 3 fails: an interface stop
+            with self.subTest(fault):
+                run = Run(fault, rule="skip", poll_limit=30)
+                v = judge(run.words, run.params)
+                self.assertFalse([row for row in v["far_after"] if 3 in row["records"]])
 
     def test_every_frame_of_the_two_frame_read_is_compared_with_its_known_frame(self) -> None:
         for frame in (0, 1):

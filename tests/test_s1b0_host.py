@@ -67,6 +67,17 @@ class Judge(unittest.TestCase):
             words[at(i, FARBLK + 4)] += 2
         self.assertTrue(any("do not follow one rule" in p for p in judge(words)["problems"]))
 
+    def test_the_rule_is_drawn_from_every_far_value_that_was_read_not_from_the_clean_records_alone(self) -> None:
+        v = judge(Run("farflip@5").words)                    # record 4: its FAR value differs; the prober's code is 0x13
+        self.assertEqual(v["records"][4]["code"], "0x13")
+        self.assertNotIn("far_rule", v, "one value that fits neither rule: no rule is named")
+        self.assertTrue(any("do not follow one rule" in p for p in v["problems"]))
+        v = judge(Run("padnz@3").words)                      # record 2 is anomalous for another reason; its FAR value was read and fits
+        self.assertEqual((v["records"][2]["code"], v["far_deltas"]), ("0x11", {"0": list(range(12))}))
+        self.assertTrue(v["far_rule"].startswith("next:"))
+        v = judge(Run("farshort@3").words)                   # record 2: the FAR read delivered nothing, so there is no value from it
+        self.assertEqual(v["far_deltas"], {"0": [i for i in range(12) if i != 2]})
+
     def test_every_frame_of_a_multi_frame_read_is_compared_with_its_known_frame(self) -> None:
         for frame in (0, 1, 2):
             with self.subTest(frame=frame):

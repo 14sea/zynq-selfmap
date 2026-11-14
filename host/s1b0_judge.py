@@ -14,6 +14,10 @@ Stage 3 (S1b.0b, `judge(..., stage=3)`, also reached through s1b0b_judge) has th
 may also read the pad alone (a frame count of 0) or nothing at all (NONE), and its finding is a table, not a
 rule: what the FAR register held after each kind of read at each address. The value must be the same whenever
 the same read is made at the same address; how it depends on the length is reported, not required.
+
+In both stages a FAR value counts as measured whenever the FAR read itself succeeded, also in a record that is
+anomalous for another reason (a pad that is not zero, frame data that differ): the finding is drawn from every
+value the register gave, never from the clean records alone.
 """
 from __future__ import annotations
 
@@ -165,6 +169,7 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
         # the five commands in the order they are attempted
         derived = 0
         far_read_attempted = False                   # the prober records the word it finds whenever it queued the FAR read
+        far_read_done = False                        # the FAR read transfer itself completed without an interface failure
         for name, sts, polls in (("frame command", r[3], r[4]), ("frame read", r[5], r[6]), ("FAR command", fb[0], fb[1]),
                                  ("FAR read", fb[2], fb[3]), ("cleanup", r[7], r[8])):
             if derived:
@@ -183,6 +188,8 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
                 bad(f"record {i}: {polls} polls, above the limit {poll_limit}")
             if name == "FAR command" and derived == 0:
                 far_read_attempted = True
+            if name == "FAR read" and derived == 0:
+                far_read_done = True
         survivors = sum(1 for w in data if w == SENTINEL)
         if survivors != r[9]:
             bad(f"record {i}: {survivors} sentinel word(s) in the data, the record says {r[9]}")
@@ -203,9 +210,13 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
                     derived = 0x13
         if code != derived and not (code == 0x23 and derived in (0, 0x10, 0x11, 0x12, 0x13, 0x14)):
             bad(f"record {i}: code {code:#x}, but its raw words say {derived:#x}")
-        if code == 0:
-            if kind == 0:
-                first_clean.setdefault(op, rec)
+        if code == 0 and kind == 0:
+            first_clean.setdefault(op, rec)
+        # A FAR value is a measurement whenever the FAR read itself succeeded, whatever else is wrong with the record:
+        # a pad that is not zero, or frame data that differ, do not make the register's value unread. Leaving such
+        # records out would let the finding be drawn from the clean records alone and miss what the others say.
+        rec["far_measured"] = far_read_done and not unread
+        if rec["far_measured"]:
             deltas.setdefault(fb[4] - (far + delivered(m)), []).append(i)
             after.setdefault((far, m), {}).setdefault(fb[4], []).append(i)
         digests = []
@@ -309,11 +320,22 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
                     + ", ".join(f"{v:#010x} in record(s) {where}" for v, where in sorted(values.items())))
             for value, where in sorted(values.items()):
                 table.append({"far": f"{far:#010x}", "read": describe(m), "words": read_words(m), "far_read_back": f"{value:#010x}",
-                              "step": value - far, "records": where})
+                              "step": value - far, "records": where,
+                              "records_with_another_anomaly": {str(k): f"{recs[k]['code']:#x}" for k in where if recs[k]["code"] != 0}})
                 steps.setdefault(read_words(m), set()).add(value - far)
         out["far_after"] = table
         out["steps_by_words"] = {str(w): sorted(s) for w, s in sorted(steps.items())}
-        out["one_step_per_frame_of_words"] = bool(steps) and all(s == {w // FRAME} for w, s in steps.items())
+        # Three answers. False: some value read back does not fit — one is enough, wherever it came from. True: every
+        # value fits AND every read the plan asked for has at least one value from a record with nothing else wrong.
+        # None (undetermined): nothing contradicts it, but some planned read has no such value to stand on.
+        wanted = {(ref, 1)} | set(ops)
+        clean = {(rec["far"], rec["n"]) for rec in recs if rec["far_measured"] and rec["code"] == 0}
+        missing = sorted(wanted - clean, key=lambda fm: (read_words(fm[1]), fm[0]))
+        out["reads_without_a_clean_far_value"] = [[f"{far:#010x}", describe(m)] for far, m in missing]
+        if any(s != {w // FRAME} for w, s in steps.items()):
+            out["one_step_per_frame_of_words"] = False
+        else:
+            out["one_step_per_frame_of_words"] = None if missing else True
 
     if status != 1:
         bad(f"the run did not complete: status {status:#x}")

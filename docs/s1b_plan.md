@@ -247,8 +247,9 @@ anomaly; every frame equals its known frame; and the same read at the same addre
 same value every time — across repeats (checked by the prober) and across the two places in the
 sequence where the same read is made (checked by the judge). *Not* required: any particular
 value. The judge reports a table — address, kind of read, value read back — and whether the
-values fit "one step per 101 words". The twin's register follows any of three rules and the
-tests run all three; a PASS says the measurement is sound, not that the answer is convenient.
+values fit "one step per 101 words": yes, no, or undetermined (section 10). The twin's register
+follows any of three rules and the tests run all three; a PASS says the measurement is sound,
+not that the answer is convenient.
 
 | the register after the pad alone at F | what it would mean | what follows |
 |---|---|---|
@@ -286,8 +287,8 @@ before it is judged.
 - `prober/twin_hal.c`: a third rule for the register (`SM_FAR_RULE=skipdata`: the pad counts only
   when a frame follows it).
 
-**Host checks.** 154 tests; 119 deliberate defects, all failed by the suite with all 154 tests
-run (`evidence/host_checks/mutants_2026-11-14_s1b0b.txt`). The first run of the enlarged set had
+**Host checks** (as first submitted; the counts after the review are in section 10). 154 tests;
+119 deliberate defects, all failed by the suite with all 154 tests run. The first run of the enlarged set had
 one survivor and one defect that did not build. The survivor: the stage-2 judge accepting the new
 counts — no test offered it a stage-3 result relabelled as stage 2, which it would have passed;
 that test now exists. The other was rewritten so that it builds.
@@ -301,3 +302,22 @@ their evidence.
 **Before the board:** the owner's review of this section and of the code; then
 `host/s1a_run.py --stage s1b0b --dry-run` and, on the owner's word only, `--go`.
 
+## 10. Changes after the first review of S1b.0b (2026-11-14)
+
+One finding, of medium weight, reproduced before it was fixed; the three changes the review was
+asked to look at (the guard's pad-only read, stage 2 still refusing the new operations, the
+stage no longer inferred from sizes) passed.
+
+| finding | fix | held by |
+|---|---|---|
+| The judge put a FAR value into its table only from records whose code was 0. With every pad-only read anomalous for another reason (a pad that is not zero) under the rule where the pad does not move the register, all twelve FAR reads had succeeded and none had moved — yet the table had no 101-word row and the length rule was reported as holding. The verdict was FAIL and the raw records complete; the conclusion field was wrong | a FAR value is a measurement whenever the FAR read itself succeeded, whatever else is wrong with the record; the table names the records that had another anomaly, with their codes. The length rule has three answers: *no* as soon as one value does not fit; *yes* only if every value fits and every read the plan asked for has a value from a record with nothing else wrong; otherwise *undetermined*, with the reads that lack such a value listed | `test_a_far_value_is_a_measurement_even_in_a_record_that_is_anomalous_for_another_reason`, `test_the_length_rule_has_three_answers`, `test_a_far_value_that_differs_in_an_anomalous_record_is_in_the_table`, `test_a_far_read_that_failed_measures_nothing` |
+
+The same selection was in the stage-2 judge (the rule of S1b.0 was drawn from clean records
+only) and is changed with it: `test_the_rule_is_drawn_from_every_far_value_that_was_read…`.
+The S1b.0 board run had no anomalous record, so its verdict and its rule are unaffected; the
+stored result still passes the judge as it is now (`tests/test_board_evidence.py`).
+
+Only the judge changed. The board image is the one of section 9 (`daa32b08…`, 7886 bytes).
+
+Host checks after this review: 159 tests; 124 deliberate defects, all failed by the suite with
+all 159 tests run (`evidence/host_checks/mutants_2026-11-14_s1b0b.txt`).

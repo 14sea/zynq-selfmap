@@ -1,0 +1,78 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'reset\r'>>
+reset
+
+U-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+Silicon version:	3
+Trying to boot from MMC1
+
+
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+CPU:   Zynq 7z010
+Silicon: v3.1
+Model: Ebang EBAZ4203
+DRAM:  ECC disabled 512 MiB
+Core:  20 devices, 14 uclasses, devicetree: separate
+Flash: 0 Bytes
+NAND:  0 MiB
+MMC:   mmc@e0100000: 0
+Loading Environment from FAT... *** Warning - some problems detected reading environment; recovered successfully
+OK
+In:    serial@e0001000
+Out:   serial@e0001000
+Err:   serial@e0001000
+Net:   Could not get PHY for eth0: addr 0
+No ethernet found.
+
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'printenv bootdelay\r'>>
+printenv bootdelay
+bootdelay=-1
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+    21376   saf88051.bin
+    50176   saf89f4b.bin
+   107776   saf8b892.bin
+
+10 file(s), 0 dir(s)
+
+Zynq> 
+<<TX b'dcache\r'>>
+dcache
+Data (writethrough) Cache is ON
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000a                             ....
+Zynq> 
+<<TX b'md.l f8007014 1\r'>>
+md.l f8007014 1
+f8007014: 40000a30                             0..@
+Zynq> 
+<<TX b'md.l f8007000 1\r'>>
+md.l f8007000 1
+f8007000: 4e00e07f                             ...N
+Zynq> 
+<<TX b'md.l f8007080 1\r'>>
+md.l f8007080 1
+f8007080: 30800100                             ...0
+Zynq> 

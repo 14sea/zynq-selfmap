@@ -529,3 +529,47 @@ one frame only.
 **Host checks after this review:** 212 tests; 191 deliberate defects, all failed by the suite with
 all 212 tests run (`evidence/host_checks/mutants_2026-11-14_s1b1.txt`, a complete run).
 
+## 15. S1b.1 on the board (2026-11-14): stopped twice by a receive-FIFO overflow — no answer yet
+
+Released by the owner after the review of section 14. Two runs on `17A6`; record in
+`evidence/s1b1_17A6_2026-11-14/RESULT.md`.
+
+- Run 1 stopped at the 27th frame of the first pass, run 2 (the same again after a `reset`, on
+  the owner's word) at the 8th: each time the prober's own stop on an interface failure, status
+  `0x221`, in the 202-word read of a frame — `INT_STS` `50070004` (`RX_FIFO_OV`), 10 of the 202
+  words not delivered. Different addresses, different places in the run, the same signature.
+- The judge's verdict on each verified result: FAIL, for "did not complete" and "1 anomalous
+  read" and nothing else.
+- What was read before the stops is sound as far as it goes: at each of `0xb80..0xb99` the
+  device named the next number; the frames common to both runs are identical; the known frames
+  and the reference frame equal their known values.
+- A `reset` from U-Boot brings the interface back.
+- Separately, the pull of the result over the console lost data in three of five attempts that
+  evening; the card copy, verified against the board's crc32 before any pull, was fetched
+  read-only instead.
+
+UG585 describes exactly this hazard (no flow control on the PL side of the PCAP; a 31-word
+FIFO; an overflow loses data and may leave the DMA unrecoverable); zynq-psmap carried it as a
+stop condition and never met it. Of the reads of 202 words or more this project has made on
+this board, 30 before this walk were clean and 2 of the 38 in these two runs overflowed. A walk
+of one column needs about a hundred such reads, so as designed — an interface failure ends the
+run — it will not get through.
+
+**Open, for the owner — nothing below is decided or built:**
+
+1. *How often, and on what does it depend.* The existing image can measure this on the known
+   frames with no new code: stage 2 with many operations and repeats makes up to 128 frame
+   reads in a run and stops at the first overflow; a handful of runs (a `reset` between them)
+   gives a rate, and the same with three-frame reads says whether the hazard grows with the
+   length of a read.
+2. *Whether a session can be recovered without a reset.* After an overflow: clear the status,
+   send the cleanup, read the reference frame; if it equals the baseline, read the failed frame
+   again, a bounded number of times, every attempt recorded. UG585 warns that the DMA may not
+   recover; only the board can say. This is new prober code and a new stage of its own, to be
+   tried on the known frames before any walk relies on it.
+3. *Whether it can be avoided.* Candidates, none tested: fewer accesses to DDR by the processor
+   while a read is in flight (the data cache is off, so every stack access of the polling loop
+   goes to DDR alongside the DMA's writes); a different placement of the destination buffer.
+4. *The host's pull.* A bounded number of retries of the `md.l`, each recorded, the board's
+   crc32 deciding — or the card file as the primary copy. A change to the run script.
+

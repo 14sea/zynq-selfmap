@@ -52,6 +52,24 @@ class StoredBoardResults(unittest.TestCase):
                          {("0x00000b98", "the pad alone"): "0x00000b99", ("0x00000b99", "the pad alone"): "0x00000b9a",
                           ("0x00000b9a", "the pad alone"): "0x00000b9b"})
 
+    def test_the_two_stopped_walks_are_judged_as_what_they_were(self) -> None:
+        """S1b.1, 2026-11-14: both runs stopped by the prober on a receive-FIFO overflow. The stored results must keep
+        failing for exactly that reason, whatever is later changed in the judge."""
+        import s1b1_judge
+        for run, sha, frames, record, far in (("run1_recovered", "efd5bbe6cb809b2520b12a03ad9260abebc759da83fbf1c9f2ac1e17684e538d", 26, 55, "0x00000b9a"),
+                                              ("run2_recovered", "868048b6ba389bbb6152c0e508ab4bfee39154ed82f6cce0ca3b62b844a5fe3d", 7, 16, "0x00000b87")):
+            with self.subTest(run=run):
+                d = ROOT / "evidence" / "s1b1_17A6_2026-11-14"
+                raw = (d / run / "result.bin").read_bytes()
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), sha)
+                planned = [int(w, 16) for w in json.loads((d / "expected_s1b1.json").read_text())["params"]]
+                v = s1b1_judge.judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), KNOWN, planned)
+                self.assertEqual((v["verdict"], v["problems"]), ("FAIL", ["the run did not complete: status 0x221", "1 anomalous read(s)"]))
+                self.assertEqual((v["frames_walked"], v["passes"][0]["ended"]), (frames, "not ended"))
+                last = v["records"][record]
+                self.assertEqual((last["far"], last["read"], last["code"], last["int_sts"][1], last["survivors"]), (far, "content read", "0x21", "50070004", 10))
+                self.assertEqual([(int(s["far"], 16), int(s["next"], 16)) for s in v["walk"]], [(0xB80 + k, 0xB81 + k) for k in range(frames)])
+
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:
             with self.subTest(run=run):

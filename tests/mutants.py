@@ -60,15 +60,15 @@ MUTANTS = [
     (CORE, "stage 2: the cleanup stream is skipped", "        code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, CLEANUP_WORDS, 0u, poll_limit, &sts, &polls);", "        code = C_OK;", 1),
     (CORE, "the final reference read is not compared", "    v = (code == C_OK && same_frame(0u, rec)) ? 1u : 0u;\n    res_wr(HDR_WORDS + rec * REC_WORDS + R_REF_EQUAL, v);\n    rec++;\n    if (!v)\n        return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);\n    return finish(S_DONE", "    v = 1u;\n    res_wr(HDR_WORDS + rec * REC_WORDS + R_REF_EQUAL, v);\n    rec++;\n    if (!v)\n        return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);\n    return finish(S_DONE"),
     # ---- the prober: the guard's rules for stage 2
-    (CORE, "the guard accepts a read that is not a pad plus whole frames", "            if (v == 0xFFFFFFFFu || v < 2u)", "            if (v < 2u)"),
-    (CORE, "the guard lets a read run past the envelope", "            if (v - 2u > far_hi - far_value)", "            if (far_value > far_hi)"),      # never true here; "if (0)" would not compile (unused variable) and a build error is not a kill
+    (CORE, "the guard accepts a read that is not a pad plus whole frames", "            if (v == 0xFFFFFFFFu)", "            if (0)"),
+    (CORE, "the guard lets a read run past the envelope", "            if (v >= 2u && v - 2u > far_hi - far_value)", "            if (v >= 2u && far_value > far_hi)"),      # never true here; "if (0)" would not compile (unused variable) and a build error is not a kill
     (CORE, "the guard accepts a one-word read of any register", "        } else if (x == W_RD_FAR_1) {", "        } else if ((x & 0xF8001FFFu) == 0x28000001u) {"),
     (CORE, "the guard allows a second read on an address that has moved on", "            far = 0;                                    /* the register has moved on: another read needs a new, checked address */\n", ""),
     ("host/packets.py", "reader: a second read on an address that has moved on is accepted", "                far = False                              # the register has moved on: another read needs a new, checked address\n", ""),
-    (RUN, "run: a result of another stage's layout is not saved whole", "        layouts = {(m[\"judge\"].HDR, m[\"judge\"].REC): name for name, m in STAGES.items()}", "        layouts = {(J.HDR, J.REC): stage}"),
+    (RUN, "run: a result of another stage's layout is not saved whole", "        having = layouts.get((hdr[7], hdr[6]), [])", "        having = [stage] if (hdr[7], hdr[6]) == (J.HDR, J.REC) else []"),
     (RUN, "run: another stage's result is not called a problem", "            if fits != stage:", "            if False:"),
     (RUN, "run: a missing result header is taken at its word for the size", "        if has_header and fits and n <=", "        if fits and n <="),
-    (CORE, "the guard's range check adds to the address and can wrap", "            if (v - 2u > far_hi - far_value)", "            if (far_value + (v - 2u) > far_hi)"),
+    (CORE, "the guard's range check adds to the address and can wrap", "            if (v >= 2u && v - 2u > far_hi - far_value)", "            if (v >= 2u && far_value + (v - 2u) > far_hi)"),
     (CORE, "stage 2: the parameter range check adds to the address and can wrap", " || n - 1u > far_hi - far)", " || far + (n - 1u) > far_hi)"),
     (RUN, "run: the dry run does not list the YMODEM branch", "            if \"card_or_ymodem\" in s:                 # the branch taken when the card has no file of that size", "            if False:"),
     # ---- the prober: stage 2
@@ -78,11 +78,11 @@ MUTANTS = [
     (CORE, "stage 2: an unread FAR is not noticed", "    if (code == C_OK && r2_rd(rec, REC2_FARBLK + F_UNREAD))", "    if (0)"),
     (CORE, "stage 2: the reference's FAR value is not part of its health", "    return (code == C_OK && same_data(0u, rec, 1u)\n            && r2_rd(rec, REC2_FARBLK + F_VALUE) == r2_rd(0u, REC2_FARBLK + F_VALUE)) ? 1u : 0u;", "    return (code == C_OK && same_data(0u, rec, 1u)) ? 1u : 0u;"),
     (CORE, "stage 2: an operation running past the envelope is accepted", " || n - 1u > far_hi - far)", ")"),
-    (CORE, "stage 2: more frames per read than the buffer holds", "        if (n == 0u || n > MAX_READ_FRAMES || far < far_lo", "        if (n == 0u || n > 15u || far < far_lo"),
+    (CORE, "stage 2: more frames per read than the buffer holds", "        if (n == 0u || n > MAX_READ_FRAMES || n - 1u", "        if (n == 0u || n > 14u || n - 1u"),
     (CORE, "stage 2: only the first frame of a repeat is compared", "    for (i = FRAME_WORDS; i < FRAME_WORDS * (n + 1u); i++)", "    for (i = FRAME_WORDS; i < FRAME_WORDS * 2u && n; i++)"),
     (CORE, "stage 2: the pad is not checked", "            if (r2_rd(rec, REC2_DATA + i) != 0u) {", "            if (0) {"),
     # ---- the judge of stage 2
-    (JUDGE2, "judge2: the FAR values need not follow one rule", "    elif deltas:\n        bad(", "    elif False:\n        bad("),
+    (JUDGE2, "judge2: the FAR values need not follow one rule", "        elif deltas:\n            bad(", "        elif False:\n            bad("),
     (JUDGE2, "judge2: only the first frame of a read is compared with the known frames", "        for j, frame in enumerate(rec[\"frames\"]):", "        for j, frame in enumerate(rec[\"frames\"][:1]):"),
     (JUDGE2, "judge2: the echoed parameters are not compared with the planned ones", "    if list(par) != list(planned):", "    if False:"),
     (JUDGE2, "judge2: a repeat's FAR value is not derived", "                elif first_clean[op][\"far_value\"] != fb[4]:", "                elif False:"),
@@ -94,7 +94,7 @@ MUTANTS = [
     (JUDGE2, "judge2: the order of records is not checked", "        if (rec[\"kind\"], rec[\"far\"], rec[\"n\"], rec[\"repeat\"], rec[\"op\"]) != (kind, far, m, repeat, op):", "        if False:"),
     (JUDGE2, "judge2: the code is not compared with the derivation", "        if code != derived and not (code == 0x23 and derived in (0, 0x10, 0x11, 0x12, 0x13, 0x14)):", "        if False:"),
     (JUDGE2, "judge2: an unread FAR is not derived", "            elif unread:\n                derived = 0x14", "            elif False:\n                derived = 0x14"),
-    (RUN, "run: stage 2 is judged by the judge of stage 1", "    J, tag = STAGES[stage][\"judge\"], STAGES[stage][\"tag\"]", "    J, tag = STAGES[\"s1a\"][\"judge\"], STAGES[stage][\"tag\"]"),
+    (RUN, "run: stage 2 is judged by the judge of stage 1", "    J = STAGES[stage][\"judge\"]", "    J = STAGES[\"s1a\"][\"judge\"]"),
     # ---- the judge
     (JUDGE, "judge: a nonzero pad is not derived", "            elif any(rec[\"pad\"]):", "            elif False:"),
     (JUDGE, "judge: sentinel survivors are not derived", "            if survivors:\n                derived = 0x10", "            if False:\n                derived = 0x10"),
@@ -138,6 +138,21 @@ MUTANTS = [
     (RUN, "run: the cache state is not checked before go", "            if \"expect\" in s and not re.search(s[\"expect\"], text):", "            if False:"),
     (RUN, "run: the result size is taken as the clean size", "        n, total = hdr[3], hdr[5]", "        n, total = 11, 64 + 11 * 266"),
     (RUN, "run: PASS without the judge", "    record[\"verdict\"] = \"PASS\" if record.get(\"judge\") == \"PASS\" and not problems else \"FAIL\"", "    record[\"verdict\"] = \"PASS\" if not problems else \"FAIL\""),
+    # ---- stage 3 (S1b.0b): the pad alone, and no read at all
+    (CORE, "stage 3: asked to read nothing, the generator still reads", "    if (n_frames == N_NONE) {", "    if (0) {"),
+    (CORE, "stage 3: an operation that reads nothing still queues a read command", "    if (code == C_OK && words != 0u) {                  /* with nothing", "    if (code == C_OK) {                  /* with nothing"),
+    (CORE, "stage 3: the pad of a pad-only read is not checked", "    if (code == C_OK && words != 0u) {\n        for (i = 0; i < FRAME_WORDS; i++)", "    if (code == C_OK && words > FRAME_WORDS) {\n        for (i = 0; i < FRAME_WORDS; i++)"),
+    (CORE, "stage 3: stage 2 accepts the new operations too", "        if (stage3 && (n == 0u || n == N_NONE))", "        if ((stage3 || 1) && (n == 0u || n == N_NONE))"),   # keeps the variable used: it has to build
+    (CORE, "stage 3: the pad alone or no read may be asked for outside the envelope", "        if (far < far_lo || far > far_hi)\n            return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);\n        if (stage3", "        if (stage3"),
+    (CORE, "stage 3: the console says stage 2", "    hal_putc(par(P_STAGE) == 3u ? '3' : '2');", "    hal_putc('2');"),
+    (CORE, "stage 3: repeats of an operation that reads nothing are compared over words that were never read", "    if (n == N_NONE)\n        return 1; ", "    if (0)\n        return 1; "),
+    (JUDGE2, "judge3: a read status in an operation that reads nothing goes unnoticed", "                if sts or polls:\n                    bad(f\"record {i}: a frame read transfer has a status", "                if False:\n                    bad(f\"record {i}: a frame read transfer has a status"),
+    (JUDGE2, "judge3: the same read at the same address may leave different values", "            if len(values) != 1:", "            if False:"),
+    (JUDGE2, "judge3: the stage is taken from the result instead of from what was run", "    if (par[0], par[1], par[2]) != (0x31504D53, 1, stage)", "    if (par[0], par[1]) != (0x31504D53, 1)"),
+    (JUDGE2, "judge3: the length rule is reported as holding whatever was seen", "    out[\"one_step_per_frame_of_words\"] = bool(steps) and all(s == {w // FRAME} for w, s in steps.items())", "    out[\"one_step_per_frame_of_words\"] = bool(steps)"),
+    (JUDGE2, "judge3: stage 2 may ask for the new counts as well", "        return 1 <= m <= MAX_READ_FRAMES or (stage == 3 and m in (0, NONE))", "        return 1 <= m <= MAX_READ_FRAMES or m in (0, NONE)"),
+    (RUN, "run: stage 3 is judged by the judge of stage 2", "\"s1b0b\": {\"judge\": s1b0b_judge,", "\"s1b0b\": {\"judge\": s1b0_judge,"),
+    (RUN, "run: only the console lines of the stage asked for are kept", "if re.match(r\"SM\\d \", ln.strip())]", "if ln.strip().startswith(\"SM3 \" if stage == \"s1b0b\" else \"SM2 \" if stage == \"s1b0\" else \"SM1 \")]"),
 ]
 
 

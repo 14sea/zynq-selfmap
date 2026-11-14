@@ -5,7 +5,7 @@
  * logged as VIOLATION.
  *
  *   twin gen <far-hex>                      print the readback stream and the cleanup stream
- *   twin genframes <far-hex> <n>            print the stream reading n frames, and the FAR-register read stream
+ *   twin genframes <far-hex> <n>            print the stream reading n frames (0: the pad alone; 15: no read), and the FAR-register read stream
  *   twin guard <lo> <hi> <max> <w0> <w1>..  run the guard on a stream; print its return value
  *   twin run <frames.txt> <params.txt> <result.bin>   run S1a; SM_FAULT selects injected faults
  *
@@ -13,10 +13,12 @@
  *   ctrl lpbk nodone dcache stale   a gate or the stale-status check fails
  *   err@N timeout@N                 command N ends with an error bit / never completes
  *   drop@N dropafter@N              PCFG_DONE falls during command N / between command N and the next
- *   short@R padnz@R flip@R flip3@R  frame read R delivers 150 words / a nonzero pad word / one flipped bit in its first / third frame
+ *   short@R padnz@R flip@R flip3@R  frame read R delivers 150 words (half, if it asked for fewer) / a nonzero pad word / one flipped bit in its first / third frame
  *   farshort@K farflip@K            FAR-register read K delivers nothing / a changed value
  * SM_FAR_RULE=skip makes the FAR register end one frame further than the last frame delivered (the pad counted);
- * the default leaves it at the next unread frame. Which the device does is what S1b.0 is to find out.
+ * the default leaves it at the next unread frame. S1b.0 found the board to do the former for reads of one and of
+ * three frames. SM_FAR_RULE=skipdata counts the pad only when a frame follows it: after the pad alone the
+ * register has not moved. What the device does after the pad alone is what S1b.0b is to find out.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +30,7 @@
 static uint32_t ddr[DDR_WORDS];
 static uint32_t reg_ctrl = 0x4E00E07Fu, reg_mctrl = 0x30800100u, reg_sts = 0x50021004u, reg_status = 0x40000A30u;
 static uint32_t dma_src, dma_dst, dma_slen, sctlr = 0x08C51879u;   /* data cache off, as after U-Boot's `dcache off` */
-static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_next_clear, far_skips;
+static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_next_clear, far_skips, far_skips_data_only;
 static char uart[4096]; static unsigned uart_n;
 
 /* frames */
@@ -99,7 +101,7 @@ static void engine_feed(const uint32_t *w, uint32_t n)
             for (k = 0; k < FRAME_WORDS && q_n < count; k++) queue[q_n++] = 0u;          /* the pad frame */
             for (f = far_reg; q_n < count; f++)
                 for (k = 0; k < FRAME_WORDS && q_n < count; k++) queue[q_n++] = frame(f)[k];
-            far_reg = f + (far_skips ? 1u : 0u);         /* the register moves on as frames are read; by which rule is the open question */
+            far_reg = f + ((far_skips && !(far_skips_data_only && count <= FRAME_WORDS)) ? 1u : 0u);   /* the register moves on as frames are read; by which rule is the open question */
         } else printf("VIOLATION header %08x\n", x);
     }
 }
@@ -128,7 +130,7 @@ static void dma_execute(uint32_t dlen)
             if (n && fault_at("farflip", n_far_read)) ddr[(a - DDR_BASE) / 4u] ^= 0x00000004u;
         } else {
             n_read_dma++;
-            if (fault_at("short", n_read_dma)) n = 150u;
+            if (fault_at("short", n_read_dma)) n = dlen > 150u ? 150u : dlen / 2u;
             for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
             if (fault_at("padnz", n_read_dma)) ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u;
             if (fault_at("flip", n_read_dma)) ddr[(a - DDR_BASE) / 4u + FRAME_WORDS + 3u] ^= 0x00010000u;
@@ -225,7 +227,8 @@ int main(int argc, char **argv)
         static uint32_t all[MAX_FRAMES * (FRAME_WORDS + 1)];
         FILE *f; unsigned long rc; uint32_t total;
         fault = getenv("SM_FAULT");
-        far_skips = getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skip");
+        far_skips_data_only = getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skipdata");
+        far_skips = far_skips_data_only || (getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skip"));
         n = load_words(argv[2], all, MAX_FRAMES * (FRAME_WORDS + 1));
         if (n < 0 || n % (int)(FRAME_WORDS + 1)) return 2;
         for (i = 0; i < (unsigned)n / (FRAME_WORDS + 1); i++) {

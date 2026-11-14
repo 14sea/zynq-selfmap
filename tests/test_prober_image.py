@@ -86,6 +86,18 @@ class Image(unittest.TestCase):
         e2 = dict(expected, stage="S1b.0", params=[f"{w:08x}" for w in p2], result_words=64 + records * 480,
                   console=["SM2 start", "SM2 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (records, 64 + records * 480)])
         (BUILD / "expected_s1b0.json").write_text(json.dumps(e2, indent=1) + "\n")
+        # stage 3 (S1b.0b): the same image again. Eight operations on the known frames — one frame (as in S1b.0), the pad
+        # alone, no read at all, two frames — to see what the FAR register holds after each. Count 0 is the pad alone, 15 no read.
+        ops3 = [(0xB98, 1), (0xB98, 0), (0xB98, 15), (0xB99, 0), (0xB98, 2), (0xB9A, 0), (0xB99, 15), (0xB98, 0)]
+        p3 = [0] * 32
+        p3[0:10] = [0x31504D53, 1, 3, 0xB98, 0xB9A, 0xB99, len(ops3), 3, 24, 0x00200000]      # budget: every target read may be anomalous
+        for k, (far, n) in enumerate(ops3):
+            p3[16 + k] = far
+            p3[10 + k // 8] |= n << (4 * (k % 8))
+        rec3 = 1 + len(ops3) * 3 + 1
+        e3 = dict(expected, stage="S1b.0b", params=[f"{w:08x}" for w in p3], records=rec3, result_words=64 + rec3 * 480,
+                  console=["SM3 start", "SM3 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec3, 64 + rec3 * 480)])
+        (BUILD / "expected_s1b0b.json").write_text(json.dumps(e3, indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

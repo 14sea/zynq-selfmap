@@ -21,11 +21,17 @@ void sm_readback_stream(uint32_t far, uint32_t out[STREAM_WORDS])
         out[i++] = W_NOOP;
 }
 
-/* the same stream reading n_frames frames in one FDRO read: only the length differs */
+/* the same stream reading n_frames frames in one FDRO read: only the length differs. A count of 0 reads the
+ * pad alone; N_NONE reads nothing — the two words of the read are NOOPs, the rest of the session is the same */
 void sm_frames_stream(uint32_t far, uint32_t n_frames, uint32_t out[STREAM_WORDS])
 {
     sm_readback_stream(far, out);
-    out[10] = W_T2_READ | (FRAME_WORDS * (n_frames + 1u));
+    if (n_frames == N_NONE) {
+        out[9] = W_NOOP;
+        out[10] = W_NOOP;
+    } else {
+        out[10] = W_T2_READ | (FRAME_WORDS * (n_frames + 1u));
+    }
 }
 
 /* read the FAR register, inside a session that is already synchronised (UG470 table 6-1, steps 6 to 9) */
@@ -80,9 +86,9 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
             if ((x & 0xF8000000u) != W_T2_READ || v == 0u || v > max_read || !rcfg || !far)
                 return REFUSE(i, 3u);
             v = whole_frames(v);                                         /* v <= max_read was checked just above */
-            if (v == 0xFFFFFFFFu || v < 2u)                             /* a pad frame and whole frames */
+            if (v == 0xFFFFFFFFu)                                        /* a pad frame and whole frames; the pad alone delivers none */
                 return REFUSE(i, 10u);
-            if (v - 2u > far_hi - far_value)                            /* the last frame read is still inside; far_value <= far_hi
+            if (v >= 2u && v - 2u > far_hi - far_value)                 /* the last frame read is still inside; far_value <= far_hi
                                                                            was checked when it was written, so nothing can wrap */
                 return REFUSE(i, 11u);
             far = 0;                                    /* the register has moved on: another read needs a new, checked address */
@@ -275,9 +281,11 @@ static uint32_t finish(uint32_t status, uint32_t n_records, uint32_t n_anomalies
     return status == S_DONE ? 0u : status;
 }
 
-/* ================================================================== stage 2 (S1b.0)
+/* ================================================================== stages 2 (S1b.0) and 3 (S1b.0b)
  * Each operation reads n frames in one FDRO read and then, in the same session, the FAR register.
- * The record layout differs from stage 1 (REC2_WORDS); the header is the same. */
+ * The record layout differs from stage 1 (REC2_WORDS); the header is the same.
+ * Stage 3 differs from stage 2 only in which operations its parameters may ask for: also the pad alone
+ * (a count of 0) and no FDRO read at all (N_NONE), to see what the FAR register holds after each. */
 static void r2_wr(uint32_t rec, uint32_t field, uint32_t v) { res_wr(HDR_WORDS + rec * REC2_WORDS + field, v); }
 static uint32_t r2_rd(uint32_t rec, uint32_t field)         { return res_rd(HDR_WORDS + rec * REC2_WORDS + field); }
 
@@ -285,7 +293,7 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
                         uint32_t far_lo, uint32_t far_hi, uint32_t poll_limit)
 {
     uint32_t stream[STREAM_WORDS], farrd[FARRD_WORDS], clean[CLEANUP_WORDS];
-    uint32_t words = FRAME_WORDS * (n + 1u), i, code, g, sts = 0u, polls = 0u, survivors = 0u, w, value;
+    uint32_t words = (n == N_NONE) ? 0u : FRAME_WORDS * (n + 1u), i, code, g, sts = 0u, polls = 0u, survivors = 0u, w, value;
 
     for (i = 0; i < REC2_WORDS; i++)
         r2_wr(rec, i, 0u);
@@ -323,7 +331,7 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
 
     code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, STREAM_WORDS, 0u, poll_limit, &sts, &polls);
     r2_wr(rec, R_STS_CMD, sts); r2_wr(rec, R_POLLS_CMD, polls);
-    if (code == C_OK) {
+    if (code == C_OK && words != 0u) {                  /* with nothing to read there is no read command */
         code = dma(PCAP_ENDPOINT, DST_BUF | DMA_HOLD_TAG, 0u, words, poll_limit, &sts, &polls);
         r2_wr(rec, R_STS_READ, sts); r2_wr(rec, R_POLLS_READ, polls);
     }
@@ -361,7 +369,7 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
         code = C_DONE_DROPPED;
     if (code == C_OK && survivors != 0u)
         code = C_SURVIVORS;
-    if (code == C_OK) {
+    if (code == C_OK && words != 0u) {
         for (i = 0; i < FRAME_WORDS; i++)
             if (r2_rd(rec, REC2_DATA + i) != 0u) {
                 code = C_PAD_NONZERO;
@@ -378,6 +386,8 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
 static int same_data(uint32_t rec_a, uint32_t rec_b, uint32_t n)
 {
     uint32_t i;
+    if (n == N_NONE)
+        return 1;                                       /* nothing was read: nothing can differ */
     for (i = FRAME_WORDS; i < FRAME_WORDS * (n + 1u); i++)
         if (r2_rd(rec_a, REC2_DATA + i) != r2_rd(rec_b, REC2_DATA + i))
             return 0;
@@ -391,11 +401,18 @@ static uint32_t ref_healthy(uint32_t rec, uint32_t code)
             && r2_rd(rec, REC2_FARBLK + F_VALUE) == r2_rd(0u, REC2_FARBLK + F_VALUE)) ? 1u : 0u;
 }
 
+/* "SM2" or "SM3": the stage is read from the parameter block each time, there is no static to keep it in */
+static void tag(void)
+{
+    put("SM");
+    hal_putc(par(P_STAGE) == 3u ? '3' : '2');
+}
+
 static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalies, uint32_t stop_record)
 {
     res_wr(H_STATUS, status);
     if (status == S_BAD_PARAMS) {
-        put("SM2 end status="); puthex(status); put("\r\n");
+        tag(); put(" end status="); puthex(status); put("\r\n");
         res_wr(H_TOTAL_WORDS, HDR_WORDS);
         return status;
     }
@@ -405,7 +422,7 @@ static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalie
     res_wr(H_STOP_RECORD, stop_record);
     res_wr(H_INT_STS1, hal_rd(DEVCFG_INT_STS));
     res_wr(H_STATUS1, hal_rd(DEVCFG_STATUS));
-    put("SM2 end status="); puthex(status);
+    tag(); put(" end status="); puthex(status);
     put(" records="); puthex(n_records);
     put(" anomalies="); puthex(n_anomalies);
     put(" words="); puthex(HDR_WORDS + n_records * REC2_WORDS);
@@ -422,8 +439,9 @@ static uint32_t run_s2(void)
 {
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v, n, far, first;
     uint32_t far_lo, far_hi, ref_far, n_ops, repeats, budget, poll_limit;
+    int stage3 = par(P_STAGE) == 3u;
 
-    put("SM2 start\r\n");
+    tag(); put(" start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
         res_wr(i, 0u);
     res_wr(H_MAGIC, RESULT_MAGIC);
@@ -446,7 +464,11 @@ static uint32_t run_s2(void)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
     for (k = 0; k < n_ops; k++) {
         far = par(P_FARS + k); n = op_frames(k);
-        if (n == 0u || n > MAX_READ_FRAMES || far < far_lo || far > far_hi || n - 1u > far_hi - far)
+        if (far < far_lo || far > far_hi)
+            return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+        if (stage3 && (n == 0u || n == N_NONE))         /* the pad alone, or no read: no frame is delivered, the address is enough */
+            continue;
+        if (n == 0u || n > MAX_READ_FRAMES || n - 1u > far_hi - far)
             return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
     }
 
@@ -519,7 +541,7 @@ uint32_t sm_run(void)
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v;
     uint32_t far_lo, far_hi, ref_far, n_fars, repeats, budget, poll_limit, far, first;
 
-    if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 2u)
+    if (par(P_MAGIC) == PARAM_MAGIC && (par(P_STAGE) == 2u || par(P_STAGE) == 3u))
         return run_s2();
     put("SM1 start\r\n");
     for (i = 0; i < HDR_WORDS; i++)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0] --dry-run          print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0] --go --out DIR     run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b] --dry-run          print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b] --go --out DIR     run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -36,10 +36,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
 import s1a_judge  # noqa: E402
 import s1b0_judge  # noqa: E402
+import s1b0b_judge  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
-STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED, "tag": "SM1"},
-          "s1b0": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0.json", "tag": "SM2"}}
+STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
+          "s1b0": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0.json"},
+          "s1b0b": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0b.json"}}
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
@@ -107,7 +109,7 @@ def md_words(text: str) -> list[int]:
 def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl_crc: str, card_name: str, stage: str = "s1a") -> dict:
     """Run the plan on a console object (`cmd(line, timeout) -> (bytes, prompt_seen)`, `interrupt()`), sending files
     with `send_file(con, loady_command, path) -> (bytes, prompt_seen)`. Writes result files into `out`."""
-    J, tag = STAGES[stage]["judge"], STAGES[stage]["tag"]
+    J = STAGES[stage]["judge"]
     record: dict = {"stage": stage, "steps": [], "problems": [], "card_file": card_name, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     problems = record["problems"]
 
@@ -162,7 +164,7 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         record["went"] = True
         m = re.search(r"## Application terminated, rc = 0x([0-9A-Fa-f]+)", go_text)
         record["return_code"] = f"0x{int(m.group(1), 16):x}" if m else None
-        record["console"] = [ln.strip() for ln in go_text.splitlines() if ln.strip().startswith(tag)]
+        record["console"] = [ln.strip() for ln in go_text.splitlines() if re.match(r"SM\d ", ln.strip())]   # the prober's lines, of whichever stage ran
 
         # ---- from here on: save first, judge afterwards
         hdr = md_words(do(f"md.l {RES_ADDR:08x} 40", "the result header"))
@@ -174,8 +176,11 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         # How much to save does not depend on the stage that was asked for: a result that is consistent in itself is
         # saved whole and left to the judge. Only if the header fits no layout at all is the size not its own to give;
         # then everything a result could occupy is saved.
-        layouts = {(m["judge"].HDR, m["judge"].REC): name for name, m in STAGES.items()}
-        fits = layouts.get((hdr[7], hdr[6]))
+        layouts: dict[tuple[int, int], list[str]] = {}       # stages may share a layout (s1b0 and s1b0b do)
+        for name, m in STAGES.items():
+            layouts.setdefault((m["judge"].HDR, m["judge"].REC), []).append(name)
+        having = layouts.get((hdr[7], hdr[6]), [])
+        fits = stage if stage in having else having[0] if having else None
         if has_header and fits and n <= STAGES[fits]["judge"].MAX_RECORDS and total == hdr[7] + n * hdr[6]:
             record["result_layout"] = fits
             if fits != stage:

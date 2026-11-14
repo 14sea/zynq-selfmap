@@ -105,9 +105,9 @@ def readonly_problems(words: list[int], far_lo: int, far_hi: int, max_read: int)
                     problems.append(f"{where}: a type-2 read without the FDRO header before it")
                 if not 1 <= count <= max_read:
                     problems.append(f"{where}: a read of {count} words (limit {max_read})")
-                elif count % FRAME_WORDS or count < 2 * FRAME_WORDS:
+                elif count % FRAME_WORDS:               # the pad alone (one frame of words) delivers no frame and is allowed
                     problems.append(f"{where}: a read of {count} words is not a pad frame plus whole frames")
-                elif far and far_value + count // FRAME_WORDS - 2 > far_hi:
+                elif far and count >= 2 * FRAME_WORDS and far_value + count // FRAME_WORDS - 2 > far_hi:
                     problems.append(f"{where}: the read runs past the envelope (from {far_value:#010x}, {count // FRAME_WORDS - 1} frames)")
                 if not (rcfg and far):
                     problems.append(f"{where}: a read with no RCFG, or with no frame address given since the last read")

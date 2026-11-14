@@ -210,3 +210,94 @@ is planned — nothing below is decided:
    (`0x00000b80..0x00000bff`) contains the column end, wherever that is.
 3. **Whether the count of one step per 101 words holds** for other lengths (it fits the two
    lengths tried: 202 and 404 words).
+
+## 9. Step S1b.0b — where does the register stand after the pad alone? (plan and host side, 2026-11-14)
+
+The owner chose the third of the three ways in section 8: before the walk is planned, look for a
+read that leaves the register on the next frame — on the three known frames, like S1b.0.
+
+**Why the pad alone.** S1b.0 saw start + frames + 1. One reading of that is that the register
+moves once for every 101 words delivered, the pad included. If that is what happens, no read of
+a pad plus frames can leave the register on the first frame not yet delivered: it is always one
+further. But a read of the pad alone at F would deliver no frame and leave the register on
+whatever the device takes to be the frame after F. That is the question the walk has to ask —
+"what comes after F?" — answered by the device, with no arithmetic on the host or the prober.
+Whether the device does this is not known; this step asks.
+
+**What is run.** The same image as the other stages, stage 3 in the parameter block; envelope
+`0x00000b98..0x00000b9a`, reference `0x00000b99`, three repeats of these eight operations, each
+followed in the same session by the read of the address register:
+
+| # | operation | words read | what it is for |
+|---|---|---|---|
+| 0 | one frame at `0xb98` | 202 | the read S1b.0 made: the register should say `0xb9a` again |
+| 1 | the pad alone at `0xb98` | 101 | the question |
+| 2 | no read at `0xb98` (the address is written, `RCFG` is given, nothing is read) | 0 | does the register give back what was written when nothing moved it |
+| 3 | the pad alone at `0xb99` | 101 | the question at a second address |
+| 4 | two frames from `0xb98` | 303 | a third length of read; the two frames are known |
+| 5 | the pad alone at `0xb9a` | 101 | the question at the last frame of the envelope |
+| 6 | no read at `0xb99` | 0 | as 2, at a second address |
+| 7 | the pad alone at `0xb98` | 101 | as 1, but following an operation that read nothing instead of one that read a frame: does the value depend on what came before |
+
+26 records (baseline, 24, final reference), 12,544 words. Every frame delivered is compared with
+its known frame; the reference frame is read first and last, and after any anomaly.
+
+**What is required for PASS, and what is only reported.** Required: the run completes with no
+anomaly; every frame equals its known frame; and the same read at the same address leaves the
+same value every time — across repeats (checked by the prober) and across the two places in the
+sequence where the same read is made (checked by the judge). *Not* required: any particular
+value. The judge reports a table — address, kind of read, value read back — and whether the
+values fit "one step per 101 words". The twin's register follows any of three rules and the
+tests run all three; a PASS says the measurement is sound, not that the answer is convenient.
+
+| the register after the pad alone at F | what it would mean | what follows |
+|---|---|---|
+| F + 1 at all three addresses (`0xb99`, `0xb9a`, `0xb9b`) | on these frames the device names the frame after F without delivering F | S1b.1 can be planned around it: per frame, one read for the content and one for the successor. What the device names at the end of a column is then the first thing S1b.1 would see, inside its envelope, and is still unknown |
+| F | the pad alone does not move the register; the two steps of a one-frame read both come with the frame | no successor read of this kind; the walk falls back to one long read over the envelope, the register read once at the end |
+| anything else, or not the same at operations 1 and 7 | the register depends on more than the address and the length | recorded; the walk does not use the register until that is understood |
+
+Other things the run can show, none required: operation 0 not saying `0xb9a` (yesterday's value
+does not repeat: stop and look before anything else); operations 2 and 6 not saying the address
+written (then a read-back value is not simply "where the device stands", and every reading above
+needs rethinking); the 101 words of a pad-only read not being all zero (each such read is then an
+anomaly; the budget is 24, one per target read, so the run still makes every measurement and
+re-reads the reference after each).
+
+**New compared with S1b.0, and so what could go wrong on the board:** a 101-word read; a 303-word
+read; a session that gives `RCFG` and writes the address but reads no frame data before the
+register read. None writes configuration memory. The stop rules are unchanged: an interface
+failure stops the run at that command; a changed reference frame stops it; everything is saved
+before it is judged.
+
+**What changed in the code.**
+
+- `prober/sm_core.c`: stage 3 is stage 2 with two more operations — a frame count of 0 (the pad
+  alone) and `N_NONE` (no read: the two words of the read are NOOPs, no read command is queued,
+  no pad is checked). Stage 2 still refuses both. The console tag follows the stage (`SM3`).
+- The guard, and the independent reader in `host/packets.py`, now accept an FDRO read of exactly
+  one frame of words. It delivers no frame, so only the address has to be inside the envelope.
+  A count that is not a whole number of frames is still refused, and so is a second read without
+  a new address.
+- `host/s1b0_judge.py` takes the stage; `host/s1b0b_judge.py` is its stage-3 entry. A result of
+  the other stage is INVALID to each, also when relabelled.
+- `host/s1a_run.py --stage s1b0b`. Stages 2 and 3 share a record layout, so the run script no
+  longer infers the stage from the sizes; the console lines kept are those of whichever stage
+  really ran.
+- `prober/twin_hal.c`: a third rule for the register (`SM_FAR_RULE=skipdata`: the pad counts only
+  when a frame follows it).
+
+**Host checks.** 154 tests; 119 deliberate defects, all failed by the suite with all 154 tests
+run (`evidence/host_checks/mutants_2026-11-14_s1b0b.txt`). The first run of the enlarged set had
+one survivor and one defect that did not build. The survivor: the stage-2 judge accepting the new
+counts — no test offered it a stage-3 result relabelled as stage 2, which it would have passed;
+that test now exists. The other was rewritten so that it builds.
+
+**The image** changed with stage 3: 7886 bytes, sha256
+`daa32b08711493745c1ac88cde497de575ca8e483c83c29500cd5694e202f99e`, crc32 `26e4b875`
+(`build/prober/expected_s1b0b.json`). Stages 1 and 2 run from the same image and their twin
+tests are unchanged and pass; the images that ran on the board for S1a and S1b.0 are kept with
+their evidence.
+
+**Before the board:** the owner's review of this section and of the code; then
+`host/s1a_run.py --stage s1b0b --dry-run` and, on the owner's word only, `--go`.
+

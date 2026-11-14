@@ -135,7 +135,7 @@ class StageTwoStreams(unittest.TestCase):
 
     def test_a_read_that_is_not_a_pad_plus_whole_frames_is_refused(self) -> None:
         stream, _ = genframes(0xB98, 1)
-        for count in (1, 100, 101, 201, 203, 300, 302, 304, 403):
+        for count in (1, 100, 102, 201, 203, 300, 302, 304, 403):
             with self.subTest(count=count):
                 s = list(stream); s[10] = 0x48000000 | count
                 self.assertEqual(self.both(s, 404), (False, False))
@@ -145,6 +145,27 @@ class StageTwoStreams(unittest.TestCase):
             with self.subTest(count=count, envelope="everything"):
                 s = list(wide); s[10] = 0x48000000 | count
                 self.assertEqual((guard(s, lo=0, hi=0xFFFFFFFF, maxr=404) == 0, packets.readonly_problems(s, 0, 0xFFFFFFFF, 404) == []), (False, False))
+
+    def test_the_pad_alone_and_no_read_at_all(self) -> None:
+        """Stage 3 asks for two more streams. The pad alone is one frame of words and delivers no frame, so the
+        address only has to be inside; with no read the two words of the read are NOOPs and nothing else changes."""
+        one, _ = gen(0xB98)
+        pad, _ = genframes(0xB98, 0)
+        none, _ = genframes(0xB98, 15)
+        self.assertEqual(([i for i in range(43) if pad[i] != one[i]], pad[10]), ([10], 0x48000000 | 101))
+        self.assertEqual(([i for i in range(43) if none[i] != one[i]], none[9:11]), ([9, 10], [0x20000000, 0x20000000]))
+        self.assertFalse([p for p in packets.decode(none) if p.get("op") == "read"], "no read of anything in it")
+        top = 0xFFFFFFFF
+        for far, lo, hi, ok in ((0xB98, LO, HI, True), (0xB9A, LO, HI, True), (0xB9B, LO, HI, False), (0xB97, LO, HI, False),
+                                (top, top - 1, top, True), (0, 0, 0, True)):
+            for n in (0, 15):
+                with self.subTest(far=far, n=n, lo=lo, hi=hi):
+                    stream, _ = genframes(far, n)
+                    self.assertEqual((guard(stream, lo=lo, hi=hi, maxr=404) == 0, packets.readonly_problems(stream, lo, hi, 404) == []), (ok, ok))
+        self.assertEqual(guard(none, maxr=0), 0, "nothing is read, so no read length needs to be allowed")
+        self.assertNotEqual(guard(pad, maxr=0), 0)
+        self.assertEqual((guard(pad, maxr=101), packets.readonly_problems(pad, LO, HI, 101)), (0, []))
+        self.assertNotEqual(guard(pad, maxr=100), 0)
 
     def test_only_the_far_register_and_only_one_word_of_it(self) -> None:
         for header, what in ((0x28002000, "a zero-word FAR read"), (0x28002002, "a two-word FAR read"), (0x2800E001, "a STAT read"),

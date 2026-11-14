@@ -37,7 +37,8 @@
 #define STREAM_WORDS       43u
 #define CLEANUP_WORDS      5u
 #define FARRD_WORDS        4u            /* NOOP, the read header, NOOP, NOOP */
-#define MAX_READ_FRAMES    3u            /* stage 2: frames per FDRO read */
+#define MAX_READ_FRAMES    3u            /* stages 2 and 3: frames per FDRO read */
+#define N_NONE             0xFu          /* stage 3 only, as a frame count: no FDRO read at all; a count of 0 is the pad alone */
 #define DATA2_WORDS        (FRAME_WORDS * (MAX_READ_FRAMES + 1u))   /* 404 */
 
 /* ---- DDR areas ---- */
@@ -53,7 +54,7 @@
 #define PARAM_MAGIC        0x31504D53u   /* "SMP1" */
 enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_REPEATS,
        P_ANOMALY_BUDGET, P_POLL_LIMIT, P_FARS = 16 };
-#define P_NFRAMES_LO       10u           /* stage 2: frames per read, 4 bits per entry, entries 0..7 */
+#define P_NFRAMES_LO       10u           /* stages 2 and 3: frames per read, 4 bits per entry, entries 0..7 */
 #define P_NFRAMES_HI       11u           /*          entries 8..15 */
 #define MAX_FARS           16u
 #define MAX_REPEATS        8u
@@ -68,7 +69,7 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define REC2_DATA          (REC2_FARBLK + 8u)                                             /* 76 */
 #define REC2_WORDS         (REC2_DATA + DATA2_WORDS)                                      /* 480 */
 enum { F_STS_CMD, F_POLLS_CMD, F_STS_READ, F_POLLS_READ, F_VALUE, F_UNREAD };           /* the FAR-read block */
-#define R_NFRAMES          14u           /* stage 2 only; zero in stage 1 */
+#define R_NFRAMES          14u           /* stages 2 and 3; zero in stage 1 */
 #define R_OP               15u
 enum { H_MAGIC, H_VERSION, H_STATUS, H_N_RECORDS, H_N_ANOMALIES, H_TOTAL_WORDS, H_REC_WORDS, H_HDR_WORDS,
        H_CTRL, H_MCTRL, H_INT_STS0, H_STATUS0, H_SCTLR, H_CPSR, H_SP, H_R9,

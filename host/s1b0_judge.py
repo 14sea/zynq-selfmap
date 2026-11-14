@@ -9,6 +9,11 @@ What is new in this stage and judged here:
   * after each read the FAR register is read back: the value must be the same on every repeat of an
     operation, and across the whole run it must follow ONE rule — the frame after the last one read,
     or the one after that. Which rule is the finding; a run that fits neither, or both, fails.
+
+Stage 3 (S1b.0b, `judge(..., stage=3)`, also reached through s1b0b_judge) has the same records. Its operations
+may also read the pad alone (a frame count of 0) or nothing at all (NONE), and its finding is a table, not a
+rule: what the FAR register held after each kind of read at each address. The value must be the same whenever
+the same read is made at the same address; how it depends on the length is reported, not required.
 """
 from __future__ import annotations
 
@@ -29,25 +34,39 @@ FRAME, MAX_READ_FRAMES, DATA_WORDS = 101, 3, 404
 MAX_RECORDS = 1 + MAX_FARS * MAX_REPEATS * 2 + 1
 FARRD = [0x20000000, 0x28002001, 0x20000000, 0x20000000]
 NO_OP = 0xFFFFFFFF
+NONE = 0xF                                           # stage 3, as a frame count: no FDRO read at all
+NOOP = 0x20000000
 RULES = {0: "next: the register holds the frame after the last one read", 1: "next but one: the register holds the frame after that"}
 
 
 def frames_stream(far: int, n: int) -> list[int]:
-    s = pinned_stream(far); s[10] = 0x48000000 | FRAME * (n + 1)
+    s = pinned_stream(far)
+    if n == NONE:
+        s[9] = s[10] = NOOP
+    else:
+        s[10] = 0x48000000 | FRAME * (n + 1)
     return s
 
 
-def console_line(status: int, records: int, anomalies: int) -> str:
+def read_words(n: int) -> int:
+    return 0 if n == NONE else FRAME * (n + 1)
+
+
+def describe(n: int) -> str:
+    return "no read" if n == NONE else "the pad alone" if n == 0 else f"the pad and {n} frame(s)"
+
+
+def console_line(status: int, records: int, anomalies: int, stage: int = 2) -> str:
     if status == 0x500:
-        return "SM2 end status=%08x" % status
-    return "SM2 end status=%08x records=%08x anomalies=%08x words=%08x" % (status, records, anomalies, HDR + records * REC)
+        return "SM%d end status=%08x" % (stage, status)
+    return "SM%d end status=%08x records=%08x anomalies=%08x words=%08x" % (stage, status, records, anomalies, HDR + records * REC)
 
 
 def planned_ops(par: list[int]) -> list[tuple[int, int]]:
     return [(par[16 + k], (par[10 + k // 8] >> (4 * (k % 8))) & 0xF) for k in range(min(par[6], MAX_FARS))]
 
 
-def judge(words: list[int], known: dict, planned: list[int]) -> dict:
+def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> dict:
     out: dict = {"problems": [], "records": []}
     bad = out["problems"].append
 
@@ -63,10 +82,10 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
                      "status_initial": f"{words[11]:08x}", "sctlr": f"{words[12]:08x}", "cpsr": f"{words[13]:08x}",
                      "sp": f"{words[14]:08x}", "r9": f"{words[15]:08x}", "int_sts_final": f"{words[16]:08x}",
                      "status_final": f"{words[17]:08x}", "stop_record": f"{stop_record:#x}"}
-    out["expected_console"] = ["SM2 start", console_line(status, n, anomalies)]
+    out["expected_console"] = [f"SM{stage} start", console_line(status, n, anomalies, stage)]
     out["expected_return_code"] = f"{return_code(status):#x}"
     if status != 0x500 and ((rec_words, hdr_words) != (REC, HDR) or n > MAX_RECORDS or total != HDR + n * REC):
-        return invalid(f"sizes do not add up for a stage-2 result: total {total}, records {n}, record size {rec_words}")
+        return invalid(f"sizes do not add up for a stage-{stage} result: total {total}, records {n}, record size {rec_words}")
     if status == 0x500 and (total != HDR or n):
         return invalid("a parameter refusal with records")
     if len(words) != total:
@@ -84,11 +103,18 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     if status == 0x500:
         bad("the run stopped: bad parameters"); out["verdict"] = "FAIL"; return out
     ops = planned_ops(par)
-    if (par[0], par[1], par[2]) != (0x31504D53, 1, 2) or lo > hi or not lo <= ref <= hi \
+
+    def count_ok(m: int) -> bool:                    # a frame count this stage may ask for
+        return 1 <= m <= MAX_READ_FRAMES or (stage == 3 and m in (0, NONE))
+
+    def delivered(m: int) -> int:                    # how many frames a read with this count delivers
+        return 0 if m == NONE else m
+
+    if (par[0], par[1], par[2]) != (0x31504D53, 1, stage) or lo > hi or not lo <= ref <= hi \
             or not 1 <= n_ops <= MAX_FARS or not 1 <= repeats <= MAX_REPEATS or poll_limit == 0 \
-            or any(not 1 <= m <= MAX_READ_FRAMES or far < lo or far + m - 1 > hi for far, m in ops):
-        return invalid("the echoed parameters are not a valid stage-2 parameter block")
-    out["params"]["ops"] = [[f"{far:#010x}", m] for far, m in ops]
+            or any(not count_ok(m) or far < lo or far > hi or far + max(delivered(m), 1) - 1 > hi for far, m in ops):
+        return invalid(f"the echoed parameters are not a valid stage-{stage} parameter block")
+    out["params"]["ops"] = [[f"{far:#010x}", "none" if m == NONE else m] for far, m in ops]
 
     ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]
     failing = (0x101 if (ctrl & CTRL_MASK) != CTRL_MASK else 0x102 if mctrl & MCTRL_LPBK
@@ -109,6 +135,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     recs: list[dict] = []
     first_clean: dict[int, dict] = {}
     deltas: dict[int, list[int]] = {}
+    after: dict[tuple[int, int], dict[int, list[int]]] = {}       # stage 3: (address, count) -> value read back -> records
     for i in range(n):
         r = words[HDR + i * REC: HDR + (i + 1) * REC]
         fb = r[FARBLK:FARBLK + 8]
@@ -116,13 +143,13 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         rec = {"i": i, "far": far, "kind": kind, "code": code, "n": m, "op": op, "repeat": r[12], "ref_equal": r[10],
                "far_value": fb[4], "frames": []}
         recs.append(rec)
-        if not 1 <= m <= MAX_READ_FRAMES:
+        if not count_ok(m):
             bad(f"record {i}: {m} frames per read"); m = 1
-        nwords = FRAME * (m + 1)
+        nwords = read_words(m)
         data, tail = r[DATA:DATA + nwords], r[DATA + nwords:]
-        rec["frames"] = [data[FRAME * (j + 1):FRAME * (j + 2)] for j in range(m)]
-        if far < lo or far + m - 1 > hi:
-            bad(f"record {i}: reads {far:#010x} + {m} frame(s), outside the envelope")
+        rec["frames"] = [data[FRAME * (j + 1):FRAME * (j + 2)] for j in range(delivered(m))]
+        if far < lo or far > hi or far + max(delivered(m), 1) - 1 > hi:
+            bad(f"record {i}: reads {far:#010x} + {delivered(m)} frame(s), outside the envelope")
         if r[13] != 0 or code == 0x30:
             bad(f"record {i}: the prober's guard refused its own stream (guard word {r[13]:#x})")
         if any(tail):
@@ -143,6 +170,10 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
             if derived:
                 if sts or polls:
                     bad(f"record {i}: the {name} transfer has a status although an earlier transfer failed")
+                continue
+            if name == "frame read" and m == NONE:   # nothing to read: the prober queues no read command
+                if sts or polls:
+                    bad(f"record {i}: a frame read transfer has a status in an operation that reads nothing")
                 continue
             derived = _command_outcome(sts, polls, poll_limit)
             if derived < 0:
@@ -175,7 +206,8 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         if code == 0:
             if kind == 0:
                 first_clean.setdefault(op, rec)
-            deltas.setdefault(fb[4] - (far + m), []).append(i)
+            deltas.setdefault(fb[4] - (far + delivered(m)), []).append(i)
+            after.setdefault((far, m), {}).setdefault(fb[4], []).append(i)
         digests = []
         for j, frame in enumerate(rec["frames"]):
             digests.append(hashlib.sha256(b"".join(struct.pack(">I", w) for w in frame)).hexdigest())
@@ -185,10 +217,10 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
                 elif frame != frames_known[far + j]:
                     diff = [k for k in range(FRAME) if frame[k] != frames_known[far + j][k]]
                     bad(f"record {i}: frame {j} (FAR {far + j:#010x}) read cleanly but differs from the known frame in {len(diff)} word(s), first at {diff[0]}")
-        out["records"].append({"index": i, "far": f"{far:#010x}", "frames": m, "kind": KIND.get(kind, kind), "op": None if op == NO_OP else op,
+        out["records"].append({"index": i, "far": f"{far:#010x}", "frames": delivered(m), "words": nwords, "kind": KIND.get(kind, kind), "op": None if op == NO_OP else op,
                                "code": f"{code:#x}", "repeat": r[12], "far_read_back": f"{fb[4]:#010x}",
                                "int_sts": [f"{x:08x}" for x in (r[3], r[5], fb[0], fb[2], r[7])], "polls": [r[4], r[6], fb[1], fb[3], r[8]],
-                               "survivors": survivors, "pad_all_zero": not any(data[:FRAME]), "frame_sha256": digests})
+                               "survivors": survivors, "pad_all_zero": (not any(data[:FRAME])) if nwords else None, "frame_sha256": digests})
 
     def healthy(rec: dict) -> bool:
         return rec["code"] == 0 and rec["frames"][:1] == recs[0]["frames"][:1] and rec["far_value"] == recs[0]["far_value"]
@@ -257,13 +289,31 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         if rec["kind"] not in (1, 3) and rec["ref_equal"] != 0xFFFFFFFF:
             bad(f"record {rec['i']}: a health flag on a {KIND.get(rec['kind'], rec['kind'])} read")
 
-    # ---- the finding: which rule the FAR register follows
-    out["far_deltas"] = {str(d): v for d, v in sorted(deltas.items())}
-    if len(deltas) == 1 and next(iter(deltas)) in RULES:
-        out["far_rule"] = RULES[next(iter(deltas))]
-    elif deltas:
-        bad("the FAR values read back do not follow one rule: (value - (address + frames read)) is "
-            + ", ".join(f"{d} in record(s) {v}" for d, v in sorted(deltas.items())))
+    if stage == 2:
+        # ---- the finding: which rule the FAR register follows
+        out["far_deltas"] = {str(d): v for d, v in sorted(deltas.items())}
+        if len(deltas) == 1 and next(iter(deltas)) in RULES:
+            out["far_rule"] = RULES[next(iter(deltas))]
+        elif deltas:
+            bad("the FAR values read back do not follow one rule: (value - (address + frames read)) is "
+                + ", ".join(f"{d} in record(s) {v}" for d, v in sorted(deltas.items())))
+    else:
+        # ---- the finding: what the FAR register held after each kind of read at each address. Required: the same
+        # read at the same address always leaves the same value. Reported, not required: how the value depends on
+        # the length read. Nothing is derived from an address that was not read back.
+        table = []
+        steps: dict[int, set[int]] = {}
+        for (far, m), values in sorted(after.items(), key=lambda kv: (read_words(kv[0][1]), kv[0][0])):
+            if len(values) != 1:
+                bad(f"the FAR value after {describe(m)} at {far:#010x} is not the same every time: "
+                    + ", ".join(f"{v:#010x} in record(s) {where}" for v, where in sorted(values.items())))
+            for value, where in sorted(values.items()):
+                table.append({"far": f"{far:#010x}", "read": describe(m), "words": read_words(m), "far_read_back": f"{value:#010x}",
+                              "step": value - far, "records": where})
+                steps.setdefault(read_words(m), set()).add(value - far)
+        out["far_after"] = table
+        out["steps_by_words"] = {str(w): sorted(s) for w, s in sorted(steps.items())}
+        out["one_step_per_frame_of_words"] = bool(steps) and all(s == {w // FRAME} for w, s in steps.items())
 
     if status != 1:
         bad(f"the run did not complete: status {status:#x}")

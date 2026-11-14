@@ -277,6 +277,18 @@ class ThroughTheRunScript(unittest.TestCase):
                 self.assertEqual(rec["console"][0], line, "the console lines of the stage that really ran are in the record")
                 self.assertTrue(any("the console showed" in p for p in rec["problems"]))
 
+    def test_the_counting_run_of_the_walk_s_pair_of_reads(self) -> None:
+        """64 times the pad alone and then the frame at the same address, on the known frames: stage 3, unchanged."""
+        rec, u, out = fake.run(stage="ratep", far_rule="skip")
+        self.assertEqual((rec["verdict"], rec["problems"], rec["result_words"]), ("PASS", [], 64 + 130 * 480))
+        v = json.loads((out / "verdict.json").read_text())
+        target = [(r["far"], r["words"]) for r in v["records"][1:-1]]
+        self.assertEqual(target[:6], [("0x00000b98", 101), ("0x00000b98", 202), ("0x00000b99", 101), ("0x00000b99", 202), ("0x00000b9a", 101), ("0x00000b9a", 202)])
+        self.assertEqual(sum(1 for a, b in zip(target[::2], target[1::2]) if a[0] == b[0] and (a[1], b[1]) == (101, 202)), 64)
+        self.assertIs(v["one_step_per_frame_of_words"], True)
+        rec, u, out = fake.run("err@52", stage="ratep", far_rule="skip")
+        self.assertEqual((rec["verdict"], rec["result_words"], rec.get("stop")), ("FAIL", 64 + 11 * 480, None))
+
     def test_the_dry_run_differs_from_stage_two_s_only_in_the_parameters(self) -> None:
         def plan(stage):
             out = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, "--dry-run"], capture_output=True, text=True, check=True).stdout

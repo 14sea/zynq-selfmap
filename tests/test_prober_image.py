@@ -118,6 +118,16 @@ class Image(unittest.TestCase):
             er = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console")}
             er.update(stage=name, params=[f"{w:08x}" for w in pr])
             (BUILD / f"expected_{name}.json").write_text(json.dumps(er, indent=1) + "\n")
+        # the same count for the pair of reads the walk makes at each frame: the pad alone, then the frame, at one address
+        # (stage 3). Eight pairs over the three known frames, eight repeats: 64 pairs in a run.
+        pp = [0] * 32
+        pp[0:10] = [0x31504D53, 1, 3, 0xB98, 0xB9A, 0xB99, 16, 8, 24, 0x00200000]
+        for k in range(16):
+            pp[16 + k] = 0xB98 + (k // 2) % 3
+            pp[10 + k // 8] |= (k % 2) << (4 * (k % 8))             # even places: the pad alone (0); odd places: one frame
+        ep = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console")}
+        ep.update(stage="ratep", params=[f"{w:08x}" for w in pp])
+        (BUILD / "expected_ratep.json").write_text(json.dumps(ep, indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

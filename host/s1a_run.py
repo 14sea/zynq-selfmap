@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3] --dry-run     print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3] --go --out DIR  run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3|ratep] --dry-run     print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3|ratep] --go --out DIR  run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -47,7 +47,10 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
-          "rate3": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate3.json"}}
+          "rate3": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate3.json"},
+          # and one for its stage 3: 64 times the pair the walk makes at every frame — the pad alone, then the frame, at
+          # the same address — because rate1 and rate3 ran clean where the walk overflowed
+          "ratep": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_ratep.json"}}
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"

@@ -137,6 +137,17 @@ class Image(unittest.TestCase):
         (BUILD / "expected_ratew.json").write_text(json.dumps(ew, indent=1) + "\n")
         pf = list(pw); pf[7] = 1                                    # one repeat: each frame read once
         (BUILD / "expected_ratef.json").write_text(json.dumps(dict(ew, stage="ratef", params=[f"{w:08x}" for w in pf]), indent=1) + "\n")
+        # diagnostics (docs/s1b_plan.md, section 17). dxw*: the walk, kept to the 26 addresses it has already read
+        # (envelope 0xb80..0xb99), with more stack beneath its reads. dxs*: stage 5 — the reads of the walk's first pass,
+        # the pad alone then the frame at each of those 26 addresses, made by the stage-3 loop — with more stack likewise.
+        for extra in (0, 6, 8):
+            pd = list(p4); pd[4] = 0xB99; pd[15] = extra
+            (BUILD / f"expected_dxw{extra}.json").write_text(json.dumps(dict(e4, stage=f"dxw{extra}", params=[f"{w:08x}" for w in pd]), indent=1) + "\n")
+        for extra in (0, 10, 18):
+            ps = [0] * 32
+            ps[0:10] = [0x31504D53, 1, 5, 0xB80, 0xB99, 0xB99, 1, 1, 24, 0x00200000]
+            ps[14], ps[15], ps[16] = 26, extra, 0xB80
+            (BUILD / f"expected_dxs{extra}.json").write_text(json.dumps(dict(e4, stage=f"dxs{extra}", params=[f"{w:08x}" for w in ps]), indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

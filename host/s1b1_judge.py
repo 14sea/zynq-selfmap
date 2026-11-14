@@ -37,6 +37,7 @@ from s1b0_judge import DATA, DATA_WORDS, FARBLK, FARRD, FRAME, HDR, NO_OP, REC, 
 
 STAGE, H_WALK = 4, 19
 MAX_WALK, MAX_PASSES = 64, 2
+MAX_DIAG_STACK = 64                              # parameter word 15: more stack beneath each target read (diagnostics, 2026-11-14)
 MAX_RECORDS = 1 + MAX_PASSES * (2 * MAX_WALK + MAX_WALK) + MAX_WALK + 4      # generous: a health read after every frame
 SUCC, CONTENT, TRIPLE = 0, 1, 2
 OP_NAME = {SUCC: "successor read", CONTENT: "content read", TRIPLE: "read of several frames", NO_OP: "reference read"}
@@ -79,7 +80,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     lo, hi, ref, n_fars, passes, budget, poll_limit = par[3:10]
     limit, every, start = par[12], par[13], par[16]
     out["params"] = {"far_lo": f"{lo:#010x}", "far_hi": f"{hi:#010x}", "ref_far": f"{ref:#010x}", "start": f"{start:#010x}",
-                     "passes": passes, "limit": limit, "reference_every": every, "poll_limit": poll_limit}
+                     "passes": passes, "limit": limit, "reference_every": every, "poll_limit": poll_limit, "extra_stack_words": par[15]}
     if list(par) != list(planned):
         differ = [k for k in range(32) if k >= len(planned) or par[k] != planned[k]]
         bad(f"the parameters the prober echoed are not the planned ones (word(s) {differ}): the run did not do what was asked")
@@ -87,7 +88,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         bad("the run stopped: bad parameters"); out["verdict"] = "FAIL"; return out
     if (par[0], par[1], par[2]) != (0x31504D53, 1, STAGE) or lo > hi or not lo <= ref <= hi or n_fars != 1 or not lo <= start <= hi \
             or not 1 <= passes <= MAX_PASSES or not 1 <= limit <= MAX_WALK or every < 3 or budget != 0 or poll_limit == 0 \
-            or any(par[k] for k in (10, 11, 14, 15)) or any(par[17:]):
+            or any(par[k] for k in (10, 11, 14)) or par[15] > MAX_DIAG_STACK or any(par[17:]):
         return invalid("the echoed parameters are not a valid stage-4 parameter block")
 
     ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]
@@ -127,7 +128,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
             bad(f"record {i}: the prober's guard refused its own stream (guard word {r[13]:#x})")
         if any(tail):
             bad(f"record {i}: words after the {nwords} data words are not zero")
-        if fb[6] or fb[7]:
+        if fb[7]:
             bad(f"record {i}: reserved words are not zero")
         for name, got, want in (("frame read stream", r[16:59], frames_stream(far, m)), ("FAR read stream", r[59:63], FARRD),
                                 ("cleanup stream", r[63:68], CLEANUP)):
@@ -164,7 +165,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         out["records"].append({"index": i, "far": f"{far:#010x}", "read": OP_NAME.get(op, f"operation {op:#x}"), "frames": m,
                                "kind": KIND.get(kind, kind), "pass": r[12], "code": f"{code:#x}", "far_read_back": f"{fb[4]:#010x}",
                                "int_sts": [f"{x:08x}" for x in (r[3], r[5], fb[0], fb[2], r[7])], "polls": [r[4], r[6], fb[1], fb[3], r[8]],
-                               "survivors": survivors, "pad_all_zero": not any(data[:FRAME]),
+                               "survivors": survivors, "pad_all_zero": not any(data[:FRAME]), "poll_variable_at": f"{fb[6]:#010x}",
                                "frame_sha256": [hashlib.sha256(b"".join(struct.pack(">I", w) for w in f)).hexdigest() for f in rec["frames"]]})
 
     # ---- the schedule, followed the way the prober must have followed it
@@ -218,6 +219,11 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
             bad(f"record {rec['i']}: the reference flag is {rec['ref_equal']:#x}, the data say {int(healthy(rec))}")
         return healthy(rec)
 
+    def stop_of(rec: dict) -> int:
+        """A reference read that did not hold: an interface failure is reported as one; only otherwise has the
+        reference frame changed. (Until 2026-11-14 the prober said 0x300 for both.)"""
+        return 0x200 | rec["code"] if rec["code"] >= 0x20 else 0x300
+
     def after_anomaly(rec: dict, repeat: int) -> tuple[int, int, int]:
         """What the prober does after an anomalous walk record: the status it stops with."""
         if rec["code"] >= 0x20:
@@ -225,7 +231,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         ok = reference(1, repeat)
         if ok is None:
             return (-1, count_anomalies, 0)
-        return (0x700 | rec["code"], count_anomalies, rec["i"]) if ok else (0x300, count_anomalies, state["i"] - 1)
+        return (0x700 | rec["code"], count_anomalies, rec["i"]) if ok else (stop_of(recs[state["i"] - 1]), count_anomalies, state["i"] - 1)
 
     def first_clean(op: int, far: int, upto: int) -> dict | None:
         for rec in recs[1:upto]:
@@ -241,7 +247,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
             if ok is None:
                 return (-1, count_anomalies, 0)
             if not ok:
-                return (0x300, count_anomalies, state["i"] - 1)
+                return (stop_of(recs[state["i"] - 1]), count_anomalies, state["i"] - 1)
         since["frames"] += m
         since["most"] = max(since["most"], since["frames"])
         return None
@@ -322,7 +328,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
             covered.update(range(at, at + m))
     if not implied:
         ok = reference(3, passes)
-        implied = (-1, count_anomalies, 0) if ok is None else (1, count_anomalies, 0xFFFFFFFF) if ok else (0x300, count_anomalies, state["i"] - 1)
+        implied = (-1, count_anomalies, 0) if ok is None else (1, count_anomalies, 0xFFFFFFFF) if ok else (stop_of(recs[state["i"] - 1]), count_anomalies, state["i"] - 1)
     if state["i"] != n:
         bad(f"{n - state['i']} record(s) after the point where the schedule ends (record {state['i']})")
     if implied[0] >= 0:
@@ -384,6 +390,15 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     # is no such read to make; otherwise a completed run covers every frame, and anything listed here is a stopped run's
     out["frames_without_a_second_path"] = [f"{s['far']:#010x}" for k, s in enumerate(first_pass) if k not in covered]
     out["most_frames_between_reference_reads"] = since["most"]
+    # diagnostics: where the polling loop's status word lay during each read, and which reads failed there
+    spots: dict[str, dict] = {}
+    for rec, shown in zip(recs, out["records"]):
+        key = shown["poll_variable_at"]
+        s = spots.setdefault(key, {"address_mod_32": int(key, 16) % 32, "frame_reads": 0, "pad_only_reads": 0, "interface_failures": []})
+        s["frame_reads" if rec["n"] else "pad_only_reads"] += 1
+        if rec["code"] >= 0x20:
+            s["interface_failures"].append(rec["i"])
+    out["polling_variable"] = spots
 
     if status != 1:
         bad(f"the run did not complete: status {status:#x}" + (f" ({STOPS[status]})" if status in STOPS else ""))

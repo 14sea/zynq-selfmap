@@ -80,10 +80,11 @@ class FakeUBoot:
             self.dumps = getattr(self, "dumps", 0) + 1
             bad = self.q.get("corrupt_dump")                                       # True: every dump; a number: the first so many
             if bad is True or (bad and self.dumps <= bad):
+                at = min(25, len(lines) - 1)
                 if self.q.get("dump_loses_a_line"):
-                    del lines[25]                                                  # what the console did on 2026-11-14
+                    del lines[at]                                                  # what the console did on 2026-11-14
                 else:
-                    lines[25] = lines[25][:10] + ("0" if lines[25][10] != "0" else "1") + lines[25][11:]
+                    lines[at] = lines[at][:10] + ("0" if lines[at][10] != "0" else "1") + lines[at][11:]
         return "".join(lines)
 
     def c_mw_l(self, w):
@@ -97,6 +98,10 @@ class FakeUBoot:
 
     def c_crc32(self, w):
         a, n = int(w[1], 16), int(w[2], 16)
+        if a == 0x10000000:
+            self.result_crcs = getattr(self, "result_crcs", 0) + 1
+            if self.q.get("result_changes_before_pull") and self.result_crcs == 2:  # the first was of the whole result, before
+                self.mem[0x10000000 + 4 * 70] = self.rd(0x10000000 + 4 * 70) ^ 1    # the card write; this one is of piece 0
         return "crc32 for %08x ... %08x ==> %08x\r\n" % (a, a + n - 1, zlib.crc32(self.bytes_at(a, n)) & 0xFFFFFFFF)
 
     def c_fpga(self, w):
@@ -238,32 +243,42 @@ class AfterGo(unittest.TestCase):
                 self.assertTrue(any("live status after the run" in p for p in rec["problems"]))
                 self.assertTrue((out / "result.bin").exists())
 
-    def test_a_pulled_copy_that_differs_from_the_board_is_not_accepted(self) -> None:
+    def test_a_piece_that_cannot_be_pulled_whole_stops_the_run(self) -> None:
         for how in ({}, {"dump_loses_a_line": True}):
             with self.subTest(str(how)):
                 rec, u, out = run(corrupt_dump=True, **how)
                 self.assertEqual(rec["verdict"], "FAIL")
-                self.assertIn("none of 3 pulled copies is the board's", rec["stop"])
+                self.assertIn("piece 0 of the result could not be pulled whole in 5 attempts", rec["stop"])
                 self.assertIn("the card file holds the result", rec["stop"])
                 self.assertFalse((out / "result.bin").exists())
-                self.assertEqual(sorted(p.name for p in out.glob("result_unverified*")), [f"result_unverified_{k}.bin" for k in (1, 2, 3)])
-                self.assertEqual([(p["attempt"], p["is_the_boards"]) for p in rec["pulls"]], [(1, False), (2, False), (3, False)])
-                self.assertEqual(u.dumps, 3, "three attempts and no more")
+                self.assertEqual([(p["piece"], p["attempt"]) for p in rec["pull"]["repeated"]], [(0, k) for k in (1, 2, 3, 4, 5)])
+                self.assertEqual((u.dumps, rec["pull"]["pieces"]), (5, 0), "five attempts at the first piece and no more; nothing further asked for")
                 self.assertIn("s0000001.bin", u.card, "the card copy was written before the pull")
                 self.assertIsNone(rec.get("judge"), "nothing that is not the board's copy is judged")
 
-    def test_a_pull_that_comes_back_damaged_is_made_again_and_only_the_board_s_copy_is_judged(self) -> None:
-        """2026-11-14: the console lost a line in three of five pulls. The dump is a read; it can be asked for again."""
-        for bad, how in ((1, {}), (2, {}), (1, {"dump_loses_a_line": True}), (2, {"dump_loses_a_line": True})):
+    def test_the_result_is_pulled_in_pieces_and_a_damaged_piece_again(self) -> None:
+        """2026-11-14: the console lost data in 11 of 28 whole-result pulls. Each piece is checked against the board's own
+        crc32 of it and pulled again if it differs; the whole must have the board's crc32 of the result."""
+        rec, u, out = run()
+        self.assertEqual((rec["verdict"], rec["pull"]), ("PASS", {"piece_words": 2048, "pieces": 2, "repeated": []}))    # 2990 words: 2048 and 942
+        self.assertEqual((u.dumps, (out / "result.bin").read_bytes()), (2, u.twin_result))
+        for bad, how in ((1, {}), (3, {}), (1, {"dump_loses_a_line": True}), (4, {"dump_loses_a_line": True})):
             with self.subTest(bad=bad, how=str(how)):
                 rec, u, out = run(corrupt_dump=bad, **how)
                 self.assertEqual((rec["verdict"], rec["problems"], rec.get("stop")), ("PASS", [], None))
-                self.assertEqual([p["is_the_boards"] for p in rec["pulls"]], [False] * bad + [True])
+                self.assertEqual([(p["piece"], p["attempt"]) for p in rec["pull"]["repeated"]], [(0, k + 1) for k in range(bad)])
+                self.assertEqual((u.dumps, rec["pull"]["pieces"]), (2 + bad, 2))
                 self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
-                self.assertEqual(sorted(p.name for p in out.glob("result_unverified*")), [f"result_unverified_{k}.bin" for k in range(1, bad + 1)])
-                self.assertNotEqual((out / "result_unverified_1.bin").read_bytes(), u.twin_result, "the damaged copy is kept as it came")
-        rec, u, out = run()
-        self.assertEqual(([p["is_the_boards"] for p in rec["pulls"]], u.dumps, list(out.glob("result_unverified*"))), ([True], 1, []))
+                self.assertEqual(rec["host_crc32"], rec["board_crc32"])
+
+    def test_pieces_that_each_match_do_not_make_the_whole_the_board_s(self) -> None:
+        """The crc32 of a piece is asked of the board piece by piece; the crc32 of the result was taken once, before the
+        card write. If the result in RAM changes in between, every piece matches itself and the whole does not."""
+        rec, u, out = run(result_changes_before_pull=True)
+        self.assertEqual(rec["verdict"], "FAIL")
+        self.assertIn("although each piece matched", rec["stop"])
+        self.assertFalse((out / "result.bin").exists())
+        self.assertTrue((out / "result_unverified.bin").exists())
 
     def test_a_return_code_or_console_that_contradicts_the_result_fails(self) -> None:
         rec, _, _ = run(rc_xor=1)
@@ -348,7 +363,7 @@ class Plan(unittest.TestCase):
         self.assertLess(next(i for i, c in enumerate(cmds) if c.startswith("fpga loadb")), go)
         self.assertGreater(next(i for i, c in enumerate(cmds) if c.startswith("fatwrite")), go)
         self.assertLess(next(i for i, c in enumerate(cmds) if c.startswith("fatwrite")),
-                        max(i for i, c in enumerate(cmds) if c.startswith("md.l 10000000")), "the card copy is written before the pull")
+                        next(i for i, c in enumerate(cmds) if c.startswith("crc32 / md.l 10000000")), "the card copy is written before the pull")
 
     def test_the_fake_and_the_real_console_share_the_interface_the_script_uses(self) -> None:
         src = (ROOT / "host" / "uboot_console.py").read_text()

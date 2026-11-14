@@ -2,6 +2,7 @@
 #ifndef SM_H
 #define SM_H
 #include <stdint.h>
+#include <stddef.h>
 
 /* ---- DEVCFG (UG585; imported/psmap/s0_derived_sequence.md section 1) ---- */
 #define DEVCFG_CTRL        0xF8007000u
@@ -62,6 +63,13 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define P_HEALTH_EVERY     13u           /* never more than this many frames delivered between two reference reads */
 #define MAX_WALK           64u
 #define MAX_PASSES         2u
+/* diagnostics (2026-11-14: the walk overflows the receive FIFO, stages 2 and 3 do not). Stage 5 is stage 3 with two
+ * options; stage 4 takes the second as well. Both zero: nothing differs from before. */
+#define P_DIAG_SEQ         14u           /* stage 5: instead of the table, a generated sequence — at each of this many
+                                            addresses from P_FARS[0] on, the pad alone and then the frame */
+#define P_DIAG_STACK       15u           /* stages 4 and 5: this many more words of stack beneath each target read */
+#define MAX_DIAG_SEQ       32u
+#define MAX_DIAG_STACK     64u
 #define MAX_REPEATS        8u
 
 /* ---- result ---- */
@@ -73,7 +81,8 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define REC2_FARBLK        (REC_HDR_WORDS + STREAM_WORDS + FARRD_WORDS + CLEANUP_WORDS)   /* 68 */
 #define REC2_DATA          (REC2_FARBLK + 8u)                                             /* 76 */
 #define REC2_WORDS         (REC2_DATA + DATA2_WORDS)                                      /* 480 */
-enum { F_STS_CMD, F_POLLS_CMD, F_STS_READ, F_POLLS_READ, F_VALUE, F_UNREAD };           /* the FAR-read block */
+enum { F_STS_CMD, F_POLLS_CMD, F_STS_READ, F_POLLS_READ, F_VALUE, F_UNREAD,
+       F_POLL_VAR };   /* the FAR-read block; the last: where on the stack the status word of the polling loop lay (recorded, not judged) */
 #define R_NFRAMES          14u           /* stages 2 and 3; zero in stage 1 */
 #define R_OP               15u
 enum { H_MAGIC, H_VERSION, H_STATUS, H_N_RECORDS, H_N_ANOMALIES, H_TOTAL_WORDS, H_REC_WORDS, H_HDR_WORDS,

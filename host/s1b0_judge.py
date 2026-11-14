@@ -15,7 +15,14 @@ may also read the pad alone (a frame count of 0) or nothing at all (NONE), and i
 rule: what the FAR register held after each kind of read at each address. The value must be the same whenever
 the same read is made at the same address; how it depends on the length is reported, not required.
 
-In both stages a FAR value counts as measured whenever the FAR read itself succeeded, also in a record that is
+Stage 5 (`judge(..., stage=5)`, reached through dx_judge) is stage 3 with two diagnostic options in its parameters:
+the operations may be a generated sequence (the pad alone, then the frame, at each of N addresses from the first),
+and each target read may be made with more stack beneath it. Neither changes what a record must look like.
+
+Every record also carries the address at which the status word of the prober's polling loop lay on the stack during
+its transfers. It is reported, not judged: it was added on 2026-11-14 to find out why the walk overflows.
+
+In all these stages a FAR value counts as measured whenever the FAR read itself succeeded, also in a record that is
 anomalous for another reason (a pad that is not zero, frame data that differ): the finding is drawn from every
 value the register gave, never from the clean records alone.
 """
@@ -66,7 +73,12 @@ def console_line(status: int, records: int, anomalies: int, stage: int = 2) -> s
     return "SM%d end status=%08x records=%08x anomalies=%08x words=%08x" % (stage, status, records, anomalies, HDR + records * REC)
 
 
-def planned_ops(par: list[int]) -> list[tuple[int, int]]:
+MAX_DIAG_SEQ, MAX_DIAG_STACK = 32, 64
+
+
+def planned_ops(par: list[int], stage: int = 2) -> list[tuple[int, int]]:
+    if stage == 5 and par[14]:                       # a generated sequence: the pad alone, then the frame, at each address
+        return [(par[16] + k // 2, k % 2) for k in range(2 * min(par[14], MAX_DIAG_SEQ))]
     return [(par[16 + k], (par[10 + k // 8] >> (4 * (k % 8))) & 0xF) for k in range(min(par[6], MAX_FARS))]
 
 
@@ -106,18 +118,22 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
         bad(f"the parameters the prober echoed are not the planned ones (word(s) {differ}): the run did not do what was asked")
     if status == 0x500:
         bad("the run stopped: bad parameters"); out["verdict"] = "FAIL"; return out
-    ops = planned_ops(par)
+    ops = planned_ops(par, stage)
 
     def count_ok(m: int) -> bool:                    # a frame count this stage may ask for
-        return 1 <= m <= MAX_READ_FRAMES or (stage == 3 and m in (0, NONE))
+        return 1 <= m <= MAX_READ_FRAMES or (stage in (3, 5) and m in (0, NONE))
 
     def delivered(m: int) -> int:                    # how many frames a read with this count delivers
         return 0 if m == NONE else m
 
     if (par[0], par[1], par[2]) != (0x31504D53, 1, stage) or lo > hi or not lo <= ref <= hi \
             or not 1 <= n_ops <= MAX_FARS or not 1 <= repeats <= MAX_REPEATS or poll_limit == 0 \
-            or any(not count_ok(m) or far < lo or far > hi or far + max(delivered(m), 1) - 1 > hi for far, m in ops):
+            or any(not count_ok(m) or far < lo or far > hi or far + max(delivered(m), 1) - 1 > hi for far, m in ops) \
+            or (stage != 5 and (par[14] or par[15])) \
+            or (stage == 5 and (par[14] > MAX_DIAG_SEQ or par[15] > MAX_DIAG_STACK or (par[14] and (n_ops != 1 or repeats > 2)))):
         return invalid(f"the echoed parameters are not a valid stage-{stage} parameter block")
+    if stage == 5:
+        out["params"]["diagnostic"] = {"generated_sequence_of_addresses": par[14], "extra_stack_words": par[15]}
     out["params"]["ops"] = [[f"{far:#010x}", "none" if m == NONE else m] for far, m in ops]
 
     ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]
@@ -158,7 +174,7 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
             bad(f"record {i}: the prober's guard refused its own stream (guard word {r[13]:#x})")
         if any(tail):
             bad(f"record {i}: words after the {nwords} data words are not zero")
-        if fb[6] or fb[7]:
+        if fb[7]:
             bad(f"record {i}: reserved words are not zero")
         for name, got, want in (("frame read stream", r[16:59], frames_stream(far, m)), ("FAR read stream", r[59:63], FARRD),
                                 ("cleanup stream", r[63:68], CLEANUP)):
@@ -231,10 +247,16 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
         out["records"].append({"index": i, "far": f"{far:#010x}", "frames": delivered(m), "words": nwords, "kind": KIND.get(kind, kind), "op": None if op == NO_OP else op,
                                "code": f"{code:#x}", "repeat": r[12], "far_read_back": f"{fb[4]:#010x}",
                                "int_sts": [f"{x:08x}" for x in (r[3], r[5], fb[0], fb[2], r[7])], "polls": [r[4], r[6], fb[1], fb[3], r[8]],
-                               "survivors": survivors, "pad_all_zero": (not any(data[:FRAME])) if nwords else None, "frame_sha256": digests})
+                               "survivors": survivors, "pad_all_zero": (not any(data[:FRAME])) if nwords else None, "frame_sha256": digests,
+                               "poll_variable_at": f"{fb[6]:#010x}"})
 
     def healthy(rec: dict) -> bool:
         return rec["code"] == 0 and rec["frames"][:1] == recs[0]["frames"][:1] and rec["far_value"] == recs[0]["far_value"]
+
+    def stop_of(rec: dict) -> int:
+        """The status of a run stopped by a reference read that did not hold: an interface failure is reported as
+        one; only otherwise has the reference frame changed. (Until 2026-11-14 the prober said 0x300 for both.)"""
+        return 0x200 | rec["code"] if rec["code"] >= 0x20 else 0x300
 
     def expect(i: int, kind: int, far: int, m: int, repeat: int, op: int) -> dict | None:
         if i >= n:
@@ -273,7 +295,7 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
                 if h["ref_equal"] != (1 if healthy(h) else 0):
                     bad(f"record {h['i']}: the health flag is {h['ref_equal']:#x}, the data say {int(healthy(h))}")
                 if not healthy(h):
-                    implied = (0x300, count, i - 1); break
+                    implied = (stop_of(h), count, i - 1); break
                 if count > budget:
                     implied = (0x400, count, i - 2); break
             if implied:
@@ -286,7 +308,7 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
                 i += 1
                 if f["ref_equal"] != (1 if healthy(f) else 0):
                     bad(f"record {f['i']}: the final reference flag is {f['ref_equal']:#x}, the data say {int(healthy(f))}")
-                implied = (1, count, 0xFFFFFFFF) if healthy(f) else (0x300, count, i - 1)
+                implied = (1, count, 0xFFFFFFFF) if healthy(f) else (stop_of(f), count, i - 1)
     if i != n:
         bad(f"{n - i} record(s) after the point where the schedule ends (record {i})")
     if implied[0] >= 0:
@@ -299,6 +321,17 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
     for rec in recs:
         if rec["kind"] not in (1, 3) and rec["ref_equal"] != 0xFFFFFFFF:
             bad(f"record {rec['i']}: a health flag on a {KIND.get(rec['kind'], rec['kind'])} read")
+
+    # ---- diagnostics: where the polling loop's status word lay during each kind of read, and which reads failed there
+    spots: dict[str, dict] = {}
+    for rec, shown in zip(recs, out["records"]):
+        if rec["kind"] == 0:
+            key = shown["poll_variable_at"]
+            s = spots.setdefault(key, {"address_mod_32": int(key, 16) % 32, "frame_reads": 0, "pad_only_reads": 0, "interface_failures": []})
+            s["frame_reads" if rec["frames"] else "pad_only_reads"] += 1
+            if rec["code"] >= 0x20:
+                s["interface_failures"].append(rec["i"])
+    out["polling_variable"] = spots
 
     if stage == 2:
         # ---- the finding: which rule the FAR register follows

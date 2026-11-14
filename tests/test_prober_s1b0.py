@@ -37,6 +37,7 @@ def params(**over) -> list[int]:
     for k, (far, n) in enumerate(p["ops"]):
         w[16 + k] = far
         w[10 + k // 8] |= n << (4 * (k % 8))
+    w[14], w[15] = p.get("seq", 0), p.get("extra", 0)       # stage 5: a generated sequence; more stack beneath each target read
     return w
 
 

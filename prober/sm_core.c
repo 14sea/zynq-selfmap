@@ -303,6 +303,7 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
     r2_wr(rec, R_REF_EQUAL, 0xFFFFFFFFu);
     r2_wr(rec, R_NFRAMES, n);
     r2_wr(rec, R_OP, op);
+    r2_wr(rec, REC2_FARBLK + F_POLL_VAR, (uint32_t)(uintptr_t)&sts);   /* the polling loop stores to it and to its neighbour on every poll */
 
     sm_frames_stream(far, n, stream);
     sm_far_read_stream(farrd);
@@ -382,6 +383,27 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
     return code;
 }
 
+/* diagnostics: the same read with `extra` more words of stack beneath it — nothing else differs */
+static uint32_t read_deep(uint32_t extra, uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, uint32_t repeat, uint32_t op,
+                          uint32_t far_lo, uint32_t far_hi, uint32_t poll_limit)
+{
+    volatile uint32_t pad[extra];
+    uint32_t v;
+
+    pad[0] = extra;
+    v = read_op(rec, far, n, kind, repeat, op, far_lo, far_hi, poll_limit);
+    pad[extra - 1u] = v;
+    return pad[extra - 1u];
+}
+
+/* a reference read that did not hold: if it failed on the interface, that is what stopped the run;
+ * only otherwise has the reference frame changed */
+static uint32_t health_stop(uint32_t rec)
+{
+    uint32_t code = r2_rd(rec, R_CODE);
+    return IS_INTERFACE(code) ? (S_STOP_INTERFACE | code) : S_STOP_HEALTH;
+}
+
 /* are the first n frames after the pad equal in two stage-2 records? */
 static int same_data(uint32_t rec_a, uint32_t rec_b, uint32_t n)
 {
@@ -405,7 +427,7 @@ static uint32_t ref_healthy(uint32_t rec, uint32_t code)
 static void tag(void)
 {
     put("SM");
-    hal_putc(par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
+    hal_putc(par(P_STAGE) == 5u ? '5' : par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
 }
 
 static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalies, uint32_t stop_record)
@@ -435,11 +457,15 @@ static uint32_t op_frames(uint32_t k)
     return (par(k < 8u ? P_NFRAMES_LO : P_NFRAMES_HI) >> (4u * (k & 7u))) & 0xFu;
 }
 
+/* stage 5 with a generated sequence: operations 2j and 2j+1 are the pad alone and the frame at the j-th address */
+static uint32_t op_far(uint32_t k, uint32_t seq) { return seq ? par(P_FARS) + (k >> 1) : par(P_FARS + k); }
+static uint32_t op_n(uint32_t k, uint32_t seq)   { return seq ? (k & 1u) : op_frames(k); }
+
 static uint32_t run_s2(void)
 {
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v, n, far, first;
-    uint32_t far_lo, far_hi, ref_far, n_ops, repeats, budget, poll_limit;
-    int stage3 = par(P_STAGE) == 3u;
+    uint32_t far_lo, far_hi, ref_far, n_ops, repeats, budget, poll_limit, seq = 0u, extra = 0u;
+    int stage5 = par(P_STAGE) == 5u, stage3 = stage5 || par(P_STAGE) == 3u;
 
     tag(); put(" start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
@@ -462,8 +488,15 @@ static uint32_t run_s2(void)
         || n_ops == 0u || n_ops > MAX_FARS || repeats == 0u || repeats > MAX_REPEATS
         || budget > 64u || poll_limit == 0u || poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+    if (stage5) {
+        seq = par(P_DIAG_SEQ); extra = par(P_DIAG_STACK);
+        if (seq > MAX_DIAG_SEQ || extra > MAX_DIAG_STACK || (seq != 0u && (n_ops != 1u || repeats > 2u)))
+            return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+        if (seq != 0u)
+            n_ops = 2u * seq;                           /* each address of the sequence is checked like any other, just below */
+    }
     for (k = 0; k < n_ops; k++) {
-        far = par(P_FARS + k); n = op_frames(k);
+        far = op_far(k, seq); n = op_n(k, seq);
         if (far < far_lo || far > far_hi)
             return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
         if (stage3 && (n == 0u || n == N_NONE))         /* the pad alone, or no read: no frame is delivered, the address is enough */
@@ -492,8 +525,9 @@ static uint32_t run_s2(void)
 
     for (r = 0; r < repeats; r++) {
         for (k = 0; k < n_ops; k++) {
-            far = par(P_FARS + k); n = op_frames(k);
-            code = read_op(rec, far, n, KIND_TARGET, r, k, far_lo, far_hi, poll_limit);
+            far = op_far(k, seq); n = op_n(k, seq);
+            code = extra ? read_deep(extra, rec, far, n, KIND_TARGET, r, k, far_lo, far_hi, poll_limit)
+                         : read_op(rec, far, n, KIND_TARGET, r, k, far_lo, far_hi, poll_limit);
             if (code == C_OK) {                         /* against the first clean run of this same operation */
                 first = 0xFFFFFFFFu;
                 for (i = 1u; i < rec; i++)
@@ -520,7 +554,7 @@ static uint32_t run_s2(void)
             r2_wr(rec, R_REF_EQUAL, v);
             rec++;
             if (!v)
-                return finish2(S_STOP_HEALTH, rec, anomalies, rec - 1u);
+                return finish2(health_stop(rec - 1u), rec, anomalies, rec - 1u);
             if (anomalies > budget)
                 return finish2(S_STOP_BUDGET, rec, anomalies, rec - 2u);
         }
@@ -531,7 +565,7 @@ static uint32_t run_s2(void)
     r2_wr(rec, R_REF_EQUAL, v);
     rec++;
     if (!v)
-        return finish2(S_STOP_HEALTH, rec, anomalies, rec - 1u);
+        return finish2(health_stop(rec - 1u), rec, anomalies, rec - 1u);
     return finish2(S_DONE, rec, anomalies, 0xFFFFFFFFu);
 }
 
@@ -543,7 +577,7 @@ uint32_t sm_run(void)
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v;
     uint32_t far_lo, far_hi, ref_far, n_fars, repeats, budget, poll_limit, far, first;
 
-    if (par(P_MAGIC) == PARAM_MAGIC && (par(P_STAGE) == 2u || par(P_STAGE) == 3u))
+    if (par(P_MAGIC) == PARAM_MAGIC && (par(P_STAGE) == 2u || par(P_STAGE) == 3u || par(P_STAGE) == 5u))
         return run_s2();
     if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 4u)
         return run_s4();
@@ -651,7 +685,7 @@ uint32_t sm_run(void)
  * Any anomaly ends the run after one reference read: a walk cannot skip a frame and go on.
  * Over the whole run — both passes and the reads of several frames — the reference frame is read again before
  * more than P_HEALTH_EVERY frames have been delivered since it was last read. */
-struct walk { uint32_t rec, anomalies, stop, far_lo, far_hi, ref_far, poll_limit, since, every; };
+struct walk { uint32_t rec, anomalies, stop, far_lo, far_hi, ref_far, poll_limit, since, every, extra; };
 #define NO_REC 0xFFFFFFFFu
 
 /* the first clean record of pass 0 for this read at this address */
@@ -696,7 +730,7 @@ static uint32_t due(struct walk *c, uint32_t n, uint32_t pass)
 {
     if (c->since + n > c->every && !health4(c, KIND_HEALTH, pass)) {
         c->stop = c->rec - 1u;
-        return S_STOP_HEALTH;
+        return health_stop(c->stop);
     }
     c->since += n;
     return 0u;
@@ -708,7 +742,8 @@ static uint32_t walk_op(struct walk *c, uint32_t far, uint32_t n, uint32_t pass,
 {
     uint32_t me = c->rec, code, first, j, k, a, b;
 
-    code = read_op(me, far, n, KIND_TARGET, pass, op, c->far_lo, c->far_hi, c->poll_limit);
+    code = c->extra ? read_deep(c->extra, me, far, n, KIND_TARGET, pass, op, c->far_lo, c->far_hi, c->poll_limit)
+                    : read_op(me, far, n, KIND_TARGET, pass, op, c->far_lo, c->far_hi, c->poll_limit);
     if (code == C_OK && op != OP_TRIPLE && pass != 0u) {            /* a later pass: against pass 0 at this address */
         first = first_of(me, op, far);
         if (first == NO_REC || r2_rd(first, REC2_FARBLK + F_VALUE) != r2_rd(me, REC2_FARBLK + F_VALUE))
@@ -742,7 +777,7 @@ static uint32_t walk_op(struct walk *c, uint32_t far, uint32_t n, uint32_t pass,
         return S_STOP_INTERFACE | code;
     if (!health4(c, KIND_HEALTH, pass)) {
         c->stop = c->rec - 1u;
-        return S_STOP_HEALTH;
+        return health_stop(c->stop);
     }
     return S_STOP_WALK | code;
 }
@@ -770,10 +805,11 @@ static uint32_t run_s4(void)
     c.rec = 0u; c.anomalies = 0u; c.stop = 0xFFFFFFFFu; c.since = 0u;
     c.far_lo = par(P_FAR_LO); c.far_hi = par(P_FAR_HI); c.ref_far = par(P_REF_FAR); c.poll_limit = par(P_POLL_LIMIT);
     passes = par(P_REPEATS); limit = par(P_WALK_LIMIT); c.every = par(P_HEALTH_EVERY); start = par(P_FARS);
+    c.extra = par(P_DIAG_STACK);
     if (par(P_VERSION) != 1u || c.far_lo > c.far_hi || c.ref_far < c.far_lo || c.ref_far > c.far_hi
         || par(P_N_FARS) != 1u || start < c.far_lo || start > c.far_hi
         || passes == 0u || passes > MAX_PASSES || limit == 0u || limit > MAX_WALK || c.every < MAX_READ_FRAMES
-        || par(P_ANOMALY_BUDGET) != 0u || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
+        || par(P_ANOMALY_BUDGET) != 0u || c.extra > MAX_DIAG_STACK || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
 
     v = hal_rd(DEVCFG_CTRL);   res_wr(H_CTRL, v);
@@ -857,6 +893,6 @@ static uint32_t run_s4(void)
     }
 
     if (!health4(&c, KIND_FINAL, passes))
-        return finish2(S_STOP_HEALTH, c.rec, c.anomalies, c.rec - 1u);
+        return finish2(health_stop(c.rec - 1u), c.rec, c.anomalies, c.rec - 1u);
     return finish2(S_DONE, c.rec, c.anomalies, 0xFFFFFFFFu);
 }

@@ -605,3 +605,99 @@ have the same distribution, the addresses and the pairs of reads were reproduced
 3. *The pull in pieces* in the run script, and the status of a reference read that fails on the
    interface (`0x300` today, where the record says `0x21`).
 
+## 17. Finding what in the walk overflows: the diagnostic image and the pull in pieces (2026-11-14; host side, nothing on a board yet)
+
+The owner chose points 1 and 3 of section 16. For review before any board run.
+
+### What is known, and the two readings of it
+
+The routine that makes a read (`read_op`, with `dma` beneath it) is one piece of machine code
+for every stage. Through stages 2 and 3 it made 624 frame reads without an overflow; through
+the walk it overflowed in 5 runs of 5, at the 9th to the 29th frame read. Two differences
+between those sets of runs survive everything section 16 ruled out:
+
+- **Where the read is made from.** The walk calls it one function deeper (`walk_op`, 72 bytes of
+  stack; its reference reads come through `health4`, 40 bytes), stages 2 and 3 straight from the
+  stage loop. Nothing else differs while a transfer is in flight: the polling loop is the same
+  instructions, and on every poll it stores two words — the status it read and the count — into
+  two neighbouring words of `read_op`'s frame. With the data cache off those stores go to DDR,
+  where the DMA is writing the frame. In the walk they go to an address 72 (or 40) bytes lower.
+  Why that should matter is not known; that it is the only thing that differs during a transfer
+  is read off the disassembly.
+- **What is read.** Every clean run revisited at most nine addresses; no run of stages 2 and 3
+  ever read more than nine *different* frames after a load. The walks had read 8, 11, 17, 19 and
+  27 different frames when they overflowed. `ratef`'s ten clean runs stop exactly where the
+  earliest walk failed, so they do not separate "the walk's path" from "many different frames".
+
+The first reading says the cause is in the prober's use of memory; the second, in the device or
+in the sequence. They call for different remedies, so they are told apart first.
+
+### The diagnostic image
+
+One image, the earlier stages unchanged in behaviour; what is new is selected by parameters:
+
+- **Stage 5** is stage 3 with a generated sequence: at each of N addresses from a first one, the
+  pad alone and then the frame — the reads of the walk's first pass, made by the stage-3 loop.
+  (The addresses are computed, which the walk never does; this is a diagnostic on addresses the
+  walk has already read, `0xb80..0xb99`, not a walk.)
+- **Extra stack**, in stages 4 and 5: a number of words (at most 64) placed beneath each target
+  read and beneath nothing else. In the built image this is `sub sp` by the words rounded up to
+  8 bytes, and then the same `read_op`.
+- **Every record now carries the address of the polling loop's status word** (the first of the
+  two words stored on every poll; one word of the FAR block that was reserved). It is reported
+  by the judges and judged by none: it is what the series is about.
+
+### The series (each set: a `reset`, a fresh load, one run; several runs of each)
+
+| set | what | the read lies | asks |
+|---|---|---|---|
+| `dxw0` | the walk, envelope `0xb80..0xb99` (26 frames, twice, and the reads of several frames) | 72 bytes down, as in S1b.1 | the control: does the new image still overflow in the walk |
+| `dxs0` | stage 5, the 26 addresses once | at stage 3's depth | **many different frames, by the path that never overflowed: if this overflows, it is the sequence, not the path** |
+| `dxs18` | the same, 18 words beneath | 72 bytes down | the path's depth without the path: if `dxs0` is clean and this overflows, it is the depth |
+| `dxs10` | the same, 10 words | 40 bytes down | the depth of the walk's reference reads |
+| `dxw6` | the walk, 6 words | 96 bytes down | the walk moved off its depth: if this is clean where `dxw0` is not, the depth again, from the other side |
+| `dxw8` | the walk, 8 words | 104 bytes down | another depth, to see whether it is one depth or many |
+
+The actual addresses are read from the records, not taken from this table. What each outcome
+would mean is as the last column says; if neither depth nor sequence separates the runs, the
+records will at least show at which addresses reads failed and at which they did not, and the
+next image is designed from that.
+
+The judge will fail `dxs*` for one reason — frames `0xb80..0xb97` have no known answer — as it
+did `ratew`; `dxw*` it can pass (the walk's second pass and its reads of several frames check
+each frame against itself, and `0xb98`, `0xb99` against their known values). Either way what is
+counted is how far the prober got.
+
+### Also changed, from point 3
+
+- **The pull is made in pieces.** For each 2048 words the board is asked for its own crc32 of
+  that piece, and the piece is pulled until the host's copy has it, at most five times, every
+  repeat recorded. The whole must then have the crc32 the board gave for the result before the
+  card write; pieces that each match do not make the whole the board's (a test holds that with a
+  result that changes in between). This replaces the three whole-result attempts of `1bdae54`.
+- **A reference read that fails on the interface stops the run with the interface's status**
+  (`0x200` + the record's code), in stages 2 to 5 and in their judges; only a reference frame
+  that reads cleanly and differs is `0x300`. One stored result, the third walk of the counting
+  series, carries the old `0x300`; the judge now says so of it ("the header's status is 0x300;
+  the records imply 0x221").
+
+### State
+
+- Image: 11,234 bytes, sha256 `d5154bb80f244eb224f42cae6c0fd6cde3c93a9b7d2e64880b51965e94371877`,
+  crc32 `94bd3065`. The stack frames of `read_op`, `walk_op`, `health4` and the stage loop are
+  the sizes they were in the image that overflowed (240+32, 40+32, 28+12, 120+32 bytes), so the
+  depths above are the old ones; `dxw0` is there to confirm it on the board.
+- Host checks: 232 tests. 220 deliberate defects; a complete run failed 219 of them with all 232
+  tests run, and its one survivor (the stage-5 judge accepting a sequence longer than the prober
+  takes — the test had offered one only in an envelope too small to hold it) is failed by the
+  test as corrected; that single re-run is appended to the record
+  (`evidence/host_checks/mutants_2026-11-14_diag.txt`). Earlier in the same work the set showed
+  three more gaps, each closed by a test (a stage-4 result with more extra stack than the prober
+  takes; stage-3 and stage-5 results taken for each other; the same for the sequence length), two
+  defects that did not build and were rewritten, and one check in the prober that no test could
+  reach because the check after it covers the same case — removed.
+- Nothing here recovers from an overflow, and nothing reads an address the walk has not read.
+
+**Before the board:** the owner's review. Then, with nothing else running on the host, the
+series above; stop and report after it.
+

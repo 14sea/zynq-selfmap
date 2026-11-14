@@ -49,6 +49,7 @@ def params(**over) -> list[int]:
     w = [0] * 32
     w[0:10] = [p["magic"], p["version"], p["stage"], p["lo"], p["hi"], p["ref"], p["n_fars"], p["passes"], p["budget"], p["poll_limit"]]
     w[12], w[13], w[16] = p["limit"], p["every"], p["start"]
+    w[15] = p.get("extra", 0)                                # diagnostics: more stack beneath each target read
     return w
 
 

@@ -96,7 +96,7 @@ logic and finds them in the readback, which checks content without any external 
    existing content (the frame list now; bit roles in later stages). Vivado is used to build the
    PL design and for nothing else.
 
-## 5. S1b.0 as built (host side; nothing on a board yet)
+## 5. S1b.0 as built (host side; written before the board run — the result is in section 8)
 
 **What there is to review:** this plan; stage 2 in `prober/sm_core.c` (`read_op`, `run_s2`, and the
 three additions to the guard); `host/s1b0_judge.py`; the plan printed by
@@ -181,3 +181,32 @@ though no test had judged it (94 tests ran, not 122). It is now a defect that bu
 tests fail on it; the runner reports a mutant that changes the number of tests run as BROKEN
 and counts it as not failed. The record above is from the run after this change: 105 of 105
 failed with all 122 tests run.
+
+## 8. S1b.0 on the board (2026-11-14): PASS, rule "next but one"
+
+Released by the owner after the second review. One run on `17A6`, first attempt, no deviation
+from the dry run; record in `evidence/s1b0_17A6_2026-11-14/RESULT.md`.
+
+- The frame address register can be read through PCAP (one-word read, as sent).
+- After a read of n frames starting at F it held **F + n + 1** in all 11 records: `0xb9a` after
+  one frame at `0xb98`, `0xb9b` after one frame at `0xb99`, `0xb9c` after three frames from
+  `0xb98`. The pad frame is counted.
+- A three-frame read returned the three known frames in order, three times out of three.
+- No error bit, no anomaly; the result on the board, on the card and on the host have one crc32.
+
+This is the row of the table in section 5 that was left open. What S1b.1 needs settled before it
+is planned — nothing below is decided:
+
+1. **What the walk does with a value that is one further than the frame it wants.** Choices seen
+   so far: (a) read from F with a count that covers the rest of the envelope in one long read,
+   never computing an address, and use the register only at the end, as a report of how far the
+   device says it went; (b) read frame by frame and take the next address as the value minus
+   one — arithmetic on an address, valid inside a column only if minor addresses are dense, and
+   unknown at a column end; (c) find a read that leaves the register on the next frame (for
+   instance a read with no pad frame, or of the pad alone) — a new sequence, to be tried on the
+   three known frames first, like this step.
+2. **What the register does at the end of a column**, under either choice: it has not been seen.
+   The three known frames sit at minors 0x18..0x1a of one column; S1b.1's envelope
+   (`0x00000b80..0x00000bff`) contains the column end, wherever that is.
+3. **Whether the count of one step per 101 words holds** for other lengths (it fits the two
+   lengths tried: 202 and 404 words).

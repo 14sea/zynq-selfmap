@@ -1,0 +1,105 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'printenv cardid\r'>>
+printenv cardid
+## Error: "cardid" not defined
+Zynq> 
+<<TX b'printenv bootdelay\r'>>
+printenv bootdelay
+bootdelay=-1
+Zynq> 
+<<TX b'bdinfo\r'>>
+bdinfo
+boot_params = 0x00000000
+DRAM bank   = 0x00000000
+-> start    = 0x00000000
+-> size     = 0x20000000
+flashstart  = 0x00000000
+flashsize   = 0x00000000
+flashoffset = 0x00000000
+baudrate    = 115200 bps
+relocaddr   = 0x1fef1000
+reloc off   = 0x1bef1000
+Build       = 32-bit
+Could not get PHY for eth0: addr 0
+Could not get PHY for eth0: addr 0
+Could not get PHY for eth0: addr 0
+Could not get PHY for eth0: addr 0
+current eth = unknown
+eth-1addr   = (not set)
+IP addr     = <NULL>
+fdt_blob    = 0x1eacad20
+lmb_dump_all:
+ memory.count = 0x1
+ memory[0]	[0x0-0x1fffffff], 0x20000000 bytes, flags: none
+ reserved.count = 0x2
+ reserved[0]	[0x1dac1000-0x1dac9fff], 0x9000 bytes, flags: no-notify, no-overwrite
+ reserved[1]	[0x1dacad00-0x1fffffff], 0x2535300 bytes, flags: no-overwrite
+devicetree  = separate
+arch_number = 0x00000000
+TLB addr    = 0x1fff0000
+irq_sp      = 0x1eacad10
+sp start    = 0x1eacad00
+ARM frequency = 666 MHz
+DSP frequency = 0 MHz
+DDR frequency = 533 MHz
+Early malloc usage: 698 / 800
+Zynq> 
+<<TX b'mmc dev 0\r'>>
+mmc dev 0
+switch to partitions #0, OK
+mmc0 is current device
+Zynq> 
+<<TX b'mmc info\r'>>
+mmc info
+Device: mmc@e0100000
+Manufacturer ID: 3
+OEM: 5344
+Name: SK64G 
+Bus Speed: 50000000
+Mode: SD High Speed (50MHz)
+Rd Block Len: 512
+SD version 3.0
+High Capacity: Yes
+Capacity: 59.5 GiB
+Bus Width: 4-bit
+Erase Group Size: 512 Bytes
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+
+7 file(s), 0 dir(s)
+
+Zynq> 
+<<TX b'dcache\r'>>
+dcache
+Data (writethrough) Cache is ON
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000b                             ....
+Zynq> 
+<<TX b'md.l f8007014 1\r'>>
+md.l f8007014 1
+f8007014: 40000a30                             0..@
+Zynq> 
+<<TX b'md.l f8007000 1\r'>>
+md.l f8007000 1
+f8007000: 4e00e07f                             ...N
+Zynq> 

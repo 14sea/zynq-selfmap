@@ -173,3 +173,11 @@ in every envelope the tests used, so removing the whole-frames check went unnoti
 the widest envelope (`0..ffffffff`), where the range check cannot refuse anything, now holds it
 (`test_a_read_that_is_not_a_pad_plus_whole_frames…`). `tests/mutants.py` takes an optional
 substring to run a subset.
+
+Reading that record line by line showed one more weakness, in the mutant set itself: the defect
+"the guard lets a read run past the envelope" had been written as `if (0)`, which leaves a
+variable unused and does not build under `-Werror` — it was counted as failed by the suite
+though no test had judged it (94 tests ran, not 122). It is now a defect that builds, and two
+tests fail on it; the runner reports a mutant that changes the number of tests run as BROKEN
+and counts it as not failed. The record above is from the run after this change: 105 of 105
+failed with all 122 tests run.

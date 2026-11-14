@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Mutants: deliberate defects, one at a time, each of which the test suite must fail.
 
-    python3 tests/mutants.py            run all of them; exit 1 if any survives
+    python3 tests/mutants.py            run all of them; exit 1 if any survives (or does not build: BROKEN)
     python3 tests/mutants.py guard      run only those whose name contains "guard"
 
 Works on a scratch copy of the tree, so the working tree is never dirtied. A mutant counts as killed
@@ -61,7 +61,7 @@ MUTANTS = [
     (CORE, "the final reference read is not compared", "    v = (code == C_OK && same_frame(0u, rec)) ? 1u : 0u;\n    res_wr(HDR_WORDS + rec * REC_WORDS + R_REF_EQUAL, v);\n    rec++;\n    if (!v)\n        return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);\n    return finish(S_DONE", "    v = 1u;\n    res_wr(HDR_WORDS + rec * REC_WORDS + R_REF_EQUAL, v);\n    rec++;\n    if (!v)\n        return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);\n    return finish(S_DONE"),
     # ---- the prober: the guard's rules for stage 2
     (CORE, "the guard accepts a read that is not a pad plus whole frames", "            if (v == 0xFFFFFFFFu || v < 2u)", "            if (v < 2u)"),
-    (CORE, "the guard lets a read run past the envelope", "            if (v - 2u > far_hi - far_value)", "            if (0)"),
+    (CORE, "the guard lets a read run past the envelope", "            if (v - 2u > far_hi - far_value)", "            if (far_value > far_hi)"),      # never true here; "if (0)" would not compile (unused variable) and a build error is not a kill
     (CORE, "the guard accepts a one-word read of any register", "        } else if (x == W_RD_FAR_1) {", "        } else if ((x & 0xF8001FFFu) == 0x28000001u) {"),
     (CORE, "the guard allows a second read on an address that has moved on", "            far = 0;                                    /* the register has moved on: another read needs a new, checked address */\n", ""),
     ("host/packets.py", "reader: a second read on an address that has moved on is accepted", "                far = False                              # the register has moved on: another read needs a new, checked address\n", ""),
@@ -161,6 +161,7 @@ def main() -> int:
     print(f"unmutated: {summary}")
     if killed:
         print("the unmutated tree fails; nothing below would mean anything"); return 2
+    baseline = int(re.search(r"Ran (\d+)", summary).group(1))
     survivors = 0
     only = sys.argv[1] if len(sys.argv) > 1 else ""       # an optional substring: run just the mutants whose name contains it
     for path, name, old, new, *which in MUTANTS:
@@ -176,6 +177,9 @@ def main() -> int:
         f.write_text(original[:at] + new + original[at + len(old):])
         killed, summary = suite(tree)
         f.write_text(original)
+        ran = int(re.search(r"Ran (\d+)", summary).group(1))
+        if killed and ran != baseline:                # the mutant did not build or import: no test judged its behaviour
+            print(f"BROKEN   {name:62s} {summary}"); survivors += 1; continue
         survivors += not killed
         print(f"{'KILLED  ' if killed else 'SURVIVED'} {name:62s} {summary}")
     killed, summary = suite(tree)

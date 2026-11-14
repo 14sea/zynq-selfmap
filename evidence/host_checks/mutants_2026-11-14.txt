@@ -35,7 +35,7 @@ KILLED   the cleanup stream is skipped                                  Ran 122 
 KILLED   stage 2: the cleanup stream is skipped                         Ran 122 FAILED (failures=18); 5 test(s): any_interface_failure_stops_at_that_command, everything_sent_is_read_only_inside_the_env
 KILLED   the final reference read is not compared                       Ran 122 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
 KILLED   the guard accepts a read that is not a pad plus whole frames   Ran 122 FAILED (failures=3); 1 test(s): a_read_that_is_not_a_pad_plus_whole_frames_
-KILLED   the guard lets a read run past the envelope                    Ran 94 FAILED (errors=297); 78 test(s): Class, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the guard lets a read run past the envelope                    Ran 122 FAILED (failures=7); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_range_check_cannot_be_wrapped
 KILLED   the guard accepts a one-word read of any register              Ran 122 FAILED (failures=4); 1 test(s): only_the_far_register_and_only_one_word_of_
 KILLED   the guard allows a second read on an address that has moved on Ran 122 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
 KILLED   reader: a second read on an address that has moved on is accepted Ran 122 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address

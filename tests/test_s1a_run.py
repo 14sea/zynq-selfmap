@@ -113,12 +113,15 @@ class FakeUBoot:
             return "## Starting application at 0x02000000 ...\r\n## Application terminated, rc = 0x0\r\n"
         tmp = Path(tempfile.mkdtemp(prefix="smrun_"))
         frames = {int(k, 16): [int(x, 16) for x in v["words"]] for k, v in KNOWN["frames"].items()}
+        frames.update(self.q.get("frames", {}))                                    # stage 4: the rest of a column
         (tmp / "frames.txt").write_text("\n".join(" ".join(f"{x:x}" for x in [far] + ws) for far, ws in frames.items()) + "\n")
         (tmp / "params.txt").write_text("\n".join(f"{self.rd(0x10100000 + 4 * i):x}" for i in range(32)) + "\n")
         env = dict(os.environ); env.pop("SM_FAULT", None)
         if self.fault:
             env["SM_FAULT"] = self.fault
         env["SM_FAR_RULE"] = self.q.get("far_rule", "next")
+        if "succ" in self.q:                                                       # stage 4: which address follows which
+            env["SM_SUCC"] = ",".join(f"{a:x}:{b:x}" for a, b in self.q["succ"].items())
         out = subprocess.run([str(TWIN), "run", str(tmp / "frames.txt"), str(tmp / "params.txt"), str(tmp / "r.bin")],
                              check=True, capture_output=True, text=True, env=env).stdout.splitlines()
         raw = (tmp / "r.bin").read_bytes()

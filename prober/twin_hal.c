@@ -19,6 +19,9 @@
  * the default leaves it at the next unread frame. S1b.0 found the board to do the former for reads of one and of
  * three frames. SM_FAR_RULE=skipdata counts the pad only when a frame follows it: after the pad alone the
  * register has not moved. What the device does after the pad alone is what S1b.0b is to find out.
+ * SM_SUCC=a:b,c:d (hex) says which address follows which where it is not simply the next number: the end of a
+ * column, an address that names itself, a step backwards. What the device does at a column end is what S1b.1
+ * is to find out; the tests give the model several answers.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,11 +37,18 @@ static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_
 static char uart[4096]; static unsigned uart_n;
 
 /* frames */
-#define MAX_FRAMES 64
+#define MAX_FRAMES 200
 static uint32_t f_far[MAX_FRAMES], f_words[MAX_FRAMES][FRAME_WORDS]; static unsigned n_frames;
 
 /* engine */
 static int synced, rcfg; static uint32_t far_reg;
+static uint32_t succ_from[32], succ_to[32]; static unsigned n_succ;
+static uint32_t succ(uint32_t f)
+{
+    unsigned i;
+    for (i = 0; i < n_succ; i++) if (succ_from[i] == f) return succ_to[i];
+    return f + 1u;
+}
 static uint32_t queue[4096]; static unsigned q_n, q_at;
 
 /* faults */
@@ -99,9 +109,9 @@ static void engine_feed(const uint32_t *w, uint32_t n)
             if (!rcfg) printf("VIOLATION read without RCFG\n");
             q_n = q_at = 0;
             for (k = 0; k < FRAME_WORDS && q_n < count; k++) queue[q_n++] = 0u;          /* the pad frame */
-            for (f = far_reg; q_n < count; f++)
+            for (f = far_reg; q_n < count; f = succ(f))
                 for (k = 0; k < FRAME_WORDS && q_n < count; k++) queue[q_n++] = frame(f)[k];
-            far_reg = f + ((far_skips && !(far_skips_data_only && count <= FRAME_WORDS)) ? 1u : 0u);   /* the register moves on as frames are read; by which rule is the open question */
+            far_reg = (far_skips && !(far_skips_data_only && count <= FRAME_WORDS)) ? succ(f) : f;   /* the register moves on as frames are read; by which rule is the open question */
         } else printf("VIOLATION header %08x\n", x);
     }
 }
@@ -229,6 +239,15 @@ int main(int argc, char **argv)
         fault = getenv("SM_FAULT");
         far_skips_data_only = getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skipdata");
         far_skips = far_skips_data_only || (getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skip"));
+        if (getenv("SM_SUCC")) {
+            const char *s = getenv("SM_SUCC"); char *e;
+            while (*s && n_succ < 32) {
+                succ_from[n_succ] = (uint32_t)strtoul(s, &e, 16); if (*e != ':') return 2;
+                succ_to[n_succ++] = (uint32_t)strtoul(e + 1, &e, 16);
+                s = *e == ',' ? e + 1 : e;
+                if (*e && *e != ',') return 2;
+            }
+        }
         n = load_words(argv[2], all, MAX_FRAMES * (FRAME_WORDS + 1));
         if (n < 0 || n % (int)(FRAME_WORDS + 1)) return 2;
         for (i = 0; i < (unsigned)n / (FRAME_WORDS + 1); i++) {

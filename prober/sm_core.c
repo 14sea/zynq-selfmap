@@ -401,11 +401,11 @@ static uint32_t ref_healthy(uint32_t rec, uint32_t code)
             && r2_rd(rec, REC2_FARBLK + F_VALUE) == r2_rd(0u, REC2_FARBLK + F_VALUE)) ? 1u : 0u;
 }
 
-/* "SM2" or "SM3": the stage is read from the parameter block each time, there is no static to keep it in */
+/* "SM2", "SM3" or "SM4": the stage is read from the parameter block each time, there is no static to keep it in */
 static void tag(void)
 {
     put("SM");
-    hal_putc(par(P_STAGE) == 3u ? '3' : '2');
+    hal_putc(par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
 }
 
 static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalies, uint32_t stop_record)
@@ -535,6 +535,8 @@ static uint32_t run_s2(void)
     return finish2(S_DONE, rec, anomalies, 0xFFFFFFFFu);
 }
 
+static uint32_t run_s4(void);
+
 /* ------------------------------------------------------------------ stage S1a */
 uint32_t sm_run(void)
 {
@@ -543,6 +545,8 @@ uint32_t sm_run(void)
 
     if (par(P_MAGIC) == PARAM_MAGIC && (par(P_STAGE) == 2u || par(P_STAGE) == 3u))
         return run_s2();
+    if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 4u)
+        return run_s4();
     put("SM1 start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
         res_wr(i, 0u);
@@ -635,4 +639,193 @@ uint32_t sm_run(void)
     if (!v)
         return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);
     return finish(S_DONE, rec, anomalies, 0xFFFFFFFFu);
+}
+
+/* ================================================================== stage 4 (S1b.1): the walk of one column
+ * From the starting address, for each frame: the pad alone and then the register (the device names the next
+ * address), and the pad with the frame (its content). The next address read at is the one the device named;
+ * none is computed here. A pass ends when the device names an address outside the envelope, or at the limit.
+ * The walk is made P_REPEATS times; then three frames are read in one read from every third address found.
+ * Records have the stage-2 layout; R_OP says which of the three reads a record is, R_REPEAT the pass.
+ * Any anomaly ends the run after one reference read: a walk cannot skip a frame and go on. */
+struct walk { uint32_t rec, anomalies, stop, far_lo, far_hi, ref_far, poll_limit; };
+#define NO_REC 0xFFFFFFFFu
+
+/* the first clean record of pass 0 for this read at this address */
+static uint32_t first_of(uint32_t upto, uint32_t op, uint32_t far)
+{
+    uint32_t i;
+    for (i = 1u; i < upto; i++)
+        if (r2_rd(i, R_KIND) == KIND_TARGET && r2_rd(i, R_REPEAT) == 0u && r2_rd(i, R_OP) == op
+            && r2_rd(i, R_FAR) == far && r2_rd(i, R_CODE) == C_OK)
+            return i;
+    return NO_REC;
+}
+
+/* the content record of the k-th frame of pass 0 (k from 0) */
+static uint32_t nth_content(uint32_t upto, uint32_t k)
+{
+    uint32_t i;
+    for (i = 1u; i < upto; i++)
+        if (r2_rd(i, R_KIND) == KIND_TARGET && r2_rd(i, R_REPEAT) == 0u && r2_rd(i, R_OP) == OP_CONTENT
+            && r2_rd(i, R_CODE) == C_OK) {
+            if (k == 0u)
+                return i;
+            k--;
+        }
+    return NO_REC;
+}
+
+/* a reference read; returns 1 if it is clean and equal to the baseline */
+static uint32_t health4(struct walk *c, uint32_t kind, uint32_t pass)
+{
+    uint32_t code = read_op(c->rec, c->ref_far, 1u, kind, pass, 0xFFFFFFFFu, c->far_lo, c->far_hi, c->poll_limit);
+    uint32_t v = ref_healthy(c->rec, code);
+    r2_wr(c->rec, R_REF_EQUAL, v);
+    c->rec++;
+    return v;
+}
+
+/* one record of the walk and what follows from it: 0 to go on, or the status the run stops with.
+ * For the three-frame read, `index` is the place of its first frame in the list pass 0 walked. */
+static uint32_t walk_op(struct walk *c, uint32_t far, uint32_t n, uint32_t pass, uint32_t op, uint32_t index)
+{
+    uint32_t me = c->rec, code, first, j, k, a, b;
+
+    code = read_op(me, far, n, KIND_TARGET, pass, op, c->far_lo, c->far_hi, c->poll_limit);
+    if (code == C_OK && op != OP_TRIPLE && pass != 0u) {            /* a later pass: against pass 0 at this address */
+        first = first_of(me, op, far);
+        if (first == NO_REC || r2_rd(first, REC2_FARBLK + F_VALUE) != r2_rd(me, REC2_FARBLK + F_VALUE))
+            code = C_FAR_DIFFERS;                                   /* pass 0 never stood here, or was told another address */
+        else if (!same_data(first, me, n))
+            code = C_REPEAT_DIFFERS;
+    }
+    if (code == C_OK && op == OP_TRIPLE) {                          /* each of the three against the single read of that frame */
+        for (j = 0u; j < 3u && code == C_OK; j++) {
+            first = nth_content(me, index + j);
+            if (first == NO_REC) {
+                code = C_REPEAT_DIFFERS;
+                break;
+            }
+            a = HDR_WORDS + me * REC2_WORDS + REC2_DATA + FRAME_WORDS * (j + 1u);
+            b = HDR_WORDS + first * REC2_WORDS + REC2_DATA + FRAME_WORDS;
+            for (k = 0u; k < FRAME_WORDS; k++)
+                if (res_rd(a + k) != res_rd(b + k)) {
+                    code = C_REPEAT_DIFFERS;
+                    break;
+                }
+        }
+    }
+    r2_wr(me, R_CODE, code);
+    c->rec++;
+    if (code == C_OK)
+        return 0u;
+    c->anomalies++;
+    c->stop = me;
+    if (IS_INTERFACE(code))
+        return S_STOP_INTERFACE | code;
+    if (!health4(c, KIND_HEALTH, pass)) {
+        c->stop = c->rec - 1u;
+        return S_STOP_HEALTH;
+    }
+    return S_STOP_WALK | code;
+}
+
+static uint32_t run_s4(void)
+{
+    struct walk c;
+    uint32_t i, v, pass, passes, limit, every, start, cur, next, count, status, k, n0;
+
+    tag(); put(" start\r\n");
+    for (i = 0; i < HDR_WORDS; i++)
+        res_wr(i, 0u);
+    res_wr(H_MAGIC, RESULT_MAGIC);
+    res_wr(H_VERSION, 1u);
+    res_wr(H_REC_WORDS, REC2_WORDS);
+    res_wr(H_HDR_WORDS, HDR_WORDS);
+    res_wr(H_STOP_RECORD, 0xFFFFFFFFu);
+    for (i = 0; i < PARAM_WORDS; i++)
+        res_wr(H_PARAMS + i, par(i));
+    res_wr(H_SCTLR, hal_cpu(CPU_SCTLR));
+    res_wr(H_CPSR, hal_cpu(CPU_CPSR));
+    res_wr(H_SP, hal_cpu(CPU_SP));
+    res_wr(H_R9, hal_cpu(CPU_R9));
+
+    c.rec = 0u; c.anomalies = 0u; c.stop = 0xFFFFFFFFu;
+    c.far_lo = par(P_FAR_LO); c.far_hi = par(P_FAR_HI); c.ref_far = par(P_REF_FAR); c.poll_limit = par(P_POLL_LIMIT);
+    passes = par(P_REPEATS); limit = par(P_WALK_LIMIT); every = par(P_HEALTH_EVERY); start = par(P_FARS);
+    if (par(P_VERSION) != 1u || c.far_lo > c.far_hi || c.ref_far < c.far_lo || c.ref_far > c.far_hi
+        || par(P_N_FARS) != 1u || start < c.far_lo || start > c.far_hi
+        || passes == 0u || passes > MAX_PASSES || limit == 0u || limit > MAX_WALK || every == 0u
+        || par(P_ANOMALY_BUDGET) != 0u || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
+        return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+
+    v = hal_rd(DEVCFG_CTRL);   res_wr(H_CTRL, v);
+    if ((v & CTRL_PCAP_MASK) != CTRL_PCAP_MASK)
+        return finish2(S_GATE_CTRL, 0u, 0u, 0xFFFFFFFFu);
+    v = hal_rd(DEVCFG_MCTRL);  res_wr(H_MCTRL, v);
+    if (v & MCTRL_PCAP_LPBK)
+        return finish2(S_GATE_LPBK, 0u, 0u, 0xFFFFFFFFu);
+    v = hal_rd(DEVCFG_INT_STS); res_wr(H_INT_STS0, v);
+    res_wr(H_STATUS0, hal_rd(DEVCFG_STATUS));
+    if (!(v & STS_PCFG_DONE))
+        return finish2(S_GATE_NOT_DONE, 0u, 0u, 0xFFFFFFFFu);
+    if (hal_cpu(CPU_SCTLR) & 0x4u)
+        return finish2(S_GATE_DCACHE, 0u, 0u, 0xFFFFFFFFu);
+
+    v = read_op(c.rec, c.ref_far, 1u, KIND_BASELINE, 0u, 0xFFFFFFFFu, c.far_lo, c.far_hi, c.poll_limit);
+    c.rec++;
+    if (v != C_OK)
+        return finish2(S_STOP_BASELINE | v, c.rec, 0u, 0u);
+
+    n0 = 0u;
+    for (pass = 0u; pass < passes; pass++) {
+        cur = start; count = 0u;
+        for (;;) {
+            status = walk_op(&c, cur, 0u, pass, OP_SUCC, 0u);       /* what does the device call the address after cur */
+            if (status != 0u)
+                return finish2(status, c.rec, c.anomalies, c.stop);
+            next = r2_rd(c.rec - 1u, REC2_FARBLK + F_VALUE);
+            status = walk_op(&c, cur, 1u, pass, OP_CONTENT, 0u);    /* the frame at cur */
+            if (status != 0u)
+                return finish2(status, c.rec, c.anomalies, c.stop);
+            count++;
+            res_wr(H_WALK + 3u * pass, count);
+            res_wr(H_WALK + 3u * pass + 2u, next);
+            if (next < c.far_lo || next > c.far_hi) {               /* the device has named something beyond the envelope: not read */
+                res_wr(H_WALK + 3u * pass + 1u, END_LEFT);
+                break;
+            }
+            if (next <= cur)                                        /* not advancing: following it would not end */
+                return finish2(S_STOP_STUCK, c.rec, c.anomalies, c.rec - 2u);
+            if (count >= limit) {
+                res_wr(H_WALK + 3u * pass + 1u, END_LIMIT);
+                break;
+            }
+            for (v = count; v >= every; v -= every)                 /* every `every` frames; no division in this image */
+                ;
+            if (v == 0u && !health4(&c, KIND_HEALTH, pass))
+                return finish2(S_STOP_HEALTH, c.rec, c.anomalies, c.rec - 1u);
+            cur = next;
+        }
+        if (pass == 0u)
+            n0 = count;
+    }
+
+    /* three frames in one read from every third address of pass 0, where all three were walked. The addresses of a
+     * pass rise strictly and end inside the envelope, so the third frame from any of these is inside as well; the
+     * guard checks it again for each stream. */
+    for (k = 0u; k + 2u < n0; k += 3u) {
+        i = nth_content(c.rec, k);
+        if (i == NO_REC)
+            break;
+        cur = r2_rd(i, R_FAR);
+        status = walk_op(&c, cur, 3u, passes, OP_TRIPLE, k);
+        if (status != 0u)
+            return finish2(status, c.rec, c.anomalies, c.stop);
+    }
+
+    if (!health4(&c, KIND_FINAL, passes))
+        return finish2(S_STOP_HEALTH, c.rec, c.anomalies, c.rec - 1u);
+    return finish2(S_DONE, c.rec, c.anomalies, 0xFFFFFFFFu);
 }

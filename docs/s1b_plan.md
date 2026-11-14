@@ -346,7 +346,7 @@ value the register held, not a frame that was read.
 S1b.1 can now be planned around the successor read. Its plan is the next document, for the
 owner's review before anything is built.
 
-## 12. S1b.1 — proposal for the walk of one column (2026-11-14; NOT decided, nothing built)
+## 12. S1b.1 — proposal for the walk of one column (2026-11-14; accepted by the owner the same day, all four points as proposed — built in section 13)
 
 For the owner to accept, change or reject before any code is written. Envelope and aim are those
 of section 3: the column of the known frames, `0x00000b80..0x00000bff`, starting at minor 0;
@@ -396,4 +396,101 @@ judge never see that database.
 3. Three-frame reads along the walked list as the path-independence check, instead of one long
    read of the whole column (which would need a new record layout and a larger buffer).
 4. Grading against prjxray-db by a separate script after the fact.
+
+## 13. S1b.1 as built (host side; nothing on a board yet)
+
+The owner accepted section 12 as proposed: the computed starting address `0x00000b80`, the limit
+of 64 frames, three-frame reads as the second path, grading afterwards by a separate program.
+
+**What there is to review:** this section; stage 4 in `prober/sm_core.c` (`run_s4`, `walk_op`,
+`first_of`, `nth_content`, `health4`); `host/s1b1_judge.py`; `host/s1a_run.py --stage s1b1`;
+`host/grade_s1b1.py`; the tests `tests/test_prober_s1b1.py`, `tests/test_s1b1_host.py`,
+`tests/test_grade_s1b1.py`; the mutants marked stage 4 and judge4 in `tests/mutants.py`.
+
+**The run.** Stage 4 in the parameter block: envelope `0x00000b80..0x00000bff`, reference
+`0x00000b99`, start `0x00000b80`, two passes, at most 64 frames a pass, the reference frame
+re-read after every 16 frames. Records have the layout of stages 2 and 3.
+
+1. the baseline: the reference frame;
+2. pass 0 and pass 1, each from the start: at `cur`, the pad alone and the register (the device
+   names `next`), then the pad and the frame at `cur` and the register; then `cur = next`;
+3. along the addresses of pass 0, three frames in one read from every third address;
+4. the reference frame once more.
+
+How many records that makes is what the run is to find out, so — unlike the earlier stages — no
+record count, result size or console line is fixed beforehand; the judge derives all three from
+the result itself.
+
+**How a pass ends.** The device names an address outside the envelope: the pass ends, the address
+is recorded and not read. The limit of frames is reached: the pass ends, a later run would go on
+from the last address named. The device names an address that is not above the one it was asked
+about: the whole run stops (status `0x800`) — following it could not end.
+
+**Anomalies.** In the earlier stages a data anomaly was recorded and the run went on to the next
+operation. A walk has no next operation that does not depend on this one, so here any anomaly —
+a pad that is not zero, a short read, a register read that delivers nothing, a later pass that is
+told another address or delivers another frame, a three-frame read that differs from the single
+reads — is followed by one read of the reference frame and ends the run (status `0x700` + the
+record's code; `0x300` if the reference frame has changed as well). An interface failure stops at
+that command, as before.
+
+**What the prober compares on its own, and what the judge re-derives.** The prober compares each
+record of pass 1 with pass 0 at the same address (address named, and frame), and each frame of a
+three-frame read with the single read of that frame. The judge takes none of that on trust: it
+re-derives every record's code from its raw words, then follows the records the way the prober
+must have — the next address being the one in the record before — and requires the header's
+account of each pass (frames, how it ended, the last address named) to be what the records show.
+On top of that, required for PASS: the passes name the same addresses and end alike; the
+register after the read of a frame is the address the device names after the next frame, wherever
+both were measured (70 such checks on a column of 36); the known frames equal their known values,
+and a walk that leaves the envelope has passed them.
+
+**What a PASS claims.** Which addresses the device named from `0x00000b80` on, how the walk
+ended, and that reading those frames is repeatable and independent of the path. Not that the
+content of a frame without a known answer is right — 33 of 36 would have none, on a column of
+that length. A walk that stops at the limit is a sound measurement too and is reported as such.
+
+**The twin does not know the answer.** The model is told by each test which address follows
+which; the prober is not. The tests run columns of 1, 2, 3, 4, 17, 36 and 48 frames, a column
+that does not end inside the limit, an end that names an address further on inside the envelope
+(which is then followed, and read), an address that names itself, a step backwards, and the two
+register rules under which the pad alone does not move the register (the walk stops at its first
+frame). The judge has no frame count of its own: the same tests hold it to whatever the model did.
+
+**Grading afterwards.** `host/grade_s1b1.py <verdict.json>` compares the addresses in a verdict
+with prjxray-db's `part.json`: that they are minors 0.. of one column, the frame count of that
+column, and whether the address named at the end is minor 0 of the next column. It is the only
+file under `host/` or `prober/` that names the database (a test holds that), it reads nothing of
+the judge's but the verdict file, and it is run only after a result is saved and judged. A
+disagreement is a finding to look into, not a failed walk.
+
+One thing to say plainly: the program was written before the board run, and writing it meant
+looking at how the database is laid out — its author has therefore seen the number the database
+gives for this column. Neither the prober nor the judge takes any number from it, the twin's
+tests run seven column lengths, and the comparison is mechanical. The closed-book rule binds the
+instrument, which it does here; it cannot make the author forget.
+
+**New compared with S1b.0b, and so what could go wrong on the board.** Reads at addresses with no
+known answer; the successor read and the content read at the last frame of the column, and
+whatever the device names there; if that is an address inside the envelope that is not a frame,
+a read at it; many more commands in one run than the 124 of S1b.0b, and a larger result (on a
+column of 36 frames: about 800 commands and 78,000 words, some two minutes to pull over the
+console; at the limit of 64 frames, 1,425 and 137,000). None writes configuration memory.
+
+**The image** changed with stage 4: 10,186 bytes, sha256
+`be437ea4e0fd838921f9e56475ffec8426fa2dee74577401993f1524bda83480`, crc32 `00404121`
+(`build/prober/expected_s1b1.json`). Stages 1 to 3 run from the same image; their twin tests are
+unchanged and pass, and the three stored board results still pass their judges.
+
+**Host checks.** 201 tests. 169 deliberate defects (45 of them new, for stage 4, its judge and the
+run script), all failed by the suite with all 201 tests run
+(`evidence/host_checks/mutants_2026-11-14_s1b1.txt`). The first run of the new ones had one
+survivor, "a PASS with anomalies" in the stage-4 judge: there the check cannot be reached on its
+own — any anomaly ends the run, so the status check fails first, and a forged header is failed by
+the count re-derived from the records. It was dropped, with a note in `tests/mutants.py`; the
+check stays. The runner now works on eight scratch copies in parallel.
+
+**Before the board:** the owner's review; then `host/s1a_run.py --stage s1b1 --dry-run` and, on
+the owner's word only, `--go`; and only after the result is saved and judged,
+`host/grade_s1b1.py`.
 

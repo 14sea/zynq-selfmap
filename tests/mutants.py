@@ -4,12 +4,16 @@
     python3 tests/mutants.py            run all of them; exit 1 if any survives (or does not build: BROKEN)
     python3 tests/mutants.py guard      run only those whose name contains "guard"
 
-Works on a scratch copy of the tree, so the working tree is never dirtied. A mutant counts as killed
+Works on scratch copies of the tree (SM_MUTANT_JOBS of them, 8 by default, one mutant at a time in each),
+so the working tree is never dirtied. A mutant counts as killed
 only if the suite ran (Ran N > 0) and reported FAILED. Mutants are written so that they still compile:
 a build error is not a test.
 """
 from __future__ import annotations
 
+import concurrent.futures
+import os
+import queue
 import re
 import shutil
 import subprocess
@@ -19,6 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE, JUDGE, RUN, JUDGE2 = "prober/sm_core.c", "host/s1a_judge.py", "host/s1a_run.py", "host/s1b0_judge.py"
+JUDGE4 = "host/s1b1_judge.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -41,7 +46,7 @@ MUTANTS = [
     (CORE, "stage 2: no data-cache gate", "    if (hal_cpu(CPU_SCTLR) & 0x4u)", "    if (0)", 0),
     (CORE, "no loopback gate", "    if (v & MCTRL_PCAP_LPBK)", "    if (0)", 1),
     (CORE, "stage 2: no loopback gate", "    if (v & MCTRL_PCAP_LPBK)", "    if (0)", 0),
-    (CORE, "stage 2: no PCFG_DONE gate", "    if (!(v & STS_PCFG_DONE))\n        return finish2(S_GATE_NOT_DONE", "    if (0)\n        return finish2(S_GATE_NOT_DONE"),
+    (CORE, "stage 2: no PCFG_DONE gate", "    if (!(v & STS_PCFG_DONE))\n        return finish2(S_GATE_NOT_DONE", "    if (0)\n        return finish2(S_GATE_NOT_DONE", 0),
     (CORE, "no PCFG_DONE gate", "    if (!(v & STS_PCFG_DONE))\n        return finish(S_GATE_NOT_DONE", "    if (0)\n        return finish(S_GATE_NOT_DONE"),
     (CORE, "no CTRL gate", "    if ((v & CTRL_PCAP_MASK) != CTRL_PCAP_MASK)", "    if (0)", 1),
     (CORE, "stage 2: no CTRL gate", "    if ((v & CTRL_PCAP_MASK) != CTRL_PCAP_MASK)", "    if (0)", 0),
@@ -144,7 +149,7 @@ MUTANTS = [
     (CORE, "stage 3: the pad of a pad-only read is not checked", "    if (code == C_OK && words != 0u) {\n        for (i = 0; i < FRAME_WORDS; i++)", "    if (code == C_OK && words > FRAME_WORDS) {\n        for (i = 0; i < FRAME_WORDS; i++)"),
     (CORE, "stage 3: stage 2 accepts the new operations too", "        if (stage3 && (n == 0u || n == N_NONE))", "        if ((stage3 || 1) && (n == 0u || n == N_NONE))"),   # keeps the variable used: it has to build
     (CORE, "stage 3: the pad alone or no read may be asked for outside the envelope", "        if (far < far_lo || far > far_hi)\n            return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);\n        if (stage3", "        if (stage3"),
-    (CORE, "stage 3: the console says stage 2", "    hal_putc(par(P_STAGE) == 3u ? '3' : '2');", "    hal_putc('2');"),
+    (CORE, "stage 3: the console says stage 2", "    hal_putc(par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');", "    hal_putc(par(P_STAGE) == 4u ? '4' : '2');"),
     (CORE, "stage 3: repeats of an operation that reads nothing are compared over words that were never read", "    if (n == N_NONE)\n        return 1; ", "    if (0)\n        return 1; "),
     (JUDGE2, "judge3: a read status in an operation that reads nothing goes unnoticed", "                if sts or polls:\n                    bad(f\"record {i}: a frame read transfer has a status", "                if False:\n                    bad(f\"record {i}: a frame read transfer has a status"),
     (JUDGE2, "judge3: the same read at the same address may leave different values", "            if len(values) != 1:", "            if False:"),
@@ -158,6 +163,54 @@ MUTANTS = [
     (JUDGE2, "judge3: stage 2 may ask for the new counts as well", "        return 1 <= m <= MAX_READ_FRAMES or (stage == 3 and m in (0, NONE))", "        return 1 <= m <= MAX_READ_FRAMES or m in (0, NONE)"),
     (RUN, "run: stage 3 is judged by the judge of stage 2", "\"s1b0b\": {\"judge\": s1b0b_judge,", "\"s1b0b\": {\"judge\": s1b0_judge,"),
     (RUN, "run: only the console lines of the stage asked for are kept", "if re.match(r\"SM\\d \", ln.strip())]", "if ln.strip().startswith(\"SM3 \" if stage == \"s1b0b\" else \"SM2 \" if stage == \"s1b0\" else \"SM1 \")]"),
+    # ---- stage 4 (S1b.1): the walk
+    (CORE, "stage 4: no data-cache gate", "    if (hal_cpu(CPU_SCTLR) & 0x4u)", "    if (0)", 2),
+    (CORE, "stage 4: no loopback gate", "    if (v & MCTRL_PCAP_LPBK)", "    if (0)", 2),
+    (CORE, "stage 4: no PCFG_DONE gate", "    if (!(v & STS_PCFG_DONE))\n        return finish2(S_GATE_NOT_DONE", "    if (0)\n        return finish2(S_GATE_NOT_DONE", 1),
+    (CORE, "stage 4: no CTRL gate", "    if ((v & CTRL_PCAP_MASK) != CTRL_PCAP_MASK)", "    if (0)", 2),
+    (CORE, "stage 4: the console says stage 2", "    hal_putc(par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');", "    hal_putc(par(P_STAGE) == 3u ? '3' : '2');"),
+    (CORE, "stage 4: the walk reads at an address the device named outside the envelope", "            if (next < c.far_lo || next > c.far_hi) {", "            if (next < c.far_lo) {"),
+    (CORE, "stage 4: the walk follows an address that does not advance", "            if (next <= cur)   ", "            if (next < cur && 0)   "),
+    (CORE, "stage 4: a step backwards is followed", "            if (next <= cur)   ", "            if (next == cur)   "),
+    (CORE, "stage 4: the limit of frames is not applied", "            if (count >= limit) {", "            if (count >= limit && 0) {"),
+    (CORE, "stage 4: the next address is computed instead of taken from the device", "            cur = next;", "            cur = cur + 1u;"),
+    (CORE, "stage 4: the successor read reads the frame as well", "walk_op(&c, cur, 0u, pass, OP_SUCC, 0u);", "walk_op(&c, cur, 1u, pass, OP_SUCC, 0u);"),
+    (CORE, "stage 4: a later pass is not compared with the first", "    if (code == C_OK && op != OP_TRIPLE && pass != 0u) {", "    if (0 && op != OP_TRIPLE && pass != 0u) {"),
+    (CORE, "stage 4: a later pass may be told another address", "        if (first == NO_REC || r2_rd(first, REC2_FARBLK + F_VALUE) != r2_rd(me, REC2_FARBLK + F_VALUE))", "        if (first == NO_REC)"),
+    (CORE, "stage 4: a later pass may deliver another frame", "        else if (!same_data(first, me, n))", "        else if (0 && !same_data(first, me, n))"),
+    (CORE, "stage 4: the three-frame read is not compared with the single reads", "    if (code == C_OK && op == OP_TRIPLE) {", "    if (0 && op == OP_TRIPLE) {"),
+    (CORE, "stage 4: only the first of the three frames is compared", "        for (j = 0u; j < 3u && code == C_OK; j++) {", "        for (j = 0u; j < 1u && code == C_OK; j++) {"),
+    (CORE, "stage 4: the walk goes on after an anomaly", "    return S_STOP_WALK | code;", "    return 0u;"),
+    (CORE, "stage 4: no reference read after an anomaly", "    if (!health4(c, KIND_HEALTH, pass)) {\n        c->stop = c->rec - 1u;\n        return S_STOP_HEALTH;\n    }\n    return S_STOP_WALK | code;", "    return S_STOP_WALK | code;"),
+    (CORE, "stage 4: the reference is not read during the walk", "            if (v == 0u && !health4(&c, KIND_HEALTH, pass))", "            if (v == 0u && 0 && !health4(&c, KIND_HEALTH, pass))"),
+    (CORE, "stage 4: a changed reference frame during the walk is ignored", "            if (v == 0u && !health4(&c, KIND_HEALTH, pass))", "            if (v == 0u && !health4(&c, KIND_HEALTH, pass) && 0)"),
+    (CORE, "stage 4: the final reference read is ignored", "    if (!health4(&c, KIND_FINAL, passes))", "    if (!health4(&c, KIND_FINAL, passes) && 0)"),
+    (CORE, "stage 4: more passes than the header has room for", "passes > MAX_PASSES", "passes > 3u"),
+    (CORE, "stage 4: a start outside the envelope is taken", "        || par(P_N_FARS) != 1u || start < c.far_lo || start > c.far_hi", "        || par(P_N_FARS) != 1u"),
+    (CORE, "stage 4: a limit above what the result area holds", "limit > MAX_WALK", "limit > 200u"),
+    (JUDGE4, "judge4: a later pass may name another address", "                    if first is None or first[\"far_value\"] != rec[\"far_value\"]:", "                    if first is None:"),
+    (JUDGE4, "judge4: a later pass may deliver another frame", "                    elif first[\"frames\"] != rec[\"frames\"]:", "                    elif False:"),
+    (JUDGE4, "judge4: the three-frame read is not compared", "            if derived == 0 and any(rec[\"frames\"][j] != first_pass[k + j][\"content\"][\"frames\"][0] for j in range(3)):", "            if False:"),
+    (JUDGE4, "judge4: only two of the three frames are compared", "first_pass[k + j][\"content\"][\"frames\"][0] for j in range(3)):", "first_pass[k + j][\"content\"][\"frames\"][0] for j in range(2)):"),
+    (JUDGE4, "judge4: the register after a frame is not checked against the next address named", "                if s[\"content\"][\"far_value\"] != named[s[\"next\"]]:", "                if False:"),
+    (JUDGE4, "judge4: the known frames are not compared", "            if s[\"far\"] in frames_known and s[\"content\"][\"frames\"][0] != frames_known[s[\"far\"]]:", "            if False:"),
+    (JUDGE4, "judge4: leaving the envelope without the known frames is fine", "    if status == 1 and missing and ends and ends[0][1] == 1:", "    if False:"),
+    (JUDGE4, "judge4: the header's account of the walk is not checked", "        if got != want:\n            bad(f\"pass {p}:", "        if False:\n            bad(f\"pass {p}:"),
+    (JUDGE4, "judge4: the stage is taken from the result", "    if (par[0], par[1], par[2]) != (0x31504D53, 1, STAGE)", "    if (par[0], par[1]) != (0x31504D53, 1)"),
+    (JUDGE4, "judge4: unused parameter words may hold anything", "            or any(par[k] for k in (10, 11, 14, 15)) or any(par[17:]):", "            or False:"),
+    (JUDGE4, "judge4: a reference flag need not fit the data", "        if rec[\"ref_equal\"] != (1 if healthy(rec) else 0):", "        if False:"),
+    (JUDGE4, "judge4: a record's code need not be what its words say", "        if rec[\"code\"] != derived and not (rec[\"code\"] == 0x23 and derived in (0, 0x10, 0x11, 0x12, 0x13, 0x14)):", "        if False:"),
+    (JUDGE4, "judge4: an address that does not advance is followed", "            if nxt <= cur:", "            if False:"),
+    (JUDGE4, "judge4: the limit is not applied", "            if count >= limit:", "            if False:"),
+    (JUDGE4, "judge4: an address outside the envelope is followed", "            if nxt < lo or nxt > hi:", "            if nxt < lo:"),
+    (JUDGE4, "judge4: the reference reads during the walk are not expected", "            if count % every == 0:", "            if False:"),
+    (JUDGE4, "judge4: the echoed parameters need not be the planned ones", "    if list(par) != list(planned):", "    if False:"),
+    (JUDGE4, "judge4: words after the data are not checked", "        if any(tail):", "        if False:"),
+    (JUDGE4, "judge4: the streams are not compared with the pinned ones", "            if got != want:\n                bad(f\"record {i}: the {name} is not the pinned one\")", "            if False:\n                bad(f\"record {i}: the {name} is not the pinned one\")"),
+    # no mutant for "a PASS with anomalies" in stage 4: there any anomaly ends the run, so the status check already
+    # fails it, and a forged header (done, with anomalies counted) is failed by the count re-derived from the records
+    (JUDGE4, "judge4: a PASS for a run that did not complete", "    if status != 1:\n        bad(f\"the run did not complete", "    if False:\n        bad(f\"the run did not complete"),
+    (RUN, "run: stage 4 is judged by the judge of stage 3", "\"s1b1\": {\"judge\": s1b1_judge,", "\"s1b1\": {\"judge\": s1b0b_judge,"),
 ]
 
 
@@ -172,41 +225,64 @@ def suite(tree: Path) -> tuple[bool, str]:
     return n > 0 and bool(res) and res[-1].startswith("FAILED"), summary
 
 
-def main() -> int:
+def scratch() -> Path:
     tree = Path(tempfile.mkdtemp(prefix="selfmap_mutants_")) / "tree"
     shutil.copytree(ROOT, tree, ignore=shutil.ignore_patterns(".git", "__pycache__", "prober", "ret2uboot", "board_*", "sdcard"))
     for sub in ("prober", "probes/ret2uboot"):
         shutil.copytree(ROOT / sub, tree / sub, dirs_exist_ok=True)
-    killed, summary = suite(tree)
+    return tree
+
+
+def main() -> int:
+    only = sys.argv[1] if len(sys.argv) > 1 else ""       # an optional substring: run just the mutants whose name contains it
+    chosen = [m for m in MUTANTS if only in m[1]]
+    jobs = max(1, min(int(os.environ.get("SM_MUTANT_JOBS", "8")), len(chosen) or 1))
+    first = scratch()
+    killed, summary = suite(first)
     print(f"unmutated: {summary}")
     if killed:
         print("the unmutated tree fails; nothing below would mean anything"); return 2
     baseline = int(re.search(r"Ran (\d+)", summary).group(1))
+    trees: queue.Queue = queue.Queue()                    # one scratch copy per worker; a mutant has a tree to itself while it runs
+    all_trees = [first] + [scratch() for _ in range(jobs - 1)]
+    for tree in all_trees:
+        trees.put(tree)
+
+    def one(mutant) -> tuple[bool, str]:
+        path, name, old, new, *which = mutant
+        tree = trees.get()
+        try:
+            f = tree / path; original = f.read_text()
+            want = which[0] + 1 if which else 1          # an optional fifth element picks one occurrence of several
+            if original.count(old) < want or (not which and original.count(old) != 1):
+                return False, f"STALE    {name}: its anchor occurs {original.count(old)} times in {path}"
+            at = -1
+            for _ in range(want):
+                at = original.index(old, at + 1)
+            f.write_text(original[:at] + new + original[at + len(old):])
+            try:
+                killed, summary = suite(tree)
+            finally:
+                f.write_text(original)
+            ran = int(re.search(r"Ran (\d+)", summary).group(1))
+            if killed and ran != baseline:                # the mutant did not build or import: no test judged its behaviour
+                return False, f"BROKEN   {name:62s} {summary}"
+            return killed, f"{'KILLED  ' if killed else 'SURVIVED'} {name:62s} {summary}"
+        finally:
+            trees.put(tree)
+
     survivors = 0
-    only = sys.argv[1] if len(sys.argv) > 1 else ""       # an optional substring: run just the mutants whose name contains it
-    for path, name, old, new, *which in MUTANTS:
-        if only not in name:
-            continue
-        f = tree / path; original = f.read_text()
-        want = which[0] + 1 if which else 1          # an optional fifth element picks one occurrence of several
-        if original.count(old) < want or (not which and original.count(old) != 1):
-            print(f"STALE    {name}: its anchor occurs {original.count(old)} times in {path}"); survivors += 1; continue
-        at = -1
-        for _ in range(want):
-            at = original.index(old, at + 1)
-        f.write_text(original[:at] + new + original[at + len(old):])
-        killed, summary = suite(tree)
-        f.write_text(original)
-        ran = int(re.search(r"Ran (\d+)", summary).group(1))
-        if killed and ran != baseline:                # the mutant did not build or import: no test judged its behaviour
-            print(f"BROKEN   {name:62s} {summary}"); survivors += 1; continue
-        survivors += not killed
-        print(f"{'KILLED  ' if killed else 'SURVIVED'} {name:62s} {summary}")
-    killed, summary = suite(tree)
-    print(f"restored: {summary}")
-    print(f"{sum(1 for m in MUTANTS if only in m[1])} mutants, {survivors} survived")
-    shutil.rmtree(tree.parent, ignore_errors=True)
-    return 1 if survivors or killed else 0
+    with concurrent.futures.ThreadPoolExecutor(jobs) as pool:
+        for ok, line in pool.map(one, chosen):            # in the order of the list, whatever order they finish in
+            survivors += not ok
+            print(line, flush=True)
+        after = list(pool.map(suite, all_trees))          # every scratch copy, restored, passes again
+    dirty = [s for k, s in after if k or not s.startswith(f"Ran {baseline} OK")]
+    print(f"restored: {after[0][1]}" + (f" ({len(all_trees)} copies)" if not dirty else f" BUT {len(dirty)} cop(ies) differ: {dirty[0]}"))
+    print(f"{len(chosen)} mutants, {survivors} survived")
+    for tree in all_trees:
+        shutil.rmtree(tree.parent, ignore_errors=True)
+    return 1 if survivors or dirty else 0
 
 
 if __name__ == "__main__":

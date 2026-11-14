@@ -98,6 +98,14 @@ class Image(unittest.TestCase):
         e3 = dict(expected, stage="S1b.0b", params=[f"{w:08x}" for w in p3], records=rec3, result_words=64 + rec3 * 480,
                   console=["SM3 start", "SM3 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec3, 64 + rec3 * 480)])
         (BUILD / "expected_s1b0b.json").write_text(json.dumps(e3, indent=1) + "\n")
+        # stage 4 (S1b.1): the walk of the column of the known frames, from its minor 0, twice. How many records there
+        # will be is what the run is to find out, so no record count, size or console line is fixed here.
+        p4 = [0] * 32
+        p4[0:10] = [0x31504D53, 1, 4, 0xB80, 0xBFF, 0xB99, 1, 2, 0, 0x00200000]
+        p4[12], p4[13], p4[16] = 64, 16, 0xB80                      # at most 64 frames a pass; the reference every 16; the start
+        e4 = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console", "frames")}
+        e4.update(stage="S1b.1", params=[f"{w:08x}" for w in p4])
+        (BUILD / "expected_s1b1.json").write_text(json.dumps(e4, indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

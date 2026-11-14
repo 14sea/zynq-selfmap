@@ -1,0 +1,172 @@
+unmutated: Ran 201 OK; 0 test(s): 
+KILLED   the generator sends WCFG                                       Ran 201 FAILED (failures=438, errors=90); 110 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_changed_reference_frame_or_an_exhausted_b
+KILLED   the guard accepts any CMD value                                Ran 201 FAILED (failures=2); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard ignores the envelope                                 Ran 201 FAILED (failures=8); 5 test(s): both_readers_accept_what_the_generator_make, one_fdro_read_per_frame_address
+KILLED   the guard allows any read length                               Ran 201 FAILED (failures=3); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_pad_alone_and_no_read_at_all
+KILLED   no clear before a command                                      Ran 201 FAILED (failures=50, errors=53); 49 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   the clear is not verified                                      Ran 201 FAILED (failures=2); 2 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+KILLED   the clear also clears PCFG_DONE                                Ran 201 FAILED (failures=156, errors=143); 110 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_changed_reference_frame_or_an_exhausted_b
+KILLED   PCFG_DONE not checked before queuing                           Ran 201 FAILED (failures=5); 2 test(s): any_interface_failure_stops_at_that_command, pcfg_done_found_clear_before_a_command_mean
+KILLED   PCFG_DONE not checked while polling                            Ran 201 FAILED (failures=15); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, for_every_fault_the_judge_rederives_exactly
+KILLED   SRC and DST written in the wrong order                         Ran 201 FAILED (failures=2); 2 test(s): every_dma_command_is_clear_verify_program_i, five_commands_per_operation_each_cleared_ve
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 201 FAILED (failures=271, errors=2); 39 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_file_passes_and_any_extra_byte_make
+KILLED   error bits are not checked                                     Ran 201 FAILED (failures=81); 9 test(s): a_failure_on_the_very_first_read_is_reporte, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   the poll limit is ignored below 5000                           Ran 201 FAILED (failures=20); 4 test(s): a_command_that_never_completes_times_out_at, for_every_fault_and_shape_the_judge_rederiv
+KILLED   no data-cache gate                                             Ran 201 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_must_show_that_gate_failing
+KILLED   stage 2: no data-cache gate                                    Ran 201 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no loopback gate                                               Ran 201 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
+KILLED   stage 2: no loopback gate                                      Ran 201 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: no PCFG_DONE gate                                     Ran 201 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no PCFG_DONE gate                                              Ran 201 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   no CTRL gate                                                   Ran 201 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   stage 2: no CTRL gate                                          Ran 201 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no sentinel prefill                                            Ran 201 FAILED (failures=5); 5 test(s): a_run_with_an_anomaly_is_saved_whole_then_j, a_short_read_is_recorded_and_the_run_goes_o
+KILLED   stage 2: no sentinel prefill of the data                       Ran 201 FAILED (failures=14); 8 test(s): a_changed_reference_frame_or_an_exhausted_b, a_failure_in_the_baseline_is_reported_as_su
+KILLED   stage 2: no sentinel before the FAR read                       Ran 201 FAILED (failures=13); 9 test(s): a_failure_in_the_baseline_is_reported_as_su, a_far_read_that_failed_measures_nothing
+KILLED   the health check always passes                                 Ran 201 FAILED (failures=4); 3 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   no anomaly budget                                              Ran 201 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_anomaly_budget_stops_the_run
+KILLED   stage 2: no anomaly budget                                     Ran 201 FAILED (failures=4); 3 test(s): a_changed_reference_frame_or_an_exhausted_b, every_pad_only_read_may_be_anomalous_and_th
+KILLED   a repeat that differs is not noticed                           Ran 201 FAILED (failures=2); 2 test(s): a_repeat_that_differs_is_recorded_and_the_r, for_every_fault_the_judge_rederives_exactly
+KILLED   the pad is not checked                                         Ran 201 FAILED (failures=4); 2 test(s): a_nonzero_pad_is_recorded_and_the_run_goes_, for_every_fault_the_judge_rederives_exactly
+KILLED   a frame outside the envelope is accepted in the parameters     Ran 201 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register_at_all
+KILLED   a PL read is added                                             Ran 201 FAILED (failures=27, errors=53); 34 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   an SLCR write is added                                         Ran 201 FAILED (failures=27, errors=53); 34 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   the cleanup stream is skipped                                  Ran 201 FAILED (failures=19); 10 test(s): a_command_that_never_completes_times_out_at, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   stage 2: the cleanup stream is skipped                         Ran 201 FAILED (failures=70); 21 test(s): a_column_that_does_not_end_inside_the_limit, a_far_read_that_failed_measures_nothing
+KILLED   the final reference read is not compared                       Ran 201 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
+KILLED   the guard accepts a read that is not a pad plus whole frames   Ran 201 FAILED (failures=3); 1 test(s): a_read_that_is_not_a_pad_plus_whole_frames_
+KILLED   the guard lets a read run past the envelope                    Ran 201 FAILED (failures=7); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_range_check_cannot_be_wrapped
+KILLED   the guard accepts a one-word read of any register              Ran 201 FAILED (failures=4); 1 test(s): only_the_far_register_and_only_one_word_of_
+KILLED   the guard allows a second read on an address that has moved on Ran 201 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   reader: a second read on an address that has moved on is accepted Ran 201 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   run: a result of another stage's layout is not saved whole     Ran 201 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 201 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 201 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   the guard's range check adds to the address and can wrap       Ran 201 FAILED (failures=4); 1 test(s): the_range_check_cannot_be_wrapped
+KILLED   stage 2: the parameter range check adds to the address and can wrap Ran 201 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   run: the dry run does not list the YMODEM branch               Ran 201 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_plan_and_cannot_open
+KILLED   stage 2: the FAR register is not read                          Ran 201 FAILED (failures=136, errors=70); 61 test(s): a_changed_reference_frame_or_an_exhausted_b, a_changed_reference_frame_stops_the_run
+KILLED   stage 2: a repeat's data is not compared                       Ran 201 FAILED (failures=11); 3 test(s): a_difference_in_a_later_frame_of_a_multi_fr, data_anomalies_are_recorded_and_skipped_whi
+KILLED   stage 2: a repeat's FAR value is not compared                  Ran 201 FAILED (failures=14); 6 test(s): a_far_value_that_differs_in_an_anomalous_re, anomalies_and_stops_are_saved_whole_and_fai
+KILLED   stage 2: an unread FAR is not noticed                          Ran 201 FAILED (failures=27); 9 test(s): a_failure_in_the_baseline_is_reported_as_su, a_far_read_that_failed_measures_nothing
+KILLED   stage 2: the reference's FAR value is not part of its health   Ran 201 FAILED (failures=13); 4 test(s): a_changed_reference_frame_stops_the_run, a_far_value_that_differs_on_the_reference_r
+KILLED   stage 2: an operation running past the envelope is accepted    Ran 201 FAILED (failures=5); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: more frames per read than the buffer holds            Ran 201 FAILED (failures=3); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: only the first frame of a repeat is compared          Ran 201 FAILED (failures=5); 2 test(s): a_difference_in_a_later_frame_of_a_multi_fr, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: the pad is not checked                                Ran 201 FAILED (failures=19); 13 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge2: the FAR values need not follow one rule                Ran 201 FAILED (failures=2); 2 test(s): the_far_register_must_follow_one_rule, the_rule_is_drawn_from_every_far_value_that
+KILLED   judge2: only the first frame of a read is compared with the known frames Ran 201 FAILED (failures=3); 2 test(s): every_frame_of_a_multi_frame_read_is_compar, every_frame_of_the_two_frame_read_is_compar
+KILLED   judge2: the echoed parameters are not compared with the planned ones Ran 201 FAILED (failures=11); 1 test(s): a_run_that_was_not_the_planned_one_fails
+KILLED   judge2: a repeat's FAR value is not derived                    Ran 201 FAILED (failures=8); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: a repeat's data is not derived                         Ran 201 FAILED (failures=9); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the unused tail is not checked                         Ran 201 FAILED (failures=5); 2 test(s): a_stored_result_with_one_word_changed_does_, tampered_buffers_fail
+KILLED   judge2: the FAR read stream is not compared with the pinned one Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the reference's health ignores the FAR value           Ran 201 FAILED (failures=10); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the FAR value and its unread flag are not held together Ran 201 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the order of records is not checked                    Ran 201 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the code is not compared with the derivation           Ran 201 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: an unread FAR is not derived                           Ran 201 FAILED (failures=13); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 201 FAILED (failures=8); 5 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_under_either_rule_and_ev
+KILLED   judge: a nonzero pad is not derived                            Ran 201 FAILED (failures=5); 3 test(s): a_nonzero_pad_under_a_clean_code_fails, a_stored_result_with_one_word_changed_does_
+KILLED   judge: sentinel survivors are not derived                      Ran 201 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: a differing repeat is not derived                       Ran 201 FAILED (failures=1); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the code is not compared with the derivation            Ran 201 FAILED (failures=2); 2 test(s): a_nonzero_pad_under_a_clean_code_fails, a_stored_result_with_one_word_changed_does_
+KILLED   judge: the order of records is not checked                     Ran 201 FAILED (failures=4); 2 test(s): eleven_copies_of_the_baseline_fail, tampered_buffers_fail
+KILLED   judge: missing records are not noticed                         Ran 201 FAILED (failures=3); 1 test(s): a_run_cut_short_before_its_last_reads_fails
+KILLED   judge: the anomaly count is not cross-checked                  Ran 201 FAILED (failures=1); 1 test(s): a_header_that_counts_an_anomaly_no_record_s
+KILLED   judge: the status is not cross-checked                         Ran 201 FAILED (failures=3); 1 test(s): a_stopped_run_relabelled_as_done_fails
+KILLED   judge: the stop record is not cross-checked                    Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a frame differing from the known one passes             Ran 201 FAILED (failures=1); 1 test(s): a_frame_that_differs_from_the_known_one_fai
+KILLED   judge: recorded streams are not compared with the pinned words Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: the survivor count is not recounted                     Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: trailing words are accepted                             Ran 201 FAILED (failures=3); 2 test(s): a_clean_file_passes_and_any_extra_byte_make, truncated_padded_or_foreign_data_is_invalid
+KILLED   judge: an incomplete run can pass                              Ran 201 FAILED (failures=7); 2 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the echoed parameters are not compared with the planned ones Ran 201 FAILED (failures=7); 3 test(s): a_run_that_did_less_than_was_planned_fails_, a_run_that_did_not_do_what_was_planned_fail
+KILLED   judge: gate readings that fail a gate are accepted on a run that went on Ran 201 FAILED (failures=5); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: a gate stop is not held to its own readings             Ran 201 FAILED (failures=1); 1 test(s): a_gate_stop_must_show_that_gate_failing
+KILLED   judge: the final INT_STS is not judged                         Ran 201 FAILED (failures=2); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: the data-cache reading is not a gate                    Ran 201 FAILED (failures=3); 3 test(s): a_gate_stop_must_show_that_gate_failing, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: reserved header words are not checked                   Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: reserved record words are not checked                   Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a file length that is not a multiple of four is rounded down Ran 201 FAILED (errors=7); 1 test(s): a_clean_file_passes_and_any_extra_byte_make
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 201 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 201 FAILED (failures=1); 1 test(s): an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 201 FAILED (failures=1); 1 test(s): a_run_that_did_not_do_what_was_planned_fail
+KILLED   run: the live status afterwards is only recorded               Ran 201 FAILED (failures=2); 1 test(s): the_live_status_afterwards_is_a_condition_n
+KILLED   run: the card copy is not read back                            Ran 201 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
+KILLED   run: the card read-back checksum is not compared               Ran 201 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
+KILLED   run: an unconfirmed card write is ignored                      Ran 201 FAILED (failures=2); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 201 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the pulled copy is not compared with the board            Ran 201 FAILED (errors=1); 1 test(s): a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: the return code is not compared with the result           Ran 201 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 201 FAILED (failures=1, errors=1); 2 test(s): a_damaged_card_copy_stops_the_run_before_th, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 201 FAILED (errors=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 201 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 201 FAILED (failures=32); 13 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_under_either_rule_and_ev
+KILLED   run: PASS without the judge                                    Ran 201 FAILED (failures=21); 6 test(s): a_gate_stop_on_the_board_is_saved_too, a_run_that_did_not_do_what_was_planned_fail
+KILLED   stage 3: asked to read nothing, the generator still reads      Ran 201 FAILED (failures=97, errors=9); 23 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: an operation that reads nothing still queues a read command Ran 201 FAILED (failures=71); 10 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: the pad of a pad-only read is not checked             Ran 201 FAILED (failures=14); 11 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   stage 3: stage 2 accepts the new operations too                Ran 201 FAILED (failures=4); 3 test(s): bad_parameters_touch_no_register, bad_parameters_touch_no_register_at_all
+KILLED   stage 3: the pad alone or no read may be asked for outside the envelope Ran 201 FAILED (failures=3); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 3: the console says stage 2                              Ran 201 FAILED (failures=23); 7 test(s): a_clean_run_passes_under_every_rule_and_eve, a_result_of_another_stage_is_saved_whole_an
+KILLED   stage 3: repeats of an operation that reads nothing are compared over words that were never read Ran 201 FAILED (failures=59); 15 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   judge3: a read status in an operation that reads nothing goes unnoticed Ran 201 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge3: the same read at the same address may leave different values Ran 201 FAILED (failures=2); 2 test(s): a_far_value_that_differs_in_an_anomalous_re, the_same_read_at_the_same_address_must_alwa
+KILLED   judge3: the stage is taken from the result instead of from what was run Ran 201 FAILED (failures=3); 3 test(s): a_result_of_the_other_stage_is_not_this_sta, a_stage_two_result_under_stage_three_is_sav
+KILLED   judge3: the length rule is reported as holding whatever was seen Ran 201 FAILED (failures=6); 5 test(s): a_clean_run_passes_whatever_the_register_di, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge3: undetermined is reported as holding                    Ran 201 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge2/3: FAR values from records with another anomaly are left out of the finding Ran 201 FAILED (failures=2, errors=2); 4 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   judge2/3: a FAR value counts although its read failed          Ran 201 FAILED (failures=3); 3 test(s): a_far_read_that_failed_measures_nothing, the_length_rule_has_three_answers
+KILLED   judge3: an anomalous record counts as clean evidence for the length rule Ran 201 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge3: the table does not say which of its records were anomalous Ran 201 FAILED (failures=2); 2 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   judge3: stage 2 may ask for the new counts as well             Ran 201 FAILED (failures=1); 1 test(s): a_result_of_the_other_stage_is_not_this_sta
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 201 FAILED (failures=4); 2 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 201 FAILED (failures=2, errors=3); 4 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   stage 4: no data-cache gate                                    Ran 201 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no loopback gate                                      Ran 201 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no PCFG_DONE gate                                     Ran 201 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no CTRL gate                                          Ran 201 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the console says stage 2                              Ran 201 FAILED (failures=23); 5 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   stage 4: the walk reads at an address the device named outside the envelope Ran 201 FAILED (failures=50, errors=10); 21 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: the walk follows an address that does not advance     Ran 201 FAILED (failures=11); 3 test(s): an_address_that_is_not_above_the_one_asked_, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a step backwards is followed                          Ran 201 FAILED (failures=3); 2 test(s): an_address_that_is_not_above_the_one_asked_, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the limit of frames is not applied                    Ran 201 FAILED (failures=2, errors=2); 4 test(s): a_column_that_does_not_end_inside_the_limit, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   stage 4: the next address is computed instead of taken from the device Ran 201 FAILED (failures=2); 2 test(s): a_column_end_inside_the_envelope_is_reporte, a_column_end_that_names_an_address_inside_t
+KILLED   stage 4: the successor read reads the frame as well            Ran 201 FAILED (failures=79, errors=10); 28 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: a later pass is not compared with the first           Ran 201 FAILED (failures=7); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may be told another address              Ran 201 FAILED (failures=4); 2 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may deliver another frame                Ran 201 FAILED (failures=3); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the three-frame read is not compared with the single reads Ran 201 FAILED (failures=4); 2 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: only the first of the three frames is compared        Ran 201 FAILED (failures=2); 2 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the walk goes on after an anomaly                     Ran 201 FAILED (failures=23); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no reference read after an anomaly                    Ran 201 FAILED (failures=26); 5 test(s): a_changed_reference_frame_stops_the_run, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: the reference is not read during the walk             Ran 201 FAILED (failures=36, errors=1); 17 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: a changed reference frame during the walk is ignored  Ran 201 FAILED (failures=2); 2 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the final reference read is ignored                   Ran 201 FAILED (failures=3); 2 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: more passes than the header has room for              Ran 201 FAILED (failures=2); 2 test(s): bad_parameters_touch_no_register, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a start outside the envelope is taken                 Ran 201 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: a limit above what the result area holds              Ran 201 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   judge4: a later pass may name another address                  Ran 201 FAILED (failures=3); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, what_differs_between_the_passes_or_the_path
+KILLED   judge4: a later pass may deliver another frame                 Ran 201 FAILED (failures=3); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: the three-frame read is not compared                   Ran 201 FAILED (failures=5); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: only two of the three frames are compared              Ran 201 FAILED (failures=4); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: the register after a frame is not checked against the next address named Ran 201 FAILED (failures=2); 2 test(s): tampered_buffers_fail, the_register_after_a_frame_must_be_the_addr
+KILLED   judge4: the known frames are not compared                      Ran 201 FAILED (failures=1); 1 test(s): a_known_frame_that_differs_is_named
+KILLED   judge4: leaving the envelope without the known frames is fine  Ran 201 FAILED (failures=6); 2 test(s): a_walk_that_leaves_the_envelope_without_pas, the_judge_has_no_frame_count_of_its_own
+KILLED   judge4: the header's account of the walk is not checked        Ran 201 FAILED (failures=3); 1 test(s): tampered_buffers_fail
+KILLED   judge4: the stage is taken from the result                     Ran 201 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: unused parameter words may hold anything               Ran 201 FAILED (failures=3); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: a reference flag need not fit the data                 Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a record's code need not be what its words say         Ran 201 FAILED (failures=5); 2 test(s): tampered_buffers_fail, what_differs_between_the_passes_or_the_path
+KILLED   judge4: an address that does not advance is followed           Ran 201 FAILED (failures=4); 1 test(s): for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: the limit is not applied                               Ran 201 FAILED (failures=3); 3 test(s): a_longer_walk_is_saved_whole_whatever_its_s, a_walk_that_ends_at_the_limit_is_a_sound_me
+KILLED   judge4: an address outside the envelope is followed            Ran 201 FAILED (failures=29); 10 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_and_says_what_the_walk_f
+KILLED   judge4: the reference reads during the walk are not expected   Ran 201 FAILED (failures=1, errors=53); 15 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_and_says_what_the_walk_f
+KILLED   judge4: the echoed parameters need not be the planned ones     Ran 201 FAILED (failures=5); 1 test(s): a_run_that_was_not_the_planned_one_fails
+KILLED   judge4: words after the data are not checked                   Ran 201 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge4: the streams are not compared with the pinned ones      Ran 201 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a PASS for a run that did not complete                 Ran 201 FAILED (failures=11); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, stops_are_saved_whole_and_fail
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 201 FAILED (failures=3); 3 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+restored: Ran 201 OK; 0 test(s):  (8 copies)
+169 mutants, 0 survived

@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/test/zynq_selfmap/host/s1a_run.py", line 332, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/test/zynq_selfmap/host/s1a_run.py", line 326, in main
+    record = execute(UB(), exp, a.out, ymodem_send, json.loads(KNOWN.read_text()), len(pl), pl_crc, card_name, a.stage)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/zynq_selfmap/host/s1a_run.py", line 228, in execute
+    words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", f"pull the result over the console (attempt {attempt} of at most {MAX_PULLS})",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/zynq_selfmap/host/s1a_run.py", line 127, in do
+    reply, ok = con.cmd(cmd, timeout)
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/zynq_selfmap/host/uboot_console.py", line 35, in cmd
+    return self.until_prompt(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/zynq_selfmap/host/uboot_console.py", line 18, in until_prompt
+    d = self.s.read(4096)
+        ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/serial/serialposix.py", line 595, in read
+    raise SerialException(
+serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)

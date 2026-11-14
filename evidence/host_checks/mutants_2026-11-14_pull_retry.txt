@@ -95,3 +95,105 @@ KILLED   run: the judge is given the echoed parameters as the plan      Ran 215 
 KILLED   run: the live status afterwards is only recorded               Ran 215 FAILED (failures=2); 1 test(s): the_live_status_afterwards_is_a_condition_n
 KILLED   run: the card copy is not read back                            Ran 215 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
 KILLED   run: the card read-back checksum is not compared               Ran 215 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
+KILLED   run: an unconfirmed card write is ignored                      Ran 215 FAILED (failures=2); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 215 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the pulled copy is not compared with the board            Ran 215 FAILED (failures=4, errors=2); 2 test(s): a_pull_that_comes_back_damaged_is_made_agai, a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: a pulled copy of the right length is taken whatever its crc32 Ran 215 FAILED (failures=2, errors=1); 2 test(s): a_pull_that_comes_back_damaged_is_made_agai, a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: a damaged pull is not made again                          Ran 215 FAILED (failures=6); 2 test(s): a_pull_that_comes_back_damaged_is_made_agai, a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: the pull is repeated without end in sight                 Ran 215 FAILED (failures=2); 1 test(s): a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: a damaged copy is not kept                                Ran 215 FAILED (failures=6); 2 test(s): a_pull_that_comes_back_damaged_is_made_agai, a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: the attempts are not recorded                             Ran 215 FAILED (failures=7); 2 test(s): a_pull_that_comes_back_damaged_is_made_agai, a_pulled_copy_that_differs_from_the_board_i
+KILLED   run: the return code is not compared with the result           Ran 215 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 215 FAILED (failures=1, errors=1); 2 test(s): a_damaged_card_copy_stops_the_run_before_th, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 215 FAILED (errors=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 215 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 215 FAILED (failures=34); 14 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_under_either_rule_and_ev
+KILLED   run: PASS without the judge                                    Ran 215 FAILED (failures=23); 7 test(s): a_gate_stop_on_the_board_is_saved_too, a_run_that_did_not_do_what_was_planned_fail
+KILLED   stage 3: asked to read nothing, the generator still reads      Ran 215 FAILED (failures=97, errors=9); 23 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: an operation that reads nothing still queues a read command Ran 215 FAILED (failures=71); 10 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: the pad of a pad-only read is not checked             Ran 215 FAILED (failures=16); 13 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   stage 3: stage 2 accepts the new operations too                Ran 215 FAILED (failures=4); 3 test(s): bad_parameters_touch_no_register, bad_parameters_touch_no_register_at_all
+KILLED   stage 3: the pad alone or no read may be asked for outside the envelope Ran 215 FAILED (failures=3); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 3: the console says stage 2                              Ran 215 FAILED (failures=23); 7 test(s): a_clean_run_passes_under_every_rule_and_eve, a_result_of_another_stage_is_saved_whole_an
+KILLED   stage 3: repeats of an operation that reads nothing are compared over words that were never read Ran 215 FAILED (failures=59); 15 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   judge3: a read status in an operation that reads nothing goes unnoticed Ran 215 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge3: the same read at the same address may leave different values Ran 215 FAILED (failures=2); 2 test(s): a_far_value_that_differs_in_an_anomalous_re, the_same_read_at_the_same_address_must_alwa
+KILLED   judge3: the stage is taken from the result instead of from what was run Ran 215 FAILED (failures=3); 3 test(s): a_result_of_the_other_stage_is_not_this_sta, a_stage_two_result_under_stage_three_is_sav
+KILLED   judge3: the length rule is reported as holding whatever was seen Ran 215 FAILED (failures=6); 5 test(s): a_clean_run_passes_whatever_the_register_di, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge3: undetermined is reported as holding                    Ran 215 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge2/3: FAR values from records with another anomaly are left out of the finding Ran 215 FAILED (failures=2, errors=2); 4 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   judge2/3: a FAR value counts although its read failed          Ran 215 FAILED (failures=3); 3 test(s): a_far_read_that_failed_measures_nothing, the_length_rule_has_three_answers
+KILLED   judge3: an anomalous record counts as clean evidence for the length rule Ran 215 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge3: the table does not say which of its records were anomalous Ran 215 FAILED (failures=2); 2 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   judge3: stage 2 may ask for the new counts as well             Ran 215 FAILED (failures=1); 1 test(s): a_result_of_the_other_stage_is_not_this_sta
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 215 FAILED (failures=4); 2 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 215 FAILED (failures=4, errors=3); 5 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   stage 4: no data-cache gate                                    Ran 215 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no loopback gate                                      Ran 215 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no PCFG_DONE gate                                     Ran 215 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no CTRL gate                                          Ran 215 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the console says stage 2                              Ran 215 FAILED (failures=24); 5 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   stage 4: the walk reads at an address the device named outside the envelope Ran 215 FAILED (failures=76, errors=14); 31 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: an address below the envelope is not taken as a stop  Ran 215 FAILED (failures=7); 3 test(s): an_address_below_the_envelope_is_not_a_norm, an_address_that_is_not_above_the_one_asked_
+KILLED   stage 4: the stop record of a walk that does not advance is counted back from the end Ran 215 FAILED (failures=2); 2 test(s): an_address_that_is_not_above_the_one_asked_, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the walk follows an address that does not advance     Ran 215 FAILED (failures=18); 4 test(s): an_address_below_the_envelope_is_not_a_norm, an_address_that_is_not_above_the_one_asked_
+KILLED   stage 4: a step backwards is followed                          Ran 215 FAILED (failures=11); 3 test(s): an_address_below_the_envelope_is_not_a_norm, an_address_that_is_not_above_the_one_asked_
+KILLED   stage 4: the limit of frames is not applied                    Ran 215 FAILED (failures=4, errors=2); 6 test(s): a_column_that_does_not_end_inside_the_limit, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   stage 4: the next address is computed instead of taken from the device Ran 215 FAILED (failures=3); 3 test(s): a_column_end_inside_the_envelope_is_reporte, a_column_end_that_names_an_address_inside_t
+KILLED   stage 4: the successor read reads the frame as well            Ran 215 FAILED (failures=116, errors=14); 36 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: a later pass is not compared with the first           Ran 215 FAILED (failures=7); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may be told another address              Ran 215 FAILED (failures=4); 2 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may deliver another frame                Ran 215 FAILED (failures=3); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the three-frame read is not compared with the single reads Ran 215 FAILED (failures=5); 3 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: only the first of the three frames is compared        Ran 215 FAILED (failures=3); 3 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: the walk goes on after an anomaly                     Ran 215 FAILED (failures=24); 4 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: no reference read after an anomaly                    Ran 215 FAILED (failures=26); 5 test(s): a_changed_reference_frame_stops_the_run, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: the reference is not read during the run              Ran 215 FAILED (failures=55, errors=2); 24 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: a changed reference frame during the run is ignored   Ran 215 FAILED (failures=3); 2 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the frames delivered since the reference are not counted Ran 215 FAILED (failures=55, errors=2); 24 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: the count since the reference starts again with each pass Ran 215 FAILED (failures=44); 21 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: the reads of several frames are not counted towards the reference Ran 215 FAILED (failures=42, errors=2); 23 test(s): a_changed_reference_frame_stops_the_run, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 4: a reference read does not start the count again       Ran 215 FAILED (failures=57); 22 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_and_says_what_the_walk_f
+KILLED   stage 4: one or two frames left over are not read again        Ran 215 FAILED (failures=21); 11 test(s): a_column_that_does_not_end_inside_the_limit, a_difference_in_the_last_frame_of_an_overla
+KILLED   stage 4: a walk of two frames gets no second path              Ran 215 FAILED (failures=4, errors=1); 5 test(s): a_difference_in_the_last_frame_of_an_overla, columns_of_other_lengths
+KILLED   stage 4: a reference interval too short for a read of three frames is taken Ran 215 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: the final reference read is ignored                   Ran 215 FAILED (failures=3); 2 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: more passes than the header has room for              Ran 215 FAILED (failures=2); 2 test(s): bad_parameters_touch_no_register, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a start outside the envelope is taken                 Ran 215 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: a limit above what the result area holds              Ran 215 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   judge4: a later pass may name another address                  Ran 215 FAILED (failures=3); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, what_differs_between_the_passes_or_the_path
+KILLED   judge4: a later pass may deliver another frame                 Ran 215 FAILED (failures=3); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: the three-frame read is not compared                   Ran 215 FAILED (failures=6); 4 test(s): a_known_frame_delivered_in_a_read_of_severa, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: only two of the three frames are compared              Ran 215 FAILED (failures=5); 4 test(s): a_known_frame_delivered_in_a_read_of_severa, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: the register after a frame is not checked against the next address named Ran 215 FAILED (failures=2); 2 test(s): tampered_buffers_fail, the_register_after_a_frame_must_be_the_addr
+KILLED   judge4: the known frames are not compared                      Ran 215 FAILED (failures=3); 3 test(s): a_known_frame_delivered_in_a_read_of_severa, a_known_frame_that_differs_is_named
+KILLED   judge4: the reference frame is not held to its known value     Ran 215 FAILED (failures=1); 1 test(s): the_reference_frame_is_held_to_its_known_va
+KILLED   judge4: the baseline is not held to the known value            Ran 215 FAILED (failures=1); 1 test(s): the_reference_frame_is_held_to_its_known_va
+KILLED   judge4: the frames of the walk are not held to their known values Ran 215 FAILED (failures=1); 1 test(s): a_known_frame_delivered_in_a_read_of_severa
+KILLED   judge4: frames delivered in a read of several are not held to their known values Ran 215 FAILED (failures=1); 1 test(s): a_known_frame_delivered_in_a_read_of_severa
+KILLED   judge4: a record of another shape than the schedule has is followed Ran 215 FAILED (errors=2); 2 test(s): no_record_however_malformed_makes_the_judge, tampered_buffers_fail
+KILLED   judge4: the register after a read of several frames is not checked Ran 215 FAILED (failures=2); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: an address below the envelope is not taken as a stop   Ran 215 FAILED (failures=2); 1 test(s): for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: one or two frames left over need not be read again     Ran 215 FAILED (failures=7); 6 test(s): a_longer_walk_is_saved_whole_whatever_its_s, a_run_that_was_not_the_planned_one_fails
+KILLED   judge4: a reference interval too short for a read of three frames is a valid parameter Ran 215 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: the reference reads count frames per pass, not over the run Ran 215 FAILED (failures=38); 16 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_and_says_what_the_walk_f
+KILLED   grade: a walk that did not finish is compared as if it were the column Ran 215 FAILED (failures=3); 1 test(s): a_walk_that_did_not_finish_is_not_taken_for
+KILLED   grade: a walk at its limit is compared as if it were the column Ran 215 FAILED (failures=4); 2 test(s): a_walk_that_did_not_finish_is_not_taken_for, a_walk_that_stopped_at_its_limit_or_left_th
+KILLED   grade: the judge's verdict is not carried over                 Ran 215 FAILED (failures=3); 1 test(s): a_walk_that_did_not_finish_is_not_taken_for
+KILLED   judge4: leaving the envelope without the known frames is fine  Ran 215 FAILED (failures=6); 2 test(s): a_walk_that_leaves_the_envelope_without_pas, the_judge_has_no_frame_count_of_its_own
+KILLED   judge4: the header's account of the walk is not checked        Ran 215 FAILED (failures=3); 1 test(s): tampered_buffers_fail
+KILLED   judge4: the stage is taken from the result                     Ran 215 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: unused parameter words may hold anything               Ran 215 FAILED (failures=3); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: a reference flag need not fit the data                 Ran 215 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a record's code need not be what its words say         Ran 215 FAILED (failures=6); 3 test(s): a_known_frame_delivered_in_a_read_of_severa, tampered_buffers_fail
+KILLED   judge4: an address that does not advance is followed           Ran 215 FAILED (failures=6); 1 test(s): for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: the limit is not applied                               Ran 215 FAILED (failures=3); 3 test(s): a_longer_walk_is_saved_whole_whatever_its_s, a_walk_that_ends_at_the_limit_is_a_sound_me
+KILLED   judge4: an address outside the envelope is followed            Ran 215 FAILED (failures=39); 15 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_and_says_what_the_walk_f
+KILLED   judge4: the reference reads during the walk are not expected   Ran 215 FAILED (failures=42); 17 test(s): a_clean_run_passes_and_everything_is_saved, a_clean_run_passes_and_says_what_the_walk_f
+KILLED   judge4: the echoed parameters need not be the planned ones     Ran 215 FAILED (failures=5); 1 test(s): a_run_that_was_not_the_planned_one_fails
+KILLED   judge4: words after the data are not checked                   Ran 215 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge4: the streams are not compared with the pinned ones      Ran 215 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a PASS for a run that did not complete                 Ran 215 FAILED (failures=14); 4 test(s): a_walk_that_did_not_finish_is_not_taken_for, for_every_fault_and_shape_the_judge_rederiv
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 215 FAILED (failures=3); 3 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+restored: Ran 215 OK; 0 test(s):  (8 copies)
+196 mutants, 0 survived

@@ -289,6 +289,13 @@ class ThroughTheRunScript(unittest.TestCase):
         rec, u, out = fake.run("err@52", stage="ratep", far_rule="skip")
         self.assertEqual((rec["verdict"], rec["result_words"], rec.get("stop")), ("FAIL", 64 + 11 * 480, None))
 
+    def test_the_same_pairs_at_the_walk_s_first_addresses_run_through_and_are_failed_only_for_having_no_known_answer(self) -> None:
+        rec, u, out = fake.run(stage="ratew", far_rule="skip")
+        v = json.loads((out / "verdict.json").read_text())
+        self.assertEqual((v["header"]["status"], len(v["records"]), rec["result_words"]), ("0x1", 130, 64 + 130 * 480))
+        self.assertEqual({r["far"] for r in v["records"][1:-1]}, {f"{a:#010x}" for a in range(0xB80, 0xB88)})
+        self.assertEqual((rec["verdict"], [p for p in v["problems"] if "no known answer" not in p]), ("FAIL", []))
+
     def test_the_dry_run_differs_from_stage_two_s_only_in_the_parameters(self) -> None:
         def plan(stage):
             out = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, "--dry-run"], capture_output=True, text=True, check=True).stdout

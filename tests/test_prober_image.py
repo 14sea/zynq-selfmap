@@ -128,6 +128,13 @@ class Image(unittest.TestCase):
         ep = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console")}
         ep.update(stage="ratep", params=[f"{w:08x}" for w in pp])
         (BUILD / "expected_ratep.json").write_text(json.dumps(ep, indent=1) + "\n")
+        # and the same pairs at 0xb80..0xb87, the first eight addresses of the walk
+        pw = list(pp)
+        pw[3] = 0xB80
+        for k in range(16):
+            pw[16 + k] = 0xB80 + k // 2
+        ew = dict(ep, stage="ratew", params=[f"{w:08x}" for w in pw])
+        (BUILD / "expected_ratew.json").write_text(json.dumps(ew, indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

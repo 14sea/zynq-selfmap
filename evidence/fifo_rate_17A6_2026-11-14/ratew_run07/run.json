@@ -1,0 +1,362 @@
+{
+ "stage": "ratew",
+ "steps": [
+  {
+   "n": 1,
+   "what": "prompt",
+   "cmd": "version",
+   "reply": "version\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\narm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\r\nGNU ld (GNU Binutils for Ubuntu) 2.42\r\nZynq> "
+  },
+  {
+   "n": 2,
+   "what": "cache off (the verified run had it off; the prober refuses otherwise)",
+   "cmd": "dcache off",
+   "reply": "dcache off\r\nZynq> "
+  },
+  {
+   "n": 3,
+   "what": "cache state",
+   "cmd": "dcache",
+   "reply": "dcache\r\nData (writethrough) Cache is OFF\r\nZynq> "
+  },
+  {
+   "n": 4,
+   "what": "status before the PL load",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "
+  },
+  {
+   "n": 5,
+   "what": "clear the sticky PCFG_DONE bit so that the load is seen as an edge (as the verified run did)",
+   "cmd": "mw.l f800700c 00000004 1",
+   "reply": "mw.l f800700c 00000004 1\r\nZynq> "
+  },
+  {
+   "n": 6,
+   "what": "status after the clear",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "
+  },
+  {
+   "n": 7,
+   "what": "the PL design (2083863 bytes, sha256 8c3369e8\u2026) from the card; by YMODEM if the card does not have it",
+   "cmd": "fatload mmc 0:1 04000000 carrier.bit",
+   "reply": "fatload mmc 0:1 04000000 carrier.bit\r\n2083863 bytes read in 402 ms (4.9 MiB/s)\r\nZynq> "
+  },
+  {
+   "n": 8,
+   "what": "the design in RAM is the file, whichever way it came",
+   "cmd": "crc32 04000000 1fcc17",
+   "reply": "crc32 04000000 1fcc17\r\ncrc32 for 04000000 ... 041fcc16 ==> 72887bf4\r\nZynq> "
+  },
+  {
+   "n": 9,
+   "what": "configure the PL",
+   "cmd": "fpga loadb 0 04000000 1fcc17",
+   "reply": "fpga loadb 0 04000000 1fcc17\r\n  design filename = \"carrier_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=9392bf97\"\r\n  part number = \"7z010clg400\"\r\n  date = \"2026/08/13\"\r\n  time = \"16:01:42\"\r\n  bytes in bitstream = 2083740\r\nzynq_align_dma_buffer: Align buffer at 400007b to 4000040(swap 1)\r\nINFO:post config was not run, please run manually if needed\r\nZynq> "
+  },
+  {
+   "n": 10,
+   "what": "status after the load",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: 50021004                             ...P\r\nZynq> "
+  },
+  {
+   "n": 11,
+   "what": "zero the parameter block",
+   "cmd": "mw.l 10100000 0 20",
+   "reply": "mw.l 10100000 0 20\r\nZynq> "
+  },
+  {
+   "n": 12,
+   "what": "parameter word 0",
+   "cmd": "mw.l 10100000 31504d53 1",
+   "reply": "mw.l 10100000 31504d53 1\r\nZynq> "
+  },
+  {
+   "n": 13,
+   "what": "parameter word 1",
+   "cmd": "mw.l 10100004 00000001 1",
+   "reply": "mw.l 10100004 00000001 1\r\nZynq> "
+  },
+  {
+   "n": 14,
+   "what": "parameter word 2",
+   "cmd": "mw.l 10100008 00000003 1",
+   "reply": "mw.l 10100008 00000003 1\r\nZynq> "
+  },
+  {
+   "n": 15,
+   "what": "parameter word 3",
+   "cmd": "mw.l 1010000c 00000b80 1",
+   "reply": "mw.l 1010000c 00000b80 1\r\nZynq> "
+  },
+  {
+   "n": 16,
+   "what": "parameter word 4",
+   "cmd": "mw.l 10100010 00000b9a 1",
+   "reply": "mw.l 10100010 00000b9a 1\r\nZynq> "
+  },
+  {
+   "n": 17,
+   "what": "parameter word 5",
+   "cmd": "mw.l 10100014 00000b99 1",
+   "reply": "mw.l 10100014 00000b99 1\r\nZynq> "
+  },
+  {
+   "n": 18,
+   "what": "parameter word 6",
+   "cmd": "mw.l 10100018 00000010 1",
+   "reply": "mw.l 10100018 00000010 1\r\nZynq> "
+  },
+  {
+   "n": 19,
+   "what": "parameter word 7",
+   "cmd": "mw.l 1010001c 00000008 1",
+   "reply": "mw.l 1010001c 00000008 1\r\nZynq> "
+  },
+  {
+   "n": 20,
+   "what": "parameter word 8",
+   "cmd": "mw.l 10100020 00000018 1",
+   "reply": "mw.l 10100020 00000018 1\r\nZynq> "
+  },
+  {
+   "n": 21,
+   "what": "parameter word 9",
+   "cmd": "mw.l 10100024 00200000 1",
+   "reply": "mw.l 10100024 00200000 1\r\nZynq> "
+  },
+  {
+   "n": 22,
+   "what": "parameter word 10",
+   "cmd": "mw.l 10100028 10101010 1",
+   "reply": "mw.l 10100028 10101010 1\r\nZynq> "
+  },
+  {
+   "n": 23,
+   "what": "parameter word 11",
+   "cmd": "mw.l 1010002c 10101010 1",
+   "reply": "mw.l 1010002c 10101010 1\r\nZynq> "
+  },
+  {
+   "n": 24,
+   "what": "parameter word 16",
+   "cmd": "mw.l 10100040 00000b80 1",
+   "reply": "mw.l 10100040 00000b80 1\r\nZynq> "
+  },
+  {
+   "n": 25,
+   "what": "parameter word 17",
+   "cmd": "mw.l 10100044 00000b80 1",
+   "reply": "mw.l 10100044 00000b80 1\r\nZynq> "
+  },
+  {
+   "n": 26,
+   "what": "parameter word 18",
+   "cmd": "mw.l 10100048 00000b81 1",
+   "reply": "mw.l 10100048 00000b81 1\r\nZynq> "
+  },
+  {
+   "n": 27,
+   "what": "parameter word 19",
+   "cmd": "mw.l 1010004c 00000b81 1",
+   "reply": "mw.l 1010004c 00000b81 1\r\nZynq> "
+  },
+  {
+   "n": 28,
+   "what": "parameter word 20",
+   "cmd": "mw.l 10100050 00000b82 1",
+   "reply": "mw.l 10100050 00000b82 1\r\nZynq> "
+  },
+  {
+   "n": 29,
+   "what": "parameter word 21",
+   "cmd": "mw.l 10100054 00000b82 1",
+   "reply": "mw.l 10100054 00000b82 1\r\nZynq> "
+  },
+  {
+   "n": 30,
+   "what": "parameter word 22",
+   "cmd": "mw.l 10100058 00000b83 1",
+   "reply": "mw.l 10100058 00000b83 1\r\nZynq> "
+  },
+  {
+   "n": 31,
+   "what": "parameter word 23",
+   "cmd": "mw.l 1010005c 00000b83 1",
+   "reply": "mw.l 1010005c 00000b83 1\r\nZynq> "
+  },
+  {
+   "n": 32,
+   "what": "parameter word 24",
+   "cmd": "mw.l 10100060 00000b84 1",
+   "reply": "mw.l 10100060 00000b84 1\r\nZynq> "
+  },
+  {
+   "n": 33,
+   "what": "parameter word 25",
+   "cmd": "mw.l 10100064 00000b84 1",
+   "reply": "mw.l 10100064 00000b84 1\r\nZynq> "
+  },
+  {
+   "n": 34,
+   "what": "parameter word 26",
+   "cmd": "mw.l 10100068 00000b85 1",
+   "reply": "mw.l 10100068 00000b85 1\r\nZynq> "
+  },
+  {
+   "n": 35,
+   "what": "parameter word 27",
+   "cmd": "mw.l 1010006c 00000b85 1",
+   "reply": "mw.l 1010006c 00000b85 1\r\nZynq> "
+  },
+  {
+   "n": 36,
+   "what": "parameter word 28",
+   "cmd": "mw.l 10100070 00000b86 1",
+   "reply": "mw.l 10100070 00000b86 1\r\nZynq> "
+  },
+  {
+   "n": 37,
+   "what": "parameter word 29",
+   "cmd": "mw.l 10100074 00000b86 1",
+   "reply": "mw.l 10100074 00000b86 1\r\nZynq> "
+  },
+  {
+   "n": 38,
+   "what": "parameter word 30",
+   "cmd": "mw.l 10100078 00000b87 1",
+   "reply": "mw.l 10100078 00000b87 1\r\nZynq> "
+  },
+  {
+   "n": 39,
+   "what": "parameter word 31",
+   "cmd": "mw.l 1010007c 00000b87 1",
+   "reply": "mw.l 1010007c 00000b87 1\r\nZynq> "
+  },
+  {
+   "n": 40,
+   "what": "the parameter block is as intended",
+   "cmd": "crc32 10100000 80",
+   "reply": "crc32 10100000 80\r\ncrc32 for 10100000 ... 1010007f ==> b19f16d8\r\nZynq> "
+  },
+  {
+   "n": 41,
+   "what": "clear the result header",
+   "cmd": "mw.l 10000000 0 40",
+   "reply": "mw.l 10000000 0 40\r\nZynq> "
+  },
+  {
+   "n": 42,
+   "what": "send the prober (10510 bytes) by YMODEM",
+   "cmd": "loady 02000000",
+   "reply": "## Total Size      = 0x0000290e = 10510 Bytes\r\n## Start Addr      = 0x02000000\r\nZynq> "
+  },
+  {
+   "n": 43,
+   "what": "the prober in RAM is the checked image",
+   "cmd": "crc32 02000000 290e",
+   "reply": "crc32 02000000 290e\r\ncrc32 for 02000000 ... 0200290d ==> 1eb080e9\r\nZynq> "
+  },
+  {
+   "n": 44,
+   "what": "RUN",
+   "cmd": "go 02000000",
+   "reply": "go 02000000\r\n## Starting application at 0x02000000 ...\r\nSM3 start\r\nSM3 end status=00000001 records=00000082 anomalies=00000000 words=0000f400\r\n## Application terminated, rc = 0x0\r\nZynq> "
+  },
+  {
+   "n": 45,
+   "what": "the result header",
+   "cmd": "md.l 10000000 40",
+   "reply": "md.l 10000000 40\r\n10000000: 31524d53 00000001 00000001 00000082  SMR1............\r\n10000010: 00000000 0000f400 000001e0 00000040  ............@...\r\n10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@\r\n10000030: 08c51878 800001d3 1eacab18 1ead0ec0  x...............\r\n10000040: 50033004 50000f30 ffffffff 00000000  .0.P0..P........\r\n10000050: 00000000 00000000 00000000 00000000  ................\r\n10000060: 00000000 00000000 00000000 00000000  ................\r\n10000070: 00000000 00000000 00000000 00000000  ................\r\n10000080: 31504d53 00000001 00000003 00000b80  SMP1............\r\n10000090: 00000b9a 00000b99 00000010 00000008  ................\r\n100000a0: 00000018 00200000 10101010 10101010  ...... .........\r\n100000b0: 00000000 00000000 00000000 00000000  ................\r\n100000c0: 00000b80 00000b80 00000b81 00000b81  ................\r\n100000d0: 00000b82 00000b82 00000b83 00000b83  ................\r\n100000e0: 00000b84 00000b84 00000b85 00000b85  ................\r\n100000f0: 00000b86 00000b86 00000b87 00000b87  ................\r\nZynq> "
+  },
+  {
+   "n": 46,
+   "what": "the result checksum on the board",
+   "cmd": "crc32 10000000 3d000",
+   "reply": "crc32 10000000 3d000\r\ncrc32 for 10000000 ... 1003cfff ==> a15f5096\r\nZynq> "
+  },
+  {
+   "n": 47,
+   "what": "save the result to the card",
+   "cmd": "fatwrite mmc 0:1 10000000 saf8c7b3.bin 3d000",
+   "reply": "fatwrite mmc 0:1 10000000 saf8c7b3.bin 3d000\r\n249856 bytes written in 81 ms (2.9 MiB/s)\r\nZynq> "
+  },
+  {
+   "n": 48,
+   "what": "read the card copy back to a scratch address",
+   "cmd": "fatload mmc 0:1 11000000 saf8c7b3.bin",
+   "reply": "fatload mmc 0:1 11000000 saf8c7b3.bin\r\n249856 bytes read in 59 ms (4 MiB/s)\r\nZynq> "
+  },
+  {
+   "n": 49,
+   "what": "the card copy is the result",
+   "cmd": "crc32 11000000 3d000",
+   "reply": "crc32 11000000 3d000\r\ncrc32 for 11000000 ... 1103cfff ==> a15f5096\r\nZynq> "
+  },
+  {
+   "n": 50,
+   "what": "pull the result over the console (attempt 1 of at most 3)",
+   "cmd": "md.l 10000000 f400",
+   "reply": "md.l 10000000 f400\r\n10000000: 31524d53 00000001 00000001 00000082  SMR1............\r\n10000010: 00000000 0000f400 000001e0 00000040  ............@...\r\n10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@\r\n10000030: 08c51878 800001d3 1eacab18 1ead0ec0  x...............\r\n10000040: 50033004 5 \u2026 00000 00000000  ................\r\n1003cfc0: 00000000 00000000 00000000 00000000  ................\r\n1003cfd0: 00000000 00000000 00000000 00000000  ................\r\n1003cfe0: 00000000 00000000 00000000 00000000  ................\r\n1003cff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 51,
+   "what": "pull the result over the console (attempt 2 of at most 3)",
+   "cmd": "md.l 10000000 f400",
+   "reply": "md.l 10000000 f400\r\n10000000: 31524d53 00000001 00000001 00000082  SMR1............\r\n10000010: 00000000 0000f400 000001e0 00000040  ............@...\r\n10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@\r\n10000030: 08c51878 800001d3 1eacab18 1ead0ec0  x...............\r\n10000040: 50033004 5 \u2026 00000 00000000  ................\r\n1003cfc0: 00000000 00000000 00000000 00000000  ................\r\n1003cfd0: 00000000 00000000 00000000 00000000  ................\r\n1003cfe0: 00000000 00000000 00000000 00000000  ................\r\n1003cff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 52,
+   "what": "status afterwards",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: 50033004                             .0.P\r\nZynq> "
+  },
+  {
+   "n": 53,
+   "what": "the prober image in RAM after the run",
+   "cmd": "crc32 02000000 290e",
+   "reply": "crc32 02000000 290e\r\ncrc32 for 02000000 ... 0200290d ==> 1eb080e9\r\nZynq> "
+  },
+  {
+   "n": 54,
+   "what": "U-Boot still answers",
+   "cmd": "version",
+   "reply": "version\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\narm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\r\nGNU ld (GNU Binutils for Ubuntu) 2.42\r\nZynq> "
+  }
+ ],
+ "problems": [],
+ "card_file": "saf8c7b3.bin",
+ "started": "2026-11-14T20:42:27+0000",
+ "pl_source": "card",
+ "went": true,
+ "return_code": "0x0",
+ "console": [
+  "SM3 start",
+  "SM3 end status=00000001 records=00000082 anomalies=00000000 words=0000f400"
+ ],
+ "result_layout": "ratew",
+ "result_words": 62464,
+ "board_crc32": "a15f5096",
+ "card_written": true,
+ "card_verified": true,
+ "pulls": [
+  {
+   "attempt": 1,
+   "words": 62451,
+   "crc32": "d9585920",
+   "is_the_boards": false
+  },
+  {
+   "attempt": 2,
+   "words": 62464,
+   "crc32": "a15f5096",
+   "is_the_boards": true
+  }
+ ],
+ "host_crc32": "a15f5096",
+ "judge": "FAIL",
+ "int_sts_afterwards": "50033004",
+ "verdict": "FAIL"
+}

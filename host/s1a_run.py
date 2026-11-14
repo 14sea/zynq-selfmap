@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3|ratep|ratew] --dry-run  print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3|ratep|ratew] --go --out DIR  run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3|ratep|ratew|ratef] --dry-run  print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3|ratep|ratew|ratef] --go --out DIR  run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -54,7 +54,10 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # the same pairs at the first eight addresses the walk read (0xb80..0xb87), where it overflowed and the known
           # frames did not. Those frames have no known answer, so the judge will say so and fail the run: what is
           # wanted here is only how many records the prober gets through
-          "ratew": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_ratew.json"}}
+          "ratew": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_ratew.json"},
+          # ratew once through instead of eight times: after a fresh load every one of its frame reads is the first
+          # read of that frame, as every read of the walk's first pass is
+          "ratef": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_ratef.json"}}
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"

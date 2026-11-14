@@ -135,6 +135,8 @@ class Image(unittest.TestCase):
             pw[16 + k] = 0xB80 + k // 2
         ew = dict(ep, stage="ratew", params=[f"{w:08x}" for w in pw])
         (BUILD / "expected_ratew.json").write_text(json.dumps(ew, indent=1) + "\n")
+        pf = list(pw); pf[7] = 1                                    # one repeat: each frame read once
+        (BUILD / "expected_ratef.json").write_text(json.dumps(dict(ew, stage="ratef", params=[f"{w:08x}" for w in pf]), indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

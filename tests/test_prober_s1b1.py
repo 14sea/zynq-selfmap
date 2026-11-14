@@ -91,16 +91,39 @@ class Run:
         return [self.rec(i) for i in range(self.n_records)]
 
 
-def schedule(addresses: list[int], passes: int = 2, every: int = 16, end_left: bool = True) -> list[tuple]:
-    """(kind, far, frames, operation, pass) of every record of a clean run over these addresses."""
-    out = [(2, REF, 1, NO_OP, 0)]
+def groups(n: int) -> list[tuple[int, int]]:
+    """(place of the first frame, frames) of each read of several frames over a walk of n frames."""
+    out = []
+    for k in range(0, n, 3):
+        if n - k >= 3:
+            out.append((k, 3))
+        elif n >= 3:
+            out.append((n - 3, 3))                           # one or two left over: the last three again
+        elif n == 2:
+            out.append((0, 2))
+    return out
+
+
+def schedule(addresses: list[int], passes: int = 2, every: int = 16, ref: int = REF) -> list[tuple]:
+    """(kind, far, frames, operation, pass) of every record of a clean run over these addresses. The reference frame
+    is read again before more than `every` frames have been delivered since its last reading, over the whole run."""
+    out = [(2, ref, 1, NO_OP, 0)]
+    since = 0
+
+    def deliver(m: int, p: int) -> None:
+        nonlocal since
+        if since + m > every:
+            out.append((1, ref, 1, NO_OP, p)); since = 0
+        since += m
     for p in range(passes):
-        for k, far in enumerate(addresses, 1):
-            out += [(0, far, 0, SUCC, p), (0, far, 1, CONTENT, p)]
-            if k % every == 0 and k < len(addresses):
-                out.append((1, REF, 1, NO_OP, p))
-    out += [(0, addresses[k], 3, TRIPLE, passes) for k in range(0, len(addresses) - 2, 3)]
-    return out + [(3, REF, 1, NO_OP, passes)]
+        for far in addresses:
+            out.append((0, far, 0, SUCC, p))
+            deliver(1, p)
+            out.append((0, far, 1, CONTENT, p))
+    for k, m in groups(len(addresses)):
+        deliver(m, passes)
+        out.append((0, addresses[k], m, TRIPLE, passes))
+    return out + [(3, ref, 1, NO_OP, passes)]
 
 
 COLUMN = list(range(0xB80, 0xBA4))                           # the model's default column: 36 frames, then 0xc00
@@ -112,8 +135,8 @@ class Normal(unittest.TestCase):
         self.assertEqual((r.rc, r.status, r.n_anomalies, r.violations, r.stop_record), (0, 1, 0, [], 0xFFFFFFFF))
         self.assertEqual(r.walk, [(36, END_LEFT, 0xC00)] * 2)
         self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()], schedule(COLUMN))
-        self.assertEqual((r.n_records, r.total, len(r.words)), (162, HDR + 162 * REC, HDR + 162 * REC))
-        self.assertEqual(r.uart, "SM4 start\r\nSM4 end status=00000001 records=000000a2 anomalies=00000000 words=%08x\r\n" % r.total)
+        self.assertEqual((r.n_records, r.total, len(r.words)), (164, HDR + 164 * REC, HDR + 164 * REC))
+        self.assertEqual(r.uart, "SM4 start\r\nSM4 end status=00000001 records=000000a4 anomalies=00000000 words=%08x\r\n" % r.total)
         for x in r.recs():
             self.assertEqual((x["code"], x["survivors"], x["guard"], x["pad"]), (0, 0, 0, [0] * 101))
             self.assertFalse(any(x["tail"]))
@@ -146,18 +169,18 @@ class Shapes(unittest.TestCase):
     """What the device does at a column end is not known. The prober has to follow whatever it is told."""
 
     def test_columns_of_other_lengths(self) -> None:
-        for n in (1, 2, 3, 4, 17, 48):
+        for n in (1, 2, 3, 4, 5, 17, 35, 48):
             with self.subTest(n=n):
                 r = Run(succ=column(n), frames=frames_for(range(0xB80, 0xB80 + n)), ref=0xB80, every=16)
                 self.assertEqual((r.status, r.walk, r.violations), (1, [(n, END_LEFT, 0xC00)] * 2, []))
-                self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()],
-                                 [(k, 0xB80 if k else f, m, o, p) for k, f, m, o, p in schedule(list(range(0xB80, 0xB80 + n)))])
+                self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()], schedule(list(range(0xB80, 0xB80 + n)), ref=0xB80))
 
     def test_a_column_end_that_names_an_address_inside_the_envelope_is_followed_there(self) -> None:
         addresses = [0xB80, 0xB81, 0xB82, 0xB83, 0xBF0, 0xBF1]
         r = Run(succ={0xB83: 0xBF0, 0xBF1: 0x1000}, frames=frames_for(addresses + [REF]))
         self.assertEqual((r.status, r.walk), (1, [(6, END_LEFT, 0x1000)] * 2))
         self.assertEqual([(x["far"], x["n"]) for x in r.recs() if x["op"] == TRIPLE], [(0xB80, 3), (0xB83, 3)])
+        self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()], schedule(addresses))
         triple = [x for x in r.recs() if x["op"] == TRIPLE][1]
         self.assertEqual(triple["frames"], [r.frames[a] for a in (0xB83, 0xBF0, 0xBF1)], "the device goes on by its own successor, and that is what is compared")
 
@@ -166,14 +189,19 @@ class Shapes(unittest.TestCase):
         self.assertEqual((r.status, r.walk, r.violations), (1, [(64, END_LIMIT, 0xBC0)] * 2, []))
         self.assertEqual(max(s[8] for s in r.streams if len(s) == 43), 0xBBF)
         r = Run(limit=5)
-        self.assertEqual((r.status, r.walk, r.n_records), (1, [(5, END_LIMIT, 0xB85)] * 2, 1 + 2 * 10 + 1 + 1))
+        self.assertEqual((r.status, r.walk), (1, [(5, END_LIMIT, 0xB85)] * 2))
+        self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()], schedule(COLUMN[:5]))
 
     def test_an_address_that_is_not_above_the_one_asked_about_stops_the_run(self) -> None:
-        for what, succ in (("names itself", {0xB85: 0xB85}), ("a step back", {0xB85: 0xB82}), ("the start again", {0xB85: 0xB80})):
+        for what, succ in (("names itself", {0xB85: 0xB85}), ("a step back", {0xB85: 0xB82}), ("the start again", {0xB85: 0xB80}),
+                           ("an address below the envelope", {0xB85: 0xB7F}), ("zero", {0xB85: 0})):
             with self.subTest(what):
                 r = Run(succ=succ)
                 self.assertEqual((r.status, r.rc, r.n_records, r.stop_record, r.violations), (0x800, 0x800, 13, 11, []))
                 self.assertEqual(r.walk[0][0], 6)
+        r = Run(succ={0xB90: 0xB7F})                         # at the seventeenth frame, where a reference read lies between its two records
+        self.assertEqual([x["kind"] for x in r.recs()[-3:]], [0, 1, 0])
+        self.assertEqual((r.status, r.stop_record, r.rec(r.stop_record)["op"], r.rec(r.stop_record)["far"]), (0x800, r.n_records - 3, SUCC, 0xB90))
         for rule in ("next", "skipdata"):                    # a register that does not move after the pad alone: stuck at the first frame
             with self.subTest(rule):
                 r = Run(rule=rule)
@@ -181,7 +209,8 @@ class Shapes(unittest.TestCase):
 
     def test_one_pass(self) -> None:
         r = Run(passes=1)
-        self.assertEqual((r.status, r.walk, r.n_records), (1, [(36, END_LEFT, 0xC00), (0, 0, 0)], 1 + 74 + 12 + 1))
+        self.assertEqual((r.status, r.walk), (1, [(36, END_LEFT, 0xC00), (0, 0, 0)]))
+        self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()], schedule(COLUMN, passes=1))
 
 
 class GatesAndParameters(unittest.TestCase):
@@ -195,7 +224,7 @@ class GatesAndParameters(unittest.TestCase):
         for name, over in (("version", {"version": 2}), ("lo above hi", {"lo": 0xC00}), ("the start below", {"start": 0xB7F}), ("the start above", {"start": 0xC00}),
                            ("the reference outside", {"ref": 0xC00}), ("two starting addresses", {"n_fars": 2}), ("no start counted", {"n_fars": 0}),
                            ("no pass", {"passes": 0}), ("three passes", {"passes": 3}), ("no limit", {"limit": 0}), ("a limit above 64", {"limit": 65}),
-                           ("never a reference read", {"every": 0}), ("an anomaly budget", {"budget": 1}), ("no poll limit", {"poll_limit": 0})):
+                           ("never a reference read", {"every": 0}), ("the reference more often than one read of three frames allows", {"every": 2}), ("an anomaly budget", {"budget": 1}), ("no poll limit", {"poll_limit": 0})):
             with self.subTest(name):
                 r = Run(**over)
                 self.assertEqual((r.status, r.n_records, r.accesses, r.dmas), (0x500, 0, [], []))
@@ -237,21 +266,98 @@ class Stops(unittest.TestCase):
                 self.assertEqual((Run(fault, poll_limit=30).status >> 8, Run(fault, poll_limit=30).n_records), (6, 1))
 
     def test_a_changed_reference_frame_stops_the_run(self) -> None:
-        r = Run("flip@34", every=16)                         # records 1..32 are the first sixteen frames; record 33 is the reference read
-        self.assertEqual((r.rec(33)["kind"], r.status, r.n_records, r.stop_record, r.rec(33)["ref_equal"]), (1, 0x300, 34, 33, 0))
+        plan = schedule(COLUMN)
+        first = next(i for i, s in enumerate(plan) if s[0] == 1)        # the first reference read during the walk
+        r = Run(f"flip@{first + 1}")
+        self.assertEqual((r.rec(first)["kind"], r.status, r.n_records, r.stop_record, r.rec(first)["ref_equal"]), (1, 0x300, first + 1, first, 0))
         r = Run("padnz@2,flip@3")                            # an anomaly, and then the reference read after it differs too
         self.assertEqual((r.status, r.n_records, r.stop_record), (0x300, 3, 2))
-        r = Run("flip@162")                                  # the final reference read
-        self.assertEqual((r.status, r.n_records, r.rec(161)["ref_equal"]), (0x300, 162, 0))
-        r = Run("farflip@162")
-        self.assertEqual((r.status, r.rec(161)["ref_equal"]), (0x300, 0))
+        last = len(plan) - 1
+        r = Run(f"flip@{last + 1}")                          # the final reference read
+        self.assertEqual((r.status, r.n_records, r.rec(last)["ref_equal"]), (0x300, last + 1, 0))
+        r = Run(f"farflip@{last + 1}")
+        self.assertEqual((r.status, r.rec(last)["ref_equal"]), (0x300, 0))
+        during = next(i for i, s in enumerate(plan) if s[0] == 1 and s[4] == 2)   # one that falls among the reads of several frames
+        r = Run(f"flip@{during + 1}")
+        self.assertEqual((r.status, r.n_records, r.stop_record), (0x300, during + 1, during))
 
-    def test_the_reference_is_read_as_often_as_asked(self) -> None:
-        for every, want in ((1, 35), (4, 8), (16, 2), (36, 0), (100, 0)):
-            with self.subTest(every=every):
-                r = Run(every=every, passes=1)
-                self.assertEqual(sum(1 for x in r.recs() if x["kind"] == 1), want)
-                self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()], schedule(COLUMN, passes=1, every=every))
+    def test_never_more_frames_than_asked_between_two_readings_of_the_reference(self) -> None:
+        """Found in review: the count used to start again with each pass, and the reads of several frames had no
+        reference reads among them at all — 79 frames went by between two of them on a walk of 64."""
+        for every, kw in ((3, {}), (4, {}), (16, {}), (36, {}), (100, {}), (16, {"succ": {}, "frames": frames_for(range(0xB80, 0xC00))}),
+                          (16, {"succ": column(35), "frames": frames_for(range(0xB80, 0xBA3))}), (5, {"passes": 1})):
+            with self.subTest(every=every, kw=sorted(kw)):
+                r = Run(every=every, **kw)
+                self.assertEqual(r.status, 1)
+                worst = run = 0
+                for x in r.recs():
+                    if x["kind"] != 0:
+                        worst, run = max(worst, run), 0
+                    else:
+                        run += x["n"]
+                self.assertLessEqual(worst, every)
+                walked = [x["far"] for x in r.recs() if x["op"] == CONTENT and x["repeat"] == 0]
+                self.assertEqual([(x["kind"], x["far"], x["n"], x["op"], x["repeat"]) for x in r.recs()],
+                                 schedule(walked, passes=kw.get("passes", 2), every=every))
+                if every >= 16 and len(walked) >= 16:
+                    self.assertGreaterEqual(worst, every - 2, "and not needlessly often either")
+
+
+class SecondPath(unittest.TestCase):
+    """Found in review: only whole groups of three were read again, so a walk of 35 left its last two frames, and
+    one of 64 its last, with a single path. Now every frame of the walk is in a read of several frames."""
+
+    def test_the_places_read_again(self) -> None:
+        self.assertEqual([groups(n) for n in (1, 2, 3, 4, 5, 6, 7)],
+                         [[], [(0, 2)], [(0, 3)], [(0, 3), (1, 3)], [(0, 3), (2, 3)], [(0, 3), (3, 3)], [(0, 3), (3, 3), (4, 3)]])
+
+    def test_every_frame_of_the_walk_is_delivered_again_in_a_read_of_several(self) -> None:
+        for n in (2, 3, 4, 5, 34, 35, 36, 37):
+            with self.subTest(n=n):
+                r = Run(succ=column(n), frames=frames_for(range(0xB80, 0xB80 + n)), ref=0xB80)
+                again = set()
+                for x in r.recs():
+                    if x["op"] == TRIPLE:
+                        self.assertEqual(x["frames"], [r.frames[x["far"] + j] for j in range(x["n"])])
+                        again |= {x["far"] + j for j in range(x["n"])}
+                self.assertEqual(again, set(range(0xB80, 0xB80 + n)))
+                self.assertEqual((r.status, r.violations), (1, []))
+        r = Run(succ={}, frames=frames_for(range(0xB80, 0xC00)))             # the limit of 64: the last frame too
+        again = set()
+        for x in r.recs():
+            if x["op"] == TRIPLE:
+                again |= {x["far"] + j for j in range(x["n"])}
+        self.assertEqual(again, set(range(0xB80, 0xBC0)))
+
+    def test_a_walk_of_one_frame_has_no_second_path_and_makes_no_such_read(self) -> None:
+        r = Run(succ=column(1), frames=frames_for([0xB80]), ref=0xB80)
+        self.assertEqual((r.status, [x for x in r.recs() if x["op"] == TRIPLE]), (1, []))
+
+    def test_a_difference_in_the_last_frame_of_an_overlapping_or_two_frame_read_is_noticed(self) -> None:
+        r = Run(succ=column(35), frames=frames_for(range(0xB80, 0xBA3)))
+        last = max(i for i, x in enumerate(r.recs()) if x["op"] == TRIPLE)
+        self.assertEqual((r.rec(last)["far"], r.rec(last)["n"]), (0xBA0, 3), "the last three of 35, overlapping the group before")
+        r = Run(f"flip3@{last + 1}", succ=column(35), frames=frames_for(range(0xB80, 0xBA3)))
+        self.assertEqual((r.status, r.rec(last)["code"]), (0x712, 0x12))
+        r = Run(succ=column(2), frames=frames_for([0xB80, 0xB81]), ref=0xB80)
+        pair = next(i for i, x in enumerate(r.recs()) if x["op"] == TRIPLE)
+        self.assertEqual(r.rec(pair)["n"], 2)
+        r = Run(f"flip@{pair + 1}", succ=column(2), frames=frames_for([0xB80, 0xB81]), ref=0xB80)
+        self.assertEqual((r.status, r.rec(pair)["code"]), (0x712, 0x12))
+
+
+class EndOfAPass(unittest.TestCase):
+    def test_an_address_below_the_envelope_is_not_a_normal_end(self) -> None:
+        """Found in review: "outside the envelope" was looked at before "not above the address asked about", so a device
+        that named 0 after the last frame ended both passes as if it had named the next column."""
+        for named in (0, 0xB7F, 0xB80, 0xBA3):
+            with self.subTest(named=named):
+                r = Run(succ={0xBA3: named})
+                self.assertEqual((r.status, r.rc, r.walk[0]), (0x800, 0x800, (36, 0, named)))
+                self.assertEqual(r.rec(r.stop_record)["far"], 0xBA3)
+        for named in (0xC00, 0xFFFFFFFF, 0xBFF + 1):
+            with self.subTest(named=named):
+                self.assertEqual(Run(succ={0xBA3: named}).walk, [(36, END_LEFT, named)] * 2)
 
 
 if __name__ == "__main__":

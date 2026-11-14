@@ -397,7 +397,7 @@ judge never see that database.
    read of the whole column (which would need a new record layout and a larger buffer).
 4. Grading against prjxray-db by a separate script after the fact.
 
-## 13. S1b.1 as built (host side; nothing on a board yet)
+## 13. S1b.1 as built (host side; nothing on a board yet — as first submitted; section 14 changes six things in it)
 
 The owner accepted section 12 as proposed: the computed starting address `0x00000b80`, the limit
 of 64 frames, three-frame reads as the second path, grading afterwards by a separate program.
@@ -493,4 +493,39 @@ check stays. The runner now works on eight scratch copies in parallel.
 **Before the board:** the owner's review; then `host/s1a_run.py --stage s1b1 --dry-run` and, on
 the owner's word only, `--go`; and only after the result is saved and judged,
 `host/grade_s1b1.py`.
+
+## 14. Changes after the first review of S1b.1 (2026-11-14)
+
+Six findings, each reproduced on the submitted code before it was changed. The first would have
+let a wrong reference frame pass.
+
+| # | finding | fix | held by |
+|---|---|---|---|
+| 1 | The judge compared only the frames of the walk with the known frames. The reference frame — baseline, every reading during the run, the final one — was compared only with itself: the same wrong bit in all of them passed, on the prober and on the host | every frame a clean record delivered is compared with the known frame at its address, where there is one: in the walk, in a read of several frames, and in every reading of the reference frame | `test_the_reference_frame_is_held_to_its_known_value_in_every_reading`, `test_a_known_frame_delivered_in_a_read_of_several_is_compared_too` |
+| 2 | "The reference every 16 frames" was counted from the start of each pass and not at all among the reads of several frames: on a walk of 64 frames, 79 frames were delivered between two readings of the reference | one count over the whole run: before any read that delivers n frames, the reference is read first if with these more than the interval would have been delivered since its last reading. The interval must be at least 3 (one read of three frames). The judge follows the same rule and reports the longest stretch | `test_never_more_frames_than_asked_between_two_readings_of_the_reference`, `test_the_reference_interval_is_followed_and_reported` |
+| 3 | Only whole groups of three were read a second way: a walk of 35 frames left its last two, and a walk stopped at 64 its last, with a single path — and passed | where one or two frames are left over, the last three are read again (overlapping the group before); a walk of two frames gets one read of both. A walk of one frame has no second path: the judge lists such frames (`frames_without_a_second_path`), also for a run that stopped early | `SecondPath` (four tests), `test_frames_without_a_second_path_are_listed` |
+| 4 | "Outside the envelope" was looked at before "not above the address asked about": a device naming `0x0` after the last frame ended both passes as if it had named the next column, and passed | not-above is looked at first, in the prober and in the judge: any address not above the one asked about stops the run (`0x800`), wherever it lies. Only an address above the envelope ends a pass | `test_an_address_below_the_envelope_is_not_a_normal_end`, and two shapes in the judge's fault table |
+| 5 | A content record relabelled as reading no frame was followed by the judge, whose comparison with the frame it did not have raised an exception instead of giving a verdict | a record that is not the one the schedule has at that place ends the following of the schedule there (reported; nothing is compared with it). 800 randomly damaged buffers and 8 truncated ones must all get a verdict | `test_no_record_however_malformed_makes_the_judge_fall_over` |
+| 6 | The grading program took a walk stopped after six frames for the column ("6 frames, the database says 36") and held the address it had last been told against the start of the next column | only a pass the device itself ended is compared for length and for what follows; a walk at its limit or stopped is compared as a beginning of the column (its addresses; not more frames than the database has), and the output carries the judge's verdict | `test_a_walk_that_did_not_finish_is_not_taken_for_the_column` |
+
+Found while fixing, by the judge's own tests: with a reference read now possible between the two
+records of a frame, the prober reported the stop record of a walk that does not advance by
+counting back from the end, and so could name the reference read instead of the record in which
+the device named the address. It now keeps that record's number.
+
+Added with finding 1 in mind: the register after a read of several frames is now held to the
+address the device names after the frame that follows them (81 register checks on a column of 36,
+instead of 70).
+
+A clean walk of a 36-frame column is now 164 records (it was 162): the reference readings fall at
+other places. The claim of a PASS in section 13 is narrowed accordingly: path independence is
+claimed for the frames that are in a read of several frames — all of them, unless the walk found
+one frame only.
+
+**The image** changed again: 10,510 bytes, sha256
+`e26e653514d27bf9c7784caec64f395f705eba4a1450e061a2fa94c86a3bb959`, crc32 `1eb080e9`
+(`build/prober/expected_s1b1.json`).
+
+**Host checks after this review:** 212 tests; 191 deliberate defects, all failed by the suite with
+all 212 tests run (`evidence/host_checks/mutants_2026-11-14_s1b1.txt`, a complete run).
 

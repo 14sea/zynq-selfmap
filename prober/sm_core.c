@@ -645,10 +645,13 @@ uint32_t sm_run(void)
  * From the starting address, for each frame: the pad alone and then the register (the device names the next
  * address), and the pad with the frame (its content). The next address read at is the one the device named;
  * none is computed here. A pass ends when the device names an address outside the envelope, or at the limit.
- * The walk is made P_REPEATS times; then three frames are read in one read from every third address found.
+ * The walk is made P_REPEATS times; then the frames found are read again several in one read: three from every
+ * third address, and where one or two are left over, the last three once more (both, if the walk found only two).
  * Records have the stage-2 layout; R_OP says which of the three reads a record is, R_REPEAT the pass.
- * Any anomaly ends the run after one reference read: a walk cannot skip a frame and go on. */
-struct walk { uint32_t rec, anomalies, stop, far_lo, far_hi, ref_far, poll_limit; };
+ * Any anomaly ends the run after one reference read: a walk cannot skip a frame and go on.
+ * Over the whole run — both passes and the reads of several frames — the reference frame is read again before
+ * more than P_HEALTH_EVERY frames have been delivered since it was last read. */
+struct walk { uint32_t rec, anomalies, stop, far_lo, far_hi, ref_far, poll_limit, since, every; };
 #define NO_REC 0xFFFFFFFFu
 
 /* the first clean record of pass 0 for this read at this address */
@@ -683,7 +686,20 @@ static uint32_t health4(struct walk *c, uint32_t kind, uint32_t pass)
     uint32_t v = ref_healthy(c->rec, code);
     r2_wr(c->rec, R_REF_EQUAL, v);
     c->rec++;
+    c->since = 0u;
     return v;
+}
+
+/* before a read that delivers n frames: the reference first, if with these there would be more than `every`
+ * frames since it was last read. Returns 0, or the status to stop with if the reference frame has changed. */
+static uint32_t due(struct walk *c, uint32_t n, uint32_t pass)
+{
+    if (c->since + n > c->every && !health4(c, KIND_HEALTH, pass)) {
+        c->stop = c->rec - 1u;
+        return S_STOP_HEALTH;
+    }
+    c->since += n;
+    return 0u;
 }
 
 /* one record of the walk and what follows from it: 0 to go on, or the status the run stops with.
@@ -700,8 +716,8 @@ static uint32_t walk_op(struct walk *c, uint32_t far, uint32_t n, uint32_t pass,
         else if (!same_data(first, me, n))
             code = C_REPEAT_DIFFERS;
     }
-    if (code == C_OK && op == OP_TRIPLE) {                          /* each of the three against the single read of that frame */
-        for (j = 0u; j < 3u && code == C_OK; j++) {
+    if (code == C_OK && op == OP_TRIPLE) {                          /* each frame against the single read of that frame */
+        for (j = 0u; j < n && code == C_OK; j++) {
             first = nth_content(me, index + j);
             if (first == NO_REC) {
                 code = C_REPEAT_DIFFERS;
@@ -734,7 +750,7 @@ static uint32_t walk_op(struct walk *c, uint32_t far, uint32_t n, uint32_t pass,
 static uint32_t run_s4(void)
 {
     struct walk c;
-    uint32_t i, v, pass, passes, limit, every, start, cur, next, count, status, k, n0;
+    uint32_t i, v, pass, passes, limit, start, cur, next, count, status, k, n, n0;
 
     tag(); put(" start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
@@ -751,12 +767,12 @@ static uint32_t run_s4(void)
     res_wr(H_SP, hal_cpu(CPU_SP));
     res_wr(H_R9, hal_cpu(CPU_R9));
 
-    c.rec = 0u; c.anomalies = 0u; c.stop = 0xFFFFFFFFu;
+    c.rec = 0u; c.anomalies = 0u; c.stop = 0xFFFFFFFFu; c.since = 0u;
     c.far_lo = par(P_FAR_LO); c.far_hi = par(P_FAR_HI); c.ref_far = par(P_REF_FAR); c.poll_limit = par(P_POLL_LIMIT);
-    passes = par(P_REPEATS); limit = par(P_WALK_LIMIT); every = par(P_HEALTH_EVERY); start = par(P_FARS);
+    passes = par(P_REPEATS); limit = par(P_WALK_LIMIT); c.every = par(P_HEALTH_EVERY); start = par(P_FARS);
     if (par(P_VERSION) != 1u || c.far_lo > c.far_hi || c.ref_far < c.far_lo || c.ref_far > c.far_hi
         || par(P_N_FARS) != 1u || start < c.far_lo || start > c.far_hi
-        || passes == 0u || passes > MAX_PASSES || limit == 0u || limit > MAX_WALK || every == 0u
+        || passes == 0u || passes > MAX_PASSES || limit == 0u || limit > MAX_WALK || c.every < MAX_READ_FRAMES
         || par(P_ANOMALY_BUDGET) != 0u || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
 
@@ -782,45 +798,60 @@ static uint32_t run_s4(void)
     for (pass = 0u; pass < passes; pass++) {
         cur = start; count = 0u;
         for (;;) {
+            k = c.rec;                                              /* the record in which the device names the next address */
             status = walk_op(&c, cur, 0u, pass, OP_SUCC, 0u);       /* what does the device call the address after cur */
             if (status != 0u)
                 return finish2(status, c.rec, c.anomalies, c.stop);
-            next = r2_rd(c.rec - 1u, REC2_FARBLK + F_VALUE);
+            next = r2_rd(k, REC2_FARBLK + F_VALUE);
+            status = due(&c, 1u, pass);
+            if (status != 0u)
+                return finish2(status, c.rec, c.anomalies, c.stop);
             status = walk_op(&c, cur, 1u, pass, OP_CONTENT, 0u);    /* the frame at cur */
             if (status != 0u)
                 return finish2(status, c.rec, c.anomalies, c.stop);
             count++;
             res_wr(H_WALK + 3u * pass, count);
             res_wr(H_WALK + 3u * pass + 2u, next);
-            if (next < c.far_lo || next > c.far_hi) {               /* the device has named something beyond the envelope: not read */
+            if (next <= cur)                                        /* not above the address asked about — wherever it lies, also
+                                                                       below the envelope: following it would not end */
+                return finish2(S_STOP_STUCK, c.rec, c.anomalies, k);    /* a reference read may lie between it and the content read */
+            if (next > c.far_hi) {                                  /* the device has named something beyond the envelope: not read.
+                                                                       (above cur, so it cannot be below the envelope) */
                 res_wr(H_WALK + 3u * pass + 1u, END_LEFT);
                 break;
             }
-            if (next <= cur)                                        /* not advancing: following it would not end */
-                return finish2(S_STOP_STUCK, c.rec, c.anomalies, c.rec - 2u);
             if (count >= limit) {
                 res_wr(H_WALK + 3u * pass + 1u, END_LIMIT);
                 break;
             }
-            for (v = count; v >= every; v -= every)                 /* every `every` frames; no division in this image */
-                ;
-            if (v == 0u && !health4(&c, KIND_HEALTH, pass))
-                return finish2(S_STOP_HEALTH, c.rec, c.anomalies, c.rec - 1u);
             cur = next;
         }
         if (pass == 0u)
             n0 = count;
     }
 
-    /* three frames in one read from every third address of pass 0, where all three were walked. The addresses of a
-     * pass rise strictly and end inside the envelope, so the third frame from any of these is inside as well; the
-     * guard checks it again for each stream. */
-    for (k = 0u; k + 2u < n0; k += 3u) {
-        i = nth_content(c.rec, k);
-        if (i == NO_REC)
+    /* every frame of pass 0 once more, several in one read: three from every third address; where one or two are
+     * left over, the last three again; both, if there are only two. A single frame has no such second path.
+     * The addresses of a pass rise strictly and end inside the envelope, so the last frame of any of these reads
+     * is inside as well; the guard checks it again for each stream. */
+    for (k = 0u; k < n0; k += 3u) {
+        n = 3u; i = k;
+        if (n0 - k < 3u) {
+            if (n0 >= 3u)
+                i = n0 - 3u;
+            else if (n0 == 2u)
+                n = 2u;
+            else
+                break;
+        }
+        v = nth_content(c.rec, i);
+        if (v == NO_REC)
             break;
-        cur = r2_rd(i, R_FAR);
-        status = walk_op(&c, cur, 3u, passes, OP_TRIPLE, k);
+        cur = r2_rd(v, R_FAR);
+        status = due(&c, n, passes);
+        if (status != 0u)
+            return finish2(status, c.rec, c.anomalies, c.stop);
+        status = walk_op(&c, cur, n, passes, OP_TRIPLE, i);
         if (status != 0u)
             return finish2(status, c.rec, c.anomalies, c.stop);
     }

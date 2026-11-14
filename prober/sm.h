@@ -59,7 +59,7 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define MAX_FARS           16u
 /* stage 4 (the walk): P_FARS[0] is the starting address, P_REPEATS the number of passes */
 #define P_WALK_LIMIT       12u           /* frames per pass, at most */
-#define P_HEALTH_EVERY     13u           /* a reference read after every so many frames */
+#define P_HEALTH_EVERY     13u           /* never more than this many frames delivered between two reference reads */
 #define MAX_WALK           64u
 #define MAX_PASSES         2u
 #define MAX_REPEATS        8u
@@ -81,7 +81,7 @@ enum { H_MAGIC, H_VERSION, H_STATUS, H_N_RECORDS, H_N_ANOMALIES, H_TOTAL_WORDS, 
        H_INT_STS1, H_STATUS1, H_STOP_RECORD, H_WALK, H_PARAMS = 32 };
 /* stage 4: from H_WALK, three words per pass: frames walked, how the pass ended, the last address the device named */
 enum { END_NONE, END_LEFT, END_LIMIT };  /* not ended; the device named an address outside the envelope; the limit */
-enum { OP_SUCC, OP_CONTENT, OP_TRIPLE }; /* stage 4, in R_OP: the pad alone; the pad and the frame; three frames in one read */
+enum { OP_SUCC, OP_CONTENT, OP_TRIPLE }; /* stage 4, in R_OP: the pad alone; the pad and the frame; several frames (three, or two) in one read */
 enum { R_FAR, R_KIND, R_CODE, R_STS_CMD, R_POLLS_CMD, R_STS_READ, R_POLLS_READ, R_STS_CLEAN, R_POLLS_CLEAN,
        R_SURVIVORS, R_REF_EQUAL, R_STATUS_AFTER, R_REPEAT, R_GUARD, R_STREAM = 16 };
 enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };

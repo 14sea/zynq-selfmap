@@ -31,8 +31,18 @@ def address(block_type: int, half: str, row: int, column: int, minor: int) -> in
     return block_type << 23 | (1 if half == "bottom" else 0) << 22 | row << 17 | column << 7 | minor
 
 
+LEFT, LIMIT = "the device named an address outside the envelope", "the limit of frames was reached"
+
+
 def grade(verdict: dict, part: dict) -> dict:
-    out: dict = {"agrees": [], "differs": [], "not_compared": []}
+    """What can be compared depends on how far the walk got. Only a pass that the device itself ended — by naming an
+    address outside the envelope — says how long the column is and what follows it. A walk that stopped at its limit,
+    or was stopped by an anomaly, has walked a beginning of the column: its addresses are compared, its length is
+    only held against the database as "not more than", and the last address it was told is not an end of anything."""
+    out: dict = {"judge_verdict": verdict.get("verdict"), "agrees": [], "differs": [], "not_compared": []}
+    if verdict.get("verdict") != "PASS":
+        out["not_compared"].append(f"the judge's verdict is {verdict.get('verdict')}: what follows compares what was walked, as far as it goes, "
+                                   "and is not a statement about the column")
     walk = [int(s["far"], 16) for s in verdict.get("walk", [])]
     if not walk:
         out["not_compared"].append("the verdict has no walk"); return out
@@ -50,19 +60,22 @@ def grade(verdict: dict, part: dict) -> dict:
         out["not_compared"].append(f"the database has no entry for this column ({e})"); return out
     out["database_frame_count"] = frames
     ended = verdict["passes"][0]["ended"] if verdict.get("passes") else ""
-    if "limit" in ended:
+    out["walk_ended"] = ended
+    if ended != LEFT:                                # the limit, or a stop: a beginning of the column, not the column
+        why = "stopped at its limit" if ended == LIMIT else "did not finish"
         (out["agrees"] if len(walk) <= frames else out["differs"]).append(
-            f"the walk stopped at its limit after {len(walk)} frames; the database gives the column {frames}")
+            f"the walk {why} after {len(walk)} frames; the database gives the column {frames}")
+        out["not_compared"].append(f"the walk {why}: neither the length of the column nor what follows it was compared")
+        return out
+    (out["agrees"] if len(walk) == frames else out["differs"]).append(f"frames in the column: the walk found {len(walk)}, the database says {frames}")
+    named = int(verdict["passes"][0]["last_address_named"], 16)
+    if str(first["column"] + 1) in columns:
+        want = address(first["block_type"], first["half"], first["row"], first["column"] + 1, 0)
+        (out["agrees"] if named == want else out["differs"]).append(
+            f"the address named after the last frame is {named:#010x}; minor 0 of the next column in the database is {want:#010x}")
     else:
-        (out["agrees"] if len(walk) == frames else out["differs"]).append(f"frames in the column: the walk found {len(walk)}, the database says {frames}")
-        named = int(verdict["passes"][0]["last_address_named"], 16)
-        if str(first["column"] + 1) in columns:
-            want = address(first["block_type"], first["half"], first["row"], first["column"] + 1, 0)
-            (out["agrees"] if named == want else out["differs"]).append(
-                f"the address named after the last frame is {named:#010x}; minor 0 of the next column in the database is {want:#010x}")
-        else:
-            out["not_compared"].append(f"the address named after the last frame is {named:#010x}; this is the last column of its row in the database, "
-                                       "which does not say what follows a row")
+        out["not_compared"].append(f"the address named after the last frame is {named:#010x}; this is the last column of its row in the database, "
+                                   "which does not say what follows a row")
     return out
 
 

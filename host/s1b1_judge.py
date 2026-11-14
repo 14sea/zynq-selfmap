@@ -9,10 +9,14 @@ parameters must be the planned ones; the gate readings are judged.
 What this stage claims, and so what is required for PASS:
   * the run completed with no anomaly, each pass ending for a reason the prober may end it for;
   * every pass named the same addresses and delivered the same frames;
-  * each three-frame read delivered what the single reads of those three frames delivered;
-  * the register after the read of a frame is the address the device names after the next frame, wherever
-    both were measured (the pad counts, as S1b.0 and S1b.0b found);
-  * the frames with a known answer equal it, and the walk passed them.
+  * each read of several frames delivered what the single reads of those frames delivered. Every frame of the
+    walk is in such a read, unless the walk found one frame only; frames without this second path are listed;
+  * the register after the read of a frame is the address the device names after the next frame, and after a
+    read of several frames the address it names after the frame that follows them, wherever both were measured
+    (the pad counts, as S1b.0 and S1b.0b found);
+  * every frame with a known answer equals it wherever it was delivered — in the walk, in a read of several
+    frames, and in every read of the reference frame — and the walk passed the known frames;
+  * the reference frame was read again before more frames than asked had been delivered since its last reading.
 Reported, not required: how many frames were walked, and which address ended the walk. The judge knows no
 frame count and no column layout; a comparison with an outside description is another program's business.
 """
@@ -35,8 +39,7 @@ STAGE, H_WALK = 4, 19
 MAX_WALK, MAX_PASSES = 64, 2
 MAX_RECORDS = 1 + MAX_PASSES * (2 * MAX_WALK + MAX_WALK) + MAX_WALK + 4      # generous: a health read after every frame
 SUCC, CONTENT, TRIPLE = 0, 1, 2
-OP_NAME = {SUCC: "successor read", CONTENT: "content read", TRIPLE: "three-frame read", NO_OP: "reference read"}
-FRAMES_OF = {SUCC: 0, CONTENT: 1, TRIPLE: 3}
+OP_NAME = {SUCC: "successor read", CONTENT: "content read", TRIPLE: "read of several frames", NO_OP: "reference read"}
 END = {0: "not ended", 1: "the device named an address outside the envelope", 2: "the limit of frames was reached"}
 STOPS = {0x300: "the reference frame changed", 0x800: "the device named an address that is not above the one it was asked about"}
 
@@ -83,7 +86,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     if status == 0x500:
         bad("the run stopped: bad parameters"); out["verdict"] = "FAIL"; return out
     if (par[0], par[1], par[2]) != (0x31504D53, 1, STAGE) or lo > hi or not lo <= ref <= hi or n_fars != 1 or not lo <= start <= hi \
-            or not 1 <= passes <= MAX_PASSES or not 1 <= limit <= MAX_WALK or every == 0 or budget != 0 or poll_limit == 0 \
+            or not 1 <= passes <= MAX_PASSES or not 1 <= limit <= MAX_WALK or every < 3 or budget != 0 or poll_limit == 0 \
             or any(par[k] for k in (10, 11, 14, 15)) or any(par[17:]):
         return invalid("the echoed parameters are not a valid stage-4 parameter block")
 
@@ -113,7 +116,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         far, kind, code, m, op = r[0], r[1], r[2], r[14], r[15]
         rec = {"i": i, "far": far, "kind": kind, "code": code, "n": m, "op": op, "repeat": r[12], "ref_equal": r[10], "far_value": fb[4]}
         recs.append(rec)
-        if m not in (0, 1, 3):
+        if m not in (0, 1, 2, 3):
             bad(f"record {i}: {m} frames per read"); m = 1
         nwords = FRAME * (m + 1)
         data, tail = r[DATA:DATA + nwords], r[DATA + nwords:]
@@ -177,8 +180,11 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
             return None
         rec = recs[i]; state["i"] = i + 1
         if (rec["kind"], rec["far"], rec["n"], rec["repeat"], rec["op"]) != (kind, far, m, repeat, op):
-            bad(f"record {i}: expected the {KIND[kind]} {OP_NAME[op]} of {far:#010x} (pass {repeat}), found a {KIND.get(rec['kind'], rec['kind'])} "
+            # not the record the schedule has here: nothing after it can be followed, and nothing may be compared
+            # with a record of another shape. The schedule ends; the caller sees the same as a missing record.
+            bad(f"record {i}: expected the {KIND[kind]} {OP_NAME[op]} of {far:#010x} x{m} (pass {repeat}), found a {KIND.get(rec['kind'], rec['kind'])} "
                 f"{OP_NAME.get(rec['op'], hex(rec['op']))} of {rec['far']:#010x} x{rec['n']} (pass {rec['repeat']})")
+            return None
         return rec
 
     def settle(rec: dict, derived: int) -> int:
@@ -190,11 +196,24 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     def healthy(rec: dict) -> bool:
         return rec["code"] == 0 and rec["frames"][:1] == recs[0]["frames"][:1] and rec["far_value"] == recs[0]["far_value"]
 
+    def against_known(rec: dict, addresses: list[int]) -> None:
+        """Every frame a clean record delivered, against the known frame at its address, where there is one."""
+        if rec["code"] != 0:
+            return
+        for frame, far in zip(rec["frames"], addresses):
+            if far in frames_known and frame != frames_known[far]:
+                diff = [k for k in range(FRAME) if frame[k] != frames_known[far][k]]
+                bad(f"record {rec['i']}: the frame at {far:#010x} read cleanly but differs from the known frame in {len(diff)} word(s), first at {diff[0]}")
+
+    since = {"frames": 0, "most": 0}                 # frames delivered since the reference frame was last read
+
     def reference(kind: int, repeat: int) -> bool | None:
         rec = take(kind, ref, 1, repeat, NO_OP)
         if rec is None:
             return None
+        since["frames"] = 0
         settle(rec, rec["own"])
+        against_known(rec, [ref])
         if rec["ref_equal"] != (1 if healthy(rec) else 0):
             bad(f"record {rec['i']}: the reference flag is {rec['ref_equal']:#x}, the data say {int(healthy(rec))}")
         return healthy(rec)
@@ -214,12 +233,27 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
                 return rec
         return None
 
+    def due(m: int, repeat: int) -> tuple[int, int, int] | None:
+        """Before a read that delivers m frames: the reference read the prober must make first, if any.
+        Returns the status the run stops with, or None to go on."""
+        if since["frames"] + m > every:
+            ok = reference(1, repeat)
+            if ok is None:
+                return (-1, count_anomalies, 0)
+            if not ok:
+                return (0x300, count_anomalies, state["i"] - 1)
+        since["frames"] += m
+        since["most"] = max(since["most"], since["frames"])
+        return None
+
     implied: tuple[int, int, int] | None = None
     base = take(2, ref, 1, 0, NO_OP)
     if base is None:
         implied = (-1, 0, 0)
     elif settle(base, base["own"]) != 0:
         implied = (0x600 | base["code"], 0, 0)
+    else:
+        against_known(base, [ref])
     for p in range(passes if not implied else 0):
         cur, count, steps = start, 0, []
         walked.append(steps)
@@ -227,6 +261,10 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         while not implied:
             pair = []
             for op, m in ((SUCC, 0), (CONTENT, 1)):
+                if op == CONTENT:
+                    implied = due(1, p)
+                    if implied:
+                        break
                 rec = take(0, cur, m, p, op)
                 if rec is None:
                     implied = (-1, count_anomalies, 0); break
@@ -245,34 +283,43 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
                 break
             nxt = pair[0]["far_value"]
             steps.append({"far": cur, "next": nxt, "succ": pair[0], "content": pair[1]})
+            against_known(pair[1], [cur])
             count += 1
-            if nxt < lo or nxt > hi:
-                ended = 1; break
-            if nxt <= cur:
+            if nxt <= cur:                                      # not above the address asked about, wherever it lies
                 implied = (0x800, count_anomalies, pair[0]["i"]); break
+            if nxt > hi:
+                ended = 1; break
             if count >= limit:
                 ended = 2; break
-            if count % every == 0:
-                ok = reference(1, p)
-                if ok is None:
-                    implied = (-1, count_anomalies, 0); break
-                if not ok:
-                    implied = (0x300, count_anomalies, state["i"] - 1); break
             cur = nxt
         ends.append((count, ended, steps[-1]["next"] if steps else 0))
+    covered: set[int] = set()                        # places in the list of pass 0 that a clean read of several frames delivered
     if not implied:
         first_pass = walked[0] if walked else []
-        for k in range(0, len(first_pass) - 2, 3):
-            far = first_pass[k]["far"]
-            rec = take(0, far, 3, passes, TRIPLE)
+        n0 = len(first_pass)
+        for k in range(0, n0, 3):
+            m, at = 3, k
+            if n0 - k < 3:                           # one or two left over: the last three again; both, if there are only two
+                if n0 >= 3:
+                    at = n0 - 3
+                elif n0 == 2:
+                    m = 2
+                else:
+                    break
+            implied = due(m, passes)
+            if implied:
+                break
+            rec = take(0, first_pass[at]["far"], m, passes, TRIPLE)
             if rec is None:
                 implied = (-1, count_anomalies, 0); break
             derived = rec["own"]
-            if derived == 0 and any(rec["frames"][j] != first_pass[k + j]["content"]["frames"][0] for j in range(3)):
+            if derived == 0 and any(rec["frames"][j] != first_pass[at + j]["content"]["frames"][0] for j in range(m)):
                 derived = 0x12
             if settle(rec, derived) != 0:
                 count_anomalies += 1
                 implied = after_anomaly(rec, passes); break
+            against_known(rec, [first_pass[at + j]["far"] for j in range(m)])
+            covered.update(range(at, at + m))
     if not implied:
         ok = reference(3, passes)
         implied = (-1, count_anomalies, 0) if ok is None else (1, count_anomalies, 0xFFFFFFFF) if ok else (0x300, count_anomalies, state["i"] - 1)
@@ -315,19 +362,28 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
                 if s["content"]["far_value"] != named[s["next"]]:
                     bad(f"after the frame at {s['far']:#010x} the register held {s['content']['far_value']:#010x}, but the device names "
                         f"{named[s['next']]:#010x} after {s['next']:#010x}")
+    # ... and after a read of several frames, the address the device names after the frame that follows them
+    for rec in recs:
+        if rec["kind"] == 0 and rec["op"] == TRIPLE and rec["code"] == 0 and rec["far"] in named:
+            at = [s["far"] for s in first_pass].index(rec["far"])
+            if at + rec["n"] < len(first_pass):
+                crossed += 1
+                want = first_pass[at + rec["n"]]["next"]
+                if rec["far_value"] != want:
+                    bad(f"after the {rec['n']} frames from {rec['far']:#010x} the register held {rec['far_value']:#010x}, but the device names "
+                        f"{want:#010x} after {first_pass[at + rec['n']]['far']:#010x}")
     out["register_cross_checks"] = crossed
-    # the frames with a known answer
+    # the frames with a known answer were compared wherever they were delivered (against_known); here: were they reached
     reached = {s["far"] for s in first_pass}
-    for steps in walked:
-        for s in steps:
-            if s["far"] in frames_known and s["content"]["frames"][0] != frames_known[s["far"]]:
-                diff = [k for k in range(FRAME) if s["content"]["frames"][0][k] != frames_known[s["far"]][k]]
-                bad(f"record {s['content']['i']}: the frame at {s['far']:#010x} read cleanly but differs from the known frame in {len(diff)} word(s), first at {diff[0]}")
     missing = sorted(f for f in frames_known if lo <= f <= hi and f not in reached)
     out["known_frames_not_reached"] = [f"{f:#010x}" for f in missing]
     if status == 1 and missing and ends and ends[0][1] == 1:
         bad("the walk left the envelope without passing the known frame(s) " + ", ".join(f"{f:#010x}" for f in missing))
     out["reads_at_addresses_without_a_known_answer"] = sum(1 for s in first_pass if s["far"] not in frames_known)
+    # the second path: which frames of the walk no clean read of several frames delivered. With one frame walked there
+    # is no such read to make; otherwise a completed run covers every frame, and anything listed here is a stopped run's
+    out["frames_without_a_second_path"] = [f"{s['far']:#010x}" for k, s in enumerate(first_pass) if k not in covered]
+    out["most_frames_between_reference_reads"] = since["most"]
 
     if status != 1:
         bad(f"the run did not complete: status {status:#x}" + (f" ({STOPS[status]})" if status in STOPS else ""))

@@ -51,9 +51,28 @@ class Grade(unittest.TestCase):
         v = verdict(limit=5)
         g = grade_s1b1.grade(v, database({23: 36, 24: 36}))
         self.assertEqual((g["differs"], any("stopped at its limit after 5 frames" in a for a in g["agrees"])), ([], True))
+        self.assertEqual(g["not_compared"], ["the walk stopped at its limit: neither the length of the column nor what follows it was compared"])
         self.assertTrue(grade_s1b1.grade(v, database({23: 4, 24: 36}))["differs"], "more frames walked than the database has")
         v = verdict(succ={0xB83: 0xBF0, 0xBF1: 0x1000}, frames=frames_for([0xB80, 0xB81, 0xB82, 0xB83, 0xBF0, 0xBF1, 0xB99]))
         self.assertTrue(any("not minors 0.. of one column" in d for d in grade_s1b1.grade(v, database({23: 36, 24: 36}))["differs"]))
+
+    def test_a_walk_that_did_not_finish_is_not_taken_for_the_column(self) -> None:
+        """Found in review: a walk stopped by an anomaly after six frames was reported as "the column has 6 frames, the
+        database says 36", and the address it had just been told was held against the start of the next column."""
+        for kw in ({"fault": "padnz@14"}, {"succ": {0xB85: 0xB85}}, {"fault": "err@70", "poll_limit": 30}):
+            with self.subTest(str(kw)):
+                v = verdict(**kw)
+                self.assertEqual((v["verdict"], v["passes"][0]["ended"]), ("FAIL", "not ended"))
+                g = grade_s1b1.grade(v, database({23: 36, 24: 36}))
+                self.assertEqual(g["differs"], [])
+                self.assertEqual(g["judge_verdict"], "FAIL")
+                self.assertTrue(any("did not finish after" in a for a in g["agrees"]))
+                self.assertFalse(any("frames in the column" in x or "next column" in x for x in g["agrees"] + g["differs"]))
+                self.assertEqual(len(g["not_compared"]), 2, "the verdict was not PASS; and the walk did not finish")
+        v = verdict(fault="padnz@14")
+        self.assertTrue(grade_s1b1.grade(v, database({23: 4, 24: 36}))["differs"], "already more frames than the database has is still a difference")
+        g = grade_s1b1.grade(verdict(), database({23: 36, 24: 36}))
+        self.assertEqual((g["judge_verdict"], g["walk_ended"], g["not_compared"]), ("PASS", "the device named an address outside the envelope", []))
 
     def test_the_prober_and_the_judges_never_see_the_database(self) -> None:
         """The closed-book rule, as far as a test can hold it: nothing but this one program names the database, and

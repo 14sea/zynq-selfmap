@@ -321,3 +321,28 @@ Only the judge changed. The board image is the one of section 9 (`daa32b08…`, 
 
 Host checks after this review: 159 tests; 124 deliberate defects, all failed by the suite with
 all 159 tests run (`evidence/host_checks/mutants_2026-11-14_s1b0b.txt`).
+
+## 11. S1b.0b on the board (2026-11-14): PASS — the pad alone leaves the register on F + 1
+
+Released by the owner after the review of section 10. One run on `17A6`, first attempt, no
+deviation from the dry run; record in `evidence/s1b0b_17A6_2026-11-14/RESULT.md`. The board was
+restarted with U-Boot's `reset` first, so that the run began as the earlier ones had.
+
+| read | words | register afterwards |
+|---|---|---|
+| none | 0 | F (at `0xb98`, `0xb99`) |
+| the pad alone | 101 | F + 1 (at `0xb98`, `0xb99`, `0xb9a`; at `0xb98` the same after a frame read and after an operation that read nothing) |
+| the pad and one frame | 202 | F + 2 (as in S1b.0) |
+| the pad and two frames | 303 | F + 3 |
+
+26 records, no anomaly, every frame equal to its known frame, every pad all zero; one crc32 on
+the board, on the card and on the host. This is the first row of the outcome table in section 9:
+on these frames the device names the address after F without delivering F.
+
+What it does not show is unchanged from section 8, item 2: all three addresses are in the middle
+of one column, and what the register does at the end of a column has not been seen. `0xb9b` is a
+value the register held, not a frame that was read.
+
+S1b.1 can now be planned around the successor read. Its plan is the next document, for the
+owner's review before anything is built.
+

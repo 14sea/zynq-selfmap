@@ -346,3 +346,54 @@ value the register held, not a frame that was read.
 S1b.1 can now be planned around the successor read. Its plan is the next document, for the
 owner's review before anything is built.
 
+## 12. S1b.1 — proposal for the walk of one column (2026-11-14; NOT decided, nothing built)
+
+For the owner to accept, change or reject before any code is written. Envelope and aim are those
+of section 3: the column of the known frames, `0x00000b80..0x00000bff`, starting at minor 0;
+how many frames the column has, by the device's own account; every frame read more than once.
+
+**The walk (a new stage of the same prober).** From `cur = 0x00000b80`:
+
+1. *successor read:* the pad alone at `cur`, then the register → `next`;
+2. *content read:* the pad and one frame at `cur` → the frame; then the register → kept as a
+   cross-check (it should equal the successor of `next`, once that is known);
+3. `cur = next`, and again.
+
+The prober never computes an address: every address it reads at, after the first, is one the
+device named. It ends the walk, and says which, when: `next` lies outside the envelope (the
+expected end — the device has named something beyond the column; nothing is read there);
+`next` is not above `cur` (the register is not advancing: stop); or a limit of 64 frames is
+reached (the result area holds no more with the present records; a second run would continue
+from the last address).
+
+**Read more than once, by different paths.** The whole walk is made twice; the two must name the
+same addresses and deliver the same frames. Then, along the list of addresses the walk found,
+three frames are read in one read from every third address — the existing three-frame read, so
+no larger buffer or record — and each must equal what the single reads delivered. The three
+known frames must equal their known values; the reference frame is read first, last, after any
+anomaly and every 16 operations.
+
+**What is new, and so what could go wrong on the board.** Reads at addresses with no known
+answer (minors 0..0x17 and from 0x1b on); the successor read and the content read at the last
+frame of the column; and whatever the device names there. If the device names an address inside
+the envelope that is not a frame, the walk will read at it: what a read at such an address
+returns is not known. All of it is read-only, and the stop rules are those of the earlier
+stages.
+
+**What is claimed, and how it is graded.** As in section 3: which addresses the device named and
+that reading them is repeatable and path-independent — not that the content of frames without
+a known answer is right. After the result is saved and judged, and only then, a separate script
+compares the list of addresses with prjxray-db's frame list for this part (the count for this
+column, and whether the address named at the end is the next column's first). The prober and the
+judge never see that database.
+
+**Open points for the owner.**
+
+1. The starting address `0x00000b80` is not named by the device: it is "minor 0 of the column
+   of `0xb98`", taken from the layout of the address word in UG470. Accept that one computed
+   address, or start at `0xb98` and learn only the upper part of the column?
+2. The limit of 64 frames per run, and the envelope `0xb80..0xbff`.
+3. Three-frame reads along the walked list as the path-independence check, instead of one long
+   read of the whole column (which would need a new record layout and a larger buffer).
+4. Grading against prjxray-db by a separate script after the fact.
+

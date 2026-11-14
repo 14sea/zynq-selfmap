@@ -1,0 +1,836 @@
+{
+ "problems": [
+  "record 2: no known answer for FAR 0x00000b80",
+  "record 4: no known answer for FAR 0x00000b81",
+  "record 6: no known answer for FAR 0x00000b82",
+  "record 8: no known answer for FAR 0x00000b83",
+  "record 10: no known answer for FAR 0x00000b84",
+  "record 12: no known answer for FAR 0x00000b85",
+  "record 14: no known answer for FAR 0x00000b86",
+  "record 16: no known answer for FAR 0x00000b87"
+ ],
+ "records": [
+  {
+   "index": 0,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "baseline",
+   "op": null,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50023004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ]
+  },
+  {
+   "index": 1,
+   "far": "0x00000b80",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 0,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b81",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 2,
+   "far": "0x00000b80",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 1,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "547b0291deb4881f5ec002da80fb82a51a0cc4ee6a159cfd7c7d12189b204619"
+   ]
+  },
+  {
+   "index": 3,
+   "far": "0x00000b81",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 2,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 4,
+   "far": "0x00000b81",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 3,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b83",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "8ce2531267622d133dbcb681b79a5568809fe3662c5f74cea452a2a6ec7ee52d"
+   ]
+  },
+  {
+   "index": 5,
+   "far": "0x00000b82",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 4,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b83",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 6,
+   "far": "0x00000b82",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 5,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b84",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "20773f4093442740ab91430f894aaf6e7a1fadf954f4277f8769910866916236"
+   ]
+  },
+  {
+   "index": 7,
+   "far": "0x00000b83",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 6,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b84",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    3,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 8,
+   "far": "0x00000b83",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 7,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b85",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e84cf7414e15f0c4d0ec46d21d11d0a92482b1f8c7dc6adc386c08f08f95048e"
+   ]
+  },
+  {
+   "index": 9,
+   "far": "0x00000b84",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 8,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b85",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 10,
+   "far": "0x00000b84",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 9,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b86",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "dec503d3c1046439ac6c0e6eca3c9a58049175407d52374c55856e06f7a794b1"
+   ]
+  },
+  {
+   "index": 11,
+   "far": "0x00000b85",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 10,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b86",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    3,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 12,
+   "far": "0x00000b85",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 11,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b87",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "61fd13fb0ec04a6c47b13d0e8ef710057c00ae4ac8e12104f4c1911ad75e79e5"
+   ]
+  },
+  {
+   "index": 13,
+   "far": "0x00000b86",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 12,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b87",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 14,
+   "far": "0x00000b86",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 13,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b88",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "a34a7333760c3ec44557a4316066bddbd613a9c8a405dba9fbf6e5497f27c33d"
+   ]
+  },
+  {
+   "index": 15,
+   "far": "0x00000b87",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 14,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b88",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": []
+  },
+  {
+   "index": 16,
+   "far": "0x00000b87",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 15,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b89",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "620e4b7f8451e722fe83722e3cacdba50cbafa81e529228d3d73064c9afea0c0"
+   ]
+  },
+  {
+   "index": 17,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "final",
+   "op": null,
+   "code": "0x0",
+   "repeat": 1,
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ]
+  }
+ ],
+ "header": {
+  "status": "0x1",
+  "records": 18,
+  "anomalies": 0,
+  "total_words": 8704,
+  "ctrl": "4e00e07f",
+  "mctrl": "30800100",
+  "int_sts_initial": "50021004",
+  "status_initial": "40000f30",
+  "sctlr": "08c51878",
+  "cpsr": "800001d3",
+  "sp": "1eacab18",
+  "r9": "1ead0ec0",
+  "int_sts_final": "50033004",
+  "status_final": "50000f30",
+  "stop_record": "0xffffffff"
+ },
+ "expected_console": [
+  "SM3 start",
+  "SM3 end status=00000001 records=00000012 anomalies=00000000 words=00002200"
+ ],
+ "expected_return_code": "0x0",
+ "params": {
+  "far_lo": "0x00000b80",
+  "far_hi": "0x00000b9a",
+  "ref_far": "0x00000b99",
+  "operations": 16,
+  "repeats": 1,
+  "anomaly_budget": 24,
+  "poll_limit": 2097152,
+  "ops": [
+   [
+    "0x00000b80",
+    0
+   ],
+   [
+    "0x00000b80",
+    1
+   ],
+   [
+    "0x00000b81",
+    0
+   ],
+   [
+    "0x00000b81",
+    1
+   ],
+   [
+    "0x00000b82",
+    0
+   ],
+   [
+    "0x00000b82",
+    1
+   ],
+   [
+    "0x00000b83",
+    0
+   ],
+   [
+    "0x00000b83",
+    1
+   ],
+   [
+    "0x00000b84",
+    0
+   ],
+   [
+    "0x00000b84",
+    1
+   ],
+   [
+    "0x00000b85",
+    0
+   ],
+   [
+    "0x00000b85",
+    1
+   ],
+   [
+    "0x00000b86",
+    0
+   ],
+   [
+    "0x00000b86",
+    1
+   ],
+   [
+    "0x00000b87",
+    0
+   ],
+   [
+    "0x00000b87",
+    1
+   ]
+  ]
+ },
+ "far_after": [
+  {
+   "far": "0x00000b80",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b81",
+   "step": 1,
+   "records": [
+    1
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b81",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b82",
+   "step": 1,
+   "records": [
+    3
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b82",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b83",
+   "step": 1,
+   "records": [
+    5
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b83",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b84",
+   "step": 1,
+   "records": [
+    7
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b84",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b85",
+   "step": 1,
+   "records": [
+    9
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b85",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b86",
+   "step": 1,
+   "records": [
+    11
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b86",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b87",
+   "step": 1,
+   "records": [
+    13
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b87",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b88",
+   "step": 1,
+   "records": [
+    15
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b80",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b82",
+   "step": 2,
+   "records": [
+    2
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b81",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b83",
+   "step": 2,
+   "records": [
+    4
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b82",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b84",
+   "step": 2,
+   "records": [
+    6
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b83",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b85",
+   "step": 2,
+   "records": [
+    8
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b84",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b86",
+   "step": 2,
+   "records": [
+    10
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b85",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b87",
+   "step": 2,
+   "records": [
+    12
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b86",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b88",
+   "step": 2,
+   "records": [
+    14
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b87",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b89",
+   "step": 2,
+   "records": [
+    16
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b99",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b9b",
+   "step": 2,
+   "records": [
+    0,
+    17
+   ],
+   "records_with_another_anomaly": {}
+  }
+ ],
+ "steps_by_words": {
+  "101": [
+   1
+  ],
+  "202": [
+   2
+  ]
+ },
+ "reads_without_a_clean_far_value": [],
+ "one_step_per_frame_of_words": true,
+ "verdict": "FAIL"
+}

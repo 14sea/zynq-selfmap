@@ -573,3 +573,35 @@ run — it will not get through.
 4. *The host's pull.* A bounded number of retries of the `md.l`, each recorded, the board's
    crc32 deciding — or the card file as the primary copy. A change to the run script.
 
+## 16. Counting the overflows (2026-11-14): it is the walk, not the reads
+
+On the owner's word, points 1 and 4 of section 15. Record:
+`evidence/fifo_rate_17A6_2026-11-14/RESULT.md`.
+
+- Point 4, the host's pull: the run script now pulls the result at most three times, records
+  every attempt, keeps every damaged copy, and judges only a copy with the board's crc32
+  (commit `1bdae54`; 196 mutants killed with the 215 tests of that commit). In use the same
+  evening it was needed in 5 runs and was not enough in 2, whose results were fetched from the
+  card in pieces. A pull in pieces, each checked against the board's crc32 of that piece, is the
+  better design and is not yet in the run script.
+- Point 1, the count: through stages 2 and 3, 16 runs and 624 frame reads on the same image with
+  no overflow — reads of one frame, of three, the walk's own pair of reads, at the known frames
+  and at the walk's first eight addresses, repeated and for the first time after a load. Through
+  stage 4, the walk, 5 runs of 5 overflowed, after 8 to 28 frame reads.
+
+So the hazard is not a rate per read that a longer run simply meets more often, as section 15
+supposed. It belongs to something the walk's path does around a read, and nothing in the records
+shows what: the routine that makes a read is the same machine code for every stage, the polls
+have the same distribution, the addresses and the pairs of reads were reproduced without it.
+
+**Open, for the owner — nothing below is decided or built:**
+
+1. *Find what in the walk's path does it*, by changing one thing at a time in a diagnostic image
+   and counting again: the walk's schedule driven from the stage-3 loop; the walk with the
+   stage-3 loop's work between reads added; the reads made at another stack depth. Each is a new
+   image, to be reviewed, and reads only addresses already read.
+2. *Or go round it*: let the prober recover from an overflow and read the frame again (section
+   15, point 2) — which leaves the cause unknown and the hazard in every later stage.
+3. *The pull in pieces* in the run script, and the status of a reference read that fails on the
+   interface (`0x300` today, where the record says `0x21`).
+

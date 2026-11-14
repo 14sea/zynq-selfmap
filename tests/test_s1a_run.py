@@ -308,6 +308,12 @@ class Plan(unittest.TestCase):
             address = int(c.split()[1], 16)
             self.assertTrue(address == 0xF800700C or 0x10100000 <= address < 0x10100080 or address == 0x10000000, c)
         self.assertEqual([c for c in cmds if c.startswith("go")], ["go 02000000"])
+        card = next(i for i, c in enumerate(cmds) if c.startswith("fatload mmc 0:1 04000000"))
+        self.assertEqual(cmds[card + 1], "loady 04000000", "the YMODEM branch is listed right after the card load it replaces")
+        self.assertIn("ONLY IF", out)
+        self.assertIn("branches after go:", out)
+        every = {c.split()[0] for c in (ROOT / "host" / "s1a_run.py").read_text().split('"') if c[:6] in ("loady ", "fatloa", "fatwri")}
+        self.assertTrue(every <= {c.split()[0] for c in cmds})
         go = cmds.index("go 02000000")
         self.assertLess(cmds.index("dcache off"), go)
         self.assertLess(next(i for i, c in enumerate(cmds) if c.startswith("fpga loadb")), go)

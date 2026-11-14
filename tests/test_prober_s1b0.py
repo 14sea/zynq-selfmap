@@ -148,6 +148,7 @@ class GatesAndParameters(unittest.TestCase):
     def test_bad_parameters_touch_no_register(self) -> None:
         for name, over in (("version", {"version": 2}), ("lo above hi", {"lo": 0xB9B}), ("an operation outside", {"ops": [(0xB97, 1)]}),
                            ("an operation running past the envelope", {"ops": [(0xB9A, 2)]}), ("three frames from the middle", {"ops": [(0xB99, 3)]}),
+                           ("an operation whose end wraps past the top of the address space", {"lo": 0xFFFFFFFE, "hi": 0xFFFFFFFF, "ref": 0xFFFFFFFF, "ops": [(0xFFFFFFFF, 3)]}),
                            ("zero frames", {"ops": [(0xB98, 0)]}), ("four frames", {"ops": [(0xB98, 4)], "hi": 0xBA0}),
                            ("no operations", {"ops": [], "n_ops": 0}), ("too many", {"n_ops": 17}), ("no repeats", {"repeats": 0}),
                            ("the reference outside", {"ref": 0xB9B}), ("no poll limit", {"poll_limit": 0})):

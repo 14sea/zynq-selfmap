@@ -2,6 +2,7 @@
 """Mutants: deliberate defects, one at a time, each of which the test suite must fail.
 
     python3 tests/mutants.py            run all of them; exit 1 if any survives
+    python3 tests/mutants.py guard      run only those whose name contains "guard"
 
 Works on a scratch copy of the tree, so the working tree is never dirtied. A mutant counts as killed
 only if the suite ran (Ran N > 0) and reported FAILED. Mutants are written so that they still compile:
@@ -60,20 +61,23 @@ MUTANTS = [
     (CORE, "the final reference read is not compared", "    v = (code == C_OK && same_frame(0u, rec)) ? 1u : 0u;\n    res_wr(HDR_WORDS + rec * REC_WORDS + R_REF_EQUAL, v);\n    rec++;\n    if (!v)\n        return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);\n    return finish(S_DONE", "    v = 1u;\n    res_wr(HDR_WORDS + rec * REC_WORDS + R_REF_EQUAL, v);\n    rec++;\n    if (!v)\n        return finish(S_STOP_HEALTH, rec, anomalies, rec - 1u);\n    return finish(S_DONE"),
     # ---- the prober: the guard's rules for stage 2
     (CORE, "the guard accepts a read that is not a pad plus whole frames", "            if (v == 0xFFFFFFFFu || v < 2u)", "            if (v < 2u)"),
-    (CORE, "the guard lets a read run past the envelope", "            if (far_value + (v - 2u) > far_hi)", "            if (0)"),
+    (CORE, "the guard lets a read run past the envelope", "            if (v - 2u > far_hi - far_value)", "            if (0)"),
     (CORE, "the guard accepts a one-word read of any register", "        } else if (x == W_RD_FAR_1) {", "        } else if ((x & 0xF8001FFFu) == 0x28000001u) {"),
     (CORE, "the guard allows a second read on an address that has moved on", "            far = 0;                                    /* the register has moved on: another read needs a new, checked address */\n", ""),
     ("host/packets.py", "reader: a second read on an address that has moved on is accepted", "                far = False                              # the register has moved on: another read needs a new, checked address\n", ""),
     (RUN, "run: a result of another stage's layout is not saved whole", "        layouts = {(m[\"judge\"].HDR, m[\"judge\"].REC): name for name, m in STAGES.items()}", "        layouts = {(J.HDR, J.REC): stage}"),
     (RUN, "run: another stage's result is not called a problem", "            if fits != stage:", "            if False:"),
     (RUN, "run: a missing result header is taken at its word for the size", "        if has_header and fits and n <=", "        if fits and n <="),
+    (CORE, "the guard's range check adds to the address and can wrap", "            if (v - 2u > far_hi - far_value)", "            if (far_value + (v - 2u) > far_hi)"),
+    (CORE, "stage 2: the parameter range check adds to the address and can wrap", " || n - 1u > far_hi - far)", " || far + (n - 1u) > far_hi)"),
+    (RUN, "run: the dry run does not list the YMODEM branch", "            if \"card_or_ymodem\" in s:                 # the branch taken when the card has no file of that size", "            if False:"),
     # ---- the prober: stage 2
     (CORE, "stage 2: the FAR register is not read", "        code = dma(CMD_BUF | DMA_HOLD_TAG, PCAP_ENDPOINT, FARRD_WORDS, 0u, poll_limit, &sts, &polls);", "        code = C_OK;"),
     (CORE, "stage 2: a repeat's data is not compared", "                    if (!same_data(first, rec, n))", "                    if (0)"),
     (CORE, "stage 2: a repeat's FAR value is not compared", "                    else if (r2_rd(first, REC2_FARBLK + F_VALUE) != r2_rd(rec, REC2_FARBLK + F_VALUE))", "                    else if (0)"),
     (CORE, "stage 2: an unread FAR is not noticed", "    if (code == C_OK && r2_rd(rec, REC2_FARBLK + F_UNREAD))", "    if (0)"),
     (CORE, "stage 2: the reference's FAR value is not part of its health", "    return (code == C_OK && same_data(0u, rec, 1u)\n            && r2_rd(rec, REC2_FARBLK + F_VALUE) == r2_rd(0u, REC2_FARBLK + F_VALUE)) ? 1u : 0u;", "    return (code == C_OK && same_data(0u, rec, 1u)) ? 1u : 0u;"),
-    (CORE, "stage 2: an operation running past the envelope is accepted", " || far + (n - 1u) > far_hi || far + (n - 1u) < far)", " || far + (n - 1u) < far)"),
+    (CORE, "stage 2: an operation running past the envelope is accepted", " || n - 1u > far_hi - far)", ")"),
     (CORE, "stage 2: more frames per read than the buffer holds", "        if (n == 0u || n > MAX_READ_FRAMES || far < far_lo", "        if (n == 0u || n > 15u || far < far_lo"),
     (CORE, "stage 2: only the first frame of a repeat is compared", "    for (i = FRAME_WORDS; i < FRAME_WORDS * (n + 1u); i++)", "    for (i = FRAME_WORDS; i < FRAME_WORDS * 2u && n; i++)"),
     (CORE, "stage 2: the pad is not checked", "            if (r2_rd(rec, REC2_DATA + i) != 0u) {", "            if (0) {"),
@@ -158,7 +162,10 @@ def main() -> int:
     if killed:
         print("the unmutated tree fails; nothing below would mean anything"); return 2
     survivors = 0
+    only = sys.argv[1] if len(sys.argv) > 1 else ""       # an optional substring: run just the mutants whose name contains it
     for path, name, old, new, *which in MUTANTS:
+        if only not in name:
+            continue
         f = tree / path; original = f.read_text()
         want = which[0] + 1 if which else 1          # an optional fifth element picks one occurrence of several
         if original.count(old) < want or (not which and original.count(old) != 1):
@@ -173,7 +180,7 @@ def main() -> int:
         print(f"{'KILLED  ' if killed else 'SURVIVED'} {name:62s} {summary}")
     killed, summary = suite(tree)
     print(f"restored: {summary}")
-    print(f"{len(MUTANTS)} mutants, {survivors} survived")
+    print(f"{sum(1 for m in MUTANTS if only in m[1])} mutants, {survivors} survived")
     shutil.rmtree(tree.parent, ignore_errors=True)
     return 1 if survivors or killed else 0
 

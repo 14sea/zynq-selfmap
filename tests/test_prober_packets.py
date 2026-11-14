@@ -123,12 +123,28 @@ class StageTwoStreams(unittest.TestCase):
         self.assertEqual(self.both(outside, 404), (False, False))
         self.assertEqual(self.both(s1[:11] + [0x20000000, 0x28002001] + s1[13:], 404), (True, True), "a FAR register read after the read is fine")
 
+    def test_the_range_check_cannot_be_wrapped(self) -> None:
+        """At the top of the address space `address + frames` wraps to a small number. The check is a difference."""
+        top = 0xFFFFFFFF
+        for lo, hi, far, n, ok in ((top - 1, top, top, 3, False), (top - 1, top, top, 2, False), (top - 1, top, top - 1, 3, False),
+                                   (top - 1, top, top, 1, True), (top - 1, top, top - 1, 2, True), (top - 2, top, top - 2, 3, True),
+                                   (0, top, top, 2, False), (0, 2, 0, 3, True), (0, 1, 0, 3, False)):
+            with self.subTest(lo=lo, hi=hi, far=far, n=n):
+                stream, _ = genframes(far, n)
+                self.assertEqual((guard(stream, lo=lo, hi=hi, maxr=404) == 0, packets.readonly_problems(stream, lo, hi, 404) == []), (ok, ok))
+
     def test_a_read_that_is_not_a_pad_plus_whole_frames_is_refused(self) -> None:
         stream, _ = genframes(0xB98, 1)
         for count in (1, 100, 101, 201, 203, 300, 302, 304, 403):
             with self.subTest(count=count):
                 s = list(stream); s[10] = 0x48000000 | count
                 self.assertEqual(self.both(s, 404), (False, False))
+        # the same with the widest possible envelope, where no range check can come to the rescue
+        wide, _ = genframes(0, 1)
+        for count in (203, 300, 403):
+            with self.subTest(count=count, envelope="everything"):
+                s = list(wide); s[10] = 0x48000000 | count
+                self.assertEqual((guard(s, lo=0, hi=0xFFFFFFFF, maxr=404) == 0, packets.readonly_problems(s, 0, 0xFFFFFFFF, 404) == []), (False, False))
 
     def test_only_the_far_register_and_only_one_word_of_it(self) -> None:
         for header, what in ((0x28002000, "a zero-word FAR read"), (0x28002002, "a two-word FAR read"), (0x2800E001, "a STAT read"),

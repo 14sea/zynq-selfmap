@@ -276,11 +276,18 @@ def main() -> int:
         steps = before_go(exp, len(pl), pl_crc)
         for i, s in enumerate(steps, 1):
             print(f"{i:3d}. {s['cmd']:44s} # {s['what']}  ->  {s['check']}")
+            if "card_or_ymodem" in s:                 # the branch taken when the card has no file of that size
+                branch = f"loady {PL_ADDR:08x}"
+                print(f"{i:3d}a. {branch:43s} # ONLY IF step {i} did not report {s['size']} bytes read: send the PL design by YMODEM  ->  U-Boot reports the same size")
         print("     --- after go, whatever it reported: save first, judge afterwards ---")
         size = f"64+{STAGES[a.stage]['judge'].REC}*N"
         for i, (cmd, what, check) in enumerate(AFTER_GO, len(steps) + 1):
             cmd = cmd.replace("64+266*N", size)
             print(f"{i:3d}. {cmd:44s} # {what}  ->  {check}")
+        print("     branches after go:")
+        print(f"       - if the header fits no known layout, or there is no header: <bytes> is 4*{MAX_RESULT_WORDS}, the largest result any stage can produce")
+        print("       - the card read-back (fatload and its crc32) is done only if fatwrite confirmed the size; otherwise the run fails, and the pull still happens")
+        print("       - if the pulled copy does not have the board's crc32 it is kept as result_unverified.bin and the run stops there")
         print("\nDry run: nothing was sent.")
         return 0
     if not a.out or a.out.exists():

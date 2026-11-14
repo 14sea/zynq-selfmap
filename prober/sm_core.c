@@ -82,7 +82,8 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
             v = whole_frames(v);                                         /* v <= max_read was checked just above */
             if (v == 0xFFFFFFFFu || v < 2u)                             /* a pad frame and whole frames */
                 return REFUSE(i, 10u);
-            if (far_value + (v - 2u) > far_hi)                          /* the last frame read is still inside */
+            if (v - 2u > far_hi - far_value)                            /* the last frame read is still inside; far_value <= far_hi
+                                                                           was checked when it was written, so nothing can wrap */
                 return REFUSE(i, 11u);
             far = 0;                                    /* the register has moved on: another read needs a new, checked address */
             hdr = 0; i++;
@@ -445,7 +446,7 @@ static uint32_t run_s2(void)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
     for (k = 0; k < n_ops; k++) {
         far = par(P_FARS + k); n = op_frames(k);
-        if (n == 0u || n > MAX_READ_FRAMES || far < far_lo || far > far_hi || far + (n - 1u) > far_hi || far + (n - 1u) < far)
+        if (n == 0u || n > MAX_READ_FRAMES || far < far_lo || far > far_hi || n - 1u > far_hi - far)
             return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
     }
 

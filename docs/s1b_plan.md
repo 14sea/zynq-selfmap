@@ -121,8 +121,8 @@ three additions to the guard); `host/s1b0_judge.py`; the plan printed by
 
 | outcome | meaning | consequence |
 |---|---|---|
-| PASS, rule "next" | after reading n frames from F the register holds F + n | the walk of S1b.1 uses the value as the next address |
-| PASS, rule "next but one" | it holds F + n + 1 (the pad frame counted) | the walk uses value − 1 |
+| PASS, rule "next" | after reading n frames from F the register holds F + n | inside a column the value can be used as the next address; how it behaves at the end of a column is not shown by S1b.0 and is the first thing S1b.1 has to observe, on an address the device has named |
+| PASS, rule "next but one" | it holds F + n + 1 (the pad frame counted) | **open — to be settled before S1b.1 is planned.** Subtracting one is arithmetic on an address, which the walk is meant never to do: inside one column it may give the frame in between, at a column boundary it need not give a valid address at all. S1b.0 only sees three consecutive frames and cannot tell |
 | FAIL: values consistent but fitting neither rule | the register does something else | recorded; S1b.1 is redesigned before it is planned |
 | FAIL: the FAR read never completes, or delivers nothing | a one-word register read does not work through PCAP as sent | recorded; an interface stop may need a power cycle; the walk needs another way |
 | FAIL: the three-frame read does not return the three known frames | reading across frames in one read does not behave as UG470 says here | recorded; long reads are not used |
@@ -150,3 +150,26 @@ Two gaps were found by the reviewer and reproduced before they were fixed.
 The generator never produces a second read, so no board run was affected; the guard exists for
 the day the generator is wrong. The board image changed with the guard and its hash is fixed
 again in `build/prober/expected_s1b0.json`.
+
+## 7. Changes after the second review of S1b.0 (2026-11-14)
+
+No new defect in the normal flow. Three points, all accepted:
+
+| finding | change |
+|---|---|
+| A PASS with the rule "next but one" was said to let the walk use the value minus one. S1b.0 cannot support that: it sees three consecutive frames only, and subtracting is the address arithmetic the walk was meant to avoid | the table in section 5 no longer derives a walk from either outcome beyond what the run shows; what to do under "next but one", and what happens at a column end under either rule, are open items for the planning of S1b.1 |
+| The guard compared `address + frames` with the upper bound; at the top of the address space the sum wraps and passes (reproduced: envelope `fffffffe..ffffffff`, three frames from `ffffffff`; the Python reader refused it) | the guard and the parameter check compare a difference instead, which cannot wrap (`test_the_range_check_cannot_be_wrapped`) |
+| The dry run did not list the `loady 04000000` that is sent when the card has no PL file of the right size | the dry run prints that branch as its own line and lists the three branches after `go` |
+
+Images of this stage, in order: `35ae0fd2…` (7727 bytes, first submitted); `9d047501…` (7731 bytes,
+after the first review); `3e3ab201761ab6e6af3036b3f8206273dd78cc4deb430bc3a0569900d7ccee07`
+(7703 bytes, crc32 `53130c7c`, after this review — the one in `build/prober/expected_s1b0.json`).
+
+Host checks after this review: 122 tests; 105 deliberate defects, all failed by the suite
+(`evidence/host_checks/mutants_2026-11-14.txt`; the counts in section 5 are those of the first
+submission). The first run after the range check was rewritten had one survivor: with the
+difference form, a read that is not a pad plus whole frames was also refused by the range check
+in every envelope the tests used, so removing the whole-frames check went unnoticed. A case with
+the widest envelope (`0..ffffffff`), where the range check cannot refuse anything, now holds it
+(`test_a_read_that_is_not_a_pad_plus_whole_frames…`). `tests/mutants.py` takes an optional
+substring to run a subset.

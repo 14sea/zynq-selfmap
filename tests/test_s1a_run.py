@@ -75,9 +75,16 @@ class FakeUBoot:
     def c_md_l(self, w):
         a, n = int(w[1], 16), int(w[2], 16)
         vals = [self.rd(a + 4 * i) for i in range(n)]
-        if self.q.get("corrupt_dump") and n > 64:
-            vals[100] ^= 1
-        return "".join("%08x: %s    ....\r\n" % (a + 4 * i, " ".join("%08x" % v for v in vals[i:i + 4])) for i in range(0, n, 4))
+        lines = ["%08x: %s    ....\r\n" % (a + 4 * i, " ".join("%08x" % v for v in vals[i:i + 4])) for i in range(0, n, 4)]
+        if n > 64:                                                                 # a dump of the result, not of the header
+            self.dumps = getattr(self, "dumps", 0) + 1
+            bad = self.q.get("corrupt_dump")                                       # True: every dump; a number: the first so many
+            if bad is True or (bad and self.dumps <= bad):
+                if self.q.get("dump_loses_a_line"):
+                    del lines[25]                                                  # what the console did on 2026-11-14
+                else:
+                    lines[25] = lines[25][:10] + ("0" if lines[25][10] != "0" else "1") + lines[25][11:]
+        return "".join(lines)
 
     def c_mw_l(self, w):
         a, v, n = int(w[1], 16), int(w[2], 16), int(w[3], 16) if len(w) > 3 else 1
@@ -232,12 +239,31 @@ class AfterGo(unittest.TestCase):
                 self.assertTrue((out / "result.bin").exists())
 
     def test_a_pulled_copy_that_differs_from_the_board_is_not_accepted(self) -> None:
-        rec, u, out = run(corrupt_dump=True)
-        self.assertEqual(rec["verdict"], "FAIL")
-        self.assertIn("is not the board's", rec["stop"])
-        self.assertFalse((out / "result.bin").exists())
-        self.assertTrue((out / "result_unverified.bin").exists())
-        self.assertIn("s0000001.bin", u.card, "the card copy was written before the pull")
+        for how in ({}, {"dump_loses_a_line": True}):
+            with self.subTest(str(how)):
+                rec, u, out = run(corrupt_dump=True, **how)
+                self.assertEqual(rec["verdict"], "FAIL")
+                self.assertIn("none of 3 pulled copies is the board's", rec["stop"])
+                self.assertIn("the card file holds the result", rec["stop"])
+                self.assertFalse((out / "result.bin").exists())
+                self.assertEqual(sorted(p.name for p in out.glob("result_unverified*")), [f"result_unverified_{k}.bin" for k in (1, 2, 3)])
+                self.assertEqual([(p["attempt"], p["is_the_boards"]) for p in rec["pulls"]], [(1, False), (2, False), (3, False)])
+                self.assertEqual(u.dumps, 3, "three attempts and no more")
+                self.assertIn("s0000001.bin", u.card, "the card copy was written before the pull")
+                self.assertIsNone(rec.get("judge"), "nothing that is not the board's copy is judged")
+
+    def test_a_pull_that_comes_back_damaged_is_made_again_and_only_the_board_s_copy_is_judged(self) -> None:
+        """2026-11-14: the console lost a line in three of five pulls. The dump is a read; it can be asked for again."""
+        for bad, how in ((1, {}), (2, {}), (1, {"dump_loses_a_line": True}), (2, {"dump_loses_a_line": True})):
+            with self.subTest(bad=bad, how=str(how)):
+                rec, u, out = run(corrupt_dump=bad, **how)
+                self.assertEqual((rec["verdict"], rec["problems"], rec.get("stop")), ("PASS", [], None))
+                self.assertEqual([p["is_the_boards"] for p in rec["pulls"]], [False] * bad + [True])
+                self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+                self.assertEqual(sorted(p.name for p in out.glob("result_unverified*")), [f"result_unverified_{k}.bin" for k in range(1, bad + 1)])
+                self.assertNotEqual((out / "result_unverified_1.bin").read_bytes(), u.twin_result, "the damaged copy is kept as it came")
+        rec, u, out = run()
+        self.assertEqual(([p["is_the_boards"] for p in rec["pulls"]], u.dumps, list(out.glob("result_unverified*"))), ([True], 1, []))
 
     def test_a_return_code_or_console_that_contradicts_the_result_fails(self) -> None:
         rec, _, _ = run(rc_xor=1)

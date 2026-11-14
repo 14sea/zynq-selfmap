@@ -106,6 +106,18 @@ class Image(unittest.TestCase):
         e4 = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console", "frames")}
         e4.update(stage="S1b.1", params=[f"{w:08x}" for w in p4])
         (BUILD / "expected_s1b1.json").write_text(json.dumps(e4, indent=1) + "\n")
+        # two parameter sets for stage 2, to count frame reads until the receive FIFO overflows (the run stops at the
+        # first interface failure): sixteen operations, eight repeats — 128 reads of one frame over the three known
+        # frames in turn, or 128 reads of all three in one read. How far a run gets is what it is to find out.
+        for name, ops in (("rate1", [(0xB98 + k % 3, 1) for k in range(16)]), ("rate3", [(0xB98, 3)] * 16)):
+            pr = [0] * 32
+            pr[0:10] = [0x31504D53, 1, 2, 0xB98, 0xB9A, 0xB99, 16, 8, 4, 0x00200000]
+            for k, (far, n) in enumerate(ops):
+                pr[16 + k] = far
+                pr[10 + k // 8] |= n << (4 * (k % 8))
+            er = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console")}
+            er.update(stage=name, params=[f"{w:08x}" for w in pr])
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(er, indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

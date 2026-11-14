@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1] --dry-run     print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1] --go --out DIR  run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3] --dry-run     print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate1|rate3] --go --out DIR  run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -43,7 +43,11 @@ EXPECTED = ROOT / "build" / "prober" / "expected.json"
 STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           "s1b0": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0.json"},
           "s1b0b": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0b.json"},
-          "s1b1": {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / "expected_s1b1.json"}}
+          "s1b1": {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / "expected_s1b1.json"},
+          # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
+          # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
+          "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
+          "rate3": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate3.json"}}
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
@@ -51,6 +55,7 @@ PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR, SCRATCH_ADDR = 0x04000000, 0x02000000, 0x
 PAR_WORDS = 32
 MAX_RESULT_WORDS = max(m["judge"].HDR + m["judge"].MAX_RECORDS * m["judge"].REC for m in STAGES.values())
 PL_CARD_NAME = "carrier.bit"
+MAX_PULLS = 3                                        # attempts to bring the result over the console
 
 
 class Stop(Exception):
@@ -212,13 +217,25 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
             if not record["card_verified"]:
                 problems.append("the file read back from the card is not the result (size or crc32 differs)")
 
-        words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", "pull the result over the console", 180 if total < 20000 else 600))
-        raw = b"".join(struct.pack("<I", x) for x in words)
-        host_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
-        record["host_crc32"] = host_crc
-        if len(words) != total or host_crc != record["board_crc32"]:        # `total` words were asked for, whichever way it was sized
-            (out / "result_unverified.bin").write_bytes(raw)
-            raise Stop(f"the pulled copy ({len(words)} words, crc32 {host_crc}) is not the board's ({total} words, crc32 {record['board_crc32']})")
+        # The console is a lossy path (three of five pulls came back short on 2026-11-14). The dump is a read of RAM and
+        # can be asked for again; which copy is the result is decided by the board's crc32 and by nothing else. A bounded
+        # number of attempts, each one recorded and each failed copy kept.
+        record["pulls"] = []
+        for attempt in range(1, MAX_PULLS + 1):
+            words = md_words(do(f"md.l {RES_ADDR:08x} {total:x}", f"pull the result over the console (attempt {attempt} of at most {MAX_PULLS})",
+                                180 if total < 20000 else 600))
+            raw = b"".join(struct.pack("<I", x) for x in words)
+            host_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
+            record["host_crc32"] = host_crc
+            whole = len(words) == total and host_crc == record["board_crc32"]    # `total` words were asked for, whichever way it was sized
+            record["pulls"].append({"attempt": attempt, "words": len(words), "crc32": host_crc, "is_the_boards": whole})
+            if whole:
+                break
+            (out / f"result_unverified_{attempt}.bin").write_bytes(raw)
+        else:
+            raise Stop(f"none of {MAX_PULLS} pulled copies is the board's ({total} words, crc32 {record['board_crc32']}): "
+                       + ", ".join(f"{p['words']} words crc32 {p['crc32']}" for p in record["pulls"])
+                       + ("; the card file holds the result" if record.get("card_verified") else ""))
         (out / "result.bin").write_bytes(raw)
 
         verdict = J.judge(words, known, [int(w, 16) for w in exp["params"]])
@@ -294,7 +311,7 @@ def main() -> int:
         print("     branches after go:")
         print(f"       - if the header fits no known layout, or there is no header: <bytes> is 4*{MAX_RESULT_WORDS}, the largest result any stage can produce")
         print("       - the card read-back (fatload and its crc32) is done only if fatwrite confirmed the size; otherwise the run fails, and the pull still happens")
-        print("       - if the pulled copy does not have the board's crc32 it is kept as result_unverified.bin and the run stops there")
+        print(f"       - if a pulled copy does not have the board's crc32 it is kept as result_unverified_<n>.bin and the pull is made again, at most {MAX_PULLS} times in all; if none is the board's the run stops there")
         print("\nDry run: nothing was sent.")
         return 0
     if not a.out or a.out.exists():

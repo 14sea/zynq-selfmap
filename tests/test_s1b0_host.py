@@ -189,6 +189,22 @@ class ThroughTheRunScript(unittest.TestCase):
         self.assertEqual((rec["verdict"], rec.get("stop")), ("FAIL", None))
         self.assertTrue(any("fit no known layout" in p for p in rec["problems"]))
 
+    def test_the_two_counting_runs_are_stage_two_with_other_parameters(self) -> None:
+        """128 reads of one frame, or of three, on the known frames: to count how many go by before the receive FIFO
+        overflows. The prober's stage 2 and its judge, unchanged; a run stops at the first interface failure."""
+        for stage, frames in (("rate1", 1), ("rate3", 3)):
+            with self.subTest(stage):
+                rec, u, out = fake.run(stage=stage, far_rule="skip")
+                self.assertEqual((rec["verdict"], rec["problems"], rec["result_words"]), ("PASS", [], 64 + 130 * 480))
+                v = json.loads((out / "verdict.json").read_text())
+                self.assertEqual(({r["frames"] for r in v["records"][1:-1]}, len(v["records"])), ({frames}, 130))
+                self.assertTrue(v["far_rule"].startswith("next but one"))
+                rec, u, out = fake.run("err@52", stage=stage, far_rule="skip")      # an error bit in the eleventh record
+                self.assertEqual((rec["verdict"], rec["result_words"], rec.get("stop")), ("FAIL", 64 + 11 * 480, None))
+                v = json.loads((out / "verdict.json").read_text())
+                self.assertEqual((v["header"]["status"], v["records"][10]["code"], len(v["records"])), ("0x221", "0x21", 11))
+                self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+
     def test_the_dry_run_of_stage_two_differs_from_stage_one_only_in_parameters_and_sizes(self) -> None:
         import subprocess
         def plan(stage):

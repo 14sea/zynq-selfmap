@@ -1,0 +1,34 @@
+unmutated: Ran 242 OK; 0 test(s): 
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 242 FAILED (failures=328, errors=2); 62 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_file_passes_and_any_extra_byte_make
+KILLED   quiet wait: the count is stored on every poll after all        Ran 242 FAILED (failures=3, errors=62); 37 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   quiet wait: one poll more than the limit                       Ran 242 FAILED (failures=6); 2 test(s): the_count_on_the_stack_while_a_transfer_is_, the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: an error bit is not a way out                      Ran 242 FAILED (failures=4); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: PCFG_DONE gone is not a way out                    Ran 242 FAILED (failures=3, errors=62); 37 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   quiet wait: the count is not handed back                       Ran 242 FAILED (failures=23, errors=62); 39 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   quiet wait: the last status is not recorded                    Ran 242 FAILED (failures=21, errors=62); 38 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   quiet wait: PCFG_DONE gone is reported as something else       Ran 242 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: an error bit is reported as something else         Ran 242 FAILED (failures=4); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: the stale status is not looked for                 Ran 242 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: PCFG_DONE is not looked for before the command     Ran 242 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: no clear before the command                        Ran 242 FAILED (failures=23, errors=62); 38 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   quiet wait: SRC and DST written in the wrong order             Ran 242 FAILED (failures=18); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: the command is queued with another length          Ran 242 FAILED (failures=24, errors=2); 5 test(s): the_count_on_the_stack_while_a_transfer_is_, the_first_pass_s_reads_made_by_the_stage_th
+KILLED   quiet wait: the variant that loads the limit is given no place to load it from Ran 242 FAILED (failures=1, errors=62); 36 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   quiet wait: the variant that touches no memory loads the limit from the stack Ran 242 FAILED (failures=1, errors=62); 36 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   the choice of the wait is ignored: always as before            Ran 242 FAILED (failures=4, errors=63); 39 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_clean_run_passes_and_everything_is_saved
+KILLED   stage 3 takes the choice of the wait too                       Ran 242 FAILED (failures=1); 1 test(s): the_other_stages_wait_as_they_always_did
+KILLED   the walk does not take the choice of the wait                  Ran 242 FAILED (failures=2); 2 test(s): a_loop_that_does_not_exist_is_refused_befor, the_count_on_the_stack_while_a_transfer_is_
+KILLED   stage 5: a wait that does not exist is run                     Ran 242 FAILED (failures=1); 1 test(s): a_loop_that_does_not_exist_is_refused_befor
+KILLED   the walk: a wait that does not exist is run                    Ran 242 FAILED (failures=1); 1 test(s): a_loop_that_does_not_exist_is_refused_befor
+KILLED   stage 5: the choice of the wait is taken for extra stack       Ran 242 FAILED (failures=12, errors=4); 4 test(s): the_count_on_the_stack_while_a_transfer_is_, the_first_pass_s_reads_made_by_the_stage_th
+KILLED   the walk: the choice of the wait is taken for extra stack      Ran 242 FAILED (failures=14, errors=2); 4 test(s): the_count_on_the_stack_while_a_transfer_is_, the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: a wait that does not exist is a valid plan (stage 5)   Ran 242 FAILED (errors=1); 1 test(s): the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: a wait that does not exist is a valid plan (the walk)  Ran 242 FAILED (failures=1); 1 test(s): the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: the choice of the wait is taken for extra stack        Ran 242 FAILED (errors=6); 3 test(s): the_first_pass_s_reads_made_by_the_stage_th, the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: the extra stack is taken for the choice of the wait    Ran 242 FAILED (errors=6); 3 test(s): the_first_pass_s_reads_made_by_the_stage_th, the_judges_say_which_loop_and_refuse_one_th
+restored: Ran 242 OK; 0 test(s):  (8 copies)
+27 mutants, 0 survived
+unmutated: Ran 242 OK; 0 test(s): 
+KILLED   the twin is not shown the count of polls                       Ran 242 FAILED (failures=1, errors=2); 2 test(s): the_count_on_the_stack_while_a_transfer_is_, the_other_stages_wait_as_they_always_did
+restored: Ran 242 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived

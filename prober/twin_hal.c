@@ -157,10 +157,24 @@ static void dma_execute(uint32_t dlen)
     if (fault_at("dropafter", n_dma)) drop_on_next_clear = 1;             /* between this command and the next */
 }
 
-/* what the prober's own count of polls holds each time a queued transfer is polled: the loop that stores on every
- * poll shows 0, 1, 2, ...; a loop that stores nothing until the transfer is over shows 0 throughout */
+/* What the prober's own count of polls holds each time a queued transfer is polled: the loop that stores on every
+ * poll shows 0, 1, 2, ...; a loop that stores nothing until the transfer is over shows 0 throughout (WATCH), and
+ * either shows the whole count once the wait is over (WATCHED).
+ *
+ * The count is a local variable of the routine that makes the read, so it may be looked at only while that routine
+ * is running. A wait begins with the write that queues a command and consists of reads of the status register and
+ * nothing else; the first call through any other door ends it — whatever way the wait went, limit included. That
+ * call is the routine's own (it records the status and the count as soon as the transfer function returns), so the
+ * variable is still there: it is looked at one last time and then left alone until the next command is queued.
+ * (Found by review, 2026-11-15: the watch used to go on until a status read showed the transfer done; after a wait
+ * that gave up at the limit the next status read came from the end of the run, when the variable was gone.) */
 static const uint32_t *watch; static int polling;
-void hal_watch(const uint32_t *polls) { watch = polls; }
+static void wait_over(void)
+{
+    if (polling && watch) printf("WATCHED %u %u\n", n_dma, *watch);
+    polling = 0;
+}
+void hal_watch(const uint32_t *polls) { wait_over(); watch = polls; }
 
 uint32_t hal_rd(uint32_t a)
 {
@@ -169,24 +183,22 @@ uint32_t hal_rd(uint32_t a)
     case DEVCFG_CTRL:    v = reg_ctrl; break;
     case DEVCFG_MCTRL:   v = reg_mctrl; break;
     case DEVCFG_INT_STS: v = reg_sts; if (done_pending) { done_pending = 0; reg_sts |= 0x00001000u; }
-                         if (polling && watch) {
-                             printf("WATCH %u %u\n", n_dma, *watch);
-                             if ((v & 0x00001000u) || (v & STS_ERR_MASK) || !(v & STS_PCFG_DONE)) polling = 0;
-                         }
+                         if (polling && watch) printf("WATCH %u %u\n", n_dma, *watch);
                          break;
     case DEVCFG_STATUS:  v = reg_status; break;
     default:             v = 0; printf("VIOLATION read %08x\n", a); break;
     }
+    if (a != DEVCFG_INT_STS) wait_over();
     printf("R %08x %08x\n", a, v);
     return v;
 }
 
 void hal_wr(uint32_t a, uint32_t v)
 {
+    wait_over();
     printf("W %08x %08x\n", a, v);
     switch (a) {
-    case DEVCFG_INT_STS:  polling = 0;                                        /* a new command begins: the last one is no longer waited for */
-                          if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
+    case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
                           if (drop_on_next_clear) { drop_on_next_clear = 0; reg_sts &= ~STS_PCFG_DONE; }
                           break;
     case DEVCFG_DMA_SRC:  dma_src = v; break;
@@ -199,6 +211,7 @@ void hal_wr(uint32_t a, uint32_t v)
 
 uint32_t hal_mem_rd(uint32_t a)
 {
+    wait_over();
     if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
         { printf("VIOLATION memory read %08x\n", a); return 0; }
     return ddr[(a - DDR_BASE) / 4u];
@@ -206,13 +219,14 @@ uint32_t hal_mem_rd(uint32_t a)
 
 void hal_mem_wr(uint32_t a, uint32_t v)
 {
+    wait_over();
     if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, CMD_BUF, STREAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
         { printf("VIOLATION memory write %08x\n", a); return; }
     ddr[(a - DDR_BASE) / 4u] = v;
 }
 
-uint32_t hal_cpu(int which) { return which == CPU_SCTLR ? sctlr : 0xC0DE0000u | (uint32_t)which; }
-void hal_putc(char c) { if (uart_n < sizeof uart - 1) uart[uart_n++] = c; }
+uint32_t hal_cpu(int which) { wait_over(); return which == CPU_SCTLR ? sctlr : 0xC0DE0000u | (uint32_t)which; }
+void hal_putc(char c) { wait_over(); if (uart_n < sizeof uart - 1) uart[uart_n++] = c; }
 
 static int load_words(const char *path, uint32_t *out, unsigned max)
 {

@@ -5,6 +5,7 @@ read stopped on the interface."""
 from __future__ import annotations
 
 import json
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -216,6 +217,11 @@ def watched(run) -> list[tuple[int, int]]:
     return [(int(e[1]), int(e[2])) for e in run.lines if e[0] == "WATCH"]
 
 
+def watched_after(run) -> list[tuple[int, int]]:
+    """And once the wait for each was over, while the routine that keeps the count was still running: (transfer, count)."""
+    return [(int(e[1]), int(e[2])) for e in run.lines if e[0] == "WATCHED"]
+
+
 def but_where(run) -> list[int]:
     """The result without the three things that may differ between two runs that did the same: the echoed parameter
     word that chose the loop, and in each record the address of the polling variable (the twin's stack moves between
@@ -232,6 +238,7 @@ class TheWaitThatStoresNothing(unittest.TestCase):
     parameter word 15). No result can tell the loops apart — that is the point — so the twin watches the count of
     polls on the prober's stack while it is being polled, and the machine code is read in test_prober_image."""
     FAULTS = ("", "err@7", "err@8", "timeout@7", "timeout@8", "drop@8", "dropafter@8", "stale", "short@2", "farshort@3")
+    MAKERS = (lambda fault, poll: Run5(fault, poll_limit=30, poll=poll), lambda fault, poll: Run4(fault, poll_limit=30, frames=FRAMES, hi=0xB99, poll=poll))
 
     def test_the_three_loops_bring_back_the_same_result_whatever_happens(self) -> None:
         for fault in self.FAULTS:
@@ -255,14 +262,48 @@ class TheWaitThatStoresNothing(unittest.TestCase):
                 for t, count in before:
                     per.setdefault(t, []).append(count)
                 self.assertTrue(all(v == list(range(len(v))) for v in per.values()), "as before: at the k-th poll the stack holds k-1")
-                # the transfer that never ends: 30 polls, and then the status read that closes the run finds the count stored
-                self.assertEqual(per[8], list(range(31)))
+                self.assertEqual(per[8], list(range(30)), "up to the limit, in the transfer that never ends — and no look after that")
                 self.assertGreater(len([v for v in per.values() if len(v) == 2]), 5, "a transfer of the twin takes two polls")
+                after = watched_after(make())
+                self.assertEqual(after, [(t, len(v)) for t, v in per.items()], "once each wait is over the count is the number of polls made")
+                self.assertEqual(after[-1], (8, 30))
                 for poll in (1, 2):
-                    quiet = watched(make(poll=poll))
+                    run = make(poll=poll)
+                    quiet = watched(run)
                     self.assertEqual([t for t, _ in quiet], [t for t, _ in before], "the same polls of the same transfers")
-                    self.assertEqual([count for t, count in quiet if t == 8], [0] * 30 + [30], "nothing stored while it was waited for; the count once the wait was over")
-                    self.assertEqual({count for t, count in quiet if t != 8}, {0})
+                    self.assertEqual({count for _, count in quiet}, {0}, "nothing stored while any of them was waited for")
+                    self.assertEqual(watched_after(run), after, "and the same counts once each wait was over")
+
+    def test_the_twin_looks_at_the_count_only_while_it_exists(self) -> None:
+        """Review, 2026-11-15: after a wait that gave up at the limit, the twin still looked at the count when the
+        status was read at the end of the run — a variable of a routine that had returned. The twin is built with
+        the address and undefined-behaviour sanitizers and run through every way out of the wait, with every loop."""
+        import subprocess
+        import test_prober_s1b0 as two
+        import test_prober_s1b1 as four
+        subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin_asan"], check=True)
+        saved = (two.TWIN, four.TWIN, os.environ.get("ASAN_OPTIONS"), os.environ.get("UBSAN_OPTIONS"))
+        try:
+            plain = {(fault, poll, k): but_where(make(fault, poll)) for fault in self.FAULTS for poll in (0, 1, 2) for k, make in enumerate(self.MAKERS)}
+            two.TWIN = four.TWIN = ROOT / "build" / "prober" / "twin_asan"
+            os.environ["ASAN_OPTIONS"] = "detect_stack_use_after_return=1:abort_on_error=0:exitcode=99"
+            os.environ["UBSAN_OPTIONS"] = "halt_on_error=1:exitcode=98"
+            for (fault, poll, k), words in plain.items():
+                with self.subTest(fault=fault, poll=poll, stage=("stage 5", "the walk")[k]):
+                    try:
+                        run = self.MAKERS[k](fault, poll)
+                    except subprocess.CalledProcessError as e:
+                        self.fail(f"the twin stopped with {e.returncode}: " + " | ".join(line for line in e.stderr.splitlines() if "ERROR" in line or "runtime error" in line))
+                    self.assertEqual(but_where(run), words, "and it is the same twin: the same result")
+            for run in (Run2(), Run3()):
+                self.assertEqual(run.status, 1)
+        finally:
+            two.TWIN, four.TWIN = saved[0], saved[1]
+            for name, value in (("ASAN_OPTIONS", saved[2]), ("UBSAN_OPTIONS", saved[3])):
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
 
     def test_the_other_stages_wait_as_they_always_did(self) -> None:
         for run in (Run2(poll=1), Run3(poll=2)):

@@ -900,4 +900,41 @@ the walk sets if it comes to that.
 - Nothing here recovers from an overflow, and nothing reads an address the walk has not read.
 
 **Before the board:** the owner's review. Then, with nothing else running on the host, the
-series above; stop and report after it.
+series above; stop and report after it. *(Section 21 changes the twin and the tests after that
+review; the image is the one named here.)*
+
+## 21. Changes after the review of the quiet wait (2026-11-15; the twin and the tests only — the image is unchanged)
+
+The review of `40f9437` found one thing, in the host model, and it was reproduced as reported.
+
+**The twin looked at the prober's count of polls after the variable was gone.** The count is a
+local variable of the routine that makes a read; the twin was told where it is and looked at it
+on every status read while a transfer was being waited for, until a status read showed the
+transfer done. A wait that gives up at the limit never shows that: the routine returned, and the
+next status read — made at the end of the run — still looked. Built with the address sanitizer,
+the twin stopped there with a stack-use-after-return, in both stages and with all three waits.
+And the test of section 20 had relied on that last look to see the final count.
+
+Changed, in `prober/twin_hal.c`: a wait begins with the write that queues a command and consists
+of status reads and nothing else, so the first call through any other door ends it, whichever
+way it went. That call is the reading routine's own — it records the status and the count as
+soon as the transfer function returns — so the variable is still there: the twin looks one last
+time (reported on a line of its own, `WATCHED`) and then leaves it alone until the next command
+is queued.
+
+Tests: the count once each wait is over is now taken from that line — it is the number of polls
+made, the same for the three waits — and after the wait that gave up there is no further look.
+A new test builds the twin with the address and undefined-behaviour sanitizers (`make
+twin_asan`) and runs it through ten faults, three waits and both stages, 60 runs, requiring a
+clean exit and the same result as the ordinary twin; run against the twin as it was, it fails
+in the twelve runs with a wait that gives up.
+
+The board is not concerned: `hal_watch` does nothing there, and neither `sm_core.c` nor
+`sm_board.c` was touched. **The image is the one of section 20**: 11,630 bytes, sha256
+`2c566b1e…b296`, crc32 `b0d75377`, rebuilt and compared.
+
+Host checks: 242 tests. The 28 deliberate defects that concern the wait and the watch were run
+again and all failed (`evidence/host_checks/mutants_2026-11-15_quiet_wait_review.txt`); the
+complete set of 252 was not run again, the prober being unchanged.
+
+**Before the board:** the owner's review of this section. Then the series of section 20.

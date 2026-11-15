@@ -23,4 +23,10 @@ $(BUILD)/prober.bin: $(BUILD)/prober.elf
 	$(XPFX)objdump -d $< > $(BUILD)/prober.dis
 	$(XPFX)size -A $< > $(BUILD)/prober.size
 
-.PHONY: all twin image
+# the twin with the address and undefined-behaviour sanitizers: the twin looks into the prober's stack (hal_watch)
+twin_asan: $(BUILD)/twin_asan
+$(BUILD)/twin_asan: sm_core.c twin_hal.c sm.h
+	@mkdir -p $(BUILD)
+	$(CC) -std=c99 -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wextra -Werror -D_POSIX_C_SOURCE=200809L -o $@ sm_core.c twin_hal.c
+
+.PHONY: all twin twin_asan image

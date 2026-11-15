@@ -1024,3 +1024,25 @@ this column. Neither the prober nor the judge holds it, and a test holds that th
 the database.)
 
 **Before the board:** the owner's review. Then the run above.
+
+## 24. S1b.1 on the board with the quiet wait (2026-11-15): PASS — 36 frames, then `0xc00`
+
+Released by the owner after the review of section 23, and run in the order written there: one
+run of `s1b1r` after a `reset`; the result saved, judged and committed (`b6cdd14`); then the
+grader. The full account is `evidence/s1b1r_17A6_2026-11-15/RESULT.md`.
+
+- The walk ran to its end: status 1, 164 records, no anomaly; the judge passes it.
+- **Both passes: 36 frames, `0xb80..0xba3`, each naming the next number; after `0xba3` the
+  device named `0xc00`**, which lies outside the envelope and ended the pass. Neither the
+  envelope's top nor the limit of 64 frames was what ended it.
+- Every frame was read by two paths and twice over, the same each time; the three known frames
+  are as known; the first 26 frames are those of every earlier run.
+- The grader, afterwards: the 36 addresses are minors 0..35 of one column (block type 0, top
+  half, row 0, column 23); the database says 36 frames for it, and `0xc00` is minor 0 of the next
+  column. Nothing differs.
+
+S1b.1 is answered. The table of section 4 has S1b.2 next (the row of that column: the columns of
+the row and their frame counts, and what the address does at the end of a row); it has not been
+proposed in detail and nothing of it is built.
+
+**Stopped here, as agreed.**

@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
-import s1a_judge, s1b0_judge, s1b0b_judge  # noqa: E402
+import s1a_judge, s1b0_judge, s1b0b_judge, s1b1_judge  # noqa: E402
 
 KNOWN = json.loads((ROOT / "data" / "known_frames_17A6.json").read_text())
 RUNS = [
@@ -112,6 +112,29 @@ class StoredBoardResults(unittest.TestCase):
                          {("dxs10", "as before"), ("dxs10n", "no stores"), ("dxs10r", "no stack"), ("dxw0", "as before"), ("dxw0n", "no stores"), ("dxw0r", "no stack")})
         self.assertEqual({w: (v["24"]["reads"], v["24"]["overflows"]) for w, v in stored["by_wait_and_address_mod_32"].items()},
                          {"as before": (297, 4), "no stores": (510, 0), "no stack": (510, 0)})
+
+    def test_the_walk_of_the_column_with_the_quiet_wait(self) -> None:
+        """S1b.1, 2026-11-15: the stored result is the file that came back, the judge as it is now passes it and finds
+        the column the board named; the grader's stored word is what it says of that verdict's own content."""
+        d = ROOT / "evidence" / "s1b1r_17A6_2026-11-15"
+        raw = (d / "run1" / "result.bin").read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), "08e7f4eb7bc599e73b779a62b90bbe98ad86b5a40ad839305f8279dae9e83366")
+        planned = [int(w, 16) for w in json.loads((d / "expected_s1b1r.json").read_text())["params"]]
+        self.assertEqual(planned[15], 2 << 8)
+        words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+        v = s1b1_judge.judge(words, KNOWN, planned)
+        self.assertEqual((v["verdict"], v["problems"], v["frames_walked"], len(v["records"])), ("PASS", [], 36, 164))
+        self.assertEqual(v["passes"], [{"frames": 36, "ended": "the device named an address outside the envelope", "last_address_named": "0x00000c00"}] * 2)
+        self.assertEqual([(int(s["far"], 16), int(s["next"], 16)) for s in v["walk"]], [(0xB80 + k, 0xB81 + k) for k in range(35)] + [(0xBA3, 0xC00)])
+        self.assertEqual((v["frames_without_a_second_path"], v["known_frames_not_reached"], len({s["frame_sha256"] for s in v["walk"]})), ([], [], 36))
+        self.assertEqual(v["params"]["polling_loop"], s1b1_judge.POLLING[2])
+        self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()))
+        self.assertEqual(v, json.loads((d / "run1" / "verdict.json").read_text()), "the verdict stored with the run is the one the judge gives now")
+        g = json.loads((d / "grade.json").read_text())
+        self.assertEqual((g["judge_verdict"], g["differs"], g["not_compared"], len(g["agrees"]), g["database_frame_count"]), ("PASS", [], [], 3, 36))
+        self.assertEqual(g["column_walked"], {"block_type": 0, "half": "top", "row": 0, "column": 23})
+        words[len(words) // 2] ^= 1
+        self.assertNotEqual(s1b1_judge.judge(words, KNOWN, planned)["verdict"], "PASS")
 
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:

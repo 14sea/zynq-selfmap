@@ -8,13 +8,14 @@ import re
 import struct
 import subprocess
 import sys
-import tempfile
 import unittest
 import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import scratch_dirs  # noqa: E402
 import s1a_run  # noqa: E402
 
 TWIN = ROOT / "build" / "prober" / "twin"
@@ -123,7 +124,7 @@ class FakeUBoot:
             self.mem[0x10100000 + 4 * index] = value
         if self.q.get("no_result"):
             return "## Starting application at 0x02000000 ...\r\n## Application terminated, rc = 0x0\r\n"
-        tmp = Path(tempfile.mkdtemp(prefix="smrun_"))
+        tmp = Path(scratch_dirs.mkdtemp(prefix="smrun_"))
         frames = {int(k, 16): [int(x, 16) for x in v["words"]] for k, v in KNOWN["frames"].items()}
         frames.update(self.q.get("frames", {}))                                    # stage 4: the rest of a column
         (tmp / "frames.txt").write_text("\n".join(" ".join(f"{x:x}" for x in [far] + ws) for far, ws in frames.items()) + "\n")
@@ -165,7 +166,7 @@ def run(fault: str = "", stage: str = "s1a", **quirks):
     subprocess.run([sys.executable, "-B", "-m", "unittest", "tests.test_prober_image"], cwd=ROOT, check=True, capture_output=True)
     exp = json.loads(s1a_run.STAGES[stage]["expected"].read_text())
     pl = s1a_run.PL.read_bytes()
-    out = Path(tempfile.mkdtemp(prefix="smout_"))
+    out = Path(scratch_dirs.mkdtemp(prefix="smout_"))
     u = FakeUBoot(fault, **quirks)
     rec = s1a_run.execute(u, exp, out, lambda con, cmd, path: con.load(cmd, path), KNOWN, len(pl), f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}", "s0000001.bin", stage)
     return rec, u, out
@@ -342,7 +343,7 @@ class BeforeGo(unittest.TestCase):
 class Plan(unittest.TestCase):
     def test_the_dry_run_prints_the_plan_and_cannot_open_a_port(self) -> None:
         """Run with a `serial` module that raises on import: the dry run must not notice."""
-        poison = Path(tempfile.mkdtemp(prefix="smpoison_"))
+        poison = Path(scratch_dirs.mkdtemp(prefix="smpoison_"))
         (poison / "serial.py").write_text("raise RuntimeError('the dry run imported the serial module')\n")
         env = dict(os.environ, PYTHONPATH=str(poison))
         out = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--dry-run"], capture_output=True, text=True, check=True, env=env).stdout

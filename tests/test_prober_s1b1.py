@@ -9,12 +9,13 @@ import random
 import struct
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import scratch_dirs  # noqa: E402
 import packets  # noqa: E402
 
 TWIN = ROOT / "build" / "prober" / "twin"
@@ -56,7 +57,7 @@ def params(**over) -> list[int]:
 class Run:
     def __init__(self, fault: str = "", rule: str = "skip", succ: dict[int, int] | None = None, frames: dict[int, list[int]] | None = None, **over) -> None:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
-        tmp = Path(tempfile.mkdtemp(prefix="smtwin4_"))
+        tmp = Path(scratch_dirs.mkdtemp(prefix="smtwin4_"))
         self.succ = column() if succ is None else succ
         self.frames = frames_for(range(0xB80, 0xBA4)) if frames is None else frames
         (tmp / "frames.txt").write_text("\n".join(" ".join(f"{x:x}" for x in [far] + words) for far, words in self.frames.items()) + "\n")

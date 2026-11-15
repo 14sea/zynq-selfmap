@@ -51,7 +51,7 @@ def console_line(status: int, records: int, anomalies: int) -> str:
     return "SM4 end status=%08x records=%08x anomalies=%08x words=%08x" % (status, records, anomalies, HDR + records * REC)
 
 
-def judge(words: list[int], known: dict, planned: list[int]) -> dict:
+def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: bool = False) -> dict:
     out: dict = {"problems": [], "records": []}
     bad = out["problems"].append
 
@@ -384,8 +384,15 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     reached = {s["far"] for s in first_pass}
     missing = sorted(f for f in frames_known if lo <= f <= hi and f not in reached)
     out["known_frames_not_reached"] = [f"{f:#010x}" for f in missing]
-    if status == 1 and missing and ends and ends[0][1] == 1:
-        bad("the walk left the envelope without passing the known frame(s) " + ", ".join(f"{f:#010x}" for f in missing))
+    # A walk that leaves the envelope without having passed the known frames in it has failed: that is S1b.1's rule,
+    # and a walk that starts above them fails by it. One run of a chain (S1b.2) is judged otherwise in this one point:
+    # a walk only goes upward (an address named that is not above the current one stops it), so a run that begins
+    # beyond a known frame cannot pass it — the run of the chain that began below it has to. For such a run only the
+    # known frames at or above its start count. The frames not reached are listed above in either case, and the
+    # reference frame, read throughout every run, is held against its known answer as before.
+    passed_by = [f for f in missing if f >= start or not run_of_a_chain]
+    if status == 1 and passed_by and ends and ends[0][1] == 1:
+        bad("the walk left the envelope without passing the known frame(s) " + ", ".join(f"{f:#010x}" for f in passed_by))
     out["reads_at_addresses_without_a_known_answer"] = sum(1 for s in first_pass if s["far"] not in frames_known)
     # the second path: which frames of the walk no clean read of several frames delivered. With one frame walked there
     # is no such read to make; otherwise a completed run covers every frame, and anything listed here is a stopped run's

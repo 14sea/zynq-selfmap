@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|rate*|dx*] --dry-run                    print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|rate*|dx*] --go --out DIR               run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*] --dry-run                    print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*] --go --out DIR               run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -39,6 +39,7 @@ import s1b0_judge  # noqa: E402
 import s1b0b_judge  # noqa: E402
 import s1b1_judge  # noqa: E402
 import dx_judge  # noqa: E402
+import s1b2_judge  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
 STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
@@ -48,6 +49,9 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # S1b.1 as it is to be run after 2026-11-15: the same parameter block with the wait that stores nothing while
           # a transfer runs (word 15). The set above waits as before and overflows the receive FIFO; it is kept as it was.
           "s1b1r": {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / "expected_s1b1r.json"},
+          # S1b.2: one run of the chain along the row (docs/s1b_plan.md, section 25). The set is s1b1r's with the row as
+          # the envelope; its starting address is given at run time (--start), see with_start() below.
+          "s1b2": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b2.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -80,8 +84,27 @@ PIECE_WORDS = 2048                                   # the result is pulled over
 MAX_PIECE_PULLS = 5                                  # attempts at one piece
 
 
+STARTS_AT_RUN_TIME = ("s1b2",)                       # the sets whose starting address is not fixed by the tests
+P_FAR_LO, P_FAR_HI, P_START = 3, 4, 16               # words of the parameter block
+
+
 class Stop(Exception):
     pass
+
+
+def with_start(stage: str, exp: dict, start: int, came_from: str) -> dict:
+    """The expected values of a set with its starting address replaced: the one word of a parameter block that may be
+    given at run time, and only for a set made for it. The address must lie in the set's own envelope (the prober
+    checks the same, and the guard holds every read to it). `came_from` says where the address was taken from; it
+    goes into the run's record and changes nothing that is sent."""
+    if stage not in STARTS_AT_RUN_TIME:
+        raise ValueError(f"the starting address of {stage} is fixed")
+    lo, hi = int(exp["params"][P_FAR_LO], 16), int(exp["params"][P_FAR_HI], 16)
+    if not lo <= start <= hi:
+        raise ValueError(f"{start:#010x} is outside the envelope {lo:#010x}..{hi:#010x} of {stage}")
+    params = list(exp["params"])
+    params[P_START] = f"{start:08x}"
+    return dict(exp, params=params, chain={"start": f"{start:#010x}", "from": came_from})
 
 
 def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
@@ -142,6 +165,8 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
     J = STAGES[stage]["judge"]
     record: dict = {"stage": stage, "steps": [], "problems": [], "card_file": card_name, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     problems = record["problems"]
+    if "chain" in exp:                               # a starting address given at run time, and where it was taken from
+        record["chain"] = exp["chain"]
 
     def do(cmd: str, what: str, timeout: float = 10) -> str:
         reply, ok = con.cmd(cmd, timeout)
@@ -320,8 +345,15 @@ def main() -> int:
     ap.add_argument("--go", action="store_true")
     ap.add_argument("--out", type=Path)
     ap.add_argument("--stage", choices=sorted(STAGES), default="s1a")
+    ap.add_argument("--start", type=lambda s: int(s, 16), help="hex; only for a set whose starting address is given at run time (s1b2)")
+    ap.add_argument("--start-from", default="given on the command line", help="where the starting address was taken from; recorded, not used")
     a = ap.parse_args()
     exp = json.loads(STAGES[a.stage]["expected"].read_text())
+    if a.start is not None:
+        try:
+            exp = with_start(a.stage, exp, a.start, a.start_from)
+        except ValueError as e:
+            print(f"REFUSED: {e}"); return 2
     img, pl = IMAGE.read_bytes(), PL.read_bytes()
     if hashlib.sha256(img).hexdigest() != exp["image_sha256"]:
         print("REFUSED: the image on disk is not the one the tests fixed in expected.json"); return 2
@@ -329,7 +361,7 @@ def main() -> int:
         print("REFUSED: the staged PL design is not the one the known frames were read with"); return 2
     pl_crc = f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}"
     if a.dry_run or not a.go:
-        print(f"stage {a.stage}")
+        print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else ""))
         print(f"image {exp['image_sha256']}  ({exp['image_bytes']} bytes)")
         print(f"PL    {exp['pl_design']['sha256']}  ({len(pl)} bytes)\n")
         steps = before_go(exp, len(pl), pl_crc)

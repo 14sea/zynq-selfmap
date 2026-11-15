@@ -1198,3 +1198,144 @@ Then the owner's review, and only then the board.
    laid out, and I saw one number of the database while writing the first grader. None of it
    goes into the prober, the judge, the chain's rules or the row summary; the tests that hold
    that are extended to the new files.
+
+## 26. S1b.2 as built (2026-11-15; host side, nothing on a board yet)
+
+The owner accepted section 25 with all six points as proposed. This is what was built. The
+prober is untouched; the image is the one of S1b.1: 11,630 bytes, sha256 `2c566b1e…b296`,
+crc32 `b0d75377`, rebuilt and compared.
+
+### The first address
+
+Point 1 said `0x0` would be confirmed in UG470 before anything was built. UG470 v1.17, "Frame
+Address Register": *"The typical bitstream starts at address 0 and auto-increments to the final
+count"*; and its readback command sequence sets the address to `00000000`. Address 0 is the
+first frame by the document's account; the read itself is still what will show it.
+
+### What there is
+
+| file | what it does |
+|---|---|
+| `tests/test_prober_image.py` | writes the parameter set `s1b2`: `s1b1r`'s block with the envelope `0x00000000..0x0001ffff` and the start `0x0` |
+| `host/s1a_run.py` | the set `s1b2`; `--start` (hex) replaces the one word of its block that may be given at run time, refused for any other set and for an address outside the set's envelope; `--start-from` is recorded with the run and sent nowhere |
+| `host/s1b2_judge.py` | the judge of one run of the chain: the walk's judge with one rule changed (below) |
+| `host/s1b2_chain.py` | the chain: `--dir DIR` says where the chain stored there stands (reads only); `--go` goes on with it on the board |
+| `host/s1b2_row.py` | the row summary, made from the stored runs |
+| `host/grade_s1b2.py` | the grader, for afterwards |
+| `tests/test_s1b2.py` | 26 tests on the twin behind the pretended board |
+
+### One thing section 25 did not foresee: the judge of a run
+
+Section 25 said the judge of a run would be the walk's judge unchanged. It cannot be, in one
+point. S1b.1's judge fails a walk that leaves the envelope without having passed the known
+frames in it — and by that rule fails a walk that begins above them. The last run of a chain
+begins above them and leaves the row: the first model chain halted on exactly that.
+
+`s1b1_judge.judge` now takes an argument that is off unless asked for; with it on, only the
+known frames **at or above the run's start** count for that rule. A walk only goes upward, so a
+run that begins beyond a known frame cannot pass it; the run of the chain that began below it
+must, and is failed if it does not. `s1b2_judge` is the walk's judge with the argument on, and
+the run script uses it for `s1b2` only. For every other set the judge is what it was: the test
+that S1b.1 fails a walk begun above the known frames still stands, and the stored S1b.1 results
+judge as before. The reference frame is held against its known answer in every run, as before,
+so a run that passes no known frame is still checked against one throughout.
+
+### The chain, as built
+
+The rules are those of section 25, in `s1b2_chain.assess`:
+
+- The state of a chain is its stored runs, `DIR/run00`, `run01`, …, and nothing else. Each is
+  read from its files and judged again from its raw words, against the block **the chain plans
+  for it** — the set's block with the start the chain's own rule gives — before the next is
+  looked at. A run that was started elsewhere is not that run.
+- A run is accepted if the run script recorded a started, unstopped, passing run with a verified
+  card copy; the stored result has the checksum the board gave; the judge passes it; both passes
+  ended alike, after as many frames as the walk lists. Every run but the first must begin at the
+  last frame of the one before, with the same content and the same address named after it.
+- Accepted and ended at the limit: go on, the next run starting at this run's last frame.
+  Accepted and both passes ended outside the envelope: complete. Anything else: halted. Halted
+  too: run directories with a gap, run directories after the row was left, a run of one frame at
+  the limit, and 48 runs without the row being left.
+- **Nothing is retried.** A run directory that does not hold an accepted run stays, and the chain
+  stands there. Taking a chain up after such a run is a person's act: the directory is renamed
+  (anything not named `runNN` is listed as set aside and not looked at), and the chain then
+  stands at the run before it.
+- On the board (`--go`): a U-Boot `reset` checked as before every run so far, then the run
+  script; after every run the whole chain is assessed again and `chain.json` written. A reset
+  that does not give the fresh prompt ends the session with nothing run and nothing stored.
+  `--max-new N` stops after N runs where the chain stands.
+
+The chain knows no layout: not of the address word, not of a row. It follows the judge's account
+of what the device named.
+
+### The row summary and the grader
+
+`s1b2_row.py` knows the fields of the address word and nothing about any part. From the accepted
+runs it lists every address with the address named after it, the hash of its frame and the run
+that first walked it; groups them into columns as they come, with the number of frames of each
+and whether its shape is the plain one (minors 0, 1, 2, …; then minor 0 of the column numbered
+one higher); lists whatever is not of that shape under "unexpected", and addresses out of order
+or not chained, if there were any; says whether the row was left and what was named then; holds
+the column of S1b.1 against a stored verdict of S1b.1 (the same addresses, frames and addresses
+named, and no frame more or fewer); and lists which known frames were walked. A chain that
+halted is summarized as far as its accepted runs went, with its last column marked as not walked
+whole.
+
+`grade_s1b2.py` compares that summary with the database: the frame count of every column walked
+whole; the list of columns; the total; and the address named after the row against the first
+frame of the row next in the database's order — which is offered as what it is, since the
+database lists frames and does not say what a device names. For a chain that halted it compares
+the columns walked whole and says the rest was not compared. A test holds that only the two
+graders name the database, that the grader imports nothing of the chain's, and that the chain
+and the summary contain no number that could be a count of columns or frames.
+
+### Tests
+
+272 tests in all, 26 of them new. The model rows are made up — 26 columns of 2 to 28 frames, 128
+frames, column 23 placed so that it holds the known frames — so that nothing passes because a
+number was known. On the twin behind the pretended board:
+
+- a row walked from its first address to the address named after its last, in three runs of 64,
+  64 and 2 frames; every frame once in order; each seam frame read by two runs; the board given
+  the planned block and no other;
+- a chain taken up after one run, and after two, is the same chain; looking at it runs nothing;
+- halts: an overflow, a frame that differs between two reads, a run that left nothing behind, a
+  card copy that is not the result, a failing first run — and a board that would now pass is not
+  tried again; a seam whose content differs, a seam after which another address is named (each
+  run passing by itself); a stored result with one word changed, with and without its record
+  made to agree; a record edited six ways; a gap; a run moved aside; a run after the end;
+- the bound; and nine decisions the twin cannot be made to produce, on runs written out as the
+  judge would describe them (passes that disagree in each way, a walk shorter than its passes
+  say, a run that did not end, one frame at the limit);
+- the ends of a row: an address outside the envelope; an address not above the last frame, and
+  the same address again (the prober's own stop, status `0x800`); a row that ends exactly where
+  a run reaches its limit; a row shorter than one run; an address inside the envelope of an
+  unexpected shape, followed and listed;
+- the row summary and the grader on those chains, and on a database that says the same, one
+  frame more in a column, a column more, a column fewer, no further row, another row;
+- the one rule of the judge of a run, against S1b.1's judge on the same results.
+
+(The record of the mutants is added with the next commit: MUTANT_RESULT_26.)
+
+### What the tests cannot show
+
+That the device behaves at a column's edge, at the first address and at the end of the row as
+the twin does: the twin's rows are what I wrote. That is what the board run is for, and why
+every way the chain can end short of the row's end is a halt with a report.
+
+### Proposed for the board
+
+`s1b2_chain.py --dir evidence/s1b2_17A6_<date> --go`, with nothing else running on the host.
+
+1. **The first run alone** (`--max-new 1`): it reads the first 64 addresses of the row, none of
+   which has been read before. I look at it before going on; if it is not an accepted run, the
+   chain stands halted and I report.
+2. **Then the chain to its end** — complete, or halted by its own rules. About four minutes a
+   run; the bound is 48 runs.
+3. The runs, `chain.json` and the row summary are **committed, whatever they say**. A full run
+   stores about 3 MB (result, record, verdict, console transcript), so the row may add some
+   tens of megabytes to the repository; nothing is left out.
+4. **Then the grader**, on the committed summary; its output is recorded and committed.
+5. Stop and report.
+
+**Before the board:** the owner's review.

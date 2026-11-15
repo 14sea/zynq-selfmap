@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
 sys.path.insert(0, str(ROOT / "tests"))
+import scratch_dirs  # noqa: E402
 import s1a_judge  # noqa: E402
 from test_prober_twin import Run, params  # noqa: E402
 
@@ -206,8 +207,7 @@ class CommandLine(unittest.TestCase):
     """The judge run by hand on a file: the same strictness as through the run script."""
 
     def run_cli(self, data: bytes, planned: list[int]):
-        import tempfile
-        d = Path(tempfile.mkdtemp(prefix="smjudge_"))
+        d = Path(scratch_dirs.mkdtemp(prefix="smjudge_"))
         (d / "result.bin").write_bytes(data)
         (d / "expected.json").write_text(json.dumps({"params": [f"{w:08x}" for w in planned]}))
         p = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_judge.py"), str(d / "result.bin"), str(d / "expected.json")],

@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CORE, JUDGE, RUN, JUDGE2 = "prober/sm_core.c", "host/s1a_judge.py", "host/s1a_run.py", "host/s1b0_judge.py"
 JUDGE4, GRADE = "host/s1b1_judge.py", "host/grade_s1b1.py"
+CHAIN, ROW, GRADE2, JUDGE5 = "host/s1b2_chain.py", "host/s1b2_row.py", "host/grade_s1b2.py", "host/s1b2_judge.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -211,7 +212,7 @@ MUTANTS = [
     (GRADE, "grade: a walk that did not finish is compared as if it were the column", "    if ended != LEFT:", "    if ended == LIMIT:"),
     (GRADE, "grade: a walk at its limit is compared as if it were the column", "    if ended != LEFT:", "    if False:"),
     (GRADE, "grade: the judge's verdict is not carried over", "    if verdict.get(\"verdict\") != \"PASS\":", "    if False:"),
-    (JUDGE4, "judge4: leaving the envelope without the known frames is fine", "    if status == 1 and missing and ends and ends[0][1] == 1:", "    if False:"),
+    (JUDGE4, "judge4: leaving the envelope without the known frames is fine", "    if status == 1 and passed_by and ends and ends[0][1] == 1:", "    if False:"),
     (JUDGE4, "judge4: the header's account of the walk is not checked", "        if got != want:\n            bad(f\"pass {p}:", "        if False:\n            bad(f\"pass {p}:"),
     (JUDGE4, "judge4: the stage is taken from the result", "    if (par[0], par[1], par[2]) != (0x31504D53, 1, STAGE)", "    if (par[0], par[1]) != (0x31504D53, 1)"),
     (JUDGE4, "judge4: a reference flag need not fit the data", "        if rec[\"ref_equal\"] != (1 if healthy(rec) else 0):", "        if False:"),
@@ -265,6 +266,68 @@ MUTANTS = [
     (CORE, "stage 5: a sequence that ends exactly at the top is refused", "            if (seq - 1u > far_hi - par(P_FARS))", "            if (seq > far_hi - par(P_FARS))"),
     (JUDGE2, "judge5: an operation without a read is counted as a read of the pad alone", "rec[\"n\"] == NONE else \"frame_reads\"", "False else \"frame_reads\""),
     (JUDGE2, "judge5: the pad alone is counted as an operation without a read", "rec[\"n\"] == NONE else \"frame_reads\"", "rec[\"n\"] in (0, NONE) else \"frame_reads\""),
+    # ---- 2026-11-15: S1b.2, the chain along the row (section 26)
+    (CHAIN, "s1b2: the block planned for a run does not carry its start", "    block[P_START] = start\n", "    block[P_START] = base[P_START]\n"),
+    (CHAIN, "s1b2: a run record of another stage is taken", "    if rec.get(\"stage\") != STAGE:", "    if False:"),
+    (CHAIN, "s1b2: a run in which the prober was not started is taken", "    if not rec.get(\"went\"):", "    if False:"),
+    (CHAIN, "s1b2: a run the run script stopped is taken", "    if rec.get(\"stop\"):", "    if False:"),
+    (CHAIN, "s1b2: a run the run script failed is taken", "    if rec.get(\"verdict\") != \"PASS\":", "    if False:"),
+    (CHAIN, "s1b2: a run without a verified card copy is taken", "    if not rec.get(\"card_verified\"):", "    if False:"),
+    (CHAIN, "s1b2: a run started elsewhere than the chain plans is taken", "    if (rec.get(\"chain\") or {}).get(\"start\") != f\"{start:#010x}\":", "    if False:"),
+    (CHAIN, "s1b2: a stored result is not held against the board's checksum", "    if len(raw) % 4 or f\"{zlib.crc32(raw) & 0xFFFFFFFF:08x}\" != rec.get(\"board_crc32\"):", "    if len(raw) % 4:"),
+    (CHAIN, "s1b2: the judge's verdict of a stored run is not asked for", "    if v[\"verdict\"] != \"PASS\":\n        bad(f\"the judge says", "    if False:\n        bad(f\"the judge says"),
+    (CHAIN, "s1b2: a run is judged against the set's block, not the one planned for it", "known, planned(base, start))", "known, planned(base, base[P_START]))"),
+    (CHAIN, "s1b2: run directories with a gap are taken", "    if names != [f\"run{k:02d}\" for k in range(len(names))]:", "    if False:"),
+    (CHAIN, "s1b2: one pass is enough", "            if len(ends) != base[P_PASSES] or len(set(ends)) != 1:", "            if len(set(ends)) != 1:"),
+    (CHAIN, "s1b2: the passes need not end alike", "            if len(ends) != base[P_PASSES] or len(set(ends)) != 1:", "            if len(ends) != base[P_PASSES]:"),
+    (CHAIN, "s1b2: the walk need not be as long as its passes say", "            elif ends[0][1] != len(r[\"walk\"]) or not r[\"walk\"]:", "            elif not r[\"walk\"]:"),
+    (CHAIN, "s1b2: seam: the address is not compared", "            if b[\"far\"] != a[\"far\"]:", "            if False:"),
+    (CHAIN, "s1b2: seam: the content is not compared", "            elif b[\"frame_sha256\"] != a[\"frame_sha256\"]:", "            elif False:"),
+    (CHAIN, "s1b2: seam: the address named is not compared", "            elif b[\"next\"] != a[\"next\"]:", "            elif False:"),
+    (CHAIN, "s1b2: runs after the row was left are overlooked", "            if names[k + 1:]:\n                return halted(f\"{name} left the envelope", "            if False:\n                return halted(f\"{name} left the envelope"),
+    (CHAIN, "s1b2: a run that ended neither way is gone on from", "        if ended != LIMIT or frames < 2:", "        if frames < 2:"),
+    (CHAIN, "s1b2: a run of one frame at the limit is gone on from", "        if ended != LIMIT or frames < 2:", "        if ended != LIMIT:"),
+    (CHAIN, "s1b2: the next run begins at the address named, without a seam", "        start, prev = int(r[\"walk\"][-1][\"far\"], 16), r", "        start, prev = int(named, 16), r"),
+    (CHAIN, "s1b2: the bound allows one run more", "    if len(names) >= max_runs:", "    if len(names) > max_runs:"),
+    (CHAIN, "s1b2: the two endings are taken for each other", "LEFT, LIMIT = s1b2_judge.END[1], s1b2_judge.END[2]", "LEFT, LIMIT = s1b2_judge.END[2], s1b2_judge.END[1]"),
+    (CHAIN, "s1b2: a run is judged by the judge of S1b.1", "    v = s1b2_judge.judge(", "    v = s1b2_judge.s1b1_judge.judge("),
+    (CHAIN, "s1b2: a chain that is not to go on is gone on with", "        if a[\"state\"] != \"go on\" or (max_new is not None and added >= max_new):", "        if a[\"state\"] == \"complete\" or (max_new is not None and added >= max_new):"),
+    (ROW, "s1b2 row: the seam frames are listed twice", "        seq += [dict(s, run=r[\"dir\"]) for s in r[\"walk\"][(1 if seq else 0):]]", "        seq += [dict(s, run=r[\"dir\"]) for s in r[\"walk\"]]"),
+    (ROW, "s1b2 row: the frames of a run that did not pass are listed", "        if r[\"decision\"] == \"halt\":                      # a run that did not pass adds nothing\n            break", "        if r[\"decision\"] == \"halt\":                      # a run that did not pass adds nothing\n            pass"),
+    (ROW, "s1b2 row: the last column of a chain that halted counts as whole", "        c[\"walked_whole\"] = complete or not last_of_all", "        c[\"walked_whole\"] = True"),
+    (ROW, "s1b2 row: the minors are not looked at", "        c[\"minors_are_0_to_n_minus_1\"] = c[\"minors\"] == list(range(c[\"frames\"]))", "        c[\"minors_are_0_to_n_minus_1\"] = True"),
+    (ROW, "s1b2 row: any minor of the next column will do", " and named & 0x7F == 0\n", "\n"),
+    (ROW, "s1b2 row: any column will do as the next", "(*c[\"_place\"][:3], c[\"_place\"][3] + 1)", "(*c[\"_place\"][:3], place(named)[3])"),
+    (ROW, "s1b2 row: a column of another row is not remarked", "        if i and c[\"_place\"][:3] != columns[i - 1][\"_place\"][:3]:", "        if False:"),
+    (ROW, "s1b2 row: addresses out of order are not remarked", "    if any(int(b[\"far\"], 16) <= int(a[\"far\"], 16) for a, b in zip(seq, seq[1:])):", "    if False:"),
+    (ROW, "s1b2 row: a broken chain of addresses is not remarked", "    if any(a[\"next\"] != b[\"far\"] for a, b in zip(seq, seq[1:])):", "    if False:"),
+    (ROW, "s1b2 row: the frames of S1b.1 are not compared", "            \"same_frames\": all(here[t[\"far\"]][\"frame_sha256\"] == t[\"frame_sha256\"] for t in covered),", "            \"same_frames\": True,"),
+    (ROW, "s1b2 row: the addresses S1b.1 was told are not compared", "            \"same_addresses_named\": all(here[t[\"far\"]][\"next\"] == t[\"next\"] for t in covered),", "            \"same_addresses_named\": True,"),
+    (ROW, "s1b2 row: a longer column here passes for S1b.1's", " == [t[\"far\"] for t in theirs]}", " != []}"),
+    (ROW, "s1b2 row: a walk of S1b.1 that lists nothing passes for the same column", "            \"the_same_column\": bool(theirs) and [", "            \"the_same_column\": [] == [] or bool(theirs) and ["),
+    (ROW, "s1b2 row: every known frame counts as walked", "    out[\"known_frames_walked\"] = [f\"{a:#010x}\" for a in known_addresses if a in walked]", "    out[\"known_frames_walked\"] = [f\"{a:#010x}\" for a in known_addresses]"),
+    (ROW, "s1b2 row: the column field is taken a bit short", "\"column\": (far >> 7) & 0x3FF,", "\"column\": (far >> 7) & 0x1FF,"),
+    (ROW, "s1b2 row: the row field begins a bit lower", "\"row\": (far >> 17) & 0x1F,", "\"row\": (far >> 16) & 0x1F,"),
+    (ROW, "s1b2 row: an unexpected last column of a complete row is not remarked when its minors are off", "        if not c[\"minors_are_0_to_n_minus_1\"]:", "        if not c[\"minors_are_0_to_n_minus_1\"] and not last_of_all:"),
+    (GRADE2, "s1b2 grade2: a different frame count is not a difference", "        elif entry[\"database\"] != c[\"frames\"]:", "        elif False:"),
+    (GRADE2, "s1b2 grade2: a column cut short may hold more than the database gives it", "entry[\"database\"] is not None and c[\"frames\"] <= entry[\"database\"] else", "entry[\"database\"] is not None else"),
+    (GRADE2, "s1b2 grade2: the list of columns is not compared", "    (out[\"agrees\"] if numbers == expected else out[\"differs\"]).append(", "    (out[\"agrees\"] if True else out[\"differs\"]).append("),
+    (GRADE2, "s1b2 grade2: a complete row is compared with a beginning of the database's", "    expected = sorted(theirs)[:len(numbers)] if not reached else sorted(theirs)", "    expected = sorted(theirs)[:len(numbers)]"),
+    (GRADE2, "s1b2 grade2: the frames of the row are not added up", "    (out[\"agrees\"] if total == sum(theirs.values()) else out[\"differs\"]).append(", "    (out[\"agrees\"] if True else out[\"differs\"]).append("),
+    (GRADE2, "s1b2 grade2: the row after is the same row", "nxt, what = address(first[\"block_type\"], first[\"half\"], first[\"row\"] + 1, 0, 0)", "nxt, what = address(first[\"block_type\"], first[\"half\"], first[\"row\"], 0, 0)"),
+    (GRADE2, "s1b2 grade2: after the top half comes the top half", "nxt, what = address(first[\"block_type\"], \"bottom\", 0, 0, 0)", "nxt, what = address(first[\"block_type\"], \"top\", 0, 0, 0)"),
+    (GRADE2, "s1b2 grade2: the address named after the row is not compared", "    (out[\"agrees\"] if named == nxt else out[\"differs\"]).append(", "    (out[\"agrees\"] if True else out[\"differs\"]).append("),
+    (GRADE2, "s1b2 grade2: what the summary lists as unexpected is passed over in silence", "    if row.get(\"unexpected\"):", "    if False:"),
+    (GRADE2, "s1b2 grade2: a chain that halted is graded as a whole row", "    reached = bool(row.get(\"end\", {}).get(\"reached\"))", "    reached = True"),
+    (GRADE2, "s1b2 grade2: columns of another row among them are not remarked", "    if any({k: c[k] for k in where} != where for c in walked):", "    if False:"),
+    (RUN, "s1b2 run: any set may be given a start", "    if stage not in STARTS_AT_RUN_TIME:", "    if False:"),
+    (RUN, "s1b2 run: a start outside the envelope is sent", "    if not lo <= start <= hi:", "    if not lo <= start:"),
+    (RUN, "s1b2 run: the start given is not put into the block", "    params[P_START] = f\"{start:08x}\"\n", ""),
+    (RUN, "s1b2 run: where the start came from is not recorded", "    if \"chain\" in exp:                               # a starting address", "    if False:                                        # a starting address"),
+    (RUN, "s1b2 run: a run of the chain is judged by the judge of S1b.1", "          \"s1b2\": {\"judge\": s1b2_judge,", "          \"s1b2\": {\"judge\": s1b1_judge,"),
+    (JUDGE4, "s1b2 judge4: S1b.1 no longer fails a walk that began beyond the known frames", "    passed_by = [f for f in missing if f >= start or not run_of_a_chain]", "    passed_by = [f for f in missing if f >= start]"),
+    (JUDGE4, "s1b2 judge4: a run of a chain is never failed for a known frame", "    passed_by = [f for f in missing if f >= start or not run_of_a_chain]", "    passed_by = [f for f in missing if not run_of_a_chain]"),
+    (JUDGE5, "s1b2 judge of a run: it is S1b.1's judge after all", "    return s1b1_judge.judge(words, known, planned, run_of_a_chain=True)", "    return s1b1_judge.judge(words, known, planned, run_of_a_chain=False)"),
     # ---- 2026-11-15: S1b.1 with the quiet wait (section 23)
     (RUN, "run: the quiet walk is judged as a stage-5 result", "          \"s1b1r\": {\"judge\": s1b1_judge,", "          \"s1b1r\": {\"judge\": dx_judge,"),
     (RUN, "run: the quiet walk is given the walk's old parameters", "\"s1b1r\": {\"judge\": s1b1_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b1r.json\"},", "\"s1b1r\": {\"judge\": s1b1_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b1.json\"},"),
@@ -304,8 +367,16 @@ MUTANTS = [
 ]
 
 
+NEEDS_FREE = 8 << 30                                 # bytes free where the scratch copies go, or nothing is started
+
+
 def suite(tree: Path) -> tuple[bool, str]:
-    r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True)
+    tmp = tree.parent / "tmp"                            # whatever a run of the suite leaves behind goes with it, also if it was cut short
+    shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
+    try:
+        r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True, env={**os.environ, "TMPDIR": str(tmp)})
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
     out = r.stdout + r.stderr
     ran = re.search(r"^Ran (\d+) tests", out, re.M)
     res = re.findall(r"^(OK|FAILED.*)$", out, re.M)
@@ -327,6 +398,9 @@ def main() -> int:
     only = sys.argv[1] if len(sys.argv) > 1 else ""       # an optional substring: run just the mutants whose name contains it
     chosen = [m for m in MUTANTS if only in m[1]]
     jobs = max(1, min(int(os.environ.get("SM_MUTANT_JOBS", "8")), len(chosen) or 1))
+    free = shutil.disk_usage(tempfile.gettempdir()).free  # every worker has a copy of the tree and what one run of the suite writes
+    if free < NEEDS_FREE:
+        print(f"only {free >> 20} MB free in {tempfile.gettempdir()}; {NEEDS_FREE >> 20} MB wanted before the mutants are run"); return 2
     first = scratch()
     killed, summary = suite(first)
     print(f"unmutated: {summary}")

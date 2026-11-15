@@ -165,6 +165,12 @@ class Image(unittest.TestCase):
         # S1b.1 with the wait that touches no memory while a transfer runs (docs/s1b_plan.md, sections 22 and 23): the
         # walk's own parameter block with that wait chosen in word 15, and nothing else changed
         p4r = list(p4); p4r[15] = 2 << 8
+        # S1b.2 (docs/s1b_plan.md, section 25): the walk in a chain of runs along the row. The envelope is every address
+        # whose block type, half and row fields are zero (UG470's layout of the address word); the reference frame, the
+        # passes, the limit and the wait are those of s1b1r. The starting address is the one word that differs from run
+        # to run: this file holds the first run's, address 0; the run script puts in each later one.
+        p5 = list(p4r); p5[3], p5[4], p5[16] = 0x00000000, 0x0001FFFF, 0x00000000
+        (BUILD / "expected_s1b2.json").write_text(json.dumps(dict(e4, stage="S1b.2, one run of the chain", params=[f"{w:08x}" for w in p5]), indent=1) + "\n")
         (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
         # two parameter sets for stage 2, to count frame reads until the receive FIFO overflows (the run stops at the
         # first interface failure): sixteen operations, eight repeats — 128 reads of one frame over the three known

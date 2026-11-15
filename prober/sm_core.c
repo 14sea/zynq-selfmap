@@ -492,8 +492,14 @@ static uint32_t run_s2(void)
         seq = par(P_DIAG_SEQ); extra = par(P_DIAG_STACK);
         if (seq > MAX_DIAG_SEQ || extra > MAX_DIAG_STACK || (seq != 0u && (n_ops != 1u || repeats > 2u)))
             return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
-        if (seq != 0u)
+        if (seq != 0u) {
+            /* the sequence must end at or below the top of the envelope, and that is settled by subtraction: the
+             * addresses are 32-bit sums, and one past 0xffffffff would come back as 0, inside a wide enough envelope.
+             * (A first address above the top makes the difference meaningless; the loop below refuses it at once.) */
+            if (seq - 1u > far_hi - par(P_FARS))
+                return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
             n_ops = 2u * seq;                           /* each address of the sequence is checked like any other, just below */
+        }
     }
     for (k = 0; k < n_ops; k++) {
         far = op_far(k, seq); n = op_n(k, seq);

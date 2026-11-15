@@ -699,5 +699,60 @@ counted is how far the prober got.
 - Nothing here recovers from an overflow, and nothing reads an address the walk has not read.
 
 **Before the board:** the owner's review. Then, with nothing else running on the host, the
-series above; stop and report after it.
+series above; stop and report after it. *(The image named here is not the one to load: the
+review changed it — section 18.)*
 
+## 18. Changes after the review of the diagnostics (2026-11-15; host side, nothing on a board yet)
+
+The review of `e1391ec` found two things. Both were reproduced on the twin as reported, both are
+changed. Neither is reached by the six parameter sets of section 17.
+
+1. **A generated sequence could wrap past the top of the address space** (prober). Stage 5
+   formed the j-th address as a 32-bit sum and checked each one against the envelope. With the
+   envelope open to `0xffffffff`, three addresses from `0xfffffffe` came out as `0xfffffffe`,
+   `0xffffffff`, `0x0` — each inside — and the run completed; the judge, which counts in whole
+   numbers, called the same parameters invalid. The prober now settles the end of the sequence
+   by subtraction (`seq - 1 > hi - first` is refused) before anything is read or written; a first
+   address above the top, for which that difference means nothing, is refused by the check that
+   was already there. A sequence ending exactly at `0xffffffff` is accepted. The judge needed no
+   change.
+2. **An operation without a read was counted as a read of the pad alone** (stage 2/3/5 judge,
+   the summary by polling variable only — no verdict depended on it). The summary sorted by
+   whether a frame had been delivered; "no read" (count 15) delivers none and fell in with the
+   pad alone (count 0). It is now sorted by the count the record carries, into a third number,
+   `operations_without_a_read`. The walk's judge has the same summary and is left as it is: the
+   walk has no such operation, and a record that claims one is already a problem there.
+
+### The image changed, and what was checked about that
+
+The first change is in the prober, so there is a new image: **11,262 bytes, sha256
+`17ad8b14b4229f4fd57fa1b94fdd6dd99c851311ebc10fe7605e9f0f3eed5682`, crc32 `f0912724`** — 28 bytes
+(seven instructions) more than `d5154bb8…`. Because the series of section 17 rests on where the
+reads lie on the stack, the two images were compared (the reviewed one rebuilt from `e1391ec`
+in a scratch copy, hash as recorded):
+
+- every function starts at the address it had — the new instructions are in the stage loop,
+  the last function of the image, before any register is touched;
+- every `push` and every adjustment of the stack pointer, in every function, is the same (34
+  lines of the disassembly, compared as text): `read_op`, `walk_op`, `health4` and the stage
+  loop have the frames listed in section 17;
+- the rest of the difference is that code after the new instructions, and the strings after
+  the code, lie 28 bytes further on.
+
+So the depths in section 17's table still hold; the records' own polling-variable word remains
+what is read, and `dxw0` remains the control.
+
+### State
+
+- Image: as above. The six parameter sets are unchanged.
+- Host checks: 233 tests (one added: the sequence at the top of the address space, refused when
+  it would pass the top, accepted when it ends there; the summary's third number is added to
+  the existing test of the summary). 225 deliberate defects, five of them new (the new check
+  removed; off by one address in either direction; "no read" counted with the pad alone; the
+  pad alone counted with "no read"). A complete run after the change
+  failed all 225, each with all 233 tests run and none failing to build
+  (`evidence/host_checks/mutants_2026-11-15_review.txt`).
+- Nothing here recovers from an overflow, and nothing reads an address the walk has not read.
+
+**Before the board:** the owner's review of this section. Then, with nothing else running on the
+host, the series of section 17 with the image of this section; stop and report after it.

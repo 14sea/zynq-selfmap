@@ -327,8 +327,11 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
     for rec, shown in zip(recs, out["records"]):
         if rec["kind"] == 0:
             key = shown["poll_variable_at"]
-            s = spots.setdefault(key, {"address_mod_32": int(key, 16) % 32, "frame_reads": 0, "pad_only_reads": 0, "interface_failures": []})
-            s["frame_reads" if rec["frames"] else "pad_only_reads"] += 1
+            s = spots.setdefault(key, {"address_mod_32": int(key, 16) % 32, "frame_reads": 0, "pad_only_reads": 0,
+                                       "operations_without_a_read": 0, "interface_failures": []})
+            # by the count the record carries, not by what was delivered: the pad alone (0) is a read of 101 words,
+            # "no read" (15) sends no read command at all — neither delivers a frame
+            s["operations_without_a_read" if rec["n"] == NONE else "frame_reads" if rec["n"] else "pad_only_reads"] += 1
             if rec["code"] >= 0x20:
                 s["interface_failures"].append(rec["i"])
     out["polling_variable"] = spots

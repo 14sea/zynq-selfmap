@@ -120,6 +120,21 @@ class StageFive(unittest.TestCase):
                 self.assertEqual((r.status, r.n_records, r.accesses, r.dmas), (0x500, 0, [], []))
                 self.assertEqual(r.uart, "SM5 start\r\nSM5 end status=00000500\r\n")
         self.assertEqual(Run4(extra=65).status, 0x500)
+
+    def test_a_sequence_that_would_run_past_the_top_of_the_address_space_is_refused_not_wrapped(self) -> None:
+        """Review, 2026-11-15: the addresses are 32-bit sums. With the envelope open to 0xffffffff, three addresses from
+        0xfffffffe came out as 0xfffffffe, 0xffffffff, 0 — each inside the envelope — and the run completed."""
+        top = {"lo": 0, "hi": 0xFFFFFFFF, "ref": 0xB99, "ops": [(0xFFFFFFFE, 0)]}
+        for seq in (3, 4, 32):
+            with self.subTest(seq=seq):
+                r = Run5(**top, seq=seq)
+                self.assertEqual((r.status, r.n_records, r.accesses, r.dmas), (0x500, 0, [], []))
+                self.assertEqual(dx_judge.judge(r.words, KNOWN, r.params)["verdict"], "FAIL")
+        r = Run5(**top, seq=2)                               # ending exactly at the top is inside
+        self.assertEqual((r.status, [(x["far"], x["n"]) for x in r.recs() if x["kind"] == 0]),
+                         (1, [(0xFFFFFFFE, 0), (0xFFFFFFFE, 1), (0xFFFFFFFF, 0), (0xFFFFFFFF, 1)]))
+        self.assertEqual(Run5(lo=0, hi=0xFFFFFFFF, ops=[(0xFFFFFFFF, 0)], seq=2).status, 0x500)
+        self.assertEqual(Run5(ops=[(0xB9A, 0)], seq=1).status, 0x500, "a first address above the top")
         for stage, run in ((2, Run2(extra=8)), (3, Run3(extra=8)), (3, Run3(seq=4))):       # the other stages ignore both words...
             with self.subTest(stage=stage):
                 self.assertEqual(run.status, 1)
@@ -139,7 +154,17 @@ class StageFive(unittest.TestCase):
                 spots = v["polling_variable"]
                 self.assertEqual(len(spots), 1, "the target reads lie at one place")
                 (address, s), = spots.items()
-                self.assertEqual((s["frame_reads"], s["pad_only_reads"], s["interface_failures"], s["address_mod_32"]), (26, 26, [], int(address, 16) % 32))
+                self.assertEqual((s["frame_reads"], s["pad_only_reads"], s["operations_without_a_read"], s["interface_failures"], s["address_mod_32"]),
+                                 (26, 26, 0, [], int(address, 16) % 32))
+        # review, 2026-11-15: an operation that sends no read command is not a read of the pad alone
+        mixed = Run5(lo=0xB98, hi=0xB9A, ops=[(0xB98, 1), (0xB98, 0), (0xB98, NONE), (0xB99, 0)], seq=0, repeats=3)
+        v = judge5(mixed)
+        self.assertEqual((v["verdict"], v["problems"]), ("PASS", []))
+        (s,) = v["polling_variable"].values()
+        self.assertEqual((s["frame_reads"], s["pad_only_reads"], s["operations_without_a_read"]), (3, 6, 3))
+        alone = Run5(lo=0xB98, hi=0xB9A, ops=[(0xB98, NONE)], seq=0)
+        (s,) = judge5(alone)["polling_variable"].values()
+        self.assertEqual((s["frame_reads"], s["pad_only_reads"], s["operations_without_a_read"]), (0, 0, 1))
         known_only = Run5(lo=0xB98, hi=0xB9A, ops=[(0xB98, 0)], seq=3, repeats=2)
         self.assertEqual((judge5(known_only)["verdict"], judge5(known_only)["problems"]), ("PASS", []))
         r = Run5("err@27", poll_limit=30)                    # an error bit in the frame read at the third address

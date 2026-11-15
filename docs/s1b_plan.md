@@ -1291,9 +1291,10 @@ and the summary contain no number that could be a count of columns or frames.
 
 ### Tests
 
-272 tests in all, 26 of them new. The model rows are made up — 26 columns of 2 to 28 frames, 128
-frames, column 23 placed so that it holds the known frames — so that nothing passes because a
-number was known. On the twin behind the pretended board:
+275 tests in all: 26 new ones for the chain, 3 for the tests' own files (below). The model rows
+are made up — 26 columns of 2 to 28 frames, 128 frames, column 23 placed so that it holds the
+known frames — so that nothing passes because a number was known. On the twin behind the
+pretended board:
 
 - a row walked from its first address to the address named after its last, in three runs of 64,
   64 and 2 frames; every frame once in order; each seam frame read by two runs; the board given
@@ -1315,7 +1316,40 @@ number was known. On the twin behind the pretended board:
   frame more in a column, a column more, a column fewer, no further row, another row;
 - the one rule of the judge of a run, against S1b.1's judge on the same results.
 
-(The record of the mutants is added with the next commit: MUTANT_RESULT_26.)
+Mutants: 315 in all, 61 of them new (the chain's rules, the row summary, the grader, the run
+script's starting address, the one rule of the judge of a run). The record of the complete run
+is `evidence/host_checks/mutants_2026-11-15_s1b2.txt`: 315 killed, none survived, none BROKEN or
+STALE; the eight scratch copies pass again once restored. It took three goes, and each of the
+first two showed something that was mine to mend:
+
+- The first run of the 61 new ones alone killed 56. Three survived — the address named after a
+  column was accepted for a column of any number; the last column's minors were not looked at;
+  the grader took a column of another row — and each got a test. Two were BROKEN: one was a kill
+  that happened in `setUpClass`, the other a mutant aimed at a clause that turned out to be
+  redundant, which was removed from `s1b2_row.py`.
+- The first complete run (kept as `mutants_2026-11-15_s1b2_run1.txt`) left 29 of the 315 not
+  counted as killed, none of them a survivor. 28 were BROKEN: the new tests prepared their
+  chains and read the parameter set in `setUpClass`, so with a broken prober whole classes were
+  not run and the number of tests did not match. What several tests share is now made in the
+  first test that asks for it, so that each of them fails by itself. One was STALE: its anchor
+  was the line of S1b.1's judge that this step changed.
+
+### The tests' own files
+
+The complete run after that mending was cut short: the disk was full, and the machine had to be
+started again. The cause was in the tests, and older than this step. Every twin run, pretended
+board and chain left its files in a directory made with `tempfile.mkdtemp`, and nothing removed
+them: about 160 MB for one run of the suite (115 MB before this step), and a complete run of the
+mutants is some 330 runs of the suite — about 50 GB, several times that day.
+
+- `tests/scratch_dirs.py`: the tests make their directories under one root per process, removed
+  when the process ends, whether it ends well or not. Three tests: that it is so, and that no
+  test file makes directories any other way.
+- `tests/mutants.py` gives every run of the suite a directory of its own and removes it after
+  the run, also if the run was cut short; and it does not start with less than 8 GB free.
+
+Measured afterwards: a run of the suite leaves nothing behind, and during the complete run of
+the mutants the temporary directory stayed near 1 GB (the eight copies of the tree).
 
 ### What the tests cannot show
 

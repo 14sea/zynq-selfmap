@@ -1422,6 +1422,13 @@ and those are what the next step would have relied on.
 
 Six mutants for the two rules, all killed. A seventh (the address named after the row counted
 as walked) could not change anything — that address is outside the envelope and is not asked
-for — and was removed. MUTANT_RESULT_27
+for — and was removed.
+
+The complete run afterwards (`evidence/host_checks/mutants_2026-11-15_s1b2_review.txt`): 321
+mutants, 320 killed, none survived, none BROKEN; one STALE — "runs after the row was left are
+overlooked", whose anchor was two lines of the chain that this mending rearranged. Its anchor
+was put right and that mutant run alone: killed (`mutants_2026-11-15_s1b2_review_stale.txt`).
+Nothing but the list of mutants changed between the two records, so the other 320 were not run
+again. During the run the temporary directory stayed near 1.2 GB.
 
 The prober and the image are unchanged. Nothing was run on a board.

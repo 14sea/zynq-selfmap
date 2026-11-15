@@ -290,7 +290,7 @@ MUTANTS = [
     (CHAIN, "s1b2: seam: the address is not compared", "            if b[\"far\"] != a[\"far\"]:", "            if False:"),
     (CHAIN, "s1b2: seam: the content is not compared", "            elif b[\"frame_sha256\"] != a[\"frame_sha256\"]:", "            elif False:"),
     (CHAIN, "s1b2: seam: the address named is not compared", "            elif b[\"next\"] != a[\"next\"]:", "            elif False:"),
-    (CHAIN, "s1b2: runs after the row was left are overlooked", "            if names[k + 1:]:\n                return halted(f\"{name} left the envelope", "            if False:\n                return halted(f\"{name} left the envelope"),
+    (CHAIN, "s1b2: runs after the row was left are overlooked", "            if names[k + 1:]:\n                r[\"decision\"] = \"complete\"", "            if False:\n                r[\"decision\"] = \"complete\""),
     (CHAIN, "s1b2: a run that ended neither way is gone on from", "        if ended != LIMIT or frames < 2:", "        if frames < 2:"),
     (CHAIN, "s1b2: a run of one frame at the limit is gone on from", "        if ended != LIMIT or frames < 2:", "        if ended != LIMIT:"),
     (CHAIN, "s1b2: the next run begins at the address named, without a seam", "        start, prev = int(r[\"walk\"][-1][\"far\"], 16), r", "        start, prev = int(named, 16), r"),

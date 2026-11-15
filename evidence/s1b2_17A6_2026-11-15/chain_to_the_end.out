@@ -1,0 +1,40 @@
+run00: start 0x00000000, 64 frames, last 0x00000095, then 0x00000096 — go on
+run01: start 0x00000095, 64 frames, last 0x00000192, then 0x00000193 — go on
+run02: start 0x00000192, 64 frames, last 0x00000289, then 0x0000028a — go on
+run03: start 0x00000289, 64 frames, last 0x00000388, then 0x00000389 — go on
+run04: start 0x00000388, 64 frames, last 0x00000423, then 0x00000480 — go on
+run05: start 0x00000423, 64 frames, last 0x00000522, then 0x00000523 — go on
+run06: start 0x00000522, 64 frames, last 0x00000619, then 0x0000061a — go on
+run07: start 0x00000619, 64 frames, last 0x00000710, then 0x00000711 — go on
+run08: start 0x00000710, 64 frames, last 0x0000080f, then 0x00000810 — go on
+run09: start 0x0000080f, 64 frames, last 0x0000090e, then 0x0000090f — go on
+run10: start 0x0000090e, 64 frames, last 0x00000a05, then 0x00000a06 — go on
+run11: start 0x00000a05, 64 frames, last 0x00000aa0, then 0x00000aa1 — go on
+run12: start 0x00000aa0, 64 frames, last 0x00000b9f, then 0x00000ba0 — go on
+run13: start 0x00000b9f, 64 frames, last 0x00000c96, then 0x00000c97 — go on
+run14: start 0x00000c96, 64 frames, last 0x00000d95, then 0x00000d96 — go on
+run15: start 0x00000d95, 64 frames, last 0x00000e8c, then 0x00000e8d — go on
+run16: start 0x00000e8c, 64 frames, last 0x00000f83, then 0x00000f84 — go on
+run17: start 0x00000f83, 64 frames, last 0x0000101e, then 0x0000101f — go on
+run18: start 0x0000101e, 64 frames, last 0x00001115, then 0x00001116 — go on
+run19: start 0x00001115, 64 frames, last 0x00001212, then 0x00001213 — go on
+run20: start 0x00001212, 64 frames, last 0x00001309, then 0x0000130a — go on
+run21: start 0x00001309, 64 frames, last 0x00001406, then 0x00001407 — go on
+run22: start 0x00001406, 64 frames, last 0x000014a1, then 0x000014a2 — go on
+run23: start 0x000014a1, 64 frames, last 0x000015a0, then 0x000015a1 — go on
+run24: start 0x000015a0, 64 frames, last 0x00001697, then 0x00001698 — go on
+run25: start 0x00001697, 64 frames, last 0x00001796, then 0x00001797 — go on
+run26: start 0x00001796, 64 frames, last 0x0000188d, then 0x0000188e — go on
+run27: start 0x0000188d, 64 frames, last 0x0000198c, then 0x0000198d — go on
+run28: start 0x0000198c, 64 frames, last 0x00001a83, then 0x00001a84 — go on
+run29: start 0x00001a83, 64 frames, last 0x00001b80, then 0x00001b81 — go on
+run30: start 0x00001b80, ? frames, last None, then None — halt
+{
+ "set_aside": [],
+ "state": "halted",
+ "why": [
+  "run30: the run script's verdict is FAIL: []",
+  "run30: the judge says FAIL: ['after the frame at 0x00001ba9 the register held 0x00400000, but the device names 0x00001ba9 after 0x00001ba9', 'the run did not complete: status 0x800 (the device named an address that is not above the one it was asked about)']"
+ ]
+}
+31 run(s) stored; the chain: halted

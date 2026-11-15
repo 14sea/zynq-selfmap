@@ -2,7 +2,8 @@
 """Judge one run of the chain of S1b.2 (docs/s1b_plan.md, section 25): the judge of the walk, see s1b1_judge, with
 the one difference a run of a chain needs. S1b.1's judge fails a walk that leaves the envelope without having
 passed the known frames; a run of the chain that begins beyond them cannot pass them, and is not failed for it —
-only for a known frame at or above its own start. Everything else is the walk's judge unchanged."""
+only for a known frame at or above its own start. Everything else is the walk's judge unchanged — including
+that a known frame the walk went past without reading fails the run, however the pass ended (section 27)."""
 from __future__ import annotations
 
 import json

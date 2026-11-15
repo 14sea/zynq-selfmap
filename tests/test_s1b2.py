@@ -253,17 +253,32 @@ class TheChain(unittest.TestCase):
             return {"problems": [], "judge": "PASS", "result_sha256": "x", "walk": walk, "passes": passes or [one, dict(one)]}
         saved = chain.read_run
 
-        def assess(*runs: dict, max_runs: int = 48) -> dict:
+        in_them = {"frames": {"0x00000005": {}, "0x00000080": {}}}        # known frames that lie in these made-up walks: in run 0 and in run 2
+
+        def assess(*runs: dict, max_runs: int = 48, known: dict = in_them) -> dict:
             root = Path(scratch_dirs.mkdtemp(prefix="smsynth_"))
             for k in range(len(runs)):
                 (root / f"run{k:02d}").mkdir()
             chain.read_run = lambda d, base, start, known: {"dir": d.name, "start": f"{start:#010x}", **json.loads(json.dumps(runs[int(d.name[3:])]))}
             try:
-                return chain.assess(root, self.base, KNOWN, max_runs)
+                return chain.assess(root, self.base, known, max_runs)
             finally:
                 chain.read_run = saved
-        good = assess(run(0, 64), run(63, 64), run(126, 5, chain.LEFT, "0x00020000"))
+        three = (run(0, 64), run(63, 64), run(126, 5, chain.LEFT, "0x00020000"))
+        good = assess(*three)
         self.assertEqual((good["state"], good["named_after_the_last_frame"], [r["decision"] for r in good["runs"]]), ("complete", "0x00020000", ["go on", "go on", "complete"]))
+        # the chain's own count of the known frames, whatever the judges of the runs said: every one in the envelope walked by some run
+        for name, frames, missed in (("none of them walked", KNOWN["frames"], "0x00000b98, 0x00000b99, 0x00000b9a"),
+                                     ("one of three not walked", {"0x00000005": {}, "0x00000080": {}, "0x00000090": {}}, "0x00000090"),
+                                     ("the frame above the last one walked", {"0x00000005": {}, "0x00000083": {}}, "0x00000083")):
+            with self.subTest(name):
+                a = assess(*three, known={"frames": frames})
+                self.assertEqual((a["state"], a["why"], [r["decision"] for r in a["runs"]]),
+                                 ("halted", [f"run02 left the envelope, but no run of the chain walked the known frame(s) {missed}"], ["go on", "go on", "halt"]))
+                self.assertNotIn("named_after_the_last_frame", a)
+        outside = assess(*three, known={"frames": {"0x00000005": {}, "0x00020005": {}, "0x00400b98": {}}})
+        self.assertEqual(outside["state"], "complete", "a known frame outside the envelope is not asked of a chain that may not read there")
+        self.assertEqual(assess(*three[:2], known=KNOWN)["state"], "go on", "and while the row has not been left, nothing is asked yet")
         self.assertEqual(assess(run(0, 64), run(63, 64))["next_start"], "0x0000007e")
         one_pass = run(0, 64); one_pass["passes"] = one_pass["passes"][:1]
         longer = run(0, 64); longer["passes"][1]["frames"] = 63
@@ -316,6 +331,40 @@ class TheEndOfARow(unittest.TestCase):
         base_at = chain.planned(self.base, 0xB80)            # a chain may begin anywhere in the envelope: the set's start is its first run's
         a = chain.drive(self.tmp / "short", base_at, KNOWN, runner(addresses, succ))
         self.assertEqual((a["state"], len(a["runs"]), a["runs"][0]["frames"], a["named_after_the_last_frame"]), ("complete", 1, 28, f"{OUTSIDE:#010x}"))
+
+    def test_a_row_whose_known_frames_are_passed_over_is_not_a_row_walked(self) -> None:
+        """Found in review of 7f63553: a run led past the known frames that ends at its limit, not outside the envelope,
+        used to pass; the run after it begins above them and is not asked for them; the chain was 'complete' with none
+        of the known frames walked."""
+        import s1b2_judge
+        addresses, succ = row(sizes=SIZES + [20] * 6, jump={22: 24 << 7})      # after column 22 the device names column 24
+        a = chain.drive(self.tmp / "over", self.base, KNOWN, runner(addresses, succ))
+        went_past = "the walk went past the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a without reading them"
+        self.assertEqual((a["state"], [r["decision"] for r in a["runs"]]), ("halted", ["go on", "halt"]))
+        self.assertTrue(any("run01: the judge says FAIL" in w and went_past in w for w in a["why"]), a["why"])
+        self.assertEqual(row_summary.summarize(a, KNOWN)["known_frames_walked"], [])
+        raw = (self.tmp / "over" / "run01" / "result.bin").read_bytes()
+        words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+        block = chain.planned(self.base, int(a["runs"][0]["last"], 16))
+        for judge in (s1b2_judge.judge, s1b1_judge.judge):                   # the run itself: it ended at the limit, above them
+            v = judge(words, KNOWN, block)
+            self.assertEqual((v["verdict"], v["problems"], v["passes"][0]["ended"], v["frames_walked"]), ("FAIL", [went_past], chain.LIMIT, 64))
+        self.assertLess(int(v["walk"][0]["far"], 16), 0xB98); self.assertGreater(int(v["walk"][-1]["far"], 16), 0xB9A)
+        # run from where that run ended, the rest of this row passes run by run: nothing after it would have noticed
+        rest = list(self.base); rest[chain.P_START] = int(v["walk"][-1]["far"], 16)
+        b = chain.drive(self.tmp / "over_rest", rest, KNOWN, runner(addresses, succ))
+        self.assertEqual(([r["judge"] for r in b["runs"]], [r["decision"] for r in b["runs"]][:-1]), (["PASS"] * len(b["runs"]), ["go on"] * (len(b["runs"]) - 1)))
+        self.assertEqual((b["state"], b["runs"][-1]["decision"], b["runs"][-1]["ended"]), ("halted", "halt", chain.LEFT))
+        self.assertEqual(b["why"], [f"{b['runs'][-1]['dir']} left the envelope, but no run of the chain walked the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a"])
+
+    def test_a_chain_begun_above_the_known_frames_cannot_be_complete(self) -> None:
+        addresses, succ = row()
+        above = list(self.base); above[chain.P_START] = 24 << 7               # the model's column 24: the known frames are in column 23
+        a = chain.drive(self.tmp / "above", above, KNOWN, runner(addresses, succ))
+        self.assertEqual((a["state"], [(r["judge"], r["decision"], r["frames"], r["ended"]) for r in a["runs"]]), ("halted", [("PASS", "halt", 9, chain.LEFT)]))
+        self.assertEqual(a["why"], ["run00 left the envelope, but no run of the chain walked the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a"])
+        self.assertEqual(chain.drive(self.tmp / "above", above, KNOWN, runner(addresses, succ))["state"], "halted", "and nothing more is run")
+        self.assertEqual(len(list((self.tmp / "above").glob("run*/run.json"))), 1)
 
     def test_an_address_inside_the_envelope_is_followed_whatever_its_shape(self) -> None:
         jump = {5: 7 << 7 | 2}                               # after column 5: not column 6, and not minor 0
@@ -578,6 +627,22 @@ class TheRunScriptAndTheJudgeOfARun(unittest.TestCase):
             self.assertEqual((v["verdict"], v["problems"]), ("FAIL", ["the walk left the envelope without passing the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a"]))
         whole = Walk()
         self.assertEqual(s1b2_judge.judge(whole.words, KNOWN, whole.params), s1b1_judge.judge(whole.words, KNOWN, whole.params), "a walk through them: the same verdict, word for word")
+        # led past them and ended by the limit instead: failed all the same, by either judge — the next run of a chain would not be asked
+        at_limit = Walk(succ={0xB83: 0xBF0}, frames=frames_for(addresses + [0xBF2, 0xB99]), limit=6)
+        some = Walk(succ={0xB98: 0xB9A, 0xB9A: 0xBF0}, frames=frames_for([0xB80 + m for m in range(0x19)] + [0xB99, 0xB9A, 0xBF0, 0xBF1, 0xBF2]), limit=28)
+        for judge in (s1b1_judge.judge, s1b2_judge.judge):
+            v = judge(at_limit.words, KNOWN, at_limit.params)
+            self.assertEqual((v["verdict"], v["problems"], v["passes"][0]["ended"], [s["far"] for s in v["walk"]]),
+                             ("FAIL", ["the walk went past the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a without reading them"], chain.LIMIT, [f"{a:#010x}" for a in addresses]))
+            v = judge(some.words, KNOWN, some.params)
+            self.assertEqual((v["verdict"], v["problems"], v["frames_walked"]), ("FAIL", ["the walk went past the known frame(s) 0x00000b99 without reading them"], 28))
+        short = Walk(limit=5)                                # ended by the limit below them: nothing was passed over, nothing is asked
+        up_to = Walk(limit=0x19)                             # ended by the limit on the first of them: the two above it were not passed over
+        beyond_at_limit = Walk(start=0xB9B, limit=4)         # begun above them, ended by the limit: they lie below what was read
+        for w, last in ((short, 0xB84), (up_to, 0xB98), (beyond_at_limit, 0xB9E)):
+            for judge in (s1b1_judge.judge, s1b2_judge.judge):
+                v = judge(w.words, KNOWN, w.params)
+                self.assertEqual((v["verdict"], v["problems"], v["passes"][0]["ended"], v["walk"][-1]["far"]), ("PASS", [], chain.LIMIT, f"{last:#010x}"))
         flipped = Walk("flip@5", start=0xB9B)                # and beyond them a frame that differs between two reads still fails
         self.assertEqual(s1b2_judge.judge(flipped.words, KNOWN, flipped.params)["verdict"], "FAIL")
 

@@ -1373,3 +1373,55 @@ every way the chain can end short of the row's end is a halt with a report.
 5. Stop and report.
 
 **Before the board:** the owner's review.
+
+## 27. Review of `7f63553` (2026-11-15): one finding, accepted — known frames passed over across runs
+
+**Finding (P2).** A chain could report "complete" with none of the known frames walked. The
+judge asked for the known frames only of a pass that left the envelope. A run that was led past
+them and ended at its limit of 64 frames passed; the next run began above them and — by the
+rule of section 26 — was not asked for them; and the chain's completion looked at the last run
+only. The reviewer's case on the twin: the model row with six columns of 20 frames added, and
+the device naming column 24 after column 22. Four runs, all PASS, the chain complete, and
+`known_frames_walked` empty.
+
+Reproduced as described, and accepted. Section 26 argued that "the run of the chain that began
+below a known frame must pass it, and is failed if it does not"; that was true only of a run
+that left the envelope. The row summary did list the three frames as not walked and the step
+from column 22 as unexpected — but the chain's word was "complete" and every judge's was PASS,
+and those are what the next step would have relied on.
+
+**Mended in two places**, each sufficient for this case:
+
+- **The judge of a run** (`s1b1_judge.judge`, with or without the chain's argument): however a
+  pass ended, a known frame whose address lies between the first and the last address the walk
+  read, and which the walk did not read, fails the run — "the walk went past the known frame(s)
+  … without reading them". The rule for a pass that left the envelope is as it was. The run that
+  went past the frames is thus the one that fails, and the chain halts there. For the stored
+  results of S1b.1 and of the series before it nothing changes (the tests that judge them again
+  pass).
+- **The chain** (`s1b2_chain.assess`): when a run leaves the envelope, the chain itself counts —
+  from the walks of all its runs, whatever their judges said — whether every known frame inside
+  the envelope was walked. If not: halted, "… left the envelope, but no run of the chain walked
+  the known frame(s) …". A consequence, and the same as S1b.1's rule for one walk: a chain begun
+  above the known frames cannot be complete. The set in use begins at `0x0`.
+
+**Tests** (277; two new, two extended):
+
+- the reviewer's case: the chain halts at the second run, the one that went past the frames;
+  that run's stored result is failed by both judges with that one problem; and — to show the
+  second mending by itself — the rest of that row, run from where that run ended, passes run by
+  run and is halted by the chain's own count when it leaves the envelope;
+- a chain begun above the known frames: its one run passes, the chain is halted, nothing more is
+  run;
+- on written-out runs: none of the known frames walked, one of three not walked, a frame just
+  above the last one walked — halted; a known frame outside the envelope — not asked; a row not
+  yet left — nothing asked yet;
+- the judge alone, by both judges: led past all three and ended by the limit — failed; one of
+  the three skipped — failed, naming that one; ended by the limit below them, on the first of
+  them, or begun above them — passed.
+
+Six mutants for the two rules, all killed. A seventh (the address named after the row counted
+as walked) could not change anything — that address is outside the envelope and is not asked
+for — and was removed. MUTANT_RESULT_27
+
+The prober and the image are unchanged. Nothing was run on a board.

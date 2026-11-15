@@ -16,8 +16,9 @@ chain goes on after a run only if
   3. both passes ended at the limit, after the same frames, having been told the same address;
   4. (every run but the first) its first frame is the last frame of the run before, with the same content, and the
      address named after it is the one named there.
-It is complete when a run satisfies 1, 2 and 4 and both of its passes ended because the device named an address
-outside the envelope. Anything else halts it, and so does a bound on the number of runs. Nothing is retried: a run
+It is complete when a run satisfies 1, 2 and 4, both of its passes ended because the device named an address
+outside the envelope, and every frame with a known answer in the envelope was walked by some run of the chain.
+Anything else halts it, and so does a bound on the number of runs. Nothing is retried: a run
 directory that does not hold a passing run stays where it is and the chain stands there until someone moves it.
 
 This program knows the layout of nothing: not of the address word, not of a row. It follows the judge's account of
@@ -41,7 +42,7 @@ import s1b2_judge  # noqa: E402
 
 STAGE = "s1b2"
 MAX_RUNS = 48                                        # a bound on unattended board time, not a statement about the row
-P_PASSES, P_START = 7, 16                            # words of the parameter block
+P_LO, P_HI, P_PASSES, P_START = 3, 4, 7, 16          # words of the parameter block: the envelope, the passes, the start
 LEFT, LIMIT = s1b2_judge.END[1], s1b2_judge.END[2]
 RUN_DIR = re.compile(r"^run(\d\d)$")
 
@@ -130,9 +131,17 @@ def assess(root: Path, base: list[int], known: dict, max_runs: int = MAX_RUNS) -
         ended, frames, named = ends[0]
         r.update(frames=frames, first=r["walk"][0]["far"], last=r["walk"][-1]["far"], named_after_the_last=named, ended=ended)
         if ended == LEFT:
-            r["decision"] = "complete"
             if names[k + 1:]:
+                r["decision"] = "complete"
                 return halted(f"{name} left the envelope, yet there are run directories after it: {names[k + 1:]}")
+            # the chain's own count, whatever the judges of the runs let pass: every frame with a known answer that
+            # lies in the envelope was walked by some run before the envelope was left
+            walked = {s["far"] for run in out["runs"] for s in run["walk"]}
+            not_walked = [f"{f:#010x}" for f in sorted(int(a, 16) for a in known["frames"]) if base[P_LO] <= f <= base[P_HI] and f"{f:#010x}" not in walked]
+            if not_walked:
+                r["decision"] = "halt"
+                return halted(f"{name} left the envelope, but no run of the chain walked the known frame(s) {', '.join(not_walked)}")
+            r["decision"] = "complete"
             out.update(state="complete", named_after_the_last_frame=named)
             return out
         if ended != LIMIT or frames < 2:                 # a run that ends at the limit after one frame would begin where it began

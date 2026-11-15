@@ -391,8 +391,14 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
     # known frames at or above its start count. The frames not reached are listed above in either case, and the
     # reference frame, read throughout every run, is held against its known answer as before.
     passed_by = [f for f in missing if f >= start or not run_of_a_chain]
+    # However a pass ended: a known frame whose address the walk went past — it lies between the first address read
+    # and the last — and did not read. A pass that ends at the limit is not excused for it: in a chain the next run
+    # begins above that frame and is not asked for it, so the run that went past it is the one to fail.
+    skipped = [f for f in missing if first_pass and first_pass[0]["far"] < f < first_pass[-1]["far"]]
     if status == 1 and passed_by and ends and ends[0][1] == 1:
         bad("the walk left the envelope without passing the known frame(s) " + ", ".join(f"{f:#010x}" for f in passed_by))
+    elif status == 1 and skipped:
+        bad("the walk went past the known frame(s) " + ", ".join(f"{f:#010x}" for f in skipped) + " without reading them")
     out["reads_at_addresses_without_a_known_answer"] = sum(1 for s in first_pass if s["far"] not in frames_known)
     # the second path: which frames of the walk no clean read of several frames delivered. With one frame walked there
     # is no such read to make; otherwise a completed run covers every frame, and anything listed here is a stopped run's

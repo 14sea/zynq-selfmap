@@ -1,0 +1,2494 @@
+{
+ "problems": [
+  "record 2: no known answer for FAR 0x00000b80",
+  "record 4: no known answer for FAR 0x00000b81",
+  "record 6: no known answer for FAR 0x00000b82",
+  "record 8: no known answer for FAR 0x00000b83",
+  "record 10: no known answer for FAR 0x00000b84",
+  "record 12: no known answer for FAR 0x00000b85",
+  "record 14: no known answer for FAR 0x00000b86",
+  "record 16: no known answer for FAR 0x00000b87",
+  "record 18: no known answer for FAR 0x00000b88",
+  "record 20: no known answer for FAR 0x00000b89",
+  "record 22: no known answer for FAR 0x00000b8a",
+  "record 24: no known answer for FAR 0x00000b8b",
+  "record 26: no known answer for FAR 0x00000b8c",
+  "record 28: no known answer for FAR 0x00000b8d",
+  "record 30: no known answer for FAR 0x00000b8e",
+  "record 32: no known answer for FAR 0x00000b8f",
+  "record 34: no known answer for FAR 0x00000b90",
+  "record 36: no known answer for FAR 0x00000b91",
+  "record 38: no known answer for FAR 0x00000b92",
+  "record 40: no known answer for FAR 0x00000b93",
+  "record 42: no known answer for FAR 0x00000b94",
+  "record 44: no known answer for FAR 0x00000b95",
+  "record 46: no known answer for FAR 0x00000b96",
+  "record 48: no known answer for FAR 0x00000b97"
+ ],
+ "records": [
+  {
+   "index": 0,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "baseline",
+   "op": null,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50023004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ],
+   "poll_variable_at": "0x1eacaa20"
+  },
+  {
+   "index": 1,
+   "far": "0x00000b80",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 0,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b81",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 2,
+   "far": "0x00000b80",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 1,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "547b0291deb4881f5ec002da80fb82a51a0cc4ee6a159cfd7c7d12189b204619"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 3,
+   "far": "0x00000b81",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 2,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 4,
+   "far": "0x00000b81",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 3,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b83",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "8ce2531267622d133dbcb681b79a5568809fe3662c5f74cea452a2a6ec7ee52d"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 5,
+   "far": "0x00000b82",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 4,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b83",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 6,
+   "far": "0x00000b82",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 5,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b84",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "20773f4093442740ab91430f894aaf6e7a1fadf954f4277f8769910866916236"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 7,
+   "far": "0x00000b83",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 6,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b84",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 8,
+   "far": "0x00000b83",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 7,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b85",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e84cf7414e15f0c4d0ec46d21d11d0a92482b1f8c7dc6adc386c08f08f95048e"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 9,
+   "far": "0x00000b84",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 8,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b85",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 10,
+   "far": "0x00000b84",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 9,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b86",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "dec503d3c1046439ac6c0e6eca3c9a58049175407d52374c55856e06f7a794b1"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 11,
+   "far": "0x00000b85",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 10,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b86",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 12,
+   "far": "0x00000b85",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 11,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b87",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "61fd13fb0ec04a6c47b13d0e8ef710057c00ae4ac8e12104f4c1911ad75e79e5"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 13,
+   "far": "0x00000b86",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 12,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b87",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 14,
+   "far": "0x00000b86",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 13,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b88",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "a34a7333760c3ec44557a4316066bddbd613a9c8a405dba9fbf6e5497f27c33d"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 15,
+   "far": "0x00000b87",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 14,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b88",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 16,
+   "far": "0x00000b87",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 15,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b89",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "620e4b7f8451e722fe83722e3cacdba50cbafa81e529228d3d73064c9afea0c0"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 17,
+   "far": "0x00000b88",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 16,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b89",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 18,
+   "far": "0x00000b88",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 17,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "114dedd6dc695151c42a75e76b08919c863daca41999c0cff752038dcf304bb2"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 19,
+   "far": "0x00000b89",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 18,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 20,
+   "far": "0x00000b89",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 19,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "8f92dac8944867ce4d56019504a02c4565d77987f0daba00908cf53f31aaf2a9"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 21,
+   "far": "0x00000b8a",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 20,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 22,
+   "far": "0x00000b8a",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 21,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8c",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "5a619f20ed31c7d617714b489f52d0feea684599b98935d17e591c6eb2f07463"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 23,
+   "far": "0x00000b8b",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 22,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8c",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 24,
+   "far": "0x00000b8b",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 23,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8d",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "62df327b5b8b775b40e12d1f26fdcd737af3a180e7ec0a1dcb601dde2c6917a0"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 25,
+   "far": "0x00000b8c",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 24,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8d",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 26,
+   "far": "0x00000b8c",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 25,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8e",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "162c8e6d635c3d70b23c96d62b0bdb5f58c6ca3219761c20298afe94012e3638"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 27,
+   "far": "0x00000b8d",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 26,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8e",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 28,
+   "far": "0x00000b8d",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 27,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8f",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    1,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "525b5f46c6c46cae2a25c7e2be12bdadf341be7d3aca4f4d25dc5bae74c431d0"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 29,
+   "far": "0x00000b8e",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 28,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b8f",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 30,
+   "far": "0x00000b8e",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 29,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b90",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "d6f209011f29f51fa6cddc06bc5e45089611f6b4a9d578d994d47c83b7e9ca54"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 31,
+   "far": "0x00000b8f",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 30,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b90",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 32,
+   "far": "0x00000b8f",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 31,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b91",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "5054e1eb29e89023d7014df2b938b763b3f42d81331703371a557a64af3f122e"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 33,
+   "far": "0x00000b90",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 32,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b91",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 34,
+   "far": "0x00000b90",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 33,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b92",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "d25d1ddefe47c1f52350c2f603b03fcc674094fd6db6de2ae49b0670535bdcc2"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 35,
+   "far": "0x00000b91",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 34,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b92",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 36,
+   "far": "0x00000b91",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 35,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b93",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "d6d02f5b1a23481ef53f9993b45a5a53c4a4dbc99d3a07ee59b83c77f1fa4280"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 37,
+   "far": "0x00000b92",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 36,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b93",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 38,
+   "far": "0x00000b92",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 37,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b94",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "92c29f338aff3ef663f17c704a237b82c59d1781899b6554dc16e044f7ffe025"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 39,
+   "far": "0x00000b93",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 38,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b94",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 40,
+   "far": "0x00000b93",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 39,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b95",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "d7c5e9a75cfb4382b100433c2980a1f3abb7e3ab44b33be484fedb3ffe932f23"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 41,
+   "far": "0x00000b94",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 40,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b95",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 42,
+   "far": "0x00000b94",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 41,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b96",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "941832b2e789a4f45c3e167d8adc4685a61c1eb68b89a40e7321df0cb16952dc"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 43,
+   "far": "0x00000b95",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 42,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b96",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 44,
+   "far": "0x00000b95",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 43,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b97",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "0605dc17a2f3d90d8df8bbfd437c6d3da9db3d10876b16abed6800b2b11d7b82"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 45,
+   "far": "0x00000b96",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 44,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b97",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 46,
+   "far": "0x00000b96",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 45,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b98",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "debeeaeb3206e73cb80ed0480b75febc9a317aa0eb1efdf9e429f01e7f1676d6"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 47,
+   "far": "0x00000b97",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 46,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b98",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 48,
+   "far": "0x00000b97",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 47,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b99",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e4d5335eb8a4b1332e4449384627088a25d57d2b4c87f2b41be271d0656b166c"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 49,
+   "far": "0x00000b98",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 48,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b99",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 50,
+   "far": "0x00000b98",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 49,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b9a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "09e6542e15d2236ef806ab934ff70db967cde6d248bda996b753d6542839351c"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 51,
+   "far": "0x00000b99",
+   "frames": 0,
+   "words": 101,
+   "kind": "target",
+   "op": 50,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b9a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 52,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "target",
+   "op": 51,
+   "code": "0x0",
+   "repeat": 0,
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ],
+   "poll_variable_at": "0x1eaca9f8"
+  },
+  {
+   "index": 53,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "final",
+   "op": null,
+   "code": "0x0",
+   "repeat": 1,
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ],
+   "poll_variable_at": "0x1eacaa20"
+  }
+ ],
+ "header": {
+  "status": "0x1",
+  "records": 54,
+  "anomalies": 0,
+  "total_words": 25984,
+  "ctrl": "4e00e07f",
+  "mctrl": "30800100",
+  "int_sts_initial": "50021004",
+  "status_initial": "40000f30",
+  "sctlr": "08c51878",
+  "cpsr": "800001d3",
+  "sp": "1eacab18",
+  "r9": "1ead0ec0",
+  "int_sts_final": "50033004",
+  "status_final": "50000f30",
+  "stop_record": "0xffffffff"
+ },
+ "expected_console": [
+  "SM5 start",
+  "SM5 end status=00000001 records=00000036 anomalies=00000000 words=00006580"
+ ],
+ "expected_return_code": "0x0",
+ "params": {
+  "far_lo": "0x00000b80",
+  "far_hi": "0x00000b99",
+  "ref_far": "0x00000b99",
+  "operations": 1,
+  "repeats": 1,
+  "anomaly_budget": 24,
+  "poll_limit": 2097152,
+  "diagnostic": {
+   "generated_sequence_of_addresses": 26,
+   "extra_stack_words": 10,
+   "polling_loop": "as before: two stores and one load on the caller's stack on every poll"
+  },
+  "ops": [
+   [
+    "0x00000b80",
+    0
+   ],
+   [
+    "0x00000b80",
+    1
+   ],
+   [
+    "0x00000b81",
+    0
+   ],
+   [
+    "0x00000b81",
+    1
+   ],
+   [
+    "0x00000b82",
+    0
+   ],
+   [
+    "0x00000b82",
+    1
+   ],
+   [
+    "0x00000b83",
+    0
+   ],
+   [
+    "0x00000b83",
+    1
+   ],
+   [
+    "0x00000b84",
+    0
+   ],
+   [
+    "0x00000b84",
+    1
+   ],
+   [
+    "0x00000b85",
+    0
+   ],
+   [
+    "0x00000b85",
+    1
+   ],
+   [
+    "0x00000b86",
+    0
+   ],
+   [
+    "0x00000b86",
+    1
+   ],
+   [
+    "0x00000b87",
+    0
+   ],
+   [
+    "0x00000b87",
+    1
+   ],
+   [
+    "0x00000b88",
+    0
+   ],
+   [
+    "0x00000b88",
+    1
+   ],
+   [
+    "0x00000b89",
+    0
+   ],
+   [
+    "0x00000b89",
+    1
+   ],
+   [
+    "0x00000b8a",
+    0
+   ],
+   [
+    "0x00000b8a",
+    1
+   ],
+   [
+    "0x00000b8b",
+    0
+   ],
+   [
+    "0x00000b8b",
+    1
+   ],
+   [
+    "0x00000b8c",
+    0
+   ],
+   [
+    "0x00000b8c",
+    1
+   ],
+   [
+    "0x00000b8d",
+    0
+   ],
+   [
+    "0x00000b8d",
+    1
+   ],
+   [
+    "0x00000b8e",
+    0
+   ],
+   [
+    "0x00000b8e",
+    1
+   ],
+   [
+    "0x00000b8f",
+    0
+   ],
+   [
+    "0x00000b8f",
+    1
+   ],
+   [
+    "0x00000b90",
+    0
+   ],
+   [
+    "0x00000b90",
+    1
+   ],
+   [
+    "0x00000b91",
+    0
+   ],
+   [
+    "0x00000b91",
+    1
+   ],
+   [
+    "0x00000b92",
+    0
+   ],
+   [
+    "0x00000b92",
+    1
+   ],
+   [
+    "0x00000b93",
+    0
+   ],
+   [
+    "0x00000b93",
+    1
+   ],
+   [
+    "0x00000b94",
+    0
+   ],
+   [
+    "0x00000b94",
+    1
+   ],
+   [
+    "0x00000b95",
+    0
+   ],
+   [
+    "0x00000b95",
+    1
+   ],
+   [
+    "0x00000b96",
+    0
+   ],
+   [
+    "0x00000b96",
+    1
+   ],
+   [
+    "0x00000b97",
+    0
+   ],
+   [
+    "0x00000b97",
+    1
+   ],
+   [
+    "0x00000b98",
+    0
+   ],
+   [
+    "0x00000b98",
+    1
+   ],
+   [
+    "0x00000b99",
+    0
+   ],
+   [
+    "0x00000b99",
+    1
+   ]
+  ]
+ },
+ "polling_variable": {
+  "0x1eaca9f8": {
+   "address_mod_32": 24,
+   "frame_reads": 26,
+   "pad_only_reads": 26,
+   "operations_without_a_read": 0,
+   "interface_failures": []
+  }
+ },
+ "far_after": [
+  {
+   "far": "0x00000b80",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b81",
+   "step": 1,
+   "records": [
+    1
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b81",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b82",
+   "step": 1,
+   "records": [
+    3
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b82",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b83",
+   "step": 1,
+   "records": [
+    5
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b83",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b84",
+   "step": 1,
+   "records": [
+    7
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b84",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b85",
+   "step": 1,
+   "records": [
+    9
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b85",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b86",
+   "step": 1,
+   "records": [
+    11
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b86",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b87",
+   "step": 1,
+   "records": [
+    13
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b87",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b88",
+   "step": 1,
+   "records": [
+    15
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b88",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b89",
+   "step": 1,
+   "records": [
+    17
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b89",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b8a",
+   "step": 1,
+   "records": [
+    19
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8a",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b8b",
+   "step": 1,
+   "records": [
+    21
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8b",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b8c",
+   "step": 1,
+   "records": [
+    23
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8c",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b8d",
+   "step": 1,
+   "records": [
+    25
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8d",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b8e",
+   "step": 1,
+   "records": [
+    27
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8e",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b8f",
+   "step": 1,
+   "records": [
+    29
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8f",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b90",
+   "step": 1,
+   "records": [
+    31
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b90",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b91",
+   "step": 1,
+   "records": [
+    33
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b91",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b92",
+   "step": 1,
+   "records": [
+    35
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b92",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b93",
+   "step": 1,
+   "records": [
+    37
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b93",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b94",
+   "step": 1,
+   "records": [
+    39
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b94",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b95",
+   "step": 1,
+   "records": [
+    41
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b95",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b96",
+   "step": 1,
+   "records": [
+    43
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b96",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b97",
+   "step": 1,
+   "records": [
+    45
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b97",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b98",
+   "step": 1,
+   "records": [
+    47
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b98",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b99",
+   "step": 1,
+   "records": [
+    49
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b99",
+   "read": "the pad alone",
+   "words": 101,
+   "far_read_back": "0x00000b9a",
+   "step": 1,
+   "records": [
+    51
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b80",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b82",
+   "step": 2,
+   "records": [
+    2
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b81",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b83",
+   "step": 2,
+   "records": [
+    4
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b82",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b84",
+   "step": 2,
+   "records": [
+    6
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b83",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b85",
+   "step": 2,
+   "records": [
+    8
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b84",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b86",
+   "step": 2,
+   "records": [
+    10
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b85",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b87",
+   "step": 2,
+   "records": [
+    12
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b86",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b88",
+   "step": 2,
+   "records": [
+    14
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b87",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b89",
+   "step": 2,
+   "records": [
+    16
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b88",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b8a",
+   "step": 2,
+   "records": [
+    18
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b89",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b8b",
+   "step": 2,
+   "records": [
+    20
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8a",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b8c",
+   "step": 2,
+   "records": [
+    22
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8b",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b8d",
+   "step": 2,
+   "records": [
+    24
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8c",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b8e",
+   "step": 2,
+   "records": [
+    26
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8d",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b8f",
+   "step": 2,
+   "records": [
+    28
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8e",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b90",
+   "step": 2,
+   "records": [
+    30
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b8f",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b91",
+   "step": 2,
+   "records": [
+    32
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b90",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b92",
+   "step": 2,
+   "records": [
+    34
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b91",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b93",
+   "step": 2,
+   "records": [
+    36
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b92",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b94",
+   "step": 2,
+   "records": [
+    38
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b93",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b95",
+   "step": 2,
+   "records": [
+    40
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b94",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b96",
+   "step": 2,
+   "records": [
+    42
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b95",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b97",
+   "step": 2,
+   "records": [
+    44
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b96",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b98",
+   "step": 2,
+   "records": [
+    46
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b97",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b99",
+   "step": 2,
+   "records": [
+    48
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b98",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b9a",
+   "step": 2,
+   "records": [
+    50
+   ],
+   "records_with_another_anomaly": {}
+  },
+  {
+   "far": "0x00000b99",
+   "read": "the pad and 1 frame(s)",
+   "words": 202,
+   "far_read_back": "0x00000b9b",
+   "step": 2,
+   "records": [
+    0,
+    52,
+    53
+   ],
+   "records_with_another_anomaly": {}
+  }
+ ],
+ "steps_by_words": {
+  "101": [
+   1
+  ],
+  "202": [
+   2
+  ]
+ },
+ "reads_without_a_clean_far_value": [],
+ "one_step_per_frame_of_words": true,
+ "verdict": "FAIL"
+}

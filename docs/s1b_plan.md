@@ -938,3 +938,37 @@ again and all failed (`evidence/host_checks/mutants_2026-11-15_quiet_wait_review
 complete set of 252 was not run again, the prober being unchanged.
 
 **Before the board:** the owner's review of this section. Then the series of section 20.
+
+## 22. The three waits on the board (2026-11-15): it is the stores
+
+Released by the owner after the review of section 21 (three rounds). Image `2c566b1e…`, a
+`reset` before every run, nothing else running on the host. 18 runs, none stopped by the run
+script, every result the board's. The full account is
+`evidence/quiet_17A6_2026-11-15/RESULT.md`; `summary.json` there is made from the stored
+results, and `tests/test_board_evidence.py` makes it again.
+
+| set | wait | run 1 | run 2 | run 3 |
+|---|---|---|---|---|
+| `dxs10` | as before | overflow | complete | complete |
+| `dxs10n` | no stores | complete | complete | complete |
+| `dxs10r` | no stack | complete | complete | complete |
+| `dxw0` | as before | overflow | overflow | overflow |
+| `dxw0n` | no stores | complete, PASS | complete, PASS | complete, PASS |
+| `dxw0r` | no stack | complete, PASS | complete, PASS | complete, PASS |
+
+At the positions that had overflowed: the original wait, 4 overflows in 297 reads; no stores, 0
+in 510; no stack, 0 in 510. Read against the table of section 20, it is the first row: **the
+controls overflow, `n` and `r` do not — the stores are what matters, and the quiet wait is the
+remedy.** The load alone was not seen to matter. Why two single-word stores to DDR at those
+addresses during a transfer make the receive FIFO overflow is not known, and nothing here needs
+it: it is recorded as observed.
+
+What this changes for the walk: with the quiet wait the walk of the 26 addresses ran to its end
+six times of six, PASS. The walk of the column itself (S1b.1, section 12) has still not been
+run to its end, and `host/grade_s1b1.py` has not been run. The image already holds what that
+walk needs — its parameter block with the wait chosen in word 15 — so no new image is required
+for it; a parameter set for it does not exist yet.
+
+**Stopped here, as agreed.** Open, for the owner: S1b.1 with the quiet wait (a parameter set in
+the run script, for review, then the board); whether the original wait is to be kept in the
+image at all once that has run.

@@ -1,0 +1,62 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50870004                             ...P
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+    21376   saf88051.bin
+    50176   saf89f4b.bin
+   107776   saf8b892.bin
+    32896   saf8ba7b.bin
+   249856   saf8be1f.bin
+   249856   saf8bf42.bin
+   249856   saf8c097.bin
+   249856   saf8c10b.bin
+    67456   saf8c66d.bin
+    44416   saf8c69d.bin
+    77056   saf8c6d4.bin
+   249856   saf8c73f.bin
+   249856   saf8c7b3.bin
+    34816   saf8c8e9.bin
+    34816   saf8c910.bin
+    34816   saf8c937.bin
+    34816   saf8c96a.bin
+    34816   saf8c991.bin
+    34816   saf8c9b8.bin
+    34816   saf8c9ec.bin
+    34816   saf8ca12.bin
+    34816   saf8ca39.bin
+    34816   saf8ca61.bin
+    71296   saf94c02.bin
+   103936   saf94c3f.bin
+    71296   saf94c7f.bin
+    17536   saf94cb6.bin
+   228736   saf94cd4.bin
+   228736   saf94d46.bin
+   221056   saf94dbd.bin
+   103936   saf94e2f.bin
+    27136   saf94e6f.bin
+    17536   saf94e91.bin
+   228736   saf94eb0.bin
+   171136   saf94f22.bin
+   228736   saf94f7c.bin
+   103936   saf94fed.bin
+   103936   saf9502d.bin
+    25216   saf9506e.bin
+   228736   saf95090.bin
+   213376   saf95104.bin
+
+48 file(s), 0 dir(s)
+
+Zynq> 

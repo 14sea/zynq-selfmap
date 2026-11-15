@@ -1,0 +1,1922 @@
+{
+ "problems": [
+  "the run did not complete: status 0x221",
+  "1 anomalous read(s)"
+ ],
+ "records": [
+  {
+   "index": 0,
+   "far": "0x00000b99",
+   "read": "reference read",
+   "frames": 1,
+   "kind": "baseline",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50023004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eacaa20",
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ]
+  },
+  {
+   "index": 1,
+   "far": "0x00000b80",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b81",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    3,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 2,
+   "far": "0x00000b80",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "547b0291deb4881f5ec002da80fb82a51a0cc4ee6a159cfd7c7d12189b204619"
+   ]
+  },
+  {
+   "index": 3,
+   "far": "0x00000b81",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 4,
+   "far": "0x00000b81",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b83",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "8ce2531267622d133dbcb681b79a5568809fe3662c5f74cea452a2a6ec7ee52d"
+   ]
+  },
+  {
+   "index": 5,
+   "far": "0x00000b82",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b83",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 6,
+   "far": "0x00000b82",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b84",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "20773f4093442740ab91430f894aaf6e7a1fadf954f4277f8769910866916236"
+   ]
+  },
+  {
+   "index": 7,
+   "far": "0x00000b83",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b84",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    1,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 8,
+   "far": "0x00000b83",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b85",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "e84cf7414e15f0c4d0ec46d21d11d0a92482b1f8c7dc6adc386c08f08f95048e"
+   ]
+  },
+  {
+   "index": 9,
+   "far": "0x00000b84",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b85",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 10,
+   "far": "0x00000b84",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b86",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "dec503d3c1046439ac6c0e6eca3c9a58049175407d52374c55856e06f7a794b1"
+   ]
+  },
+  {
+   "index": 11,
+   "far": "0x00000b85",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b86",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 12,
+   "far": "0x00000b85",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b87",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "61fd13fb0ec04a6c47b13d0e8ef710057c00ae4ac8e12104f4c1911ad75e79e5"
+   ]
+  },
+  {
+   "index": 13,
+   "far": "0x00000b86",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b87",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    1,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 14,
+   "far": "0x00000b86",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b88",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "a34a7333760c3ec44557a4316066bddbd613a9c8a405dba9fbf6e5497f27c33d"
+   ]
+  },
+  {
+   "index": 15,
+   "far": "0x00000b87",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b88",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 16,
+   "far": "0x00000b87",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b89",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "620e4b7f8451e722fe83722e3cacdba50cbafa81e529228d3d73064c9afea0c0"
+   ]
+  },
+  {
+   "index": 17,
+   "far": "0x00000b88",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b89",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 18,
+   "far": "0x00000b88",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "114dedd6dc695151c42a75e76b08919c863daca41999c0cff752038dcf304bb2"
+   ]
+  },
+  {
+   "index": 19,
+   "far": "0x00000b89",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    3,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 20,
+   "far": "0x00000b89",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "8f92dac8944867ce4d56019504a02c4565d77987f0daba00908cf53f31aaf2a9"
+   ]
+  },
+  {
+   "index": 21,
+   "far": "0x00000b8a",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 22,
+   "far": "0x00000b8a",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8c",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "5a619f20ed31c7d617714b489f52d0feea684599b98935d17e591c6eb2f07463"
+   ]
+  },
+  {
+   "index": 23,
+   "far": "0x00000b8b",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8c",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 24,
+   "far": "0x00000b8b",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8d",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "62df327b5b8b775b40e12d1f26fdcd737af3a180e7ec0a1dcb601dde2c6917a0"
+   ]
+  },
+  {
+   "index": 25,
+   "far": "0x00000b8c",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8d",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 26,
+   "far": "0x00000b8c",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8e",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    1,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "162c8e6d635c3d70b23c96d62b0bdb5f58c6ca3219761c20298afe94012e3638"
+   ]
+  },
+  {
+   "index": 27,
+   "far": "0x00000b8d",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8e",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 28,
+   "far": "0x00000b8d",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8f",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "525b5f46c6c46cae2a25c7e2be12bdadf341be7d3aca4f4d25dc5bae74c431d0"
+   ]
+  },
+  {
+   "index": 29,
+   "far": "0x00000b8e",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b8f",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 30,
+   "far": "0x00000b8e",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b90",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "d6f209011f29f51fa6cddc06bc5e45089611f6b4a9d578d994d47c83b7e9ca54"
+   ]
+  },
+  {
+   "index": 31,
+   "far": "0x00000b8f",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b90",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 32,
+   "far": "0x00000b8f",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b91",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "5054e1eb29e89023d7014df2b938b763b3f42d81331703371a557a64af3f122e"
+   ]
+  },
+  {
+   "index": 33,
+   "far": "0x00000b90",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b91",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 34,
+   "far": "0x00000b99",
+   "read": "reference read",
+   "frames": 1,
+   "kind": "health",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9f8",
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ]
+  },
+  {
+   "index": 35,
+   "far": "0x00000b90",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b92",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "d25d1ddefe47c1f52350c2f603b03fcc674094fd6db6de2ae49b0670535bdcc2"
+   ]
+  },
+  {
+   "index": 36,
+   "far": "0x00000b91",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b92",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 37,
+   "far": "0x00000b91",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b93",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "d6d02f5b1a23481ef53f9993b45a5a53c4a4dbc99d3a07ee59b83c77f1fa4280"
+   ]
+  },
+  {
+   "index": 38,
+   "far": "0x00000b92",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b93",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 39,
+   "far": "0x00000b92",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b94",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "92c29f338aff3ef663f17c704a237b82c59d1781899b6554dc16e044f7ffe025"
+   ]
+  },
+  {
+   "index": 40,
+   "far": "0x00000b93",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b94",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 41,
+   "far": "0x00000b93",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b95",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "d7c5e9a75cfb4382b100433c2980a1f3abb7e3ab44b33be484fedb3ffe932f23"
+   ]
+  },
+  {
+   "index": 42,
+   "far": "0x00000b94",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b95",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 43,
+   "far": "0x00000b94",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b96",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "941832b2e789a4f45c3e167d8adc4685a61c1eb68b89a40e7321df0cb16952dc"
+   ]
+  },
+  {
+   "index": 44,
+   "far": "0x00000b95",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b96",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 45,
+   "far": "0x00000b95",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b97",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "0605dc17a2f3d90d8df8bbfd437c6d3da9db3d10876b16abed6800b2b11d7b82"
+   ]
+  },
+  {
+   "index": 46,
+   "far": "0x00000b96",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b97",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 47,
+   "far": "0x00000b96",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b98",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "debeeaeb3206e73cb80ed0480b75febc9a317aa0eb1efdf9e429f01e7f1676d6"
+   ]
+  },
+  {
+   "index": 48,
+   "far": "0x00000b97",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b98",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    5,
+    4,
+    2,
+    1,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 49,
+   "far": "0x00000b97",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b99",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "e4d5335eb8a4b1332e4449384627088a25d57d2b4c87f2b41be271d0656b166c"
+   ]
+  },
+  {
+   "index": 50,
+   "far": "0x00000b98",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b99",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 51,
+   "far": "0x00000b98",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b9a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "09e6542e15d2236ef806ab934ff70db967cde6d248bda996b753d6542839351c"
+   ]
+  },
+  {
+   "index": 52,
+   "far": "0x00000b99",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b9a",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 53,
+   "far": "0x00000b99",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 0,
+   "code": "0x0",
+   "far_read_back": "0x00000b9b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+   ]
+  },
+  {
+   "index": 54,
+   "far": "0x00000b80",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 1,
+   "code": "0x0",
+   "far_read_back": "0x00000b81",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    4,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  },
+  {
+   "index": 55,
+   "far": "0x00000b80",
+   "read": "content read",
+   "frames": 1,
+   "kind": "target",
+   "pass": 1,
+   "code": "0x0",
+   "far_read_back": "0x00000b82",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    6,
+    6,
+    2,
+    2,
+    2
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": [
+    "547b0291deb4881f5ec002da80fb82a51a0cc4ee6a159cfd7c7d12189b204619"
+   ]
+  },
+  {
+   "index": 56,
+   "far": "0x00000b81",
+   "read": "successor read",
+   "frames": 0,
+   "kind": "target",
+   "pass": 1,
+   "code": "0x21",
+   "far_read_back": "0x00000000",
+   "int_sts": [
+    "50033004",
+    "50070004",
+    "00000000",
+    "00000000",
+    "00000000"
+   ],
+   "polls": [
+    6,
+    2,
+    0,
+    0,
+    0
+   ],
+   "survivors": 5,
+   "pad_all_zero": false,
+   "poll_variable_at": "0x1eaca9d8",
+   "frame_sha256": []
+  }
+ ],
+ "header": {
+  "status": "0x221",
+  "records": 57,
+  "anomalies": 1,
+  "total_words": 27424,
+  "ctrl": "4e00e07f",
+  "mctrl": "30800100",
+  "int_sts_initial": "50021004",
+  "status_initial": "40000f30",
+  "sctlr": "08c51878",
+  "cpsr": "800001d3",
+  "sp": "1eacab18",
+  "r9": "1ead0ec0",
+  "int_sts_final": "50070004",
+  "status_final": "00300f30",
+  "stop_record": "0x38"
+ },
+ "expected_console": [
+  "SM4 start",
+  "SM4 end status=00000221 records=00000039 anomalies=00000001 words=00006b20"
+ ],
+ "expected_return_code": "0x221",
+ "params": {
+  "far_lo": "0x00000b80",
+  "far_hi": "0x00000b99",
+  "ref_far": "0x00000b99",
+  "start": "0x00000b80",
+  "passes": 2,
+  "limit": 64,
+  "reference_every": 16,
+  "poll_limit": 2097152,
+  "extra_stack_words": 0,
+  "polling_loop": "as before: two stores and one load on the caller's stack on every poll"
+ },
+ "passes": [
+  {
+   "frames": 26,
+   "ended": "the device named an address outside the envelope",
+   "last_address_named": "0x00000b9a"
+  },
+  {
+   "frames": 1,
+   "ended": "not ended",
+   "last_address_named": "0x00000b81"
+  }
+ ],
+ "walk": [
+  {
+   "far": "0x00000b80",
+   "next": "0x00000b81",
+   "register_after_the_frame": "0x00000b82",
+   "frame_sha256": "547b0291deb4881f5ec002da80fb82a51a0cc4ee6a159cfd7c7d12189b204619"
+  },
+  {
+   "far": "0x00000b81",
+   "next": "0x00000b82",
+   "register_after_the_frame": "0x00000b83",
+   "frame_sha256": "8ce2531267622d133dbcb681b79a5568809fe3662c5f74cea452a2a6ec7ee52d"
+  },
+  {
+   "far": "0x00000b82",
+   "next": "0x00000b83",
+   "register_after_the_frame": "0x00000b84",
+   "frame_sha256": "20773f4093442740ab91430f894aaf6e7a1fadf954f4277f8769910866916236"
+  },
+  {
+   "far": "0x00000b83",
+   "next": "0x00000b84",
+   "register_after_the_frame": "0x00000b85",
+   "frame_sha256": "e84cf7414e15f0c4d0ec46d21d11d0a92482b1f8c7dc6adc386c08f08f95048e"
+  },
+  {
+   "far": "0x00000b84",
+   "next": "0x00000b85",
+   "register_after_the_frame": "0x00000b86",
+   "frame_sha256": "dec503d3c1046439ac6c0e6eca3c9a58049175407d52374c55856e06f7a794b1"
+  },
+  {
+   "far": "0x00000b85",
+   "next": "0x00000b86",
+   "register_after_the_frame": "0x00000b87",
+   "frame_sha256": "61fd13fb0ec04a6c47b13d0e8ef710057c00ae4ac8e12104f4c1911ad75e79e5"
+  },
+  {
+   "far": "0x00000b86",
+   "next": "0x00000b87",
+   "register_after_the_frame": "0x00000b88",
+   "frame_sha256": "a34a7333760c3ec44557a4316066bddbd613a9c8a405dba9fbf6e5497f27c33d"
+  },
+  {
+   "far": "0x00000b87",
+   "next": "0x00000b88",
+   "register_after_the_frame": "0x00000b89",
+   "frame_sha256": "620e4b7f8451e722fe83722e3cacdba50cbafa81e529228d3d73064c9afea0c0"
+  },
+  {
+   "far": "0x00000b88",
+   "next": "0x00000b89",
+   "register_after_the_frame": "0x00000b8a",
+   "frame_sha256": "114dedd6dc695151c42a75e76b08919c863daca41999c0cff752038dcf304bb2"
+  },
+  {
+   "far": "0x00000b89",
+   "next": "0x00000b8a",
+   "register_after_the_frame": "0x00000b8b",
+   "frame_sha256": "8f92dac8944867ce4d56019504a02c4565d77987f0daba00908cf53f31aaf2a9"
+  },
+  {
+   "far": "0x00000b8a",
+   "next": "0x00000b8b",
+   "register_after_the_frame": "0x00000b8c",
+   "frame_sha256": "5a619f20ed31c7d617714b489f52d0feea684599b98935d17e591c6eb2f07463"
+  },
+  {
+   "far": "0x00000b8b",
+   "next": "0x00000b8c",
+   "register_after_the_frame": "0x00000b8d",
+   "frame_sha256": "62df327b5b8b775b40e12d1f26fdcd737af3a180e7ec0a1dcb601dde2c6917a0"
+  },
+  {
+   "far": "0x00000b8c",
+   "next": "0x00000b8d",
+   "register_after_the_frame": "0x00000b8e",
+   "frame_sha256": "162c8e6d635c3d70b23c96d62b0bdb5f58c6ca3219761c20298afe94012e3638"
+  },
+  {
+   "far": "0x00000b8d",
+   "next": "0x00000b8e",
+   "register_after_the_frame": "0x00000b8f",
+   "frame_sha256": "525b5f46c6c46cae2a25c7e2be12bdadf341be7d3aca4f4d25dc5bae74c431d0"
+  },
+  {
+   "far": "0x00000b8e",
+   "next": "0x00000b8f",
+   "register_after_the_frame": "0x00000b90",
+   "frame_sha256": "d6f209011f29f51fa6cddc06bc5e45089611f6b4a9d578d994d47c83b7e9ca54"
+  },
+  {
+   "far": "0x00000b8f",
+   "next": "0x00000b90",
+   "register_after_the_frame": "0x00000b91",
+   "frame_sha256": "5054e1eb29e89023d7014df2b938b763b3f42d81331703371a557a64af3f122e"
+  },
+  {
+   "far": "0x00000b90",
+   "next": "0x00000b91",
+   "register_after_the_frame": "0x00000b92",
+   "frame_sha256": "d25d1ddefe47c1f52350c2f603b03fcc674094fd6db6de2ae49b0670535bdcc2"
+  },
+  {
+   "far": "0x00000b91",
+   "next": "0x00000b92",
+   "register_after_the_frame": "0x00000b93",
+   "frame_sha256": "d6d02f5b1a23481ef53f9993b45a5a53c4a4dbc99d3a07ee59b83c77f1fa4280"
+  },
+  {
+   "far": "0x00000b92",
+   "next": "0x00000b93",
+   "register_after_the_frame": "0x00000b94",
+   "frame_sha256": "92c29f338aff3ef663f17c704a237b82c59d1781899b6554dc16e044f7ffe025"
+  },
+  {
+   "far": "0x00000b93",
+   "next": "0x00000b94",
+   "register_after_the_frame": "0x00000b95",
+   "frame_sha256": "d7c5e9a75cfb4382b100433c2980a1f3abb7e3ab44b33be484fedb3ffe932f23"
+  },
+  {
+   "far": "0x00000b94",
+   "next": "0x00000b95",
+   "register_after_the_frame": "0x00000b96",
+   "frame_sha256": "941832b2e789a4f45c3e167d8adc4685a61c1eb68b89a40e7321df0cb16952dc"
+  },
+  {
+   "far": "0x00000b95",
+   "next": "0x00000b96",
+   "register_after_the_frame": "0x00000b97",
+   "frame_sha256": "0605dc17a2f3d90d8df8bbfd437c6d3da9db3d10876b16abed6800b2b11d7b82"
+  },
+  {
+   "far": "0x00000b96",
+   "next": "0x00000b97",
+   "register_after_the_frame": "0x00000b98",
+   "frame_sha256": "debeeaeb3206e73cb80ed0480b75febc9a317aa0eb1efdf9e429f01e7f1676d6"
+  },
+  {
+   "far": "0x00000b97",
+   "next": "0x00000b98",
+   "register_after_the_frame": "0x00000b99",
+   "frame_sha256": "e4d5335eb8a4b1332e4449384627088a25d57d2b4c87f2b41be271d0656b166c"
+  },
+  {
+   "far": "0x00000b98",
+   "next": "0x00000b99",
+   "register_after_the_frame": "0x00000b9a",
+   "frame_sha256": "09e6542e15d2236ef806ab934ff70db967cde6d248bda996b753d6542839351c"
+  },
+  {
+   "far": "0x00000b99",
+   "next": "0x00000b9a",
+   "register_after_the_frame": "0x00000b9b",
+   "frame_sha256": "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f"
+  }
+ ],
+ "frames_walked": 26,
+ "register_cross_checks": 26,
+ "known_frames_not_reached": [],
+ "reads_at_addresses_without_a_known_answer": 24,
+ "frames_without_a_second_path": [
+  "0x00000b80",
+  "0x00000b81",
+  "0x00000b82",
+  "0x00000b83",
+  "0x00000b84",
+  "0x00000b85",
+  "0x00000b86",
+  "0x00000b87",
+  "0x00000b88",
+  "0x00000b89",
+  "0x00000b8a",
+  "0x00000b8b",
+  "0x00000b8c",
+  "0x00000b8d",
+  "0x00000b8e",
+  "0x00000b8f",
+  "0x00000b90",
+  "0x00000b91",
+  "0x00000b92",
+  "0x00000b93",
+  "0x00000b94",
+  "0x00000b95",
+  "0x00000b96",
+  "0x00000b97",
+  "0x00000b98",
+  "0x00000b99"
+ ],
+ "most_frames_between_reference_reads": 16,
+ "polling_variable": {
+  "0x1eacaa20": {
+   "address_mod_32": 0,
+   "frame_reads": 1,
+   "pad_only_reads": 0,
+   "interface_failures": []
+  },
+  "0x1eaca9d8": {
+   "address_mod_32": 24,
+   "frame_reads": 27,
+   "pad_only_reads": 28,
+   "interface_failures": [
+    56
+   ]
+  },
+  "0x1eaca9f8": {
+   "address_mod_32": 24,
+   "frame_reads": 1,
+   "pad_only_reads": 0,
+   "interface_failures": []
+  }
+ },
+ "verdict": "FAIL"
+}

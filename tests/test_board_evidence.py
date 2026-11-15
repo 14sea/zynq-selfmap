@@ -16,6 +16,7 @@ RUNS = [
     (s1b0_judge, "s1b0_17A6_2026-11-14", "expected_s1b0.json", "46a5b5b6f643064befe63d36f2824ea45ec21e9c51b11ee9830de1ab46e2da6d"),    (s1b0b_judge, "s1b0b_17A6_2026-11-14", "expected_s1b0b.json", "9b94fe3aea6484e53c49d4e5e2dfe4a7368e7162c2700dc4788151ffb4008411"),
 ]
 
+QUIET_SUMMARY_SHA256 = "2dba58285bf98c3a0f0d8314c7b65a194dc492fa631e0fab412daa22a9787520"
 DX_SUMMARY_SHA256 = "1cd834ae90ae1cb104bf3497a22abedfe5d1638f64dbe4fd52155c5766c8ad38"
 
 
@@ -90,6 +91,27 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual([runs[f"dxw6_run{k:02d}"]["verdict"] for k in (1, 2, 3)], ["PASS"] * 3)
         self.assertTrue(all(r["stopped"]["code"] == "0x21" and r["stopped"]["int_sts"][1] == "50070004" for r in runs.values() if r["stopped"]))
         self.assertEqual({k: (v["reads"], v["overflows"]) for k, v in stored["by_address_mod_32"].items()}, {"24": (728, 9), "0": (504, 0)})
+
+    def test_the_series_of_the_three_waits_is_what_its_summary_says(self) -> None:
+        """18 runs, 2026-11-15: the summary is made again from the stored results, and the finding is read from it — at
+        the stack positions that had overflowed, the original wait overflows and the two that store nothing do not."""
+        import importlib.util
+        d = ROOT / "evidence" / "quiet_17A6_2026-11-15"
+        spec = importlib.util.spec_from_file_location("quiet_summarize", d / "summarize.py")
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        made, stored = mod.summary(), json.loads((d / "summary.json").read_text())
+        self.assertEqual(made, stored)
+        self.assertEqual(hashlib.sha256((d / "summary.json").read_bytes()).hexdigest(), QUIET_SUMMARY_SHA256)
+        runs = {r["run"]: r for r in stored["runs"]}
+        self.assertEqual(len(runs), 18)
+        self.assertTrue(all(r["problems_other_than_expected"] == [] and r["card_verified"] for r in runs.values()))
+        self.assertEqual({name: "".join("o" if runs[f"{name}_run{k:02d}"]["stopped"] else "." for k in (1, 2, 3)) for name in mod.SETS},
+                         {"dxs10": "o..", "dxs10n": "...", "dxs10r": "...", "dxw0": "ooo", "dxw0n": "...", "dxw0r": "..."})
+        self.assertEqual([runs[f"{name}_run{k:02d}"]["verdict"] for name in ("dxw0n", "dxw0r") for k in (1, 2, 3)], ["PASS"] * 6)
+        self.assertEqual({(r["run"][:-6], r["wait"]) for r in runs.values()},
+                         {("dxs10", "as before"), ("dxs10n", "no stores"), ("dxs10r", "no stack"), ("dxw0", "as before"), ("dxw0n", "no stores"), ("dxw0r", "no stack")})
+        self.assertEqual({w: (v["24"]["reads"], v["24"]["overflows"]) for w, v in stored["by_wait_and_address_mod_32"].items()},
+                         {"as before": (297, 4), "no stores": (510, 0), "no stack": (510, 0)})
 
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:

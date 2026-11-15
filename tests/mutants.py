@@ -265,6 +265,9 @@ MUTANTS = [
     (CORE, "stage 5: a sequence that ends exactly at the top is refused", "            if (seq - 1u > far_hi - par(P_FARS))", "            if (seq > far_hi - par(P_FARS))"),
     (JUDGE2, "judge5: an operation without a read is counted as a read of the pad alone", "rec[\"n\"] == NONE else \"frame_reads\"", "False else \"frame_reads\""),
     (JUDGE2, "judge5: the pad alone is counted as an operation without a read", "rec[\"n\"] == NONE else \"frame_reads\"", "rec[\"n\"] in (0, NONE) else \"frame_reads\""),
+    # ---- 2026-11-15: S1b.1 with the quiet wait (section 23)
+    (RUN, "run: the quiet walk is judged as a stage-5 result", "          \"s1b1r\": {\"judge\": s1b1_judge,", "          \"s1b1r\": {\"judge\": dx_judge,"),
+    (RUN, "run: the quiet walk is given the walk's old parameters", "\"s1b1r\": {\"judge\": s1b1_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b1r.json\"},", "\"s1b1r\": {\"judge\": s1b1_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b1.json\"},"),
     # ---- 2026-11-15: the wait that stores nothing (section 20)
     (CORE, "quiet wait: the count is stored on every poll after all", "            break;\n        if (n >= (limit_at ? *limit_at : limit))", "            break;\n        *polls = n;\n        if (n >= (limit_at ? *limit_at : limit))"),
     (CORE, "quiet wait: one poll more than the limit", "        if (n >= (limit_at ? *limit_at : limit))", "        if (n > (limit_at ? *limit_at : limit))"),

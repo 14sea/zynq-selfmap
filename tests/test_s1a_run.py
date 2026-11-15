@@ -140,6 +140,7 @@ class FakeUBoot:
         for i, v in enumerate(struct.unpack("<%dI" % (len(raw) // 4), raw)):
             self.mem[0x10000000 + 4 * i] = v
         self.twin_result = raw
+        self.twin_lines = out                                                      # everything the twin said, for tests that look further
         uart = bytes(int(x, 16) for x in [e for e in out if e.startswith("UART")][0].split()[1:]).decode()
         rc = int([e for e in out if e.startswith("RC")][0].split()[1], 16) ^ self.q.get("rc_xor", 0)
         for index, value in self.q.get("header_words_after_go", {}).items():

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate*|dx*] --dry-run                    print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|rate*|dx*] --go --out DIR               run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|rate*|dx*] --dry-run                    print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|rate*|dx*] --go --out DIR               run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -45,6 +45,9 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           "s1b0": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0.json"},
           "s1b0b": {"judge": s1b0b_judge, "expected": ROOT / "build" / "prober" / "expected_s1b0b.json"},
           "s1b1": {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / "expected_s1b1.json"},
+          # S1b.1 as it is to be run after 2026-11-15: the same parameter block with the wait that stores nothing while
+          # a transfer runs (word 15). The set above waits as before and overflows the receive FIFO; it is kept as it was.
+          "s1b1r": {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / "expected_s1b1r.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},

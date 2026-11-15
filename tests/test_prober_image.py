@@ -162,6 +162,10 @@ class Image(unittest.TestCase):
         e4 = {k: v for k, v in expected.items() if k not in ("records", "result_words", "console", "frames")}
         e4.update(stage="S1b.1", params=[f"{w:08x}" for w in p4])
         (BUILD / "expected_s1b1.json").write_text(json.dumps(e4, indent=1) + "\n")
+        # S1b.1 with the wait that touches no memory while a transfer runs (docs/s1b_plan.md, sections 22 and 23): the
+        # walk's own parameter block with that wait chosen in word 15, and nothing else changed
+        p4r = list(p4); p4r[15] = 2 << 8
+        (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
         # two parameter sets for stage 2, to count frame reads until the receive FIFO overflows (the run stops at the
         # first interface failure): sixteen operations, eight repeats — 128 reads of one frame over the three known
         # frames in turn, or 128 reads of all three in one read. How far a run gets is what it is to find out.

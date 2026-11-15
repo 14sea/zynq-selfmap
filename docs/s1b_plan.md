@@ -972,3 +972,55 @@ for it; a parameter set for it does not exist yet.
 **Stopped here, as agreed.** Open, for the owner: S1b.1 with the quiet wait (a parameter set in
 the run script, for review, then the board); whether the original wait is to be kept in the
 image at all once that has run.
+
+## 23. S1b.1 with the quiet wait: the parameter set, and what is proposed for the board (2026-11-15; host side, nothing on a board yet)
+
+The owner's choice after section 22: a parameter set for S1b.1 with the quiet wait, for review,
+then the board.
+
+### What was added — host side only
+
+- **A parameter set, `s1b1r`**: the parameter block of `s1b1` (section 13: from `0xb80`, envelope
+  `0xb80..0xbff`, two passes, at most 64 frames a pass, the reference frame every 16) with one
+  word changed — word 15 = `0x200`, the wait that touches no memory while a transfer runs
+  (`POLL_NO_STACK`, the `r` of section 22). It is written where the other sets are
+  (`tests/test_prober_image.py`), entered in the run script, judged by the walk's judge. The set
+  `s1b1` is left as it was: it is what overflowed on 2026-11-14.
+- **Nothing in the prober, the judges or the grader.** The image is the one of sections 20 to
+  22: 11,630 bytes, sha256 `2c566b1e…b296`, crc32 `b0d75377`, rebuilt and compared. The judge
+  already takes the choice of the wait (section 20) and reports it in its verdict.
+- Tests (245 in all, two new): the two blocks differ in word 15 and nowhere else; the plan the
+  run script types differs from the walk's in one line, the write of that word; through the run
+  script the twin walks the same column to the same end with the same frames, PASS, and sees
+  nothing stored while a transfer is waited for (with `s1b1` it sees the count stored on every
+  poll); stops are saved whole and fail as they do for `s1b1`; a board that was given the old
+  block instead is not the run that was planned. For that the pretended board keeps what the
+  twin printed. Two deliberate defects (the set judged by another judge; the set given the old
+  block), both failed; the complete set was not run again — nothing it is aimed at changed.
+
+### Proposed for the board
+
+One run of `s1b1r` after a `reset` and a fresh load, as S1b.1 was designed (section 12): the
+walk reads every frame by two paths and twice over, in the one run. Then:
+
+1. The result is saved (card and host), judged, and **committed, whatever it says**.
+2. Only if the run completed and the judge says PASS: `host/grade_s1b1.py` is run on that
+   verdict against prjxray-db's `part.json` — after the commit, so that what the device said is
+   fixed before the database is looked at. Its output is recorded beside the result. A
+   difference is a finding to report, not something to repair.
+3. If the run stops — an overflow, an anomaly, the register not advancing, a pulled copy that
+   cannot be verified — it is saved, judged and committed as it is, the grader is not run, and
+   the series ends there.
+4. In every case: stop and report.
+
+What a complete run can and cannot say is as in section 12. Two things from since then bear on
+it: the wait is the one that did not overflow in 1,020 reads at the positions that had
+(section 22), on 26 of this column's addresses — beyond `0xb99` nothing has been read; and one
+pass can hold 64 frames, so a column longer than that ends a pass at the limit, which the judge
+reports as such and the grader does not take for the column's end.
+
+(Said before, and still so: while writing the grader I saw the database's number of frames for
+this column. Neither the prober nor the judge holds it, and a test holds that they do not name
+the database.)
+
+**Before the board:** the owner's review. Then the run above.

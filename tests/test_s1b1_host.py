@@ -330,6 +330,50 @@ class ThroughTheRunScript(unittest.TestCase):
         self.assertEqual((rec["verdict"], rec["judge"], rec.get("stop"), rec["console"][0]), ("FAIL", "INVALID", None, "SM3 start"))
         self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
 
+    def test_the_walk_with_the_quiet_wait_is_the_same_walk(self) -> None:
+        """Sections 22 and 23: S1b.1 is to be run with the wait that touches no memory while a transfer runs. Its
+        parameter set differs from S1b.1's in that choice and in nothing else; through the run script the result is
+        the same walk, and the twin sees nothing stored while it waits."""
+        plain = [int(w, 16) for w in json.loads(fake.s1a_run.STAGES["s1b1"]["expected"].read_text())["params"]]
+        quiet = [int(w, 16) for w in json.loads(fake.s1a_run.STAGES["s1b1r"]["expected"].read_text())["params"]]
+        self.assertEqual(([k for k in range(32) if plain[k] != quiet[k]], plain[15], quiet[15]), ([15], 0, 2 << 8))
+        self.assertIs(fake.s1a_run.STAGES["s1b1r"]["judge"], s1b1_judge)
+
+        def counts(u):                                       # the prober's count of polls, each time the twin looked while a transfer was waited for
+            return {int(line.split()[2]) for line in u.twin_lines if line.startswith("WATCH ")}
+        rec, u, out = fake.run(stage="s1b1r", **MODEL)
+        self.assertEqual((rec["verdict"], rec["problems"], rec["stage"], rec["result_layout"]), ("PASS", [], "s1b1r", "s1b1r"))
+        v = json.loads((out / "verdict.json").read_text())
+        self.assertEqual((v["frames_walked"], v["params"]["polling_loop"], v["params"]["extra_stack_words"]), (36, s1b1_judge.POLLING[2], 0))
+        self.assertEqual(counts(u), {0}, "nothing stored while any transfer was waited for")
+        self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+        self.assertTrue(rec["card_verified"])
+        rec0, u0, out0 = fake.run(stage="s1b1", **MODEL)
+        self.assertEqual(counts(u0), {0, 1}, "the set as it was stores on every poll")
+        v0 = json.loads((out0 / "verdict.json").read_text())
+        self.assertEqual(([s["far"] for s in v["walk"]], [s["next"] for s in v["walk"]], [s["frame_sha256"] for s in v["walk"]], v["passes"]),
+                         ([s["far"] for s in v0["walk"]], [s["next"] for s in v0["walk"]], [s["frame_sha256"] for s in v0["walk"]], v0["passes"]), "the same walk")
+        self.assertEqual(len(v["records"]), len(v0["records"]))
+        for kw, records in (({"fault": "padnz@2"}, 3), ({"fault": "err@9"}, 2), ({"far_rule": "next"}, 3)):   # and it stops as the other does
+            with self.subTest(str(kw)):
+                rec, u, out = fake.run(kw.get("fault", ""), stage="s1b1r", **{**MODEL, **{k: v for k, v in kw.items() if k != "fault"}})
+                self.assertEqual((rec["result_words"], rec["verdict"], rec.get("stop")), (64 + records * 480, "FAIL", None))
+        swapped = dict(enumerate(plain))                     # the board given the other set's parameters: not the run that was planned
+        rec, u, out = fake.run(stage="s1b1r", params_swapped_before_go=swapped, **MODEL)
+        self.assertEqual((rec["verdict"], rec["judge"]), ("FAIL", "FAIL"))
+        self.assertTrue(any("not the planned ones (word(s) [15])" in p for p in json.loads((out / "verdict.json").read_text())["problems"]))
+
+    def test_the_dry_run_of_the_quiet_walk_differs_from_the_walk_s_in_one_word(self) -> None:
+        def plan(stage):
+            out = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, "--dry-run"], capture_output=True, text=True, check=True).stdout
+            return [line.split("#")[0].split(".", 1)[1].strip() for line in out.splitlines() if "#" in line and line.strip()[0].isdigit()]
+        a, b = plan("s1b1"), plan("s1b1r")
+        self.assertEqual([c for c in b if c not in a], ["mw.l 1010003c 00000200 1"], "one word more is written: the choice of the wait")
+        self.assertEqual([c for c in a if c not in b], [], "and nothing the walk's plan has is missing or different")
+        self.assertEqual(len(b), len(a) + 1)
+        at = b.index("mw.l 1010003c 00000200 1")
+        self.assertEqual(b[:at] + b[at + 1:], a, "in the same order")
+
     def test_the_dry_run_differs_from_stage_three_s_only_in_the_parameters(self) -> None:
         def plan(stage):
             out = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, "--dry-run"], capture_output=True, text=True, check=True).stdout

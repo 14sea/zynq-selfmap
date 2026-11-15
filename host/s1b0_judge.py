@@ -91,7 +91,10 @@ def planned_ops(par: list[int], stage: int = 2) -> list[tuple[int, int]]:
     return [(par[16 + k], (par[10 + k // 8] >> (4 * (k % 8))) & 0xF) for k in range(min(par[6], MAX_FARS))]
 
 
-def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> dict:
+def judge(words: list[int], known: dict, planned: list[int], stage: int = 2, unknown_frames_allowed: bool = False) -> dict:
+    """`unknown_frames_allowed` is off unless asked for (S1b.2b, the end of the row: s1b2e_judge). With it on, a frame
+    delivered from an address that has no known answer is counted, not held against the run; a frame from an address
+    that has one is compared as ever. For every other use the judge is what it was."""
     out: dict = {"problems": [], "records": []}
     bad = out["problems"].append
 
@@ -167,6 +170,7 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
     first_clean: dict[int, dict] = {}
     deltas: dict[int, list[int]] = {}
     after: dict[tuple[int, int], dict[int, list[int]]] = {}       # stage 3: (address, count) -> value read back -> records
+    without_answer = 0                               # frames delivered cleanly from addresses that have no known answer
     for i in range(n):
         r = words[HDR + i * REC: HDR + (i + 1) * REC]
         fb = r[FARBLK:FARBLK + 8]
@@ -251,7 +255,9 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
             digests.append(hashlib.sha256(b"".join(struct.pack(">I", w) for w in frame)).hexdigest())
             if code == 0:
                 if far + j not in frames_known:
-                    bad(f"record {i}: no known answer for FAR {far + j:#010x}")
+                    without_answer += 1
+                    if not unknown_frames_allowed:
+                        bad(f"record {i}: no known answer for FAR {far + j:#010x}")
                 elif frame != frames_known[far + j]:
                     diff = [k for k in range(FRAME) if frame[k] != frames_known[far + j][k]]
                     bad(f"record {i}: frame {j} (FAR {far + j:#010x}) read cleanly but differs from the known frame in {len(diff)} word(s), first at {diff[0]}")
@@ -384,6 +390,8 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
         else:
             out["one_step_per_frame_of_words"] = None if missing else True
 
+    if unknown_frames_allowed:
+        out["frames_delivered_without_a_known_answer"] = without_answer
     if status != 1:
         bad(f"the run did not complete: status {status:#x}")
     if anomalies:

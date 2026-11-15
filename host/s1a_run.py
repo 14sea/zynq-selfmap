@@ -40,6 +40,7 @@ import s1b0b_judge  # noqa: E402
 import s1b1_judge  # noqa: E402
 import dx_judge  # noqa: E402
 import s1b2_judge  # noqa: E402
+import s1b2e_judge  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
 STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
@@ -52,6 +53,12 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # S1b.2: one run of the chain along the row (docs/s1b_plan.md, section 25). The set is s1b1r's with the row as
           # the envelope; its starting address is given at run time (--start), see with_start() below.
           "s1b2": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b2.json"},
+          # S1b.2b: the end of the row (section 29). Two fixed tables for the table-driven stage in its stage-5 form
+          # with the quiet wait: reads of the pad and 0..3 frames at the last four addresses of the row, and column 55
+          # again in reads of three frames. Judged by the judge of that stage, which here counts frames without a known
+          # answer instead of holding them against the run.
+          "s1b2e": {"judge": s1b2e_judge, "expected": ROOT / "build" / "prober" / "expected_s1b2e.json"},
+          "s1b2c": {"judge": s1b2e_judge, "expected": ROOT / "build" / "prober" / "expected_s1b2c.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},

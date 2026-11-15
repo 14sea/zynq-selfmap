@@ -1607,3 +1607,127 @@ needs a new image) and is not part of this.
    knowledge is why I expect the register to stand still for a step or two. Nothing is built on
    it: the program holds no expected value there, and the tests that keep the database out of
    everything but the graders are extended to the new files.
+
+## 30. S1b.2b as built (2026-11-15; host side, nothing on a board yet)
+
+The owner accepted section 29 with all four points as proposed: up to two frames may be
+delivered from beyond the row; stage 5 in its table form with the quiet wait; both sets; and
+nothing of what I know of the family goes into a program. This is what was built. The prober is
+untouched and the image is the one in use: 11,630 bytes, sha256 `2c566b1e…b296`, crc32
+`b0d75377`, rebuilt and compared.
+
+### What there is
+
+| file | what it does |
+|---|---|
+| `tests/test_prober_image.py` | writes the two parameter sets, `s1b2e` and `s1b2c` |
+| `host/s1a_run.py` | the two sets; fixed tables, no address at run time (`--start` is refused for them) |
+| `host/s1b0_judge.py` | one option, off unless asked for (below) |
+| `host/s1b2e_judge.py` | the judge of these two runs: the judge of the table-driven stage, stage 5, with that option on |
+| `host/s1b2_end.py` | the layout of the two runs; reads verdict files and nothing else |
+| `prober/twin_hal.c` | the twin can be given places at which the register shows another number than the place's own |
+| `tests/test_s1b2_end.py` | 17 tests on the twin behind the pretended board |
+
+**The two sets**, as proposed — one correction to section 29: a run has 50 and 30 records, not
+49 and 29 (the reference read before and the one after).
+
+- `s1b2e`: stage 5, envelope `0x00000000..0x0001ffff`, reference `0xb99`, sixteen reads — at each
+  of `0x1ba6`, `0x1ba7`, `0x1ba8`, `0x1ba9` the pad alone and the pad with one, two, three
+  frames — three times over; no anomaly budgeted for; word 15 = `0x200`.
+- `s1b2c`: the same but fourteen reads of three frames at `0x1b80`, `0x1b83`, …, `0x1ba7`, twice.
+
+A test holds the bound that was agreed: no address above `0x1ba9` in either table, no read of
+more than three frames, at most two places beyond `0x1ba9` delivered by `s1b2e` and none by
+`s1b2c`; and, from the twin's own log of a run, that the prober wrote no other address to the
+register than those and the reference, and asked for no more than 404 words in a read.
+
+### One change to a judge, as section 29 said might be needed
+
+The judge of the table-driven stage holds every frame that has no known answer against the run
+("no known answer for FAR …"). That is right for S1b.0, where every read was of a known frame;
+the diagnostic series lived with it (its runs were about how far the prober got). These two runs
+read nothing but frames without a known answer, and their verdict has to mean something.
+
+`s1b0_judge.judge` takes an option, off unless asked for: with it on, such a frame is counted
+(`frames_delivered_without_a_known_answer`) instead of held against the run. A frame at an
+address that has a known answer is compared as ever — the reference frame in particular, before,
+after and after any anomaly. `s1b2e_judge` is that judge for stage 5 with the option on, and the
+run script uses it for the two new sets only. A test judges the same result both ways: the old
+judge fails it with 72 problems, all of them "no known answer"; the new one passes it; and
+everything else in the two verdicts is the same, word for word.
+
+What that judge requires of the address register is unchanged, and is what is wanted here: the
+same read leaves the same value every time. How the value depends on the length read it reports
+and does not require.
+
+### The layout (`s1b2_end.py`)
+
+From the verdict of `s1b2e`:
+
+- whether the starting addresses are one step apart **by the device's own word** (after the pad
+  alone at one, the register holds the next). Only then are positions derived: start i is
+  position i, and a read from it that clocks out k frames of words ends at position i + k;
+- the register at each position, from every read that ends there, and whether they agree —
+  positions 4 to 7 lie beyond the last address written;
+- what was delivered at each position (a read of n frames from position i delivers positions i
+  to i + n − 1), from every read that delivered it, whether they agree, whether it is all zero;
+- beyond the last address written: the register step by step, at which steps it did not change,
+  and the frames delivered from there.
+
+From `s1b2c` and the stored verdict of run 30: each of the 42 frames against the one the walk
+delivered at that address. Which address a frame of a read of three belongs to is taken from the
+walk's own account of what follows what, not from arithmetic; the register after each read is
+held against the walk's successors as far as they reach (the last read ends beyond them and is
+listed without a judgment); and the one read both table runs make must have left the same in both.
+
+**It holds no expected value** — a test holds that the file contains no address and no count —
+and requires only that two ways to the same position agree. A disagreement is listed and the
+exit code is 1; so it is for a run the judge did not pass, which is laid out all the same and
+marked as not a finding.
+
+**It says when content says nothing.** On the board the frames of column 55 are all zero. Where
+every frame delivered is the same, agreement about content cannot tell one position from
+another; the layout then says exactly that, in both parts. The register is what will tell.
+
+### The twin's ends of a row
+
+`SM_SHOWS` gives the twin places at which the register reads another number than the place's
+own; with `SM_SUCC` that models places the device passes through that have no address. The tests
+run both sets on four ends: one such place; two, the register standing still at the first; two,
+standing still at both; none. Two of the four reproduce the last six records of run 30 as they
+are stored from the board (a test compares them), and the layout tells all four apart by the
+register alone. Which of them the device is — or whether it is none of them — the twin cannot
+say: it does what I wrote.
+
+### Tests and mutants
+
+295 tests, 17 of them new: the tables and their bound; the judge both ways, a reference frame
+that differs, an overflow, a register and a frame that differ between repeats (each stops the
+run, as no anomaly is budgeted for); the layout on the four ends, on frames that are all zero, on
+a place beyond the row that is not zero, on starting addresses that are not one step apart, on
+verdicts changed so that two ways disagree in each manner; the column against the walk, with a
+frame, a register and a repeat that differ, a walk that is shorter and one that is longer.
+
+MUTANT_RESULT_30
+
+### What the tests cannot show
+
+What the device does beyond `0x1ba9`. And one thing the run itself may not be able to show: if
+the places beyond the row deliver all-zero frames, as the whole of column 55 does, then "what a
+read delivers there" has the answer "zeros" and nothing distinguishes a place beyond the row
+from a frame of it but the register.
+
+### Proposed for the board
+
+With nothing else running on the host; before each run a U-Boot `reset` and a fresh load, as
+always.
+
+1. `s1a_run.py --stage s1b2e --go` — one run. Saved, judged, **committed whatever it says**.
+2. `s1a_run.py --stage s1b2c --go` — one run. The same.
+3. `s1b2_end.py` on the two verdicts and the stored verdict of run 30; its output is recorded
+   beside them and committed.
+4. If a run stops or does not pass: it is saved and committed as it is, nothing further is run,
+   and the layout is made of what there is and recorded as that.
+5. Stop and report. The grader is not run in this step.
+
+**Before the board:** the owner's review.

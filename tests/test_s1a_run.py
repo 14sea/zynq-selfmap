@@ -135,6 +135,9 @@ class FakeUBoot:
         env["SM_FAR_RULE"] = self.q.get("far_rule", "next")
         if "succ" in self.q:                                                       # stage 4: which address follows which
             env["SM_SUCC"] = ",".join(f"{a:x}:{b:x}" for a, b in self.q["succ"].items())
+        env.pop("SM_SHOWS", None)
+        if "shows" in self.q:                                                      # positions at which the register shows another number
+            env["SM_SHOWS"] = ",".join(f"{a:x}:{b:x}" for a, b in self.q["shows"].items())
         out = subprocess.run([str(TWIN), "run", str(tmp / "frames.txt"), str(tmp / "params.txt"), str(tmp / "r.bin")],
                              check=True, capture_output=True, text=True, env=env).stdout.splitlines()
         raw = (tmp / "r.bin").read_bytes()

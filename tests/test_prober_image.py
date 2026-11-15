@@ -172,6 +172,24 @@ class Image(unittest.TestCase):
         p5 = list(p4r); p5[3], p5[4], p5[16] = 0x00000000, 0x0001FFFF, 0x00000000
         (BUILD / "expected_s1b2.json").write_text(json.dumps(dict(e4, stage="S1b.2, one run of the chain", params=[f"{w:08x}" for w in p5]), indent=1) + "\n")
         (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
+        # S1b.2b (docs/s1b_plan.md, section 29): the end of the row, by the table-driven stage in its stage-5 form with
+        # the wait that touches no memory. The addresses are the last ones the device named in the row (S1b.2, run 30);
+        # none above 0x1ba9 is written, and no read asks for more than three frames. Fixed tables: nothing is given at
+        # run time.
+        #   s1b2e: at each of 0x1ba6..0x1ba9 the pad alone, and the pad and one, two, three frames; each three times.
+        #   s1b2c: column 55 again, 0x1b80..0x1ba9 in fourteen reads of three frames; each twice.
+        for name, what, ops, repeats in (("s1b2e", "S1b.2b, the end of the row", [(0x1BA6 + k // 4, k % 4) for k in range(16)], 3),
+                                         ("s1b2c", "S1b.2b, column 55 again", [(0x1B80 + 3 * k, 3) for k in range(14)], 2)):
+            pe = [0] * 32
+            pe[0:10] = [0x31504D53, 1, 5, 0x00000000, 0x0001FFFF, 0xB99, len(ops), repeats, 0, 0x00200000]   # no anomaly is budgeted for
+            for k, (far, n) in enumerate(ops):
+                pe[16 + k] = far
+                pe[10 + k // 8] |= n << (4 * (k % 8))
+            pe[15] = 2 << 8                                             # the wait that touches no memory; no extra stack
+            rec_e = 1 + len(ops) * repeats + 1
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(
+                e4, stage=what, params=[f"{w:08x}" for w in pe], records=rec_e, result_words=64 + rec_e * 480,
+                console=["SM5 start", "SM5 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec_e, 64 + rec_e * 480)]), indent=1) + "\n")
         # two parameter sets for stage 2, to count frame reads until the receive FIFO overflows (the run stops at the
         # first interface failure): sixteen operations, eight repeats — 128 reads of one frame over the three known
         # frames in turn, or 128 reads of all three in one read. How far a run gets is what it is to find out.

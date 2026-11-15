@@ -22,6 +22,12 @@
  * SM_SUCC=a:b,c:d (hex) says which address follows which where it is not simply the next number: the end of a
  * column, an address that names itself, a step backwards. What the device does at a column end is what S1b.1
  * is to find out; the tests give the model several answers.
+ * SM_SHOWS=p:v,q:w (hex) says what the address register reads at a position where that is not the position's own
+ * number. With SM_SUCC it models places the device passes through that have no address of their own (S1b.2 on the
+ * board, run 30: after the last frame of the row the register stood still for a step): give such a place any number
+ * no frame has, put it into the chain of successors, and say here what the register shows there. A frame may be
+ * given for it like for any other. How many such places there are, and what a read delivers there, is what S1b.2b
+ * is to find out; the tests give the model several answers.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +54,13 @@ static uint32_t succ(uint32_t f)
     unsigned i;
     for (i = 0; i < n_succ; i++) if (succ_from[i] == f) return succ_to[i];
     return f + 1u;
+}
+static uint32_t shows_at[16], shows_what[16]; static unsigned n_shows;
+static uint32_t shows(uint32_t position)
+{
+    unsigned i;
+    for (i = 0; i < n_shows; i++) if (shows_at[i] == position) return shows_what[i];
+    return position;
 }
 static uint32_t queue[4096]; static unsigned q_n, q_at;
 
@@ -100,7 +113,7 @@ static void engine_feed(const uint32_t *w, uint32_t n)
                     else printf("VIOLATION write to register %u\n", reg);
                 }
             } else if (op == 1u) {                       /* read header */
-                if (reg == 1u && count == 1u) { q_n = q_at = 0; queue[q_n++] = far_reg; }             /* the FAR register */
+                if (reg == 1u && count == 1u) { q_n = q_at = 0; queue[q_n++] = shows(far_reg); }      /* the FAR register */
                 else if (reg != 3u || count != 0u) printf("VIOLATION read of register %u count %u\n", reg, count);
             } else printf("VIOLATION type-1 op %u\n", op);
         } else if (type == 2u) {
@@ -269,6 +282,15 @@ int main(int argc, char **argv)
             while (*s && n_succ < 32) {
                 succ_from[n_succ] = (uint32_t)strtoul(s, &e, 16); if (*e != ':') return 2;
                 succ_to[n_succ++] = (uint32_t)strtoul(e + 1, &e, 16);
+                s = *e == ',' ? e + 1 : e;
+                if (*e && *e != ',') return 2;
+            }
+        }
+        if (getenv("SM_SHOWS")) {
+            const char *s = getenv("SM_SHOWS"); char *e;
+            while (*s && n_shows < 16) {
+                shows_at[n_shows] = (uint32_t)strtoul(s, &e, 16); if (*e != ':') return 2;
+                shows_what[n_shows++] = (uint32_t)strtoul(e + 1, &e, 16);
                 s = *e == ',' ? e + 1 : e;
                 if (*e && *e != ',') return 2;
             }

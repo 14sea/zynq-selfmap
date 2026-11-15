@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE, JUDGE, RUN, JUDGE2 = "prober/sm_core.c", "host/s1a_judge.py", "host/s1a_run.py", "host/s1b0_judge.py"
 JUDGE4, GRADE = "host/s1b1_judge.py", "host/grade_s1b1.py"
 CHAIN, ROW, GRADE2, JUDGE5 = "host/s1b2_chain.py", "host/s1b2_row.py", "host/grade_s1b2.py", "host/s1b2_judge.py"
+END, JUDGE6 = "host/s1b2_end.py", "host/s1b2e_judge.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -370,6 +371,40 @@ MUTANTS = [
     (JUDGE2, "judge2/3: the diagnostic words may be set for stages that do not have them", "            or (stage != 5 and (par[14] or par[15])) \\", "            or False \\"),
     (JUDGE2, "judge5: a sequence of any length is a valid parameter", "par[14] > MAX_DIAG_SEQ or diag_word(par[15])[0] > MAX_DIAG_STACK", "diag_word(par[15])[0] > MAX_DIAG_STACK"),
     (JUDGE2, "judge5: the reserved word beside the polling variable is not checked", "        if fb[7]:\n            bad(f\"record {i}: reserved words are not zero\")\n        for name, got, want in ((\"frame read stream\", r[16:59], frames_stream(far, m))", "        if False:\n            bad(f\"record {i}: reserved words are not zero\")\n        for name, got, want in ((\"frame read stream\", r[16:59], frames_stream(far, m))"),
+    # ---- S1b.2b: the end of the row (section 29) — the layout, the judge's option, the two sets
+    (END, "s1b2 end: the reference reads are laid out as reads of the end", "        if r[\"kind\"] != \"target\" or not r[\"words\"]:", "        if not r[\"words\"]:"),
+    (END, "s1b2 end: a repeat that differs is not noticed", "        if len(set(e[\"register\"])) != 1 or len({tuple(f) for f in e[\"frames\"]}) != 1:", "        if False:", 0),   # the first of two such lines: the one in end()
+    (END, "s1b2 end: the starting addresses are taken to be one step apart", "out[\"starting_addresses_one_step_apart\"] = bool(starts) and all(apart)", "out[\"starting_addresses_one_step_apart\"] = bool(starts)"),
+    (END, "s1b2 end: one step apart is judged by a read of two steps", "reads.get((a, 1), {})", "reads.get((a, 2), {})"),
+    (END, "s1b2 end: a position is counted from where a read starts, not where it ends", "at.setdefault(index[far] + steps, {})", "at.setdefault(index[far], {})"),
+    (END, "s1b2 end: two values of the register at one position are not a disagreement", "        if len(values) > 1:\n            odd(f\"position {p}: the register read \"", "        if False:\n            odd(f\"position {p}: the register read \""),
+    (END, "s1b2 end: arriving at an address written with another value is not noticed", "        if p <= last and values and sorted(values) != [f\"{starts[p]:#010x}\"]:", "        if False:"),
+    (END, "s1b2 end: the frames of a read are placed one position late", "got.setdefault(index[far] + j, {})", "got.setdefault(index[far] + j + 1, {})"),
+    (END, "s1b2 end: frames that differ at one position are not a disagreement", "        if len(hashes) > 1:", "        if False:"),
+    (END, "s1b2 end: a frame is called all zero whatever it holds", "\"all_zero\": sorted(hashes) == [ALL_ZERO], \"delivered_by\"", "\"all_zero\": True, \"delivered_by\""),
+    (END, "s1b2 end: the note on content is left out", "    if len(distinct) <= 1 and delivered:", "    if False:"),
+    (END, "s1b2 end: the note on content is given whatever was delivered", "    if len(distinct) <= 1 and delivered:", "    if delivered:"),
+    (END, "s1b2 end: every step beyond counts as one at which the register did not change", "if line[k] is not None and line[k] == line[k - 1]]", "if line[k] is not None]"),
+    (END, "s1b2 end: a step with two values of the register is taken at its first", "[v[0] if len(v) == 1 else None for p, v in shown if p > last]", "[v[0] for p, v in shown if p > last]"),
+    (END, "s1b2 end: a run the judge did not pass is laid out as a finding", "    if verdict.get(\"verdict\") != \"PASS\":\n        out[\"note\"]", "    if False:\n        out[\"note\"]"),
+    (END, "s1b2 end: the exit code is 0 whatever was found", "    return 1 if any(part[\"disagreements\"] or part[\"run\"][\"verdict\"] != \"PASS\" for part in out.values()) else 0", "    return 0"),
+    (END, "s1b2 end: a run that did not pass does not change the exit code", "part[\"disagreements\"] or part[\"run\"][\"verdict\"] != \"PASS\" for part", "part[\"disagreements\"] for part"),
+    (END, "s1b2 column: a frame that is not the walk's is not noticed", "            if s[\"frame_sha256\"] == h:", "            if True:"),
+    (END, "s1b2 column: the frames of a read are all held against its first address", "            where = s[\"next\"] if s[\"next\"] != where else None", "            where = where if s[\"next\"] != where else None"),
+    (END, "s1b2 column: the register after a read is not held against the walk", "        if reaches and sorted(set(e[\"register\"])) != [where]:", "        if False:"),
+    (END, "s1b2 column: the walk's successors are followed one step too few", "        for _ in range(steps):\n            s = walked.get(where)", "        for _ in range(steps - 1):\n            s = walked.get(where)"),
+    (END, "s1b2 column: an address that names itself is followed", "            if s is None or s[\"next\"] == where:\n                reaches = False; break", "            if s is None:\n                reaches = False; break"),
+    (END, "s1b2 column: the register of a read made in both runs may differ", "            if set(reads[key][\"register\"]) != set(theirs[key][\"register\"]) or", "            if False and set(reads[key][\"register\"]) != set(theirs[key][\"register\"]) or"),
+    (END, "s1b2 column: addresses of the walk not read again are not listed", "addresses_of_the_walk_not_read_again=sorted(set(walked) - seen)", "addresses_of_the_walk_not_read_again=[]"),
+    (END, "s1b2 column: the note on content is left out", "    if len(distinct) <= 1 and compared:", "    if False:"),
+    (END, "s1b2 column: a repeat that differs is not noticed", "        if len(set(e[\"register\"])) != 1 or len({tuple(f) for f in e[\"frames\"]}) != 1:\n            odd(f\"the read of {steps} step(s) at {far:#010x} did not leave the same thing every time\")\n        where = f\"{far:#010x}\"                           # the address", "        where = f\"{far:#010x}\"                           # the address"),
+    (JUDGE2, "s1b2e judge2: frames without a known answer are allowed in every stage", "                    if not unknown_frames_allowed:", "                    if False:"),
+    (JUDGE2, "s1b2e judge2: the option does not allow them", "                    if not unknown_frames_allowed:", "                    if True:"),
+    (JUDGE2, "s1b2e judge2: the count of such frames is not reported", "    if unknown_frames_allowed:\n        out[\"frames_delivered_without_a_known_answer\"]", "    if False:\n        out[\"frames_delivered_without_a_known_answer\"]"),
+    (JUDGE6, "s1b2e judge: the option is not asked for", "stage=STAGE, unknown_frames_allowed=True)", "stage=STAGE)"),
+    (JUDGE6, "s1b2e judge: judged as stage 3", "STAGE = 5", "STAGE = 3"),
+    (RUN, "s1b2e run: the end is judged by the judge of the diagnostic series", "\"s1b2e\": {\"judge\": s1b2e_judge,", "\"s1b2e\": {\"judge\": dx_judge,"),
+    (RUN, "s1b2e run: the column again is given the table of the end", "\"s1b2c\": {\"judge\": s1b2e_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b2c.json\"}", "\"s1b2c\": {\"judge\": s1b2e_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b2e.json\"}"),
 ]
 
 

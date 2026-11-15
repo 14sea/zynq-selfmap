@@ -1046,3 +1046,155 @@ the row and their frame counts, and what the address does at the end of a row); 
 proposed in detail and nothing of it is built.
 
 **Stopped here, as agreed.**
+
+## 25. S1b.2 — proposal for the walk of the row (2026-11-15; a proposal, nothing built, nothing on a board)
+
+The owner asked for a detailed proposal before anything is written. This is it.
+
+### The question
+
+Section 3: the row of the column S1b.1 walked — block type 0, top half, row 0. Which addresses
+does the device name along it; into which columns do they fall and how many frames has each;
+and what does the device name after the last frame of the row?
+
+### The idea: the walk as it is, in a chain of runs
+
+Nothing new in the prober. Stage 4 already walks from a given address by the addresses the
+device names, reads every frame by two paths and twice over, and stops at 64 frames a pass
+(`END_LIMIT`), recording the address named after the last one. A row is walked by running it
+again and again, each run beginning where the one before ended.
+
+- **The image is the one that passed S1b.1**: 11,630 bytes, sha256 `2c566b1e…b296`. No new
+  image, no change to the judge of a run.
+- **One parameter block, in which one word varies.** Envelope `0x00000000..0x0001ffff` — every
+  address whose block type, half and row fields are zero, by the layout of the address word in
+  UG470; reference frame `0xb99`; two passes; at most 64 frames a pass; the reference frame
+  every 16; the wait that touches no memory (word 15 = `0x200`). Only the starting address
+  (word 16) differs from run to run.
+- **Why chunks of 64 frames and not one column a run**, as I had first sketched it to the owner:
+  the prober requires the reference frame to lie inside the envelope, and the only frames with a
+  known answer are `0xb98..0xb9a`. An envelope of one column would have no known frame in it
+  anywhere but in column 23. With the row as the envelope the reference stays `0xb99` throughout,
+  and a run ends at the limit rather than at a column's edge. The columns are then read off the
+  list of addresses afterwards, on the host.
+- **The envelope still fences every read.** The guard refuses any command that would read
+  outside it, so no run of the chain can read the bottom half, another row, or block types 1 and
+  2 — in particular no block-RAM content (section 3's last line stands).
+
+### The chain
+
+Run 0 starts at the first address of the row. Each later run starts **at the last frame the run
+before walked** — one frame of overlap at every seam, so that each seam is checked across two
+runs (a different load of the design, a different run of the prober): the frame must be the same
+and the device must name the same address after it. A run thus adds 63 new frames.
+
+Before every run a U-Boot `reset` and a fresh load of the PL design, as in every run so far.
+After every run the result is pulled in checked pieces, verified against the card copy, and
+judged by the walk's judge as it stands.
+
+The chain goes on to the next run only if all of these hold:
+
+1. the run script reports no stop, and the result is the board's;
+2. the judge says PASS;
+3. both passes ended at the limit and named the same address after the same last frame;
+4. for every run but the first: its first frame is the last frame of the run before, with the
+   same content, and the address named after it is the one named there.
+
+The chain is **complete** when a run passes and both of its passes ended because the device
+named an address outside the envelope: the row has been left, and that address is the answer to
+the third question. It is not read.
+
+The chain **halts** — the run saved and judged as it is, nothing retried, report — on anything
+else: an anomaly; a stop of the prober (including "the address named is not above the current
+one", status `0x800`); the two passes disagreeing; a seam that does not match; a result that
+cannot be verified; and when a bound of 48 runs is reached (about 3,000 frames, about three and
+a half hours of board time at the four minutes or so that a full run should take). The bound is
+a limit on unattended board time, not a statement about the row; going past it is the owner's
+decision.
+
+A chain that was interrupted is taken up from its last complete run: the state is the stored
+runs themselves, each judged again from its raw words before it is relied on.
+
+### What the host derives afterwards, from the stored runs alone
+
+A new program (the "row summary"; it knows the layout of the address word and nothing about the
+part) judges every stored run again and puts the walked addresses in order:
+
+- the list of addresses of the row as the device named them, with the hash of every frame;
+- the seams, checked again;
+- the addresses grouped by their column field: for each column, how many frames, whether their
+  minors are 0, 1, 2, … without a gap, and whether the address named after its last frame is
+  minor 0 of the column numbered one higher. Whatever does not have that shape is **listed as
+  found**, not treated as an error: the prober follows what the device names, and the summary
+  describes it;
+- column 23 again: the same 36 addresses and the same 36 frames as in S1b.1;
+- the three known frames, as known;
+- what was named after the last frame of the row.
+
+### Grading, afterwards
+
+As for S1b.1 and in the same order: every run saved and judged, the row summary made, **all of it
+committed**; only then a separate script compares the summary with prjxray-db's `part.json` —
+the columns of this row and their frame counts, and what the database has after the row's last
+frame. It is the only new file allowed to name the database (the test that holds this for
+`grade_s1b1.py` is extended to it). A difference is a finding to report. If the chain halted
+before the row was left, the grader compares only the columns that were walked whole and says
+that the rest was not.
+
+### What is new, and so what could go wrong on the board
+
+- **Addresses never read before**, about sixty-three at a time, including the first address of
+  the row, which no run has touched. If the device names an address inside the envelope that is
+  not a frame, the walk reads at it; what such a read returns is not known. It is read-only, and
+  the stop rules are the ones that have been used throughout.
+- **Frames whose content is not constant.** Every frame is read four times in a run and again at
+  each seam, and the same content is required each time. A frame that holds running state of the
+  carrier design would differ between reads; that is an anomaly, the run stops, the chain halts.
+  It would also be the first sight of such a frame — to be reported as that, not worked around
+  here. Whether reading a frame disturbs the carrier's own state is not observed (it was not in
+  S1a either); the prober does not depend on the carrier, and each run begins with a fresh load.
+- **Reads of several frames across a column's edge.** In S1b.1 the three-frame reads stayed
+  inside one column. Here they will cross from one column into the next. The judge requires the
+  frames so delivered to be the ones the walk read one by one, in the walk's order; if the device
+  delivers something else across an edge, the run fails there and the chain halts with a finding.
+- **The end of the row.** What the device names there is the question; the three outcomes are
+  all provided for: an address outside the envelope (complete), an address not above the current
+  one (the prober stops; halt), an address inside the envelope (the walk follows it, and the
+  summary shows it).
+- **The wait.** The quiet wait did not overflow in 1,020 reads at the positions that had, and in
+  S1b.1's 163. If an overflow appears anyway, the run stops, and the chain halts.
+- **Board time and the console.** Tens of runs. Each is independent; a console that drops ends
+  one run, not the chain's record.
+
+### What would be built (after the owner's word; host side only)
+
+1. The run script: the parameter set `s1b2` and a starting address given at run time, checked to
+   lie in the envelope; the run record says where the address came from.
+2. The chain driver: the rules above and nothing else.
+3. The row summary.
+4. `host/grade_s1b2.py`.
+5. Tests on the twin for each — chains of several runs over model rows with columns of
+   different lengths, rows that end in each of the three ways, a seam that does not match, a run
+   that stops, a chain taken up again — and deliberate defects for each rule.
+
+Then the owner's review, and only then the board.
+
+### Open points for the owner
+
+1. **Where to begin.** Section 3 said "where S1b.1 began" (`0xb80`). That leaves the part of the
+   row below `0xb80` unwalked. Proposed instead: begin at `0x00000000`, the address with every
+   field zero, and walk through to the end — column 23 is then walked again on the way, as a
+   check against S1b.1. Like `0xb80` in S1b.1, `0x0` is a computed address, not one the device
+   has named; that it is a frame is an expectation from the layout of the address word, to be
+   confirmed in UG470 before anything is built, and in the end by the read itself. The
+   alternative: begin at `0xb80` or `0xc00`, learn the upper part only, and decide about the lower
+   part afterwards.
+2. **The envelope of the whole row**, instead of the one-column envelope of S1b.1.
+3. **One frame of overlap at each seam**; the bound of 48 runs.
+4. **The shape of a column is described, not required**: the chain does not stop because a
+   column's minors or the step to the next column look unexpected.
+5. **The same order of grading**: commit first, then the database.
+6. As before, and to be said each time: I have general knowledge of how rows of this family are
+   laid out, and I saw one number of the database while writing the first grader. None of it
+   goes into the prober, the judge, the chain's rules or the row summary; the tests that hold
+   that are extended to the new files.

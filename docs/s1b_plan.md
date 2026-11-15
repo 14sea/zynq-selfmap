@@ -1471,3 +1471,139 @@ halt is saved, committed and reported. One test judges the stored chain again (2
 compares the columns walked whole and says what it did not compare); and what, if anything, is
 to be done about the end of the row — column 55 has been read once only, and the step from
 `0x1ba9` to `0x00400000` is not understood. Nothing of that has been built or tried.
+
+## 29. S1b.2b — proposal for the end of the row (2026-11-15; a proposal, nothing built, nothing on a board)
+
+The owner agreed to the order: the end of the row first, the grading of the row afterwards, once.
+This is the proposal for the first; nothing of it is built.
+
+### The question
+
+Section 28 left two things open. What does the address register do between `0x00001ba9` and
+`0x00400000` — how many steps does it stand still, and what does a read deliver there? And are
+the 42 frames of column 55, read once by one path, the same when read again by another?
+
+### The idea: the reads of S1b.0 at the last addresses of the row
+
+No new image. The table-driven stage reads, at an address given in the table, the pad and 0, 1,
+2 or 3 frames in one read, and records the address register afterwards and every word delivered.
+S1b.0 and S1b.0b used it at `0xb98..0xb9a` and found: after the pad and n frames the register is
+n + 1 steps on. Here the same reads are made where that stops being true, and the register is
+written down at every step.
+
+- **The image is the one in use**: 11,630 bytes, sha256 `2c566b1e…b296`.
+- **Stage 5 in its table form, with the wait that touches no memory** (word 15 = `0x200`), no
+  extra stack. Stage 5 is stage 3's loop with the choice of the wait. On the board stage 5 has
+  run in its sequence form only, and the table form as stages 2 and 3 (with the old wait, at a
+  depth where it never overflowed). The table form of stage 5 with the quiet wait is new on the
+  board in that combination. The alternative is stage 3 as it ran in S1b.0b; I propose stage 5
+  because the cause of the overflows is known to be the stores of the old wait.
+- The envelope is the row's, `0x00000000..0x0001ffff`; the reference frame `0xb99`, read before,
+  after, and after any anomaly, as in every run.
+
+### Two parameter sets, one run each
+
+**`s1b2e` — the end.** Sixteen reads, each made three times (the prober compares every repeat
+with the first: the same words, the same register):
+
+| at | frames after the pad | steps the register is moved |
+|---|---|---|
+| `0x1ba6` | 0, 1, 2, 3 | 1, 2, 3, 4 |
+| `0x1ba7` | 0, 1, 2, 3 | 1, 2, 3, 4 |
+| `0x1ba8` | 0, 1, 2, 3 | 1, 2, 3, 4 |
+| `0x1ba9` | 0, 1, 2, 3 | 1, 2, 3, 4 |
+
+Every position from `0x1ba7` to four steps beyond `0x1ba9` is thus reached from more than one
+starting address (the position two beyond `0x1ba9`, for one, from `0x1ba8` with three frames and
+from `0x1ba9` with one), and the register read there must agree. Six of the sixteen repeat what
+run 30 already recorded. `0x1ba6` is there as the control: all four of its reads lie where the
+rule of S1b.0 held in run 30, bar the last.
+
+**`s1b2c` — column 55 again.** Fourteen reads of three frames, at `0x1b80`, `0x1b83`, …,
+`0x1ba7`, each made twice: the 42 frames by a second path and a second time. The frames are
+held against those run 30 delivered one by one (the stored result of run 30; no board involved
+in the comparison).
+
+A run of either is a few seconds; 49 and 29 records.
+
+### What this reads that has not been read, and the one thing to decide
+
+A read of n frames from F delivers the frames at F and the n − 1 positions after it. From
+`0x1ba9` with three frames that is the frame at `0x1ba9` **and whatever lies at the two
+positions after it**. Nothing has been delivered from there yet.
+
+- If the register stands still there because the device has positions without an address of
+  their own, those two reads deliver what such positions hold — the answer to "what does a read
+  deliver there".
+- If there is only one such position, the second is the frame the register calls `0x00400000`:
+  block type 0, **bottom half**, row 0, column 0, minor 0. That is outside the row.
+
+**The guard does not prevent this, and I want that said rather than found.** It holds a read
+inside the envelope by arithmetic: the address written and the count of frames. `0x1ba9 + 2` is
+far below `0x0001ffff`. At the end of a row the device leaves the row while the arithmetic stays
+inside. So this step, unlike every one before it, may deliver up to **two frames from beyond
+the row** — read-only, block type 0 (configuration of logic and I/O; no block-RAM content,
+which is block type 1), and no address is written that the device did not itself name.
+
+The bound is in the table: no read starts above `0x1ba9`, and none asks for more than three
+frames; so at most two positions beyond `0x1ba9` are delivered, and the register is seen at most
+four steps beyond. A parameter set cannot be changed at run time (only `s1b2` takes a start).
+
+If the owner would rather not have anything delivered from beyond the row yet: the table of
+`s1b2e` without its last two reads (`0x1ba9` with 2 and 3 frames) and without `0x1ba8` with 3 —
+then only the register is seen beyond, up to three steps, and no word from there.
+
+### What would count as what
+
+The run is judged by the judge of the table-driven stage as it stands: the records are the ones
+planned, every repeat is the first again, the reference frame is as known, nothing overflowed.
+(When building I will check whether that judge requires anything of the register that cannot
+hold here; if it does, that is a change to a judge and will be reported as one.)
+
+On top of it a small program, new, lays the result out and knows no layout but the address
+word's:
+
+- the register at each position, from each starting address that reaches it, and whether they
+  agree;
+- for each position beyond `0x1ba9` that was delivered: whether its words are all zero, and its
+  hash;
+- column 55: the 42 frames of `s1b2c` against run 30's, one by one.
+
+There is no expected answer for the register beyond `0x1ba9`, and none is written into the
+program. What is required is only what has been required of every read so far: that the same
+read gives the same thing each time, and that two ways to the same position agree. A
+disagreement is an anomaly: the run is saved as it is and reported.
+
+Stop rules as in every run: an interface failure or an unhealthy reference ends the run; the
+budget of anomalies is 0 beyond what the prober needs to record one.
+
+### What would be built (after the owner's word; host side only)
+
+1. The two parameter sets, written by the image's tests like the others.
+2. The run script: the two sets (fixed tables; no address at run time).
+3. The layout program above.
+4. Tests on the twin, whose model of the end of a row has to be extended: positions after the
+   last frame at which the register stands still, in one and in two steps, so that the layout
+   program is shown to tell them apart — and deliberate defects for each rule.
+
+The twin will be made to do whatever I write. What the device does there is what the run is for.
+
+### After it
+
+In this order, each needing its own word: the two runs, saved, judged, committed; then
+`grade_s1b2.py` on the halted chain of section 28 — and what the end of the row was found to be
+held against the database by hand or by a small addition to the grader, to be proposed then.
+Whether the walk should learn to cross the end of a row is a question for the step after (it
+needs a new image) and is not part of this.
+
+### Open points for the owner
+
+1. **Up to two frames delivered from beyond the row**, as described — or the smaller table that
+   delivers none.
+2. **Stage 5 with the quiet wait** in its table form, rather than stage 3 as it ran before.
+3. **Both sets**, or the end alone: `s1b2c` only repeats column 55 by another path; it reads
+   nothing new.
+4. As before: I know in general terms how rows of this family are said to end, and that
+   knowledge is why I expect the register to stand still for a step or two. Nothing is built on
+   it: the program holds no expected value there, and the tests that keep the database out of
+   everything but the graders are extended to the new files.

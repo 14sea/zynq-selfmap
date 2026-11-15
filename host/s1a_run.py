@@ -62,8 +62,10 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # diagnostics: why does the walk overflow where stages 2 and 3 do not (docs/s1b_plan.md, section 17).
           # dxw*: the walk itself, kept to the 26 addresses already read, with 0, 6 or 8 more words of stack beneath its
           # reads. dxs*: the reads of the walk's first pass made by the stage-3 loop (stage 5), with 0, 10 or 18.
-          **{name: {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / f"expected_{name}.json"} for name in ("dxw0", "dxw6", "dxw8")},
-          **{name: {"judge": dx_judge, "expected": ROOT / "build" / "prober" / f"expected_{name}.json"} for name in ("dxs0", "dxs10", "dxs18")}}
+          # A trailing n or r (2026-11-15): the same set with the wait that stores nothing while a transfer runs (n: the
+          # limit still loaded from the stack on every poll; r: registers only, no memory touched).
+          **{name: {"judge": s1b1_judge, "expected": ROOT / "build" / "prober" / f"expected_{name}.json"} for name in ("dxw0", "dxw6", "dxw8", "dxw0n", "dxw0r")},
+          **{name: {"judge": dx_judge, "expected": ROOT / "build" / "prober" / f"expected_{name}.json"} for name in ("dxs0", "dxs10", "dxs18", "dxs10n", "dxs10r")}}
 IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"

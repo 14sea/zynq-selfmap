@@ -149,7 +149,7 @@ class StageFive(unittest.TestCase):
                 v = judge5(r)
                 self.assertEqual([p for p in v["problems"] if "no known answer" not in p], [], "failed for the frames without a known answer, and for nothing else")
                 self.assertEqual((v["header"]["status"], len(v["records"]), v["params"]["diagnostic"]),
-                                 ("0x1", 54, {"generated_sequence_of_addresses": 26, "extra_stack_words": extra}))
+                                 ("0x1", 54, {"generated_sequence_of_addresses": 26, "extra_stack_words": extra, "polling_loop": s1b0_judge.POLLING[0]}))
                 self.assertEqual(v["expected_console"][0], "SM5 start")
                 spots = v["polling_variable"]
                 self.assertEqual(len(spots), 1, "the target reads lie at one place")
@@ -211,6 +211,89 @@ class StageFive(unittest.TestCase):
         self.assertEqual(dx_judge.judge(words, KNOWN, clean.params)["verdict"], "PASS")
 
 
+def watched(run) -> list[tuple[int, int]]:
+    """What the twin saw of the prober's count of polls, each time a queued transfer was polled: (transfer, count)."""
+    return [(int(e[1]), int(e[2])) for e in run.lines if e[0] == "WATCH"]
+
+
+def but_where(run) -> list[int]:
+    """The result without the three things that may differ between two runs that did the same: the echoed parameter
+    word that chose the loop, and in each record the address of the polling variable (the twin's stack moves between
+    processes)."""
+    w = list(run.words)
+    w[32 + 15] = 0
+    for i in range(run.n_records):
+        w[HDR + i * REC + FARBLK + 6] = 0
+    return w
+
+
+class TheWaitThatStoresNothing(unittest.TestCase):
+    """Section 20: stages 4 and 5 can wait for a transfer without storing anything while it runs (bits 8 and up of
+    parameter word 15). No result can tell the loops apart — that is the point — so the twin watches the count of
+    polls on the prober's stack while it is being polled, and the machine code is read in test_prober_image."""
+    FAULTS = ("", "err@7", "err@8", "timeout@7", "timeout@8", "drop@8", "dropafter@8", "stale", "short@2", "farshort@3")
+
+    def test_the_three_loops_bring_back_the_same_result_whatever_happens(self) -> None:
+        for fault in self.FAULTS:
+            for make, name in ((lambda **k: Run5(fault, poll_limit=30, **k), "stage 5"), (lambda **k: Run4(fault, poll_limit=30, frames=FRAMES, hi=0xB99, **k), "the walk")):
+                with self.subTest(fault=fault, stage=name):
+                    as_before = make()
+                    for poll in (1, 2):
+                        quiet = make(poll=poll)
+                        self.assertEqual(quiet.words[32 + 15], poll << 8)
+                        self.assertEqual((quiet.rc, quiet.status, quiet.uart, quiet.violations), (as_before.rc, as_before.status, as_before.uart, as_before.violations))
+                        self.assertEqual(but_where(quiet), but_where(as_before), "every word of the result")
+                        self.assertEqual((quiet.accesses, quiet.dmas), (as_before.accesses, as_before.dmas), "every register access, in order")
+        self.assertEqual({Run5(f, poll_limit=30).status for f in self.FAULTS}, {0x1, 0x221, 0x222, 0x223, 0x620},
+                         "and the faults are the ones meant: done, an error bit, the limit, PCFG_DONE gone, a stale status before the command")
+
+    def test_the_count_on_the_stack_while_a_transfer_is_polled(self) -> None:
+        for make, name in ((lambda **k: Run5("timeout@8", poll_limit=30, **k), "stage 5"), (lambda **k: Run4("timeout@8", poll_limit=30, frames=FRAMES, hi=0xB99, **k), "the walk")):
+            with self.subTest(stage=name):
+                before = watched(make())
+                per = {}
+                for t, count in before:
+                    per.setdefault(t, []).append(count)
+                self.assertTrue(all(v == list(range(len(v))) for v in per.values()), "as before: at the k-th poll the stack holds k-1")
+                # the transfer that never ends: 30 polls, and then the status read that closes the run finds the count stored
+                self.assertEqual(per[8], list(range(31)))
+                self.assertGreater(len([v for v in per.values() if len(v) == 2]), 5, "a transfer of the twin takes two polls")
+                for poll in (1, 2):
+                    quiet = watched(make(poll=poll))
+                    self.assertEqual([t for t, _ in quiet], [t for t, _ in before], "the same polls of the same transfers")
+                    self.assertEqual([count for t, count in quiet if t == 8], [0] * 30 + [30], "nothing stored while it was waited for; the count once the wait was over")
+                    self.assertEqual({count for t, count in quiet if t != 8}, {0})
+
+    def test_the_other_stages_wait_as_they_always_did(self) -> None:
+        for run in (Run2(poll=1), Run3(poll=2)):
+            self.assertEqual(run.status, 1)
+            self.assertEqual({count for _, count in watched(run)}, {0, 1})
+            self.assertEqual(run.words[32 + 15], run.params[15])
+
+    def test_a_loop_that_does_not_exist_is_refused_before_anything_is_touched(self) -> None:
+        for run in (Run5(poll=3), Run5(poll=4, extra=8), Run4(poll=3), Run4(poll=0x10000)):
+            self.assertEqual((run.status, run.n_records, run.accesses, run.dmas), (0x500, 0, [], []))
+
+    def test_the_judges_say_which_loop_and_refuse_one_that_does_not_exist(self) -> None:
+        for poll, text in ((0, "as before"), (1, "no stores until"), (2, "no stores and no loads")):
+            with self.subTest(poll=poll):
+                five = Run5(lo=0xB98, hi=0xB9A, ops=[(0xB98, 0)], seq=3, repeats=2, poll=poll, extra=10)
+                v = judge5(five)
+                self.assertEqual((v["verdict"], v["problems"], v["params"]["diagnostic"]["extra_stack_words"]), ("PASS", [], 10))
+                self.assertTrue(v["params"]["diagnostic"]["polling_loop"].startswith(text))
+                walk = Run4(poll=poll, extra=6)
+                v = s1b1_judge.judge(walk.words, KNOWN, walk.params)
+                self.assertEqual((v["verdict"], v["problems"], v["params"]["extra_stack_words"]), ("PASS", [], 6))
+                self.assertTrue(v["params"]["polling_loop"].startswith(text))
+        for run, judge, stage in ((Run5(lo=0xB98, hi=0xB9A, ops=[(0xB98, 0)], seq=3, repeats=2, poll=2), dx_judge.judge, 5), (Run4(poll=2), s1b1_judge.judge, 4)):
+            words, planned = list(run.words), list(run.params)
+            words[32 + 15] = planned[15] = 3 << 8
+            v = judge(words, KNOWN, planned)
+            self.assertEqual((v["verdict"], f"the echoed parameters are not a valid stage-{stage} parameter block" in v["problems"]), ("INVALID", True))
+            words[32 + 15] = planned[15] = 2 << 8 | 65
+            self.assertEqual(judge(words, KNOWN, planned)["verdict"], "INVALID", "and the limit on the extra stack is on its own byte")
+
+
 class AReferenceReadThatFailsOnTheInterface(unittest.TestCase):
     """Found on the board, 2026-11-14: an overflow fell on a read of the reference frame, and the prober reported
     status 0x300, "the reference frame changed", for what its own record called an interface failure."""
@@ -256,27 +339,36 @@ class ThroughTheRunScript(unittest.TestCase):
     """The parameter sets of the diagnostic series (docs/s1b_plan.md, section 17), as the board will get them."""
     MODEL = {"far_rule": "skip", "frames": FRAMES}
 
+    def setUp(self) -> None:                               # the parameter sets are written with the image: have them before reading one
+        import subprocess
+        subprocess.run([sys.executable, "-B", "-m", "unittest", "tests.test_prober_image"], cwd=ROOT, check=True, capture_output=True)
+
     def test_the_walk_kept_to_the_addresses_already_read(self) -> None:
         import test_s1a_run as fake
-        for name, extra in (("dxw0", 0), ("dxw6", 6), ("dxw8", 8)):
+        for name, extra, poll in (("dxw0", 0, 0), ("dxw6", 6, 0), ("dxw8", 8, 0), ("dxw0n", 0, 1), ("dxw0r", 0, 2)):
             with self.subTest(name):
                 exp = json.loads(fake.s1a_run.STAGES[name]["expected"].read_text())
                 par = [int(w, 16) for w in exp["params"]]
-                self.assertEqual((par[2], par[3], par[4], par[15], par[16]), (4, 0xB80, 0xB99, extra, 0xB80))
+                self.assertEqual((par[2], par[3], par[4], par[15], par[16]), (4, 0xB80, 0xB99, extra | poll << 8, 0xB80))
+                self.assertEqual([k for k in range(32) if par[k] != [int(w, 16) for w in json.loads(fake.s1a_run.STAGES["dxw0"]["expected"].read_text())["params"]][k]],
+                                 [15] if extra or poll else [], "nothing else differs from the walk as it was")
                 rec, u, out = fake.run(stage=name, **self.MODEL)
                 v = json.loads((out / "verdict.json").read_text())
                 self.assertEqual((rec["verdict"], rec["problems"], v["frames_walked"], v["passes"][0]["last_address_named"]), ("PASS", [], 26, "0x00000b9a"))
-                self.assertEqual(v["params"]["extra_stack_words"], extra)
+                self.assertEqual((v["params"]["extra_stack_words"], v["params"]["polling_loop"]), (extra, s1b1_judge.POLLING[poll]))
                 self.assertNotIn("0x00000b9a", {r["far"] for r in v["records"]}, "the address named at the end is not read")
 
     def test_the_first_pass_s_reads_made_by_the_stage_three_loop(self) -> None:
         import test_s1a_run as fake
-        for name, extra in (("dxs0", 0), ("dxs10", 10), ("dxs18", 18)):
+        for name, extra, poll in (("dxs0", 0, 0), ("dxs10", 10, 0), ("dxs18", 18, 0), ("dxs10n", 10, 1), ("dxs10r", 10, 2)):
             with self.subTest(name):
+                par = [int(w, 16) for w in json.loads(fake.s1a_run.STAGES[name]["expected"].read_text())["params"]]
+                self.assertEqual([k for k in range(32) if par[k] != [int(w, 16) for w in json.loads(fake.s1a_run.STAGES["dxs10"]["expected"].read_text())["params"]][k]],
+                                 [] if name == "dxs10" else [15], "one word apart")
                 rec, u, out = fake.run(stage=name, **self.MODEL)
                 v = json.loads((out / "verdict.json").read_text())
                 self.assertEqual((v["header"]["status"], len(v["records"]), v["params"]["diagnostic"]),
-                                 ("0x1", 54, {"generated_sequence_of_addresses": 26, "extra_stack_words": extra}))
+                                 ("0x1", 54, {"generated_sequence_of_addresses": 26, "extra_stack_words": extra, "polling_loop": s1b0_judge.POLLING[poll]}))
                 self.assertEqual((rec["verdict"], [p for p in v["problems"] if "no known answer" not in p]), ("FAIL", []))
                 self.assertEqual({r["far"] for r in v["records"]}, {f"{a:#010x}" for a in range(0xB80, 0xB9A)})
                 self.assertEqual(rec["console"][0], "SM5 start")

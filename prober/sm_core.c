@@ -144,11 +144,67 @@ static uint32_t par(uint32_t i)                     { return hal_mem_rd(PARAM_AD
  * D_P_DONE. PCFG_DONE is a precondition of every command (UG585: no readback without it) and is
  * checked before the command is queued and on every poll: if it is ever seen clear, nothing more
  * is sent. Returns a record code; *sts and *polls are what was seen. */
+/* which loop waits for a transfer: stages 4 and 5 choose (diagnostics), every other stage has the one it always had */
+static uint32_t poll_mode(void)
+{
+    uint32_t stage = par(P_STAGE);
+    return (stage == 4u || stage == 5u) ? par(P_DIAG_STACK) >> DIAG_POLL_SHIFT : POLL_AS_BEFORE;
+}
+
+/* The wait that stores nothing (diagnostics): the write that queues the command, then the same polls and the same
+ * four ways out as in dma() below, with the status and the count kept in registers until the transfer is over. With
+ * `limit_at` the limit is read through it on every poll — the caller passes the stack slot the original loop loads
+ * it from; without, the limit is `limit`, and between queueing the command and its end the prober touches no memory
+ * but its own code. The command is queued in here, after this function has saved its registers, so that not even
+ * that is written while the transfer runs. Not inlined: its registers are its own, whatever the caller has in use. */
+static __attribute__((noinline)) uint32_t queue_and_wait_quiet(uint32_t dlen, const volatile uint32_t *limit_at, uint32_t limit,
+                                                               uint32_t *polls)
+{
+    uint32_t s, n;
+
+    hal_wr(DEVCFG_DMA_DLEN, dlen);                      /* this write queues the command */
+    for (n = 1u; ; n++) {
+        s = hal_rd(DEVCFG_INT_STS);
+        if ((s & STS_ERR_MASK) || !(s & STS_PCFG_DONE) || (s & STS_D_P_DONE))
+            break;
+        if (n >= (limit_at ? *limit_at : limit))
+            break;
+    }
+    *polls = n;
+    return s;
+}
+
+/* One DMA command with that wait: what dma() below does, to the same registers in the same order. `limit_at` is
+ * where dma()'s own loop reads the limit from. */
+static uint32_t dma_quiet(uint32_t mode, uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, uint32_t poll_limit,
+                          const volatile uint32_t *limit_at, uint32_t *sts, uint32_t *polls)
+{
+    uint32_t v;
+
+    *polls = 0u;
+    hal_wr(DEVCFG_INT_STS, STS_CLEAR_MASK);
+    v = hal_rd(DEVCFG_INT_STS);
+    *sts = v;
+    if (v & STS_CLEAR_MASK)
+        return C_STALE;
+    if (!(v & STS_PCFG_DONE))
+        return C_DONE_DROPPED;
+    hal_wr(DEVCFG_DMA_SRC, src);
+    hal_wr(DEVCFG_DMA_DST, dst);
+    hal_wr(DEVCFG_DMA_SLEN, slen);
+    v = queue_and_wait_quiet(dlen, mode == POLL_NO_STORES ? limit_at : 0, poll_limit, polls);
+    *sts = v;
+    return (v & STS_ERR_MASK) ? C_DEVERR : !(v & STS_PCFG_DONE) ? C_DONE_DROPPED : (v & STS_D_P_DONE) ? C_OK : C_TIMEOUT;
+}
+
 static uint32_t dma(uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, uint32_t poll_limit,
                     uint32_t *sts, uint32_t *polls)
 {
     uint32_t s, n;
 
+    n = poll_mode();                                    /* read before anything is sent */
+    if (n != POLL_AS_BEFORE)                            /* diagnostics; from here on this function is as it always was */
+        return dma_quiet(n, src, dst, slen, dlen, poll_limit, &poll_limit, sts, polls);
     *polls = 0u;
     hal_wr(DEVCFG_INT_STS, STS_CLEAR_MASK);
     s = hal_rd(DEVCFG_INT_STS);
@@ -304,6 +360,7 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
     r2_wr(rec, R_NFRAMES, n);
     r2_wr(rec, R_OP, op);
     r2_wr(rec, REC2_FARBLK + F_POLL_VAR, (uint32_t)(uintptr_t)&sts);   /* the polling loop stores to it and to its neighbour on every poll */
+    hal_watch(&polls);
 
     sm_frames_stream(far, n, stream);
     sm_far_read_stream(farrd);
@@ -489,8 +546,8 @@ static uint32_t run_s2(void)
         || budget > 64u || poll_limit == 0u || poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
     if (stage5) {
-        seq = par(P_DIAG_SEQ); extra = par(P_DIAG_STACK);
-        if (seq > MAX_DIAG_SEQ || extra > MAX_DIAG_STACK || (seq != 0u && (n_ops != 1u || repeats > 2u)))
+        seq = par(P_DIAG_SEQ); extra = par(P_DIAG_STACK) & 0xFFu;
+        if (seq > MAX_DIAG_SEQ || extra > MAX_DIAG_STACK || poll_mode() > POLL_NO_STACK || (seq != 0u && (n_ops != 1u || repeats > 2u)))
             return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
         if (seq != 0u) {
             /* the sequence must end at or below the top of the envelope, and that is settled by subtraction: the
@@ -811,11 +868,11 @@ static uint32_t run_s4(void)
     c.rec = 0u; c.anomalies = 0u; c.stop = 0xFFFFFFFFu; c.since = 0u;
     c.far_lo = par(P_FAR_LO); c.far_hi = par(P_FAR_HI); c.ref_far = par(P_REF_FAR); c.poll_limit = par(P_POLL_LIMIT);
     passes = par(P_REPEATS); limit = par(P_WALK_LIMIT); c.every = par(P_HEALTH_EVERY); start = par(P_FARS);
-    c.extra = par(P_DIAG_STACK);
+    c.extra = par(P_DIAG_STACK) & 0xFFu;
     if (par(P_VERSION) != 1u || c.far_lo > c.far_hi || c.ref_far < c.far_lo || c.ref_far > c.far_hi
         || par(P_N_FARS) != 1u || start < c.far_lo || start > c.far_hi
         || passes == 0u || passes > MAX_PASSES || limit == 0u || limit > MAX_WALK || c.every < MAX_READ_FRAMES
-        || par(P_ANOMALY_BUDGET) != 0u || c.extra > MAX_DIAG_STACK || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
+        || par(P_ANOMALY_BUDGET) != 0u || c.extra > MAX_DIAG_STACK || poll_mode() > POLL_NO_STACK || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
 
     v = hal_rd(DEVCFG_CTRL);   res_wr(H_CTRL, v);

@@ -795,3 +795,109 @@ other residues; the polling loop without its two stores) or to go on with the wa
 that did not overflow, which needs a parameter and no new image — in either case an overflow
 stops a run and is seen by the judge; it has not produced a wrong frame. The column's end has
 not been looked for; `host/grade_s1b1.py` has not been run.
+
+## 20. A wait that stores nothing while a transfer runs (2026-11-15; host side, nothing on a board yet)
+
+The owner's choice after section 19: build the image whose polling loop does not write the stack.
+
+### What the prober does on the stack while a transfer runs
+
+Only the loop that waits for it. Read from the machine code of the image that overflowed, per
+poll: one store of the status and one of the count, through pointers into the frame of the
+reading routine (`sp+24`, `sp+28` there — the address the records carry, and its neighbour), and
+one load of the poll limit from the same frame (`sp+0`: the first argument passed on the stack).
+Nothing else: the register read is a leaf call with no frame; the address of the status register
+is loaded from the code. The data cache is off, so each of these is an access to DDR, where the
+transfer is writing at the same time. A read is polled only two to six times, so these are few
+accesses — and still the overflows follow where that frame lies (section 19).
+
+### The image: three waits, chosen by a parameter
+
+Parameter word 15 now holds two things: its low byte is the extra stack of section 17, its bits
+8 and up choose the wait, in stages 4 and 5 only (every other stage waits as it always did):
+
+| value | name | on every poll, on the stack |
+|---|---|---|
+| 0 | as before | two stores, one load |
+| 1 | no stores | one load (the limit, from the same slot) |
+| 2 | no stack | nothing |
+
+Values 1 and 2 are one routine, `queue_and_wait_quiet`: it writes the register that queues the
+command itself, after it has saved its own registers, then polls with the status and the count
+in registers, and stores the count once on the way out; the status is stored by its caller
+after that. With value 1 it is handed the address of the stack slot the original loop loads the
+limit from and reads it there on every poll; with value 2 it is handed none. The four ways out
+(an error bit, PCFG_DONE gone, D_P_DONE, the limit) and the checks before the command are the
+same as before, and so is every register access, in order. A value above 2 is refused as a bad
+parameter block before anything is touched.
+
+Value 0 runs the original loop, in the original function. Its machine code was read again in
+this image: per poll the same two stores through registers and the same one load from the
+caller's first stack argument. What differs around it: the function now reads the choice (two
+words of the parameter block) before it sends anything, and saves two more registers on entry.
+
+Unchanged against `17ad8b14…`, compared in the disassembly: the frames of `read_op` (240 bytes,
+status at `sp+24`, count at `sp+28`), `walk_op`, `health4` and the stage loop. So the reads lie
+where they lay, and the sets of section 17 keep their depths. The functions do start at other
+addresses than before (three small ones were added in front of them); the controls below are
+run in this image for that reason.
+
+No result can tell the waits apart — that is the point of them. So they are held two other ways:
+
+- **On the twin**, which is shown where the prober keeps its count of polls
+  (`hal_watch`, a do-nothing on the board) and looks at it each time a queued transfer is
+  polled: as before, it finds 0, 1, 2, … ; with the quiet waits, 0 throughout, and the count
+  only once the wait is over. And for ten injected faults in both stages the three waits bring
+  back the same result word for word and make the same register accesses in the same order.
+- **In the machine code** (`tests/test_prober_image.py`): between the write that queues the
+  command and the way out of the quiet loop there is no store and nothing addressed through the
+  stack pointer; its one load through a register is conditional on a place having been passed;
+  the caller passes the slot its own loop reads, and only for value 1.
+
+### The series proposed (each set: a `reset`, a fresh load, one run; three rounds)
+
+Two of section 19's sets, each with the three waits; within a triple one parameter word differs,
+in one bit field.
+
+| set | what | wait | section 19, same position |
+|---|---|---|---|
+| `dxs10` | stage 5, reads at `0x1eaca9f8` | as before — control | overflow 3 of 3, within 13 records |
+| `dxs10n` | the same | no stores | |
+| `dxs10r` | the same | no stack | |
+| `dxw0` | the walk as it was, reads at `0x1eaca9d8` | as before — control | overflow 2 of 3 |
+| `dxw0n` | the same | no stores | |
+| `dxw0r` | the same | no stack | |
+
+| outcome | reading |
+|---|---|
+| controls overflow, `n` and `r` do not | the stores are what matters; the quiet wait is the remedy |
+| controls and `n` overflow, `r` does not | the load matters as well (or instead): any access to that frame during a transfer |
+| all three overflow | not the loop's use of the stack; something else that moves with the frame — a new question |
+| the controls do not overflow | this image moved something else; nothing can be read from the rest until that is understood |
+
+How much three rounds can show: `dxs10` overflowed after 8 to 12 reads each time, so three
+complete runs of 52 reads at that position would be strong; the walk overflows at about one
+read in a hundred, so three complete walks (339 reads) would be suggestive only — more rounds of
+the walk sets if it comes to that.
+
+### State
+
+- Image: 11,630 bytes, sha256 `2c566b1ed6b65555cfdddcdcb513ca2578360d0c4b6827ae676b9e857153b296`,
+  crc32 `b0d75377`.
+- Host checks: 241 tests. 252 deliberate defects, 27 of them new (in the quiet wait: each way
+  out, each check before the command, the order of the register writes, a store put back into
+  the loop, the limit handed to the wrong variant; the choice taken by the wrong stages, mixed
+  up with the extra stack, or not refused when it names no wait; the same in both judges). A
+  complete run failed all 252, each with all 241 tests run
+  (`evidence/host_checks/mutants_2026-11-15_quiet_wait.txt`). A first complete run had failed
+  240 of 249 and could not apply the other nine: the change had altered or duplicated the lines
+  they are anchored to. Their anchors were corrected (the quiet wait's checks before the command
+  use another variable name so that each line of the two can be named), and three defects were
+  added for the quiet side.
+- Found while doing it: the tests of the run script's parameter sets read a set before anything
+  had written it and passed only because another test ran first; they now have the sets written
+  themselves.
+- Nothing here recovers from an overflow, and nothing reads an address the walk has not read.
+
+**Before the board:** the owner's review. Then, with nothing else running on the host, the
+series above; stop and report after it.

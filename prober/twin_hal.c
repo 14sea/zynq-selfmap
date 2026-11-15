@@ -157,13 +157,23 @@ static void dma_execute(uint32_t dlen)
     if (fault_at("dropafter", n_dma)) drop_on_next_clear = 1;             /* between this command and the next */
 }
 
+/* what the prober's own count of polls holds each time a queued transfer is polled: the loop that stores on every
+ * poll shows 0, 1, 2, ...; a loop that stores nothing until the transfer is over shows 0 throughout */
+static const uint32_t *watch; static int polling;
+void hal_watch(const uint32_t *polls) { watch = polls; }
+
 uint32_t hal_rd(uint32_t a)
 {
     uint32_t v;
     switch (a) {
     case DEVCFG_CTRL:    v = reg_ctrl; break;
     case DEVCFG_MCTRL:   v = reg_mctrl; break;
-    case DEVCFG_INT_STS: v = reg_sts; if (done_pending) { done_pending = 0; reg_sts |= 0x00001000u; } break;
+    case DEVCFG_INT_STS: v = reg_sts; if (done_pending) { done_pending = 0; reg_sts |= 0x00001000u; }
+                         if (polling && watch) {
+                             printf("WATCH %u %u\n", n_dma, *watch);
+                             if ((v & 0x00001000u) || (v & STS_ERR_MASK) || !(v & STS_PCFG_DONE)) polling = 0;
+                         }
+                         break;
     case DEVCFG_STATUS:  v = reg_status; break;
     default:             v = 0; printf("VIOLATION read %08x\n", a); break;
     }
@@ -175,13 +185,14 @@ void hal_wr(uint32_t a, uint32_t v)
 {
     printf("W %08x %08x\n", a, v);
     switch (a) {
-    case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
+    case DEVCFG_INT_STS:  polling = 0;                                        /* a new command begins: the last one is no longer waited for */
+                          if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
                           if (drop_on_next_clear) { drop_on_next_clear = 0; reg_sts &= ~STS_PCFG_DONE; }
                           break;
     case DEVCFG_DMA_SRC:  dma_src = v; break;
     case DEVCFG_DMA_DST:  dma_dst = v; break;
     case DEVCFG_DMA_SLEN: dma_slen = v; break;
-    case DEVCFG_DMA_DLEN: dma_execute(v); break;
+    case DEVCFG_DMA_DLEN: dma_execute(v); polling = 1; break;
     default: printf("VIOLATION write %08x\n", a); break;
     }
 }

@@ -12,6 +12,8 @@ void     hal_wr(uint32_t addr, uint32_t value)  { *(volatile uint32_t *)(uintptr
 uint32_t hal_mem_rd(uint32_t addr)              { return *(volatile uint32_t *)(uintptr_t)addr; }
 void     hal_mem_wr(uint32_t addr, uint32_t value) { *(volatile uint32_t *)(uintptr_t)addr = value; }
 
+void     hal_watch(const uint32_t *polls)       { (void)polls; }
+
 uint32_t hal_cpu(int which)
 {
     uint32_t v = 0;

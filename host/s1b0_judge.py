@@ -74,6 +74,15 @@ def console_line(status: int, records: int, anomalies: int, stage: int = 2) -> s
 
 
 MAX_DIAG_SEQ, MAX_DIAG_STACK = 32, 64
+# parameter word 15, bits 8 and up: which loop waits for a transfer (2026-11-15)
+POLLING = {0: "as before: two stores and one load on the caller's stack on every poll",
+           1: "no stores until the transfer is over; the limit still loaded from the caller's stack on every poll",
+           2: "no stores and no loads: no memory touched while the transfer runs"}
+
+
+def diag_word(w: int) -> tuple[int, int]:
+    """Parameter word 15 as (extra words of stack, polling loop)."""
+    return w & 0xFF, w >> 8
 
 
 def planned_ops(par: list[int], stage: int = 2) -> list[tuple[int, int]]:
@@ -130,10 +139,12 @@ def judge(words: list[int], known: dict, planned: list[int], stage: int = 2) -> 
             or not 1 <= n_ops <= MAX_FARS or not 1 <= repeats <= MAX_REPEATS or poll_limit == 0 \
             or any(not count_ok(m) or far < lo or far > hi or far + max(delivered(m), 1) - 1 > hi for far, m in ops) \
             or (stage != 5 and (par[14] or par[15])) \
-            or (stage == 5 and (par[14] > MAX_DIAG_SEQ or par[15] > MAX_DIAG_STACK or (par[14] and (n_ops != 1 or repeats > 2)))):
+            or (stage == 5 and (par[14] > MAX_DIAG_SEQ or diag_word(par[15])[0] > MAX_DIAG_STACK or diag_word(par[15])[1] not in POLLING
+                                or (par[14] and (n_ops != 1 or repeats > 2)))):
         return invalid(f"the echoed parameters are not a valid stage-{stage} parameter block")
     if stage == 5:
-        out["params"]["diagnostic"] = {"generated_sequence_of_addresses": par[14], "extra_stack_words": par[15]}
+        out["params"]["diagnostic"] = {"generated_sequence_of_addresses": par[14], "extra_stack_words": diag_word(par[15])[0],
+                                       "polling_loop": POLLING[diag_word(par[15])[1]]}
     out["params"]["ops"] = [[f"{far:#010x}", "none" if m == NONE else m] for far, m in ops]
 
     ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]

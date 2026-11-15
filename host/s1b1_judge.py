@@ -33,7 +33,7 @@ sys.path.insert(0, str(ROOT / "host"))
 import packets  # noqa: E402
 from s1a_judge import (CLEANUP, CTRL_MASK, ERR_MASK, GATE_STATUS, KIND, MCTRL_LPBK, PCFG_DONE, SCTLR_C, SENTINEL,  # noqa: E402,F401
                        _command_outcome, return_code)
-from s1b0_judge import DATA, DATA_WORDS, FARBLK, FARRD, FRAME, HDR, NO_OP, REC, frames_stream  # noqa: E402
+from s1b0_judge import DATA, DATA_WORDS, FARBLK, FARRD, FRAME, HDR, NO_OP, POLLING, REC, diag_word, frames_stream  # noqa: E402
 
 STAGE, H_WALK = 4, 19
 MAX_WALK, MAX_PASSES = 64, 2
@@ -80,7 +80,8 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
     lo, hi, ref, n_fars, passes, budget, poll_limit = par[3:10]
     limit, every, start = par[12], par[13], par[16]
     out["params"] = {"far_lo": f"{lo:#010x}", "far_hi": f"{hi:#010x}", "ref_far": f"{ref:#010x}", "start": f"{start:#010x}",
-                     "passes": passes, "limit": limit, "reference_every": every, "poll_limit": poll_limit, "extra_stack_words": par[15]}
+                     "passes": passes, "limit": limit, "reference_every": every, "poll_limit": poll_limit, "extra_stack_words": diag_word(par[15])[0],
+                     "polling_loop": POLLING.get(diag_word(par[15])[1])}
     if list(par) != list(planned):
         differ = [k for k in range(32) if k >= len(planned) or par[k] != planned[k]]
         bad(f"the parameters the prober echoed are not the planned ones (word(s) {differ}): the run did not do what was asked")
@@ -88,7 +89,7 @@ def judge(words: list[int], known: dict, planned: list[int]) -> dict:
         bad("the run stopped: bad parameters"); out["verdict"] = "FAIL"; return out
     if (par[0], par[1], par[2]) != (0x31504D53, 1, STAGE) or lo > hi or not lo <= ref <= hi or n_fars != 1 or not lo <= start <= hi \
             or not 1 <= passes <= MAX_PASSES or not 1 <= limit <= MAX_WALK or every < 3 or budget != 0 or poll_limit == 0 \
-            or any(par[k] for k in (10, 11, 14)) or par[15] > MAX_DIAG_STACK or any(par[17:]):
+            or any(par[k] for k in (10, 11, 14)) or diag_word(par[15])[0] > MAX_DIAG_STACK or diag_word(par[15])[1] not in POLLING or any(par[17:]):
         return invalid("the echoed parameters are not a valid stage-4 parameter block")
 
     ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]

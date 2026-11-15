@@ -14,7 +14,8 @@ BUILD = ROOT / "build" / "prober"
 DEVICE_ADDRESSES = {0xF8007000, 0xF800700C, 0xF8007014, 0xF8007018, 0xF800701C, 0xF8007020, 0xF8007024, 0xF8007080,
                     0xE000102C, 0xE0001030, 0xE0001000}
 # constants that are data, not addresses: status masks, configuration words, the sentinel, the two magics, the PCAP endpoint
-CONSTANTS = {0x00F4C840, 0x00F4F840, 0x28006000, 0x28002001, 0x30002001, 0x30008001, 0x480000CA, 0xAA995566,
+# (0x00F4D844: the error bits with D_P_DONE and PCFG_DONE — the three tests that end the quiet wait, made in one)
+CONSTANTS = {0x00F4C840, 0x00F4F840, 0x00F4D844, 0x28006000, 0x28002001, 0x30002001, 0x30008001, 0x480000CA, 0xAA995566,
              0xA5A55A5A, 0x31504D53, 0x31524D53, 0xFFFFFFFF}
 
 
@@ -49,6 +50,61 @@ class Image(unittest.TestCase):
         mrc = [i for i in self.insns if i.startswith("mrc")]
         self.assertEqual(len(mrc), 1, mrc)
         self.assertRegex(mrc[0].replace("\t", " "), r"^mrc\s+15, 0, r\d+, cr1, cr0, \{0\}")
+
+    def body(self, name: str) -> list[str]:
+        """The instructions of one function, in order, comments and literal words dropped."""
+        text = self.dis.split(f"<{name}>:\n", 1)[1].split("\n\n", 1)[0]
+        rows = [line.split("\t", 2)[2].split("@")[0].strip() for line in text.splitlines() if line.count("\t") >= 2]
+        return [" ".join(r.split()) for r in rows if not r.startswith(".word")]
+
+    def test_the_wait_that_stores_nothing_touches_no_memory_while_the_transfer_runs(self) -> None:
+        """Section 20. Read from the machine code, since no result can show it: from the write that queues the command
+        to the way out of the loop there is no store and nothing addressed through the stack pointer; the one load
+        through a register is the limit, made only when a place to read it from was passed."""
+        b = self.body("queue_and_wait_quiet")
+        self.assertRegex(b[0], r"^push \{")
+        queue = [i for i, x in enumerate(b) if x.startswith("bl ") and "<hal_wr>" in x]
+        self.assertEqual(len(queue), 1, "one register write: the one that queues the command")
+        stores = [i for i, x in enumerate(b) if re.match(r"^(str|stm|push)", x)]
+        self.assertEqual(len(stores), 2, "the registers saved on entry, the count stored on the way out")
+        self.assertEqual(stores[0], 0)
+        self.assertRegex(b[stores[1]], r"^str r\d, \[r\d\]$")
+        self.assertRegex(b[stores[1] + 1], r"^pop \{.*pc\}$")
+        back = [i for i, x in enumerate(b) if re.match(r"^b(cc|ne|eq|hi|ls|cs)? ", x) and f"<queue_and_wait_quiet+" in x
+                and int(x.split("+0x")[1].rstrip(">"), 16) // 4 < i]
+        self.assertEqual(len(back), 1, "one loop")
+        self.assertLess(queue[0], back[0]); self.assertLess(back[0], stores[1], "the store comes after the loop")
+        waiting = b[queue[0]:stores[1]]
+        self.assertFalse([x for x in waiting if re.search(r"\bsp\b|\bfp\b|\[r1[0-5]", x)], "nothing through the stack pointer")
+        loads = [x for x in waiting if x.startswith("ld")]
+        self.assertEqual(sorted(re.sub(r"#\d+", "#N", x) for x in loads), ["ldr r0, [pc, #N]", "ldrne r3, [r5]"],
+                         "the address of the status register, from the code; and the limit, if a place was given")
+        self.assertIn("cmp r5, #0", waiting[waiting.index("ldrne r3, [r5]") - 1])
+        self.assertEqual([x for x in waiting if x.startswith("bl ")][1:], ["bl 2000020 <hal_rd>"], "and the only call polls the status register")
+
+    def test_the_wait_as_it_was_and_the_slot_the_quiet_one_is_given(self) -> None:
+        """dma(): its own loop still makes two stores through registers and one load from the caller's stack on every
+        poll; the place handed to the quiet wait for the limit is that same slot, and only for the variant that asks."""
+        b = self.body("dma")
+        pushed = len(re.match(r"^push \{(.*)\}$", b[0]).group(1).split(","))
+        slot = f"[sp, #{4 * pushed}]"                      # the first argument passed on the stack: the poll limit
+        target = lambda i: int(b[i].split("+0x")[1].rstrip(">"), 16) // 4  # noqa: E731
+        back = [i for i, x in enumerate(b) if x.startswith("b ") and "<dma+" in x and target(i) < i]
+        last = max(back, key=target)                       # the others jump back to the common way out, which lies before the loop
+        self.assertEqual([i for i in back if target(i) == target(last)], [last], "one loop")
+        loop = b[target(last): last]
+        self.assertLess(len(loop), 20)
+        self.assertEqual(loop[1], "bl 2000020 <hal_rd>")
+        self.assertEqual([re.sub(r"r\d", "rX", x) for x in loop if x.startswith("str")], ["str rX, [rX]", "str rX, [rX]"])
+        self.assertEqual([x.split(", ", 1)[1] for x in loop if x.startswith("ldr") and "[pc" not in x], [slot])
+        call = [i for i, x in enumerate(b) if "<queue_and_wait_quiet>" in x]
+        self.assertEqual(len(call), 1)
+        prev = max(i for i, x in enumerate(b[:call[0]]) if x.startswith("bl "))
+        self.assertIn("<hal_wr>", b[prev], "the register write before it (the source length; the wait itself queues the command)")
+        before = b[prev + 1: call[0]]
+        self.assertIn("cmp r4, #1", before)
+        self.assertIn(f"addeq r1, sp, #{4 * pushed}", before, "the variant that still loads the limit is given the slot dma()'s own loop reads")
+        self.assertTrue([x for x in before if re.match(r"^movne r1, r\d$", x)], "the other is given none")
 
     def test_every_literal_in_the_image_is_accounted_for(self) -> None:
         """Each word the compiler placed in a literal pool is one of: an address inside the image, an address inside
@@ -140,14 +196,17 @@ class Image(unittest.TestCase):
         # diagnostics (docs/s1b_plan.md, section 17). dxw*: the walk, kept to the 26 addresses it has already read
         # (envelope 0xb80..0xb99), with more stack beneath its reads. dxs*: stage 5 — the reads of the walk's first pass,
         # the pad alone then the frame at each of those 26 addresses, made by the stage-3 loop — with more stack likewise.
-        for extra in (0, 6, 8):
-            pd = list(p4); pd[4] = 0xB99; pd[15] = extra
-            (BUILD / f"expected_dxw{extra}.json").write_text(json.dumps(dict(e4, stage=f"dxw{extra}", params=[f"{w:08x}" for w in pd]), indent=1) + "\n")
-        for extra in (0, 10, 18):
+        # A trailing n or r (section 20): the same set with the loop that waits for a transfer changed, and nothing else —
+        # n: nothing stored until the transfer is over; r: nothing stored and nothing loaded. Made for the two sets whose
+        # reads lay where the overflows fell: the walk as it was, and stage 5 at the depth of the walk's reference reads.
+        for extra, poll, name in ((0, 0, "dxw0"), (6, 0, "dxw6"), (8, 0, "dxw8"), (0, 1, "dxw0n"), (0, 2, "dxw0r")):
+            pd = list(p4); pd[4] = 0xB99; pd[15] = extra | poll << 8
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(e4, stage=name, params=[f"{w:08x}" for w in pd]), indent=1) + "\n")
+        for extra, poll, name in ((0, 0, "dxs0"), (10, 0, "dxs10"), (18, 0, "dxs18"), (10, 1, "dxs10n"), (10, 2, "dxs10r")):
             ps = [0] * 32
             ps[0:10] = [0x31504D53, 1, 5, 0xB80, 0xB99, 0xB99, 1, 1, 24, 0x00200000]
-            ps[14], ps[15], ps[16] = 26, extra, 0xB80
-            (BUILD / f"expected_dxs{extra}.json").write_text(json.dumps(dict(e4, stage=f"dxs{extra}", params=[f"{w:08x}" for w in ps]), indent=1) + "\n")
+            ps[14], ps[15], ps[16] = 26, extra | poll << 8, 0xB80
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(e4, stage=name, params=[f"{w:08x}" for w in ps]), indent=1) + "\n")
         self.assertLess(len(self.bin), 16384)
 
 

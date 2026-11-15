@@ -67,9 +67,16 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
  * options; stage 4 takes the second as well. Both zero: nothing differs from before. */
 #define P_DIAG_SEQ         14u           /* stage 5: instead of the table, a generated sequence — at each of this many
                                             addresses from P_FARS[0] on, the pad alone and then the frame */
-#define P_DIAG_STACK       15u           /* stages 4 and 5: this many more words of stack beneath each target read */
+#define P_DIAG_STACK       15u           /* stages 4 and 5. Low byte: this many more words of stack beneath each target
+                                            read. Bits 8 and up: which loop waits for a transfer (below). */
 #define MAX_DIAG_SEQ       32u
 #define MAX_DIAG_STACK     64u
+/* the loop that waits for a transfer (2026-11-15: the overflow follows where the read lies on the stack, and while a
+ * transfer runs the only thing the prober does there is this loop: two stores and one load on every poll) */
+#define DIAG_POLL_SHIFT    8u
+#define POLL_AS_BEFORE     0u            /* status and count stored to the caller's stack on every poll, the limit loaded from it */
+#define POLL_NO_STORES     1u            /* nothing stored until the transfer is over; the limit still loaded from the same slot */
+#define POLL_NO_STACK      2u            /* nothing stored and nothing loaded: the loop touches no memory at all */
 #define MAX_REPEATS        8u
 
 /* ---- result ---- */
@@ -132,6 +139,8 @@ void     hal_mem_wr(uint32_t addr, uint32_t value);
 enum { CPU_SCTLR, CPU_CPSR, CPU_SP, CPU_R9 };
 uint32_t hal_cpu(int which);
 void     hal_putc(char c);
+void     hal_watch(const uint32_t *polls);       /* the count a read's transfers store their polls to: the twin looks at it
+                                                    while a transfer is polled; the board does nothing with it */
 
 /* ---- sm_core.c ---- */
 void     sm_readback_stream(uint32_t far, uint32_t out[STREAM_WORDS]);

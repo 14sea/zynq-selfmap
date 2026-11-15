@@ -1,0 +1,111 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50033004                             .0.P
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+    21376   saf88051.bin
+    50176   saf89f4b.bin
+   107776   saf8b892.bin
+    32896   saf8ba7b.bin
+   249856   saf8be1f.bin
+   249856   saf8bf42.bin
+   249856   saf8c097.bin
+   249856   saf8c10b.bin
+    67456   saf8c66d.bin
+    44416   saf8c69d.bin
+    77056   saf8c6d4.bin
+   249856   saf8c73f.bin
+   249856   saf8c7b3.bin
+    34816   saf8c8e9.bin
+    34816   saf8c910.bin
+    34816   saf8c937.bin
+    34816   saf8c96a.bin
+    34816   saf8c991.bin
+    34816   saf8c9b8.bin
+    34816   saf8c9ec.bin
+    34816   saf8ca12.bin
+    34816   saf8ca39.bin
+    34816   saf8ca61.bin
+    71296   saf94c02.bin
+   103936   saf94c3f.bin
+    71296   saf94c7f.bin
+    17536   saf94cb6.bin
+   228736   saf94cd4.bin
+   228736   saf94d46.bin
+   221056   saf94dbd.bin
+   103936   saf94e2f.bin
+    27136   saf94e6f.bin
+    17536   saf94e91.bin
+   228736   saf94eb0.bin
+   171136   saf94f22.bin
+   228736   saf94f7c.bin
+   103936   saf94fed.bin
+   103936   saf9502d.bin
+    25216   saf9506e.bin
+   228736   saf95090.bin
+   213376   saf95104.bin
+    21376   saf970c6.bin
+   103936   saf970e6.bin
+   103936   saf9712d.bin
+   163456   saf97170.bin
+   228736   saf971cb.bin
+   228736   saf9723c.bin
+   103936   saf972b4.bin
+   103936   saf972f6.bin
+   103936   saf97337.bin
+   109696   saf97377.bin
+   228736   saf973ba.bin
+   228736   saf9742b.bin
+   103936   saf9749d.bin
+   103936   saf974dd.bin
+   103936   saf9751d.bin
+    84736   saf97561.bin
+   228736   saf9759d.bin
+   228736   saf9760e.bin
+
+66 file(s), 0 dir(s)
+
+Zynq> 
+<<TX b'reset\r'>>
+reset
+
+U-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+Silicon version:	3
+Trying to boot from MMC1
+
+
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+CPU:   Zynq 7z010
+Silicon: v3.1
+Model: Ebang EBAZ4203
+DRAM:  ECC disabled 512 MiB
+Core:  20 devices, 14 uclasses, devicetree: separate
+Flash: 0 Bytes
+NAND:  0 MiB
+MMC:   mmc@e0100000: 0
+Loading Environment from FAT... *** Warning - some problems detected reading environment; recovered successfully
+OK
+In:    serial@e0001000
+Out:   serial@e0001000
+Err:   serial@e0001000
+Net:   Could not get PHY for eth0: addr 0
+No ethernet found.
+
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000a                             ....
+Zynq> 

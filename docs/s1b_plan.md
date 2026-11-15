@@ -756,3 +756,42 @@ what is read, and `dxw0` remains the control.
 
 **Before the board:** the owner's review of this section. Then, with nothing else running on the
 host, the series of section 17 with the image of this section; stop and report after it.
+
+## 19. The diagnostic series on the board (2026-11-15): it is the stack position, not the sequence
+
+Released by the owner after the review of section 18. Image `17ad8b14…`, three rounds of the six
+sets, a `reset` before every run, nothing else running on the host. 18 runs, none stopped by the
+run script, every result the board's. The full account is
+`evidence/dx_17A6_2026-11-15/RESULT.md`; `summary.json` there is made from the stored results,
+and `tests/test_board_evidence.py` makes it again.
+
+| set | polling variable at | run 1 | run 2 | run 3 |
+|---|---|---|---|---|
+| `dxw0` (walk, as it was) | `0x1eaca9d8` | overflow | overflow | complete, PASS |
+| `dxs0` (stage 5) | `0x1eacaa20` | complete | complete | complete |
+| `dxs18` | `0x1eaca9d8` | overflow | overflow | complete |
+| `dxs10` | `0x1eaca9f8` | overflow | overflow | overflow |
+| `dxw6` (walk, 24 bytes lower) | `0x1eaca9c0` | complete, PASS | complete, PASS | complete, PASS |
+| `dxw8` (walk, 32 bytes lower) | `0x1eaca9b8` | complete, PASS | overflow | overflow |
+
+Read against the table of section 17:
+
+- `dxs0` clean three times: **not the sequence** — 26 different frames by the path that never
+  overflowed still do not overflow.
+- `dxs18` and `dxs10` overflow (five runs of six) with nothing changed but the depth: **the
+  stack position**.
+- `dxw6` clean and `dxw8` not: it is not one bad depth with clean ones on both sides. All 9
+  overflows lie at addresses that are 24 modulo 32 (three addresses, 728 reads); the two
+  addresses at 0 modulo 32 had none in 504 reads. Only these two residues were tried, and the
+  mechanism is not known — the result note says what is and is not established.
+- The addresses are the ones section 17 worked out from the frames (72 and 40 bytes below
+  stage 3's), now read from the records.
+
+The pull in pieces did its work: 4 pieces of 299 came back damaged and were pulled again; no run
+was lost to the console.
+
+**Stopped here, as agreed.** Open, for the owner: whether to understand the position first (the
+other residues; the polling loop without its two stores) or to go on with the walk at a position
+that did not overflow, which needs a parameter and no new image — in either case an overflow
+stops a run and is seen by the judge; it has not produced a wrong frame. The column's end has
+not been looked for; `host/grade_s1b1.py` has not been run.

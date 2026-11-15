@@ -1,0 +1,48 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50033004                             .0.P
+Zynq> 
+<<TX b'md.l f8007014 1\r'>>
+md.l f8007014 1
+f8007014: 50000f30                             0..P
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+    21376   saf88051.bin
+    50176   saf89f4b.bin
+   107776   saf8b892.bin
+    32896   saf8ba7b.bin
+   249856   saf8be1f.bin
+   249856   saf8bf42.bin
+   249856   saf8c097.bin
+   249856   saf8c10b.bin
+    67456   saf8c66d.bin
+    44416   saf8c69d.bin
+    77056   saf8c6d4.bin
+   249856   saf8c73f.bin
+   249856   saf8c7b3.bin
+    34816   saf8c8e9.bin
+    34816   saf8c910.bin
+    34816   saf8c937.bin
+    34816   saf8c96a.bin
+    34816   saf8c991.bin
+    34816   saf8c9b8.bin
+    34816   saf8c9ec.bin
+    34816   saf8ca12.bin
+    34816   saf8ca39.bin
+    34816   saf8ca61.bin
+
+30 file(s), 0 dir(s)
+
+Zynq> 

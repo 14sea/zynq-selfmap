@@ -1432,3 +1432,42 @@ Nothing but the list of mutants changed between the two records, so the other 32
 again. During the run the temporary directory stayed near 1.2 GB.
 
 The prober and the image are unchanged. Nothing was run on a board.
+
+## 28. S1b.2 on the board (2026-11-15): 55 columns walked whole; the chain halted at the end of the row
+
+Released by the owner after the review of sections 26 and 27, and run as section 26 says: the
+first run alone, looked at, then the chain to its end. The full account is
+`evidence/s1b2_17A6_2026-11-15/RESULT.md`. The runs, `chain.json` and the row summary were
+committed as they were (`7b782ad`) before anything else was written.
+
+- **Runs 00 to 29 are accepted**: 1,891 frames, `0x00000000` to `0x00001b80`, every one named
+  by the device after the one before; 29 seams, all matching. No overflow, no interface failure,
+  no anomaly in 8,847 records.
+- **Columns 0 to 54 walked whole**, 1,890 frames: 41 columns of 36 frames, 9 of 28 (6, 9, 14,
+  17, 22, 25, 42, 46, 49), 4 of 30 (1, 34, 39, 54), one of 42 (column 0). In each the minors are
+  0, 1, 2, … and the device then named minor 0 of the column numbered one higher. Nothing is
+  listed as unexpected. Column 23 is S1b.1's column again, frame for frame.
+- **Run 30 was stopped by the prober** (status `0x800`), and the chain halted, as section 25
+  provided for "an address not above the current one". It had walked 42 frames of column 55,
+  `0x1b80..0x1ba9`, in one pass. Asked what follows `0x1ba9` (a read of the pad alone), the
+  device named `0x1ba9` again; after the frame at `0x1ba9` was read, the register held
+  `0x00400000`. One step earlier the register was already one step short: after the frame at
+  `0x1ba8`, `0x1ba9` and not what follows it.
+- **The third question is therefore answered in part.** The last address of the row that the
+  device names like the others is `0x1ba9`; beyond it there is at least one step at which the
+  register still reads `0x1ba9`, and then `0x00400000`. The walk's rule — the address named
+  after a read of the pad alone — does not carry across that place. How many such steps there
+  are, and what a read delivers there, is not known.
+- **What the content checks were worth**: 1,713 of the 1,891 frames are all zero (everything
+  outside columns 18 to 27 and 39). Where every frame is the same, "the same frame twice, by two
+  paths, and at the seam" says little; the address register, recorded at every step, and the
+  reference frame are what discriminate there.
+- The first address: `0x00000000` was read and is a frame like the others, as UG470 says.
+
+The grader was not run and the database was not looked at: the chain did not complete, and a
+halt is saved, committed and reported. One test judges the stored chain again (278 tests).
+
+**Stopped here.** For the owner: whether the halted chain is to be graded as it is (the grader
+compares the columns walked whole and says what it did not compare); and what, if anything, is
+to be done about the end of the row — column 55 has been read once only, and the step from
+`0x1ba9` to `0x00400000` is not understood. Nothing of that has been built or tried.

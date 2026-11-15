@@ -136,6 +136,41 @@ class StoredBoardResults(unittest.TestCase):
         words[len(words) // 2] ^= 1
         self.assertNotEqual(s1b1_judge.judge(words, KNOWN, planned)["verdict"], "PASS")
 
+    def test_the_chain_along_the_row_as_it_was_stored(self) -> None:
+        """S1b.2, 2026-11-15: the 31 stored runs, each judged again from its raw words by the chain as it is now. Thirty
+        are accepted; the 31st was stopped by the prober at the end of the row and the chain is halted there. The
+        summary and the chain's state stored with the runs are what the programs give now."""
+        import s1b2_chain, s1b2_row
+        d = ROOT / "evidence" / "s1b2_17A6_2026-11-15"
+        base = [int(w, 16) for w in json.loads((d / "expected_s1b2.json").read_text())["params"]]
+        self.assertEqual((base[3], base[4], base[5], base[12], base[15], base[16]), (0, 0x1FFFF, 0xB99, 64, 2 << 8, 0))
+        a = s1b2_chain.assess(d, base, KNOWN)
+        self.assertEqual((a["state"], len(a["runs"]), [r["decision"] for r in a["runs"]]), ("halted", 31, ["go on"] * 30 + ["halt"]))
+        self.assertEqual(s1b2_chain.brief(a), json.loads((d / "chain.json").read_text()))
+        self.assertEqual(len(a["why"]), 2)
+        self.assertIn("after the frame at 0x00001ba9 the register held 0x00400000, but the device names 0x00001ba9 after 0x00001ba9", a["why"][1])
+        self.assertIn("status 0x800", a["why"][1])
+        self.assertEqual([(r["frames"], r["ended"]) for r in a["runs"][:30]], [(64, s1b2_chain.LIMIT)] * 30)
+        self.assertEqual((a["runs"][0]["first"], a["runs"][29]["last"], a["runs"][29]["named_after_the_last"]), ("0x00000000", "0x00001b80", "0x00001b81"))
+        row = s1b2_row.summarize(a, KNOWN, json.loads((ROOT / "evidence" / "s1b1r_17A6_2026-11-15" / "run1" / "verdict.json").read_text()))
+        self.assertEqual(row, json.loads((d / "row.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "row.json").read_bytes()).hexdigest(), "60074f0c3fec866cc86ffb91f6217f1949107bf4814a15c5d1f920ecaa0a85bd")
+        self.assertEqual((row["frames"], row["unexpected"], row["end"]["reached"], row["known_frames_not_walked"]), (1891, [], False, []))
+        whole = [c for c in row["columns"] if c["walked_whole"]]
+        self.assertEqual(([c["column"] for c in whole], sum(c["frames"] for c in whole)), (list(range(55)), 1890))
+        self.assertTrue(all(c["minors_are_0_to_n_minus_1"] and c["next_is_minor_0_of_the_column_numbered_one_higher"] for c in whole))
+        self.assertEqual(row["columns"][-1]["column"], 55); self.assertFalse(row["columns"][-1]["walked_whole"])
+        self.assertEqual(row["column_of_s1b1"], {"frames_there": 36, "of_which_walked_here": 36, "same_frames": True, "same_addresses_named": True, "the_same_column": True})
+        # the run that was stopped: what its records say about the end of the row
+        last = json.loads((d / "run30" / "verdict.json").read_text())
+        self.assertEqual((last["verdict"], last["header"]["status"], last["header"]["anomalies"], last["frames_walked"]), ("FAIL", "0x800", 0, 42))
+        self.assertEqual([(r["far"], r["frames"], r["far_read_back"]) for r in last["records"][-4:]],
+                         [("0x00001ba8", 0, "0x00001ba9"), ("0x00001ba8", 1, "0x00001ba9"), ("0x00001ba9", 0, "0x00001ba9"), ("0x00001ba9", 1, "0x00400000")])
+        for k in range(31):                                  # no overflow and no interface failure anywhere in the chain
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()), k)
+        self.assertFalse((d / "grade.json").exists(), "the chain halted: the grader was not run")
+
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:
             with self.subTest(run=run):

@@ -1708,7 +1708,17 @@ a place beyond the row that is not zero, on starting addresses that are not one 
 verdicts changed so that two ways disagree in each manner; the column against the walk, with a
 frame, a register and a repeat that differ, a walk that is shorter and one that is longer.
 
-MUTANT_RESULT_30
+Thirty-three mutants for this step (the twin's row end is not among them: it is the model, and
+the tests of the four ends hold it). While they were being written, run by themselves, 32 were
+killed and one was BROKEN: it removed an `if` and left a `for` with no body, which is not a
+program, so the suite did not load and it said nothing about the tests. It was rewritten to make
+the condition false instead.
+
+The complete run afterwards (`evidence/host_checks/mutants_2026-11-15_s1b2b.txt`): 354 mutants,
+354 killed, none survived, none BROKEN, none STALE; the unmutated tree before and the restored
+tree after both run 295 tests, OK. The rewritten mutant ("s1b2 end: a repeat that differs is not
+noticed") is killed by the test of two ways to a place that do not agree. The temporary
+directory was empty afterwards.
 
 ### What the tests cannot show
 

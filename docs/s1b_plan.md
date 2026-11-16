@@ -2231,3 +2231,33 @@ of the 43 killed; one BROKEN (it left a variable set and unused, which the build
 rewritten; one survived — "too many standstills imply the old stop" in the judge — because the
 test filtered the judge's problems by a text that the mismatch also contains. The test now
 holds the exact list of problems. Both killed afterwards, and the four re-anchored ones.
+
+The complete run afterwards (`evidence/host_checks/mutants_2026-11-16_s1b3a.txt`): 433
+mutants (the 390 of section 33 and these 43), 433 killed, none survived, none BROKEN, none
+STALE; the unmutated tree before and the restored tree after both run 334 tests, OK. The
+temporary directory was empty afterwards.
+
+### What the tests cannot show
+
+- What the device does at `0x00400000`: whether the pad alone there names `0x00400001` or
+  leaves the register standing. The twin has both kinds of end; the walk crosses the one and
+  stops with `0x900` at the other.
+- That the new image runs on the board as the old one did. The source of the other stages and
+  of the wait is unchanged, but the binary moved; the run itself is the check, with no anomaly
+  budgeted for and the address of the polling variable recorded in every record.
+- Whether a row end elsewhere is like this one.
+
+### Proposed for the board
+
+With nothing else running on the host; a U-Boot `reset` and a fresh load before the run.
+
+1. `s1a_run.py --stage s1b3a --go` — **one run**, with the new image (`fdc4f07f…9452`). Saved,
+   judged, **committed whatever it says**.
+2. `s1b3a_seam.py` on its verdict and the stored `row_closed.json`; the output recorded beside
+   the run and committed.
+3. If the run stops or does not pass: saved and committed as it is, nothing retried, the seam
+   program run on what there is and its output recorded as that.
+4. Stop and report. The grader is not run; the database is not looked at for anything beyond
+   the row already graded.
+
+**Before the board:** the owner's review.

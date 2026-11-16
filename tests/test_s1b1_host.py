@@ -173,7 +173,8 @@ class Judge(unittest.TestCase):
             self.assertEqual(judge(words)["problems"], [f"record {t1}: code 0x0, but its raw words say 0x12"], f"frame {frame} of the three")
 
     def test_a_relabelled_result_is_invalid_even_when_the_plan_agrees_with_it(self) -> None:
-        for name, index, value in (("another stage", 2, 3), ("a frame count word, which this stage does not have", 10, 1),
+        for name, index, value in (("another stage", 2, 3), ("a frame count word, which this stage does not have", 11, 1),
+                                   ("more standstills to cross than the prober takes", 10, 5), ("the option of the table-driven stage", 14, 1),
                                    ("a second address", 17, 0xB81), ("a word beyond the ones this stage reads", 31, 1),
                                    ("a reference interval shorter than one read of three frames", 13, 2)):
             with self.subTest(name):

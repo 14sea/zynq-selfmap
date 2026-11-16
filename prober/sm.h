@@ -63,6 +63,12 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define P_HEALTH_EVERY     13u           /* never more than this many frames delivered between two reference reads */
 #define MAX_WALK           64u
 #define MAX_PASSES         2u
+/* stage 4, the end of a row (2026-11-16): at the last address of a row the pad alone leaves the register where it is,
+ * and the read of that frame leaves it at the first address of the next row. A pass may cross this many such
+ * standstills; 0: none — the walk stops there, as it did before. (The word the table-driven stages use for frames
+ * per read; stage 4 has no table.) */
+#define P_STANDSTILLS      10u
+#define MAX_STANDSTILLS    4u
 /* diagnostics (2026-11-14: the walk overflows the receive FIFO, stages 2 and 3 do not). Stage 5 is stage 3 with two
  * options; stage 4 takes the second as well. Both zero: nothing differs from before. */
 #define P_DIAG_SEQ         14u           /* stage 5: instead of the table, a generated sequence — at each of this many
@@ -130,6 +136,7 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define S_STOP_BASELINE    0x600u        /* | record code */
 #define S_STOP_WALK        0x700u        /* | record code; stage 4: any anomaly ends the walk, there is nothing to skip to */
 #define S_STOP_STUCK       0x800u        /* stage 4: the address the device named is not above the one it was asked about */
+#define S_STOP_STANDSTILLS 0x900u        /* stage 4: the register stood still at one address more than a pass may cross */
 
 /* ---- hardware access: the only doors (board: sm_board.c, host twin: twin_hal.c) ---- */
 uint32_t hal_rd(uint32_t addr);                 /* device register read */

@@ -14,6 +14,10 @@ What this stage claims, and so what is required for PASS:
   * the register after the read of a frame is the address the device names after the next frame, and after a
     read of several frames the address it names after the frame that follows them, wherever both were measured
     (the pad counts, as S1b.0 and S1b.0b found);
+  * where the parameter block lets a pass cross standstills (word 10; section 35 of the plan): an address at which
+    the pad alone leaves the register standing and the read of the frame leaves it above is the last of a row, and
+    the address above is the next — re-derived here from the same two records; no read of several frames lies
+    across such a place; with that word 0 such an address stops the run, as it did before;
   * every frame with a known answer equals it wherever it was delivered — in the walk, in a read of several
     frames, and in every read of the reference frame — and the walk passed the known frames;
   * the reference frame was read again before more frames than asked had been delivered since its last reading.
@@ -37,12 +41,14 @@ from s1b0_judge import DATA, DATA_WORDS, FARBLK, FARRD, FRAME, HDR, NO_OP, POLLI
 
 STAGE, H_WALK = 4, 19
 MAX_WALK, MAX_PASSES = 64, 2
+P_STANDSTILLS, MAX_STANDSTILLS = 10, 4           # parameter word 10: how many standstills a pass may cross (2026-11-16); 0: none, as before
 MAX_DIAG_STACK = 64                              # parameter word 15: more stack beneath each target read (diagnostics, 2026-11-14)
 MAX_RECORDS = 1 + MAX_PASSES * (2 * MAX_WALK + MAX_WALK) + MAX_WALK + 4      # generous: a health read after every frame
 SUCC, CONTENT, TRIPLE = 0, 1, 2
 OP_NAME = {SUCC: "successor read", CONTENT: "content read", TRIPLE: "read of several frames", NO_OP: "reference read"}
 END = {0: "not ended", 1: "the device named an address outside the envelope", 2: "the limit of frames was reached"}
-STOPS = {0x300: "the reference frame changed", 0x800: "the device named an address that is not above the one it was asked about"}
+STOPS = {0x300: "the reference frame changed", 0x800: "the device named an address that is not above the one it was asked about",
+         0x900: "the register stood still at one address more than a pass may cross"}
 
 
 def console_line(status: int, records: int, anomalies: int) -> str:
@@ -82,6 +88,9 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
     out["params"] = {"far_lo": f"{lo:#010x}", "far_hi": f"{hi:#010x}", "ref_far": f"{ref:#010x}", "start": f"{start:#010x}",
                      "passes": passes, "limit": limit, "reference_every": every, "poll_limit": poll_limit, "extra_stack_words": diag_word(par[15])[0],
                      "polling_loop": POLLING.get(diag_word(par[15])[1])}
+    allowed = par[P_STANDSTILLS]
+    if allowed:                                  # said only where it is asked for: a run without it is reported as it always was
+        out["params"]["standstills_a_pass_may_cross"] = allowed
     if list(par) != list(planned):
         differ = [k for k in range(32) if k >= len(planned) or par[k] != planned[k]]
         bad(f"the parameters the prober echoed are not the planned ones (word(s) {differ}): the run did not do what was asked")
@@ -89,7 +98,7 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
         bad("the run stopped: bad parameters"); out["verdict"] = "FAIL"; return out
     if (par[0], par[1], par[2]) != (0x31504D53, 1, STAGE) or lo > hi or not lo <= ref <= hi or n_fars != 1 or not lo <= start <= hi \
             or not 1 <= passes <= MAX_PASSES or not 1 <= limit <= MAX_WALK or every < 3 or budget != 0 or poll_limit == 0 \
-            or any(par[k] for k in (10, 11, 14)) or diag_word(par[15])[0] > MAX_DIAG_STACK or diag_word(par[15])[1] not in POLLING or any(par[17:]):
+            or allowed > MAX_STANDSTILLS or any(par[k] for k in (11, 14)) or diag_word(par[15])[0] > MAX_DIAG_STACK or diag_word(par[15])[1] not in POLLING or any(par[17:]):
         return invalid("the echoed parameters are not a valid stage-4 parameter block")
 
     ctrl, mctrl, sts0, sctlr, sts1 = words[8], words[9], words[10], words[12], words[16]
@@ -261,8 +270,9 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
         implied = (0x600 | base["code"], 0, 0)
     else:
         against_known(base, [ref])
+    cuts: list[int] = []                             # pass 0: the number of frames walked when the register stood still — where the list is cut
     for p in range(passes if not implied else 0):
-        cur, count, steps = start, 0, []
+        cur, count, steps, stills = start, 0, [], 0
         walked.append(steps)
         ended = 0
         while not implied:
@@ -289,9 +299,19 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
             if implied:
                 break
             nxt = pair[0]["far_value"]
-            steps.append({"far": cur, "next": nxt, "succ": pair[0], "content": pair[1]})
+            steps.append({"far": cur, "next": nxt, "succ": pair[0], "content": pair[1], "still": False})
             against_known(pair[1], [cur])
             count += 1
+            if nxt == cur and allowed and pair[1]["far_value"] > cur:
+                # after the pad alone the register stood still, and the read of the frame itself left it above: the
+                # end of a row. That address is the next one — for as many such places as the pass may cross.
+                if stills >= allowed:
+                    implied = (0x900, count_anomalies, pair[0]["i"]); break
+                stills += 1
+                nxt = pair[1]["far_value"]
+                steps[-1].update(next=nxt, still=True)
+                if p == 0:
+                    cuts.append(count)
             if nxt <= cur:                                      # not above the address asked about, wherever it lies
                 implied = (0x800, count_anomalies, pair[0]["i"]); break
             if nxt > hi:
@@ -301,32 +321,41 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
             cur = nxt
         ends.append((count, ended, steps[-1]["next"] if steps else 0))
     covered: set[int] = set()                        # places in the list of pass 0 that a clean read of several frames delivered
+    first_pass = walked[0] if walked else []
+    n0 = len(first_pass)
+    # the list is cut where the register stood still: a read across such a place would deliver what lies there.
+    # (A standstill at the very last frame walked cuts nothing off.)
+    bounds = [0] + [c for c in cuts if c < n0] + [n0]
     if not implied:
-        first_pass = walked[0] if walked else []
-        n0 = len(first_pass)
-        for k in range(0, n0, 3):
-            m, at = 3, k
-            if n0 - k < 3:                           # one or two left over: the last three again; both, if there are only two
-                if n0 >= 3:
-                    at = n0 - 3
-                elif n0 == 2:
-                    m = 2
-                else:
+        # Within each piece: three from every third address; one or two left over: the last three of the piece again;
+        # both, if the piece has only two; a piece of one frame has no such read.
+        for lo_k, hi_k in zip(bounds, bounds[1:]):
+            size = hi_k - lo_k
+            for k in range(0, size, 3):
+                m, at = 3, lo_k + k
+                if size - k < 3:
+                    if size >= 3:
+                        at = hi_k - 3
+                    elif size == 2:
+                        m = 2
+                    else:
+                        break
+                implied = due(m, passes)
+                if implied:
                     break
-            implied = due(m, passes)
+                rec = take(0, first_pass[at]["far"], m, passes, TRIPLE)
+                if rec is None:
+                    implied = (-1, count_anomalies, 0); break
+                derived = rec["own"]
+                if derived == 0 and any(rec["frames"][j] != first_pass[at + j]["content"]["frames"][0] for j in range(m)):
+                    derived = 0x12
+                if settle(rec, derived) != 0:
+                    count_anomalies += 1
+                    implied = after_anomaly(rec, passes); break
+                against_known(rec, [first_pass[at + j]["far"] for j in range(m)])
+                covered.update(range(at, at + m))
             if implied:
                 break
-            rec = take(0, first_pass[at]["far"], m, passes, TRIPLE)
-            if rec is None:
-                implied = (-1, count_anomalies, 0); break
-            derived = rec["own"]
-            if derived == 0 and any(rec["frames"][j] != first_pass[at + j]["content"]["frames"][0] for j in range(m)):
-                derived = 0x12
-            if settle(rec, derived) != 0:
-                count_anomalies += 1
-                implied = after_anomaly(rec, passes); break
-            against_known(rec, [first_pass[at + j]["far"] for j in range(m)])
-            covered.update(range(at, at + m))
     if not implied:
         ok = reference(3, passes)
         implied = (-1, count_anomalies, 0) if ok is None else (1, count_anomalies, 0xFFFFFFFF) if ok else (stop_of(recs[state["i"] - 1]), count_anomalies, state["i"] - 1)
@@ -352,30 +381,47 @@ def judge(words: list[int], known: dict, planned: list[int], run_of_a_chain: boo
     out["passes"] = [{"frames": c, "ended": END.get(e, e), "last_address_named": f"{a:#010x}"} for c, e, a in ends]
     first_pass = walked[0] if walked else []
     out["walk"] = [{"far": f"{s['far']:#010x}", "next": f"{s['next']:#010x}", "register_after_the_frame": f"{s['content']['far_value']:#010x}",
-                    "frame_sha256": hashlib.sha256(b"".join(struct.pack(">I", w) for w in s["content"]["frames"][0])).hexdigest()} for s in first_pass]
+                    "frame_sha256": hashlib.sha256(b"".join(struct.pack(">I", w) for w in s["content"]["frames"][0])).hexdigest(),
+                    **({"stood_still": True} if s["still"] else {})} for s in first_pass]
+    if allowed:
+        # where the register stood still after the pad alone, and what it held after the read of the frame there; and
+        # the pieces the list falls into at those places (the reads of several frames lie within one piece each)
+        out["standstills"] = [{"at": f"{s['far']:#010x}", "register_after_the_pad_alone": f"{s['succ']['far_value']:#010x}",
+                               "register_after_the_frame": f"{s['content']['far_value']:#010x}"} for s in first_pass if s["still"]]
+        out["pieces"] = [b - a for a, b in zip(bounds, bounds[1:])]
     out["frames_walked"] = len(first_pass)
     for p, steps in enumerate(walked[1:], 1):
-        if [(s["far"], s["next"]) for s in steps] != [(s["far"], s["next"]) for s in first_pass][:len(steps)] or (status == 1 and len(steps) != len(first_pass)):
+        if [(s["far"], s["next"], s["still"]) for s in steps] != [(s["far"], s["next"], s["still"]) for s in first_pass][:len(steps)] or (status == 1 and len(steps) != len(first_pass)):
             bad(f"pass {p} did not name the same addresses as pass 0")
     if status == 1 and len(set(ends)) > 1:
         bad("the passes did not end alike: " + ", ".join(f"{c} frame(s), {END.get(e, e)}, {a:#010x}" for c, e, a in ends))
-    # the register after the read of a frame is the address the device names after the next frame
-    named = {s["far"]: s["next"] for s in first_pass}
+    # the register after the read of a frame is the address the device names after the next frame — "names": what the
+    # register holds after the pad alone there. Where the register stood still, the read of the frame is itself what
+    # gave the next address, and there is nothing of this kind to hold it against: that step is not counted.
+    named = {s["far"]: s["succ"]["far_value"] for s in first_pass}
     crossed = 0
     for steps in walked:
         for s in steps:
-            if s["next"] in named:
+            if s["next"] in named and not s["still"]:
                 crossed += 1
                 if s["content"]["far_value"] != named[s["next"]]:
                     bad(f"after the frame at {s['far']:#010x} the register held {s['content']['far_value']:#010x}, but the device names "
                         f"{named[s['next']]:#010x} after {s['next']:#010x}")
-    # ... and after a read of several frames, the address the device names after the frame that follows them
+    # ... and after a read of several frames, the address the device names after the frame that follows them. A read
+    # that ends with the frame at which the register stood still is held against the single read of that frame instead:
+    # both end at the same place, and what follows it in the list is not the place that follows it in the device.
     for rec in recs:
         if rec["kind"] == 0 and rec["op"] == TRIPLE and rec["code"] == 0 and rec["far"] in named:
             at = [s["far"] for s in first_pass].index(rec["far"])
-            if at + rec["n"] < len(first_pass):
+            last = first_pass[at + rec["n"] - 1] if at + rec["n"] <= len(first_pass) else None
+            if last is not None and last["still"]:
                 crossed += 1
-                want = first_pass[at + rec["n"]]["next"]
+                if rec["far_value"] != last["content"]["far_value"]:
+                    bad(f"after the {rec['n']} frames from {rec['far']:#010x} the register held {rec['far_value']:#010x}, but "
+                        f"{last['content']['far_value']:#010x} after the single read of their last, {last['far']:#010x}")
+            elif at + rec["n"] < len(first_pass):
+                crossed += 1
+                want = named[first_pass[at + rec["n"]]["far"]]
                 if rec["far_value"] != want:
                     bad(f"after the {rec['n']} frames from {rec['far']:#010x} the register held {rec['far_value']:#010x}, but the device names "
                         f"{want:#010x} after {first_pass[at + rec['n']]['far']:#010x}")

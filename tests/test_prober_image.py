@@ -171,6 +171,11 @@ class Image(unittest.TestCase):
         # to run: this file holds the first run's, address 0; the run script puts in each later one.
         p5 = list(p4r); p5[3], p5[4], p5[16] = 0x00000000, 0x0001FFFF, 0x00000000
         (BUILD / "expected_s1b2.json").write_text(json.dumps(dict(e4, stage="S1b.2, one run of the chain", params=[f"{w:08x}" for w in p5]), indent=1) + "\n")
+        # S1b.3a (docs/s1b_plan.md, section 35): one run of the walk across the end of the row. s1b2's set with the
+        # envelope widened to block type 0 whole, one standstill a pass allowed (word 10), and the start fixed at the
+        # last frame of the chain's last accepted run. Nothing of it is given at run time.
+        p6 = list(p5); p6[4], p6[10], p6[16] = 0x007FFFFF, 1, 0x00001B80
+        (BUILD / "expected_s1b3a.json").write_text(json.dumps(dict(e4, stage="S1b.3a, one run across the end of the row", params=[f"{w:08x}" for w in p6]), indent=1) + "\n")
         (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
         # S1b.2b (docs/s1b_plan.md, section 29): the end of the row, by the table-driven stage in its stage-5 form with
         # the wait that touches no memory. The addresses are the last ones the device named in the row (S1b.2, run 30);

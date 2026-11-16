@@ -59,6 +59,10 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # answer instead of holding them against the run.
           "s1b2e": {"judge": s1b2e_judge, "expected": ROOT / "build" / "prober" / "expected_s1b2e.json"},
           "s1b2c": {"judge": s1b2e_judge, "expected": ROOT / "build" / "prober" / "expected_s1b2c.json"},
+          # S1b.3a (section 35): one run of the walk across the end of the row — s1b2's set with block type 0 whole as
+          # the envelope and one standstill a pass allowed; the start is fixed (the last frame of the chain's last
+          # accepted run). Judged as a run of a chain: it begins beyond the known frames.
+          "s1b3a": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b3a.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},

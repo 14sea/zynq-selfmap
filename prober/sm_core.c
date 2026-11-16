@@ -742,6 +742,9 @@ uint32_t sm_run(void)
  * From the starting address, for each frame: the pad alone and then the register (the device names the next
  * address), and the pad with the frame (its content). The next address read at is the one the device named;
  * none is computed here. A pass ends when the device names an address outside the envelope, or at the limit.
+ * Where the register stands still after the pad alone (the last address of a row), the address it holds after the
+ * read of that frame is taken as the next one, if it is above — for at most P_STANDSTILLS such places a pass; with
+ * that word 0 the walk stops there, as it always did.
  * The walk is made P_REPEATS times; then the frames found are read again several in one read: three from every
  * third address, and where one or two are left over, the last three once more (both, if the walk found only two).
  * Records have the stage-2 layout; R_OP says which of the three reads a record is, R_REPEAT the pass.
@@ -849,6 +852,7 @@ static uint32_t run_s4(void)
 {
     struct walk c;
     uint32_t i, v, pass, passes, limit, start, cur, next, count, status, k, n, n0;
+    uint32_t allowed, still, still0, piece, from, to, len, cut[MAX_STANDSTILLS];
 
     tag(); put(" start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
@@ -869,10 +873,11 @@ static uint32_t run_s4(void)
     c.far_lo = par(P_FAR_LO); c.far_hi = par(P_FAR_HI); c.ref_far = par(P_REF_FAR); c.poll_limit = par(P_POLL_LIMIT);
     passes = par(P_REPEATS); limit = par(P_WALK_LIMIT); c.every = par(P_HEALTH_EVERY); start = par(P_FARS);
     c.extra = par(P_DIAG_STACK) & 0xFFu;
+    allowed = par(P_STANDSTILLS);
     if (par(P_VERSION) != 1u || c.far_lo > c.far_hi || c.ref_far < c.far_lo || c.ref_far > c.far_hi
         || par(P_N_FARS) != 1u || start < c.far_lo || start > c.far_hi
         || passes == 0u || passes > MAX_PASSES || limit == 0u || limit > MAX_WALK || c.every < MAX_READ_FRAMES
-        || par(P_ANOMALY_BUDGET) != 0u || c.extra > MAX_DIAG_STACK || poll_mode() > POLL_NO_STACK || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
+        || par(P_ANOMALY_BUDGET) != 0u || allowed > MAX_STANDSTILLS || c.extra > MAX_DIAG_STACK || poll_mode() > POLL_NO_STACK || c.poll_limit == 0u || c.poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
 
     v = hal_rd(DEVCFG_CTRL);   res_wr(H_CTRL, v);
@@ -893,9 +898,9 @@ static uint32_t run_s4(void)
     if (v != C_OK)
         return finish2(S_STOP_BASELINE | v, c.rec, 0u, 0u);
 
-    n0 = 0u;
+    n0 = 0u; still0 = 0u;
     for (pass = 0u; pass < passes; pass++) {
-        cur = start; count = 0u;
+        cur = start; count = 0u; still = 0u;
         for (;;) {
             k = c.rec;                                              /* the record in which the device names the next address */
             status = walk_op(&c, cur, 0u, pass, OP_SUCC, 0u);       /* what does the device call the address after cur */
@@ -905,12 +910,25 @@ static uint32_t run_s4(void)
             status = due(&c, 1u, pass);
             if (status != 0u)
                 return finish2(status, c.rec, c.anomalies, c.stop);
+            i = c.rec;                                              /* the record of the frame at cur */
             status = walk_op(&c, cur, 1u, pass, OP_CONTENT, 0u);    /* the frame at cur */
             if (status != 0u)
                 return finish2(status, c.rec, c.anomalies, c.stop);
             count++;
             res_wr(H_WALK + 3u * pass, count);
             res_wr(H_WALK + 3u * pass + 2u, next);
+            if (next == cur && allowed != 0u) {                     /* after the pad alone the register stood still */
+                v = r2_rd(i, REC2_FARBLK + F_VALUE);                /* where the read of the frame itself left it */
+                if (v > cur) {                                      /* one step on it names an address above: the end of a row */
+                    if (still >= allowed)
+                        return finish2(S_STOP_STANDSTILLS, c.rec, c.anomalies, k);
+                    if (pass == 0u)
+                        cut[still] = count;                         /* the list is cut after this frame */
+                    still++;
+                    next = v;
+                    res_wr(H_WALK + 3u * pass + 2u, next);
+                }
+            }
             if (next <= cur)                                        /* not above the address asked about — wherever it lies, also
                                                                        below the envelope: following it would not end */
                 return finish2(S_STOP_STUCK, c.rec, c.anomalies, k);    /* a reference read may lie between it and the content read */
@@ -925,34 +943,43 @@ static uint32_t run_s4(void)
             }
             cur = next;
         }
-        if (pass == 0u)
-            n0 = count;
+        if (pass == 0u) {
+            n0 = count; still0 = still;
+        }
     }
 
-    /* every frame of pass 0 once more, several in one read: three from every third address; where one or two are
-     * left over, the last three again; both, if there are only two. A single frame has no such second path.
+    /* every frame of pass 0 once more, several in one read — within each piece of the list (the list is cut where the
+     * register stood still: a read across such a place would deliver what lies there, which has no address): three
+     * from every third address of the piece; where one or two are left over, the last three of the piece again; both,
+     * if the piece has only two. A piece of a single frame has no such second path.
      * The addresses of a pass rise strictly and end inside the envelope, so the last frame of any of these reads
      * is inside as well; the guard checks it again for each stream. */
-    for (k = 0u; k < n0; k += 3u) {
-        n = 3u; i = k;
-        if (n0 - k < 3u) {
-            if (n0 >= 3u)
-                i = n0 - 3u;
-            else if (n0 == 2u)
-                n = 2u;
-            else
+    from = 0u;
+    for (piece = 0u; piece <= still0; piece++) {
+        to = piece < still0 ? cut[piece] : n0;
+        len = to - from;
+        for (k = 0u; k < len; k += 3u) {
+            n = 3u; i = from + k;
+            if (len - k < 3u) {
+                if (len >= 3u)
+                    i = to - 3u;
+                else if (len == 2u)
+                    n = 2u;
+                else
+                    break;
+            }
+            v = nth_content(c.rec, i);
+            if (v == NO_REC)
                 break;
+            cur = r2_rd(v, R_FAR);
+            status = due(&c, n, passes);
+            if (status != 0u)
+                return finish2(status, c.rec, c.anomalies, c.stop);
+            status = walk_op(&c, cur, n, passes, OP_TRIPLE, i);
+            if (status != 0u)
+                return finish2(status, c.rec, c.anomalies, c.stop);
         }
-        v = nth_content(c.rec, i);
-        if (v == NO_REC)
-            break;
-        cur = r2_rd(v, R_FAR);
-        status = due(&c, n, passes);
-        if (status != 0u)
-            return finish2(status, c.rec, c.anomalies, c.stop);
-        status = walk_op(&c, cur, n, passes, OP_TRIPLE, i);
-        if (status != 0u)
-            return finish2(status, c.rec, c.anomalies, c.stop);
+        from = to;
     }
 
     if (!health4(&c, KIND_FINAL, passes))

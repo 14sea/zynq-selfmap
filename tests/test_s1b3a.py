@@ -180,10 +180,9 @@ class TheWalkAcrossAnEnd(unittest.TestCase):
     def test_one_standstill_more_than_allowed_stops_the_run(self) -> None:
         rec, v, u, _, _ = go(SEVERAL, w16=0x1BA6, w12=16)                        # allowance 1; the second standstill is at the first address beyond
         self.assertEqual((rec["verdict"], v["header"]["status"], v["frames_walked"]), ("FAIL", "0x900", 5))
-        self.assertIn("the run did not complete: status 0x900 (the register stood still at one address more than a pass may cross)", v["problems"])
-        self.assertEqual([p for p in v["problems"] if "0x900" not in p],
-                         [f"after the frame at {h(NEXT_ROW)} the register held {h(NEXT_ROW + 1)}, but the device names {h(NEXT_ROW)} after {h(NEXT_ROW)}"],
-                         "the header and the records agree on that stop; the one other thing said is what is said of every stop at an address that names itself")
+        self.assertEqual(v["problems"], [f"after the frame at {h(NEXT_ROW)} the register held {h(NEXT_ROW + 1)}, but the device names {h(NEXT_ROW)} after {h(NEXT_ROW)}",
+                                         "the run did not complete: status 0x900 (the register stood still at one address more than a pass may cross)"],
+                         "the header and the records agree on that stop; the other thing said is what is said of every stop at an address that names itself")
         self.assertEqual(v["passes"][0], {"frames": 5, "ended": "not ended", "last_address_named": h(NEXT_ROW)})
         self.assertEqual((v["standstills"], v["walk"][-1]["next"]), ([{"at": h(LAST), "register_after_the_pad_alone": h(LAST), "register_after_the_frame": h(NEXT_ROW)}], h(NEXT_ROW)))
         self.assertEqual(int(v["header"]["stop_record"], 16), [r["index"] for r in v["records"] if r["far"] == h(NEXT_ROW) and r["read"] == "successor read"][0])

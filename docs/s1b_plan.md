@@ -2142,3 +2142,92 @@ and walk straight on at the one with no standstill.
    smaller bite is possible (a limit of 48 frames a pass: 6 frames beyond the row end — enough
    for the pad alone at `0x00400000` and two reads of three there).
 5. **A new image**, with the walk's behaviour unchanged wherever the allowance is 0.
+
+## 36. S1b.3a as built (2026-11-16; host side, nothing on a board yet)
+
+The owner agreed to section 35 on all five points: this step alone; the rule of one more step
+and no more; an allowance of 1; the envelope `0x0..0x007fffff` with a pass of 64 frames; a new
+image whose walk is unchanged wherever the allowance is 0.
+
+### What was built
+
+- **The prober, `sm_core.c`, in the walk stage only** (and three definitions in `sm.h`).
+  - Parameter word 10 is the allowance: how many standstills a pass may cross. The
+    table-driven stages use that word for frames per read; the walk has no table and its
+    judge required the word to be 0 until now. More than 4 is refused as a bad parameter block.
+  - At an address `cur`, after the two reads the walk always makes: if the pad alone left the
+    register at `cur`, the allowance is not 0, and the read of the frame left the register
+    above `cur`, that value becomes the next address; the header's "last address named" is
+    set to it. With the allowance used up the run stops with a new status, `0x900`. In every
+    other case nothing differs: below `cur`, or at `cur` and not above after the frame, is
+    `0x800` as before; with the allowance 0 the new branch is never entered.
+  - The list of pass 0 is cut after each frame at which the register stood still; the reads of
+    three are laid within each piece by the rule that applied to the whole list.
+  - No new read, no new record field, no change to the guard, to the streams, or to any other
+    stage's source.
+- **The image**: 11,970 bytes, sha256 `fdc4f07f…9452` (340 bytes more than `2c566b1e…`). The
+  checks the image test makes of the disassembly hold as before, the one on the wait that
+  touches no memory among them.
+- **The judge, `s1b1_judge.py`** re-derives the same from the two records at each address and
+  from the parameter block: the standstill, the allowance, the status `0x900`, the pieces and
+  the reads of three within them (a read laid otherwise is "not the record the schedule has
+  here").
+  - The cross-check of the register: "names" now means what the pad alone left — which is what
+    it always was except at a standstill. The step of a standstill has no cross-check of the
+    old kind and is not counted. A read of three that ends with the frame of a standstill is
+    held against the single read of that frame: both end at the same place.
+  - **A run without the allowance is reported exactly as before**: the new keys (`standstills`,
+    `pieces`, `standstills_a_pass_may_cross`, `stood_still` on a step) appear only where the
+    allowance is set or a step stood still. Every stored result is judged again to the stored
+    verdict, word for word, by the tests that already held them.
+- **The set `s1b3a`** and its entry in the run script: `s1b2`'s set with the envelope's upper
+  end `0x007fffff`, word 10 = 1, the start `0x00001b80`; judged as a run of a chain (it begins
+  beyond the known frames). Its start is fixed: `--start` is refused.
+- **`host/s1b3a_seam.py`** — for after the run, from stored results only: the run's verdict
+  held against `row_closed.json`. Every address the two share: the same frame, the same
+  address named; at the last frame of the stored row the run must have stood still and gone on
+  to the address the row has named after it; the two registers of the standstill against the
+  stored step-by-step values. Addresses the stored row does not have are counted, and have to
+  follow the row's last frame. No expected value; exit 1 on a disagreement or a run that did
+  not pass.
+
+### On the twin
+
+The four row ends of section 30, through the run script on the pretended board:
+
+- **two places, the register still at the first** (the one whose registers are the board's)
+  and **one place**: crossed. 64 frames a pass: the 42 of the column, then 22 by the names the
+  device gave; one standstill, at `0x1ba9`; pieces of 42 and 22; 22 reads of several frames,
+  none across the standstill; **nothing delivered from either place without an address, and
+  no address written that the device did not name**.
+- **two places, the register still at both**: stops with `0x800` after 42 frames, as before —
+  the register is not above after the frame. No standstill is accepted.
+- **no such place**: walked straight on, 64 frames, one piece.
+- With the allowance 0 at the board's end: the stop of S1b.2's run 30 — the last six records
+  and the judge's two problems as stored from the board.
+- Three row ends close together (pieces of 4, 1, 2, 9): with the allowance 3 crossed, and the
+  reads of several frames are (3 and the last 3 again), (none), (both), (three threes); the
+  piece of one frame is listed as having no second path. With the allowance 1 or 2: `0x900`
+  at the standstill that is one too many, nothing written above it.
+- A standstill whose next address is beyond the envelope ends the pass as "left" (the row as
+  the envelope: this is the end S1b.2's chain did not reach); one at the limit ends it at the
+  limit.
+
+**One thing the tests showed about the run proposed, not about the program.** From `0x1b80` the
+column has 42 frames, and 42 is fourteen threes: an uncut list would place its reads of three
+exactly where the cut list does. So on the board this run cannot show the difference between
+cutting and not cutting; the twin's rows with pieces of 4, 1 and 2 are what holds that rule.
+It will matter in a chain, where a run may meet a row end at any place in its list.
+
+### Tests and mutants
+
+24 new tests (334 in all); one older test adjusted (it asserted that word 10 of a walk's block
+must be 0; it now asserts that 5 there, and anything in words 11 and 14, is invalid).
+
+43 mutants written: 11 in the prober, 18 in the judge, 1 in the run script, 13 in the seam
+program. Four older mutants had anchors on lines this step rewrote (the leftover rule in the
+prober and the judge, the unused parameter words) and were re-anchored. Run by themselves: 41
+of the 43 killed; one BROKEN (it left a variable set and unused, which the build refuses) and
+rewritten; one survived — "too many standstills imply the old stop" in the judge — because the
+test filtered the judge's problems by a text that the mismatch also contains. The test now
+holds the exact list of problems. Both killed afterwards, and the four re-anchored ones.

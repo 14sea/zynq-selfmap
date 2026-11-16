@@ -1785,3 +1785,88 @@ first; `grade_s1b2.py` was written for a chain that completed, and what it is to
 halted chain plus this step needs a word before it is run; (2) whether the walk is to learn to
 cross a row end (a change to the prober, a new image, its own proposal and review). Nothing of
 either has been built or tried.
+
+## 32. Grading the row — proposal (2026-11-16; a proposal, nothing built, the database not looked at)
+
+The owner's order (section 28): the end of the row first, then the row graded once. The end is
+recorded (section 31). This is how I propose to grade; nothing of it is built or run.
+
+### The difficulty
+
+`grade_s1b2.py` grades a row summary (`row.json`), and the stored summary is that of a halted
+chain: columns 0 to 54 whole, column 55 with **one** frame (`0x1b80`, the last frame of the last
+accepted run), the row not left. Run as it is, the grader would compare 55 columns, say of
+column 55 "the chain stopped in it after 1 frame; the database gives it N", and compare neither
+the length of the row nor what follows it. What the device said about column 55 and the end is
+in three other stored results: the walk of run 30 (stopped by the prober, so not accepted by the
+chain), `s1b2c` and `s1b2e`.
+
+Two ways:
+
+- **A. Grade the stored summary as it is** and compare column 55 and the end by hand in the
+  record. No program; and the two comparisons that are new would be made by me, reading a
+  number off the database's output and a number off `end.json`.
+- **B. First write down, by a program and from the stored results alone, what the device says
+  the whole row is — and commit that — then give it to the grader unchanged.** Proposed.
+
+### B: the row as closed by S1b.2b
+
+A program `host/s1b2_closed.py` takes the stored `row.json`, the stored verdict of run 30, and
+the two verdicts of S1b.2b, and writes `row_closed.json` in the form of `row.json`. It holds no
+number of frames or columns and reads no database. Its rules, fixed here before any database is
+opened:
+
+1. **The frames of the last column.** The walk of the run the chain did not accept contributes
+   its addresses only if (a) its only fault is the stop at an address that names itself (status
+   `0x800`), (b) it began at the last frame of the last accepted run, with the same frame there,
+   and (c) `s1b2c` read **every** one of its addresses again by the other path with the same
+   frame, and the register after each of those reads was what the walk's successors say
+   wherever they reach. Then the column is the walk's addresses, in the walk's order.
+2. **The last address of the row** is the address A at which the pad alone leaves the register
+   at A — in the walk and in `s1b2e`, every repeat.
+3. **The address named after the row** is the first value other than A that the register shows
+   as further frames of words are clocked from A, agreed by every read that reaches that
+   position; the number of steps the register stood still before it is recorded beside it.
+4. Columns 0 to 54 are taken from `row.json` unchanged. The chain's state stays `halted`, and
+   the summary says of itself that it was closed by a second step and from which results.
+5. If any of this is not so — a run that did not pass, a disagreement in the layout, an address
+   of the walk not read again, a frame or a register that differs — **no closed summary is
+   written**; the program says which rule failed, and the grading is then way A's first half
+   only (the 55 columns), reported as that.
+
+On the stored results these rules give (by section 31; the program has to arrive at it itself):
+column 55 with 42 frames `0x1b80..0x1ba9`, the row 56 columns and 1,932 frames, the address
+named after it `0x00400000` after one step standing still.
+
+### The grader
+
+Unchanged in what it compares: the number of frames of each column walked whole, the columns
+being the database's columns of that row in order, the frames of the row in all, and the address
+named after the row against the first frame of the row next in the database's order. One
+addition: where the summary records steps at which the register stood still, the grader lists
+them under `not_compared` — the database lists frames and has nothing to hold them against.
+The two positions beyond `0x1ba9` and the frames delivered there are likewise not graded.
+
+It reads `part.json` of prjxray-db as it is on this machine, as in S1b.1, and prints only what
+concerns this row and the address after it. No bitstream is parsed; Vivado is not involved.
+
+### Order
+
+1. Build `s1b2_closed.py`, the grader's one addition, tests on the twin (the four row ends; each
+   rule of 1 to 5 broken in turn refuses), mutants. The owner's review.
+2. After it: `row_closed.json` made from the stored results and **committed**.
+3. Then the grader, once, on `row_closed.json`; `grade.json` stored beside it and committed
+   whatever it says. A difference is a finding about the database or the device, not a failure,
+   and nothing is changed to make it go away.
+4. Stop and report.
+
+No board is involved in any of it.
+
+### For the owner
+
+- A or B.
+- Rule 1: whether a walk the chain did not accept may count once a second path has confirmed
+  every frame of it. The alternative is to say column 55 was "read, 42 frames, not accepted by
+  the chain" and leave it out of the grading.
+- Whether steps 1 to 3 may run together after the review of step 1, or the grader waits for a
+  word of its own after `row_closed.json` is committed.

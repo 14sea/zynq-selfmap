@@ -1870,3 +1870,110 @@ No board is involved in any of it.
   the chain" and leave it out of the grading.
 - Whether steps 1 to 3 may run together after the review of step 1, or the grader waits for a
   word of its own after `row_closed.json` is committed.
+
+## 33. Grading the row, as built (2026-11-16; host side — no database read, nothing graded)
+
+The owner agreed to section 32 on all three points: way B; a walk the chain did not accept
+counts once the second path has confirmed every frame of it; steps 2 and 3 may follow one
+another after the review of this.
+
+### What was built
+
+- **`host/s1b2_closed.py`** — `close(row, walk, again, at_the_end)` and a command line of the
+  four files. It applies the rules of section 32 in order and returns either the row in the
+  form of `row.json`, or `{"refused": [...], "rules": {...}}` with exit code 1 and nothing a
+  grader could take for a row. It imports `s1b2_end` (the layout: the same program that made
+  `end.json`) and `s1b2_row` (the summary: the same program that made `row.json`), and nothing
+  else of the project; no database, no number of frames, columns or steps.
+  - Rule 1a is held as: status `0x800`, no anomaly, the last address of the walk names itself,
+    the walk is a chain of names (each address the one named after the one before), and every
+    problem the judge lists is one of the two it lists for such a stop — the run not completing
+    with that status, and the cross-check at the last address against the address that names
+    itself. Anything else among the problems refuses.
+  - Rule 2 also requires that the starting addresses of `s1b2e` follow one another as the walk
+    says they do: two runs on two days naming the same successors.
+  - Rule 3 takes "outside the row" from the address word: block type, half or row differs from
+    the last frame's.
+  - Rule 4 is not an assumption but a check: the longer list is given to `s1b2_row.summarize`,
+    and the columns before the one cut short have to come out exactly as the chain's summary
+    has them, and the one cut short has to be the same column beginning at the same address.
+  - What it adds to the summary: the frames of the walk after the seam, marked as coming from
+    "the run the chain stopped on"; under `end`, the address named, the steps the register
+    stood still, the register step by step, and the frames delivered from beyond (how many, and
+    whether all zero); under `closed`, that it was closed, by what, the rules, and the counts.
+    **`chain` is copied unchanged: `halted`, with its reasons.**
+- **`host/grade_s1b2.py`**, two additions and nothing else: a summary that carries `closed` is
+  said to be one in the grade (`summary_closed_by`); and where the summary records steps at
+  which the register stood still, and frames delivered from beyond the row, each is listed
+  under `not_compared`. What it compares, and how, is as it was.
+
+### On the stored results (no database involved)
+
+A test runs the program on the stored `row.json`, the stored verdict of run 30 and the two
+stored verdicts of S1b.2b. All six rules hold. It gives what section 31 said by hand: 56
+columns, 1,932 frames; columns 0 to 54 and the first 1,891 addresses exactly as the chain's
+summary has them; column 55 `0x1b80..0x1ba9`, 42 frames, minors 0 to 41; nothing unexpected;
+after the row `0x00400000`, the register having stood still one step before it (steps 1 and 3
+beyond the last frame); two frames from beyond, both all zero. Given the two runs of S1b.2b in
+each other's place, it refuses. `row_closed.json` itself is **not yet written to the evidence**:
+that is step 2, after the review. (The test holds the stored file against the program once it
+exists.)
+
+### Tests and mutants
+
+14 new tests (310 in all). On the twin: the three ends of a row at which a walk is stopped
+(one place, two places with the register still at the first, two with it still at both) are
+closed, with 1, 1 and 2 steps standing still; every rule broken in turn refuses, and the test
+says which rule; a summary with nothing to close refuses; an address after the standstill that
+lies in the same row refuses, one in another row, half or block type does not; the command
+line; the program holds no answer. The grader on a closed row: agrees and differs where a
+made-up database does, says the summary was closed, lists the two things not compared; the
+chain's own summary is graded as before; a refusal given to the grader is "no column".
+
+One thing the tests showed about the rules, not about the program: the two runs of S1b.2b
+share one read (`0x1ba7`, four steps). If only one of them is changed to name another address
+after the row, rule 1c refuses — the layout holds the shared read of the two runs against each
+other. A test now says so.
+
+37 mutants were written (34 for `s1b2_closed.py`, 3 for the grader's additions). Run by
+themselves, 33 were killed and 4 survived:
+
+- two were gaps in the tests, now closed: no case had a walk whose last address names
+  *another* address with everything else in order, and none had a failed cross-check at the
+  last address that is not the stop's;
+- one was equivalent and was removed: "the run at the end may have written another last
+  address". That condition is implied by two others (the starting addresses are one step
+  apart; the pad alone at the walk's last address leaves it standing) — if the walk's last
+  address were not the last one written, the pad alone there would name the next. The
+  condition stays in the program because rule 3 reads the register "beyond the last address
+  written" and should not depend on an implication made elsewhere;
+- one was a mutant that changed nothing (the first of two refusal points bypassed; the second
+  still refused) and was replaced by one that does: a row whose rule 4 failed written all the
+  same. Killed.
+
+The complete run afterwards (`evidence/host_checks/mutants_2026-11-16_s1b2_closed.txt`): 390
+mutants (the 354 of section 30 and these 36), 390 killed, none survived, none BROKEN, none
+STALE; the unmutated tree before and the restored tree after both run 310 tests, OK. The
+temporary directory was empty afterwards.
+
+### What the tests cannot show
+
+That the rules are the right ones: they were fixed in section 32 and agreed to by the owner
+before the database was opened, and the program holds them; whether a walk the chain did not
+accept should count is a decision, not a finding. And that the database says anything about the
+end of a row: the grader will list what it could not compare.
+
+### Proposed, after the review (no board)
+
+1. `s1b2_closed.py` on the stored `row.json`, the stored verdict of run 30 and the two stored
+   verdicts of S1b.2b; its output written to
+   `evidence/s1b2b_17A6_2026-11-16/row_closed.json` and **committed**, with its hash held by
+   the test.
+2. Then `grade_s1b2.py` once on that file, against prjxray-db's `part.json` as it is on this
+   machine; `grade.json` stored beside it and committed whatever it says.
+3. If step 1 refuses (it does not on the stored results today): the refusal is stored and
+   committed, the grader is run on the chain's own `row.json` instead, and that is reported as
+   what it is.
+4. The record, and stop. A difference is a finding and nothing is changed to make it go away.
+
+**Before any of it:** the owner's review.

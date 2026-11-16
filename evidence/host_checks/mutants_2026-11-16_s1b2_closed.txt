@@ -1,0 +1,393 @@
+unmutated: Ran 310 OK; 0 test(s): 
+KILLED   the generator sends WCFG                                       Ran 310 FAILED (failures=544, errors=137); 193 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   the guard accepts any CMD value                                Ran 310 FAILED (failures=2); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard ignores the envelope                                 Ran 310 FAILED (failures=8); 5 test(s): both_readers_accept_what_the_generator_make, one_fdro_read_per_frame_address
+KILLED   the guard allows any read length                               Ran 310 FAILED (failures=3); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_pad_alone_and_no_read_at_all
+KILLED   no clear before a command                                      Ran 310 FAILED (failures=76, errors=133); 118 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   the clear is not verified                                      Ran 310 FAILED (failures=5); 3 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+KILLED   the clear also clears PCFG_DONE                                Ran 310 FAILED (failures=226, errors=236); 200 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   PCFG_DONE not checked before queuing                           Ran 310 FAILED (failures=7); 3 test(s): any_interface_failure_stops_at_that_command, pcfg_done_found_clear_before_a_command_mean
+KILLED   PCFG_DONE not checked while polling                            Ran 310 FAILED (failures=17); 4 test(s): for_every_fault_and_shape_the_judge_rederiv, for_every_fault_the_judge_rederives_exactly
+KILLED   SRC and DST written in the wrong order                         Ran 310 FAILED (failures=20); 3 test(s): every_dma_command_is_clear_verify_program_i, five_commands_per_operation_each_cleared_ve
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 310 FAILED (failures=340, errors=2); 74 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_that_halted_is_summarized_as_far_as
+KILLED   error bits are not checked                                     Ran 310 FAILED (failures=93); 15 test(s): a_failure_on_the_very_first_read_is_reporte, a_result_that_still_says_the_reference_fram
+KILLED   the poll limit is ignored below 5000                           Ran 310 FAILED (failures=29, errors=133); 101 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   no data-cache gate                                             Ran 310 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_must_show_that_gate_failing
+KILLED   stage 2: no data-cache gate                                    Ran 310 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no loopback gate                                               Ran 310 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
+KILLED   stage 2: no loopback gate                                      Ran 310 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: no PCFG_DONE gate                                     Ran 310 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no PCFG_DONE gate                                              Ran 310 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   no CTRL gate                                                   Ran 310 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   stage 2: no CTRL gate                                          Ran 310 FAILED (failures=6); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no sentinel prefill                                            Ran 310 FAILED (failures=5); 5 test(s): a_run_with_an_anomaly_is_saved_whole_then_j, a_short_read_is_recorded_and_the_run_goes_o
+KILLED   stage 2: no sentinel prefill of the data                       Ran 310 FAILED (failures=15); 9 test(s): a_changed_reference_frame_or_an_exhausted_b, a_failure_in_the_baseline_is_reported_as_su
+KILLED   stage 2: no sentinel before the FAR read                       Ran 310 FAILED (failures=12); 8 test(s): a_failure_in_the_baseline_is_reported_as_su, a_far_read_that_failed_measures_nothing
+KILLED   the health check always passes                                 Ran 310 FAILED (failures=4); 3 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   no anomaly budget                                              Ran 310 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_anomaly_budget_stops_the_run
+KILLED   stage 2: no anomaly budget                                     Ran 310 FAILED (failures=6); 4 test(s): a_changed_reference_frame_or_an_exhausted_b, every_pad_only_read_may_be_anomalous_and_th
+KILLED   a repeat that differs is not noticed                           Ran 310 FAILED (failures=2); 2 test(s): a_repeat_that_differs_is_recorded_and_the_r, for_every_fault_the_judge_rederives_exactly
+KILLED   the pad is not checked                                         Ran 310 FAILED (failures=4); 2 test(s): a_nonzero_pad_is_recorded_and_the_run_goes_, for_every_fault_the_judge_rederives_exactly
+KILLED   a frame outside the envelope is accepted in the parameters     Ran 310 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register_at_all
+KILLED   a PL read is added                                             Ran 310 FAILED (failures=27, errors=133); 98 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   an SLCR write is added                                         Ran 310 FAILED (failures=27, errors=133); 98 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   the cleanup stream is skipped                                  Ran 310 FAILED (failures=19); 10 test(s): a_command_that_never_completes_times_out_at, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   stage 2: the cleanup stream is skipped                         Ran 310 FAILED (failures=98); 31 test(s): a_column_that_does_not_end_inside_the_limit, a_far_read_that_failed_measures_nothing
+KILLED   the final reference read is not compared                       Ran 310 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
+KILLED   the guard accepts a read that is not a pad plus whole frames   Ran 310 FAILED (failures=3); 1 test(s): a_read_that_is_not_a_pad_plus_whole_frames_
+KILLED   the guard lets a read run past the envelope                    Ran 310 FAILED (failures=7); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_range_check_cannot_be_wrapped
+KILLED   the guard accepts a one-word read of any register              Ran 310 FAILED (failures=4); 1 test(s): only_the_far_register_and_only_one_word_of_
+KILLED   the guard allows a second read on an address that has moved on Ran 310 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   reader: a second read on an address that has moved on is accepted Ran 310 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   run: a result of another stage's layout is not saved whole     Ran 310 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 310 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 310 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   the guard's range check adds to the address and can wrap       Ran 310 FAILED (failures=4); 1 test(s): the_range_check_cannot_be_wrapped
+KILLED   stage 2: the parameter range check adds to the address and can wrap Ran 310 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   run: the dry run does not list the YMODEM branch               Ran 310 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_plan_and_cannot_open
+KILLED   stage 2: the FAR register is not read                          Ran 310 FAILED (failures=237, errors=117); 143 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 2: a repeat's data is not compared                       Ran 310 FAILED (failures=12); 4 test(s): a_difference_in_a_later_frame_of_a_multi_fr, data_anomalies_are_recorded_and_skipped_whi
+KILLED   stage 2: a repeat's FAR value is not compared                  Ran 310 FAILED (failures=15); 7 test(s): a_far_value_that_differs_in_an_anomalous_re, anomalies_and_stops_are_saved_whole_and_fai
+KILLED   stage 2: an unread FAR is not noticed                          Ran 310 FAILED (failures=27); 9 test(s): a_failure_in_the_baseline_is_reported_as_su, a_far_read_that_failed_measures_nothing
+KILLED   stage 2: the reference's FAR value is not part of its health   Ran 310 FAILED (failures=13); 4 test(s): a_changed_reference_frame_stops_the_run, a_far_value_that_differs_on_the_reference_r
+KILLED   stage 2: an operation running past the envelope is accepted    Ran 310 FAILED (failures=5); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: more frames per read than the buffer holds            Ran 310 FAILED (failures=3); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: only the first frame of a repeat is compared          Ran 310 FAILED (failures=5); 2 test(s): a_difference_in_a_later_frame_of_a_multi_fr, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: the pad is not checked                                Ran 310 FAILED (failures=23); 17 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge2: the FAR values need not follow one rule                Ran 310 FAILED (failures=2); 2 test(s): the_far_register_must_follow_one_rule, the_rule_is_drawn_from_every_far_value_that
+KILLED   judge2: only the first frame of a read is compared with the known frames Ran 310 FAILED (failures=30, errors=1); 17 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   judge2: the echoed parameters are not compared with the planned ones Ran 310 FAILED (failures=11); 1 test(s): a_run_that_was_not_the_planned_one_fails
+KILLED   judge2: a repeat's FAR value is not derived                    Ran 310 FAILED (failures=8); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: a repeat's data is not derived                         Ran 310 FAILED (failures=11, errors=1); 2 test(s): for_every_fault_the_judge_rederives_what_th, the_two_runs_at_the_end_of_the_row
+KILLED   judge2: the unused tail is not checked                         Ran 310 FAILED (failures=5); 2 test(s): a_stored_result_with_one_word_changed_does_, tampered_buffers_fail
+KILLED   judge2: the FAR read stream is not compared with the pinned one Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the reference's health ignores the FAR value           Ran 310 FAILED (failures=10); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the FAR value and its unread flag are not held together Ran 310 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the order of records is not checked                    Ran 310 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the code is not compared with the derivation           Ran 310 FAILED (failures=4, errors=1); 2 test(s): tampered_buffers_fail, the_two_runs_at_the_end_of_the_row
+KILLED   judge2: an unread FAR is not derived                           Ran 310 FAILED (failures=13); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 310 FAILED (failures=49, errors=39); 58 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   judge: a nonzero pad is not derived                            Ran 310 FAILED (failures=5); 3 test(s): a_nonzero_pad_under_a_clean_code_fails, a_stored_result_with_one_word_changed_does_
+KILLED   judge: sentinel survivors are not derived                      Ran 310 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: a differing repeat is not derived                       Ran 310 FAILED (failures=1); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the code is not compared with the derivation            Ran 310 FAILED (failures=2); 2 test(s): a_nonzero_pad_under_a_clean_code_fails, a_stored_result_with_one_word_changed_does_
+KILLED   judge: the order of records is not checked                     Ran 310 FAILED (failures=4); 2 test(s): eleven_copies_of_the_baseline_fail, tampered_buffers_fail
+KILLED   judge: missing records are not noticed                         Ran 310 FAILED (failures=3); 1 test(s): a_run_cut_short_before_its_last_reads_fails
+KILLED   judge: the anomaly count is not cross-checked                  Ran 310 FAILED (failures=1); 1 test(s): a_header_that_counts_an_anomaly_no_record_s
+KILLED   judge: the status is not cross-checked                         Ran 310 FAILED (failures=3); 1 test(s): a_stopped_run_relabelled_as_done_fails
+KILLED   judge: the stop record is not cross-checked                    Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a frame differing from the known one passes             Ran 310 FAILED (failures=1); 1 test(s): a_frame_that_differs_from_the_known_one_fai
+KILLED   judge: recorded streams are not compared with the pinned words Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: the survivor count is not recounted                     Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: trailing words are accepted                             Ran 310 FAILED (failures=3); 2 test(s): a_clean_file_passes_and_any_extra_byte_make, truncated_padded_or_foreign_data_is_invalid
+KILLED   judge: an incomplete run can pass                              Ran 310 FAILED (failures=7); 2 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the echoed parameters are not compared with the planned ones Ran 310 FAILED (failures=7); 3 test(s): a_run_that_did_less_than_was_planned_fails_, a_run_that_did_not_do_what_was_planned_fail
+KILLED   judge: gate readings that fail a gate are accepted on a run that went on Ran 310 FAILED (failures=5); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: a gate stop is not held to its own readings             Ran 310 FAILED (failures=1); 1 test(s): a_gate_stop_must_show_that_gate_failing
+KILLED   judge: the final INT_STS is not judged                         Ran 310 FAILED (failures=2); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: the data-cache reading is not a gate                    Ran 310 FAILED (failures=3); 3 test(s): a_gate_stop_must_show_that_gate_failing, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: reserved header words are not checked                   Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: reserved record words are not checked                   Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a file length that is not a multiple of four is rounded down Ran 310 FAILED (errors=7); 1 test(s): a_clean_file_passes_and_any_extra_byte_make
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 310 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 310 FAILED (failures=1); 1 test(s): an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 310 FAILED (failures=2); 2 test(s): a_run_that_did_not_do_what_was_planned_fail, the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the live status afterwards is only recorded               Ran 310 FAILED (failures=2); 1 test(s): the_live_status_afterwards_is_a_condition_n
+KILLED   run: the card copy is not read back                            Ran 310 FAILED (failures=1); 1 test(s): the_card_copy_is_checked_by_reading_it_back
+KILLED   run: the card read-back checksum is not compared               Ran 310 FAILED (failures=2); 2 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_card_copy_is_checked_by_reading_it_back
+KILLED   run: an unconfirmed card write is ignored                      Ran 310 FAILED (failures=2); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 310 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the return code is not compared with the result           Ran 310 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 310 FAILED (failures=1, errors=1); 2 test(s): a_damaged_card_copy_stops_the_run_before_th, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 310 FAILED (errors=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 310 FAILED (failures=1); 1 test(s): any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 310 FAILED (failures=72, errors=40); 66 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   run: PASS without the judge                                    Ran 310 FAILED (failures=41); 15 test(s): a_frame_that_has_a_known_answer_is_still_he, a_gate_stop_on_the_board_is_saved_too
+KILLED   stage 3: asked to read nothing, the generator still reads      Ran 310 FAILED (failures=103, errors=9); 28 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: an operation that reads nothing still queues a read command Ran 310 FAILED (failures=72); 11 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: the pad of a pad-only read is not checked             Ran 310 FAILED (failures=18); 15 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   stage 3: stage 2 accepts the new operations too                Ran 310 FAILED (failures=4); 3 test(s): bad_parameters_touch_no_register, bad_parameters_touch_no_register_at_all
+KILLED   stage 3: the pad alone or no read may be asked for outside the envelope Ran 310 FAILED (failures=5); 3 test(s): a_sequence_that_would_run_past_the_top_of_t, bad_diagnostic_parameters_touch_no_register
+KILLED   stage 3: repeats of an operation that reads nothing are compared over words that were never read Ran 310 FAILED (failures=60); 16 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   judge3: a read status in an operation that reads nothing goes unnoticed Ran 310 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge3: the same read at the same address may leave different values Ran 310 FAILED (failures=2); 2 test(s): a_far_value_that_differs_in_an_anomalous_re, the_same_read_at_the_same_address_must_alwa
+KILLED   judge3: the stage is taken from the result instead of from what was run Ran 310 FAILED (failures=4); 4 test(s): a_result_of_the_other_stage_is_not_this_sta, a_stage_two_result_under_stage_three_is_sav
+KILLED   judge3: the length rule is reported as holding whatever was seen Ran 310 FAILED (failures=8, errors=1); 6 test(s): a_clean_run_passes_whatever_the_register_di, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge3: undetermined is reported as holding                    Ran 310 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge2/3: FAR values from records with another anomaly are left out of the finding Ran 310 FAILED (failures=2, errors=2); 4 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   judge2/3: a FAR value counts although its read failed          Ran 310 FAILED (failures=4); 4 test(s): a_far_read_that_failed_measures_nothing, stage_two_and_three
+KILLED   judge3: an anomalous record counts as clean evidence for the length rule Ran 310 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge3: the table does not say which of its records were anomalous Ran 310 FAILED (failures=2); 2 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 310 FAILED (failures=4); 2 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 310 FAILED (failures=39, errors=18); 35 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: no data-cache gate                                    Ran 310 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no loopback gate                                      Ran 310 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no PCFG_DONE gate                                     Ran 310 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no CTRL gate                                          Ran 310 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the walk reads at an address the device named outside the envelope Ran 310 FAILED (failures=102, errors=18); 55 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_that_halted_is_summarized_as_far_as
+KILLED   stage 4: an address below the envelope is not taken as a stop  Ran 310 FAILED (failures=7); 3 test(s): an_address_below_the_envelope_is_not_a_norm, an_address_that_is_not_above_the_one_asked_
+KILLED   stage 4: the stop record of a walk that does not advance is counted back from the end Ran 310 FAILED (failures=2); 2 test(s): an_address_that_is_not_above_the_one_asked_, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the walk follows an address that does not advance     Ran 310 FAILED (failures=41); 17 test(s): a_row_whose_chain_halted_at_such_an_end_is_, an_address_below_the_envelope_is_not_a_norm
+KILLED   stage 4: a step backwards is followed                          Ran 310 FAILED (failures=12); 4 test(s): an_address_below_the_envelope_is_not_a_norm, an_address_not_above_the_last_frame_stops_t
+KILLED   stage 4: the limit of frames is not applied                    Ran 310 FAILED (failures=21, errors=10); 26 test(s): a_chain_taken_up_again_is_the_same_chain, a_chain_that_halted_is_summarized_as_far_as
+KILLED   stage 4: the next address is computed instead of taken from the device Ran 310 FAILED (failures=20, errors=9); 24 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: the successor read reads the frame as well            Ran 310 FAILED (failures=154, errors=39); 83 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: a later pass is not compared with the first           Ran 310 FAILED (failures=7); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may be told another address              Ran 310 FAILED (failures=4); 2 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may deliver another frame                Ran 310 FAILED (failures=3); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the three-frame read is not compared with the single reads Ran 310 FAILED (failures=5); 3 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: only the first of the three frames is compared        Ran 310 FAILED (failures=3); 3 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: the walk goes on after an anomaly                     Ran 310 FAILED (failures=25); 5 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: the reference is not read during the run              Ran 310 FAILED (failures=111, errors=11); 67 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: a changed reference frame during the run is ignored   Ran 310 FAILED (failures=5); 3 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the frames delivered since the reference are not counted Ran 310 FAILED (failures=111, errors=11); 67 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: the count since the reference starts again with each pass Ran 310 FAILED (failures=75, errors=9); 50 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: the reads of several frames are not counted towards the reference Ran 310 FAILED (failures=73, errors=10); 51 test(s): a_chain_taken_up_again_is_the_same_chain, a_chain_that_halted_is_summarized_as_far_as
+KILLED   stage 4: a reference read does not start the count again       Ran 310 FAILED (failures=109, errors=9); 63 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   stage 4: one or two frames left over are not read again        Ran 310 FAILED (failures=46, errors=8); 35 test(s): a_chain_taken_up_again_is_the_same_chain, a_chain_that_halted_is_summarized_as_far_as
+KILLED   stage 4: a walk of two frames gets no second path              Ran 310 FAILED (failures=9, errors=2); 11 test(s): a_difference_in_the_last_frame_of_an_overla, a_row_is_walked_from_its_first_address_to_t
+KILLED   stage 4: a reference interval too short for a read of three frames is taken Ran 310 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: the final reference read is ignored                   Ran 310 FAILED (failures=4); 3 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: more passes than the header has room for              Ran 310 FAILED (failures=2); 2 test(s): bad_parameters_touch_no_register, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a start outside the envelope is taken                 Ran 310 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: a limit above what the result area holds              Ran 310 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   judge4: a later pass may name another address                  Ran 310 FAILED (failures=3); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, what_differs_between_the_passes_or_the_path
+KILLED   judge4: a later pass may deliver another frame                 Ran 310 FAILED (failures=3); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: the three-frame read is not compared                   Ran 310 FAILED (failures=6); 4 test(s): a_known_frame_delivered_in_a_read_of_severa, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: only two of the three frames are compared              Ran 310 FAILED (failures=5); 4 test(s): a_known_frame_delivered_in_a_read_of_severa, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: the register after a frame is not checked against the next address named Ran 310 FAILED (failures=6); 5 test(s): rule_1a_the_walk_was_stopped_at_an_address_, tampered_buffers_fail
+KILLED   judge4: the known frames are not compared                      Ran 310 FAILED (failures=3); 3 test(s): a_known_frame_delivered_in_a_read_of_severa, a_known_frame_that_differs_is_named
+KILLED   judge4: the reference frame is not held to its known value     Ran 310 FAILED (failures=1); 1 test(s): the_reference_frame_is_held_to_its_known_va
+KILLED   judge4: the baseline is not held to the known value            Ran 310 FAILED (failures=1); 1 test(s): the_reference_frame_is_held_to_its_known_va
+KILLED   judge4: the frames of the walk are not held to their known values Ran 310 FAILED (failures=1); 1 test(s): a_known_frame_delivered_in_a_read_of_severa
+KILLED   judge4: frames delivered in a read of several are not held to their known values Ran 310 FAILED (failures=1); 1 test(s): a_known_frame_delivered_in_a_read_of_severa
+KILLED   judge4: a record of another shape than the schedule has is followed Ran 310 FAILED (errors=2); 2 test(s): no_record_however_malformed_makes_the_judge, tampered_buffers_fail
+KILLED   judge4: the register after a read of several frames is not checked Ran 310 FAILED (failures=2); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: an address below the envelope is not taken as a stop   Ran 310 FAILED (failures=2); 1 test(s): for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: one or two frames left over need not be read again     Ran 310 FAILED (failures=35, errors=8); 33 test(s): a_chain_taken_up_again_is_the_same_chain, a_chain_that_halted_is_summarized_as_far_as
+KILLED   judge4: a reference interval too short for a read of three frames is a valid parameter Ran 310 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: the reference reads count frames per pass, not over the run Ran 310 FAILED (failures=95, errors=9); 62 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   grade: a walk that did not finish is compared as if it were the column Ran 310 FAILED (failures=3); 1 test(s): a_walk_that_did_not_finish_is_not_taken_for
+KILLED   grade: a walk at its limit is compared as if it were the column Ran 310 FAILED (failures=4); 2 test(s): a_walk_that_did_not_finish_is_not_taken_for, a_walk_that_stopped_at_its_limit_or_left_th
+KILLED   grade: the judge's verdict is not carried over                 Ran 310 FAILED (failures=3); 1 test(s): a_walk_that_did_not_finish_is_not_taken_for
+KILLED   judge4: a known frame the walk went past is fine if the pass ended at the limit Ran 310 FAILED (failures=2); 2 test(s): a_row_whose_known_frames_are_passed_over_is, a_run_of_the_chain_is_not_failed_for_known_
+KILLED   judge4: known frames above the last address read count as gone past Ran 310 FAILED (failures=20, errors=8); 23 test(s): a_chain_taken_up_again_is_the_same_chain, a_chain_that_halted_is_summarized_as_far_as
+KILLED   judge4: known frames below the first address read count as gone past Ran 310 FAILED (failures=8, errors=2); 10 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2 chain: a row left with its known frames not walked is complete Ran 310 FAILED (failures=2, errors=3); 3 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_whose_known_frames_are_passed_over_is
+KILLED   s1b2 chain: a known frame outside the envelope is asked of the chain Ran 310 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2 chain: only the last run's frames count as walked         Ran 310 FAILED (failures=4, errors=2); 6 test(s): a_row_is_walked_from_its_first_address_to_t, the_decisions_on_runs_that_the_twin_cannot_
+KILLED   judge4: leaving the envelope without the known frames is fine  Ran 310 FAILED (failures=8); 4 test(s): a_column_end_inside_the_envelope_is_reporte, a_run_of_the_chain_is_not_failed_for_known_
+KILLED   judge4: the header's account of the walk is not checked        Ran 310 FAILED (failures=3); 1 test(s): tampered_buffers_fail
+KILLED   judge4: the stage is taken from the result                     Ran 310 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: a reference flag need not fit the data                 Ran 310 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a record's code need not be what its words say         Ran 310 FAILED (failures=6); 3 test(s): a_known_frame_delivered_in_a_read_of_severa, tampered_buffers_fail
+KILLED   judge4: an address that does not advance is followed           Ran 310 FAILED (failures=25); 12 test(s): a_row_whose_chain_halted_at_such_an_end_is_, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: the limit is not applied                               Ran 310 FAILED (failures=21, errors=8); 24 test(s): a_chain_taken_up_again_is_the_same_chain, a_chain_that_halted_is_summarized_as_far_as
+KILLED   judge4: an address outside the envelope is followed            Ran 310 FAILED (failures=68, errors=4); 42 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_that_halted_is_summarized_as_far_as
+KILLED   judge4: the reference reads during the walk are not expected   Ran 310 FAILED (failures=101, errors=9); 64 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   judge4: the echoed parameters need not be the planned ones     Ran 310 FAILED (failures=7); 3 test(s): a_run_that_was_not_the_planned_one_fails, the_stored_runs_are_what_the_chain_stands_o
+KILLED   judge4: words after the data are not checked                   Ran 310 FAILED (failures=2); 2 test(s): tampered_buffers_fail, the_walk_of_the_column_with_the_quiet_wait
+KILLED   judge4: the streams are not compared with the pinned ones      Ran 310 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a PASS for a run that did not complete                 Ran 310 FAILED (failures=20); 8 test(s): a_walk_that_did_not_finish_is_not_taken_for, an_address_not_above_the_last_frame_stops_t
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 310 FAILED (failures=3, errors=1); 4 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   run: a piece is taken whatever its crc32                       Ran 310 FAILED (failures=3); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is taken whatever its length                      Ran 310 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a damaged piece is not pulled again                       Ran 310 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is pulled again without end in sight              Ran 310 FAILED (failures=2); 1 test(s): a_piece_that_cannot_be_pulled_whole_stops_t
+KILLED   run: the repeats of a piece are not recorded                   Ran 310 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: pieces that match are enough, the whole is not checked    Ran 310 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the whole is checked for length only                      Ran 310 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: a copy that is not the board's is not kept                Ran 310 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the pieces are not the pieces asked for                   Ran 310 FAILED (failures=47, errors=67); 73 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   the console says stage 2 for stage 3                           Ran 310 FAILED (failures=24); 8 test(s): a_clean_run_passes_under_every_rule_and_eve, a_result_of_another_stage_is_saved_whole_an
+KILLED   the console says stage 2 for stage 4                           Ran 310 FAILED (failures=46, errors=10); 28 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   the console says stage 3 for stage 5                           Ran 310 FAILED (failures=24); 8 test(s): bad_diagnostic_parameters_touch_no_register, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   judge3: stage 2 may ask for the new counts as well             Ran 310 FAILED (failures=1); 1 test(s): a_result_of_the_other_stage_is_not_this_sta
+KILLED   stage 4: no reference read after an anomaly                    Ran 310 FAILED (failures=28); 7 test(s): a_changed_reference_frame_stops_the_run, any_anomaly_ends_the_walk_after_one_referen
+KILLED   judge4: unused parameter words may hold anything               Ran 310 FAILED (failures=3); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: any amount of extra stack is a valid parameter         Ran 310 FAILED (failures=2); 2 test(s): diagnostic_parameters_the_prober_would_refu, the_judges_say_which_loop_and_refuse_one_th
+KILLED   a reference read that failed on the interface is reported as a changed reference frame Ran 310 FAILED (failures=4); 2 test(s): stage_two_and_three, the_walk
+KILLED   a changed reference frame is reported as an interface failure  Ran 310 FAILED (failures=30); 7 test(s): a_changed_reference_frame_or_an_exhausted_b, a_changed_reference_frame_stops_the_run
+KILLED   judge2/3/5: a reference read that failed on the interface may be called a changed frame Ran 310 FAILED (failures=1); 1 test(s): stage_two_and_three
+KILLED   judge4: a reference read that failed on the interface may be called a changed frame Ran 310 FAILED (failures=4); 2 test(s): a_result_that_still_says_the_reference_fram, the_walk
+KILLED   stage 5: the extra stack is not put beneath the target reads   Ran 310 FAILED (failures=3); 1 test(s): more_stack_moves_the_polling_variable_under
+KILLED   stage 4: the extra stack is not put beneath the walk's reads   Ran 310 FAILED (failures=1); 1 test(s): the_same_in_the_walk
+KILLED   the deeper read reads something else                           Ran 310 FAILED (failures=12); 6 test(s): more_stack_moves_the_polling_variable_under, the_first_pass_s_reads_made_by_the_stage_th
+KILLED   stage 5: a sequence longer than the result area allows         Ran 310 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 5: any amount of extra stack                             Ran 310 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 4: any amount of extra stack                             Ran 310 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 5: a sequence may be repeated any number of times        Ran 310 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 5: the sequence reads the frame twice instead of the pad and the frame Ran 310 FAILED (failures=14); 6 test(s): a_sequence_that_would_run_past_the_top_of_t, tampered_stage_five_buffers_fail
+KILLED   stage 5: the sequence stays at its first address               Ran 310 FAILED (failures=14); 6 test(s): a_sequence_that_would_run_past_the_top_of_t, tampered_stage_five_buffers_fail
+KILLED   stages 2 and 3 take the diagnostic options too                 Ran 310 FAILED (failures=3); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 5: a sequence may wrap past the top of the address space Ran 310 FAILED (failures=4); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 5: a sequence may run one address past the top           Ran 310 FAILED (failures=2); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 5: a sequence that ends exactly at the top is refused    Ran 310 FAILED (failures=9, errors=9); 9 test(s): a_sequence_that_would_run_past_the_top_of_t, more_stack_moves_the_polling_variable_under
+KILLED   judge5: an operation without a read is counted as a read of the pad alone Ran 310 FAILED (failures=1); 1 test(s): the_judge_follows_stage_five_and_reports_wh
+KILLED   judge5: the pad alone is counted as an operation without a read Ran 310 FAILED (failures=6, errors=1); 4 test(s): the_diagnostic_series_of_2026_11_15_is_what, the_judge_follows_stage_five_and_reports_wh
+KILLED   s1b2: the block planned for a run does not carry its start     Ran 310 FAILED (failures=14, errors=6); 18 test(s): a_chain_taken_up_again_is_the_same_chain, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2: a run record of another stage is taken                   Ran 310 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run in which the prober was not started is taken       Ran 310 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run the run script stopped is taken                    Ran 310 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run the run script failed is taken                     Ran 310 FAILED (failures=3); 3 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2: a run without a verified card copy is taken              Ran 310 FAILED (failures=2); 2 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run started elsewhere than the chain plans is taken    Ran 310 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a stored result is not held against the board's checksum Ran 310 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: the judge's verdict of a stored run is not asked for     Ran 310 FAILED (failures=4); 4 test(s): a_row_whose_known_frames_are_passed_over_is, a_run_that_does_not_pass_halts_the_chain_an
+KILLED   s1b2: a run is judged against the set's block, not the one planned for it Ran 310 FAILED (failures=14, errors=5); 17 test(s): a_chain_taken_up_again_is_the_same_chain, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2: run directories with a gap are taken                     Ran 310 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: one pass is enough                                       Ran 310 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the passes need not end alike                            Ran 310 FAILED (failures=3); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the walk need not be as long as its passes say           Ran 310 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: seam: the address is not compared                        Ran 310 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: seam: the content is not compared                        Ran 310 FAILED (failures=1); 1 test(s): a_seam_that_does_not_match_halts_the_chain
+KILLED   s1b2: seam: the address named is not compared                  Ran 310 FAILED (failures=1); 1 test(s): a_seam_that_does_not_match_halts_the_chain
+KILLED   s1b2: runs after the row was left are overlooked               Ran 310 FAILED (failures=1, errors=1); 2 test(s): the_decisions_on_runs_that_the_twin_cannot_, the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run that ended neither way is gone on from             Ran 310 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: a run of one frame at the limit is gone on from          Ran 310 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the next run begins at the address named, without a seam Ran 310 FAILED (failures=16, errors=4); 18 test(s): a_chain_taken_up_again_is_the_same_chain, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2: the bound allows one run more                            Ran 310 FAILED (failures=1); 1 test(s): the_bound_on_the_number_of_runs
+KILLED   s1b2: the two endings are taken for each other                 Ran 310 FAILED (failures=20, errors=8); 23 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   s1b2: a run is judged by the judge of S1b.1                    Ran 310 FAILED (failures=6, errors=2); 8 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2: a chain that is not to go on is gone on with             Ran 310 FAILED (errors=15); 9 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_that_halted_is_summarized_as_far_as
+KILLED   s1b2 row: the seam frames are listed twice                     Ran 310 FAILED (failures=6); 6 test(s): a_shape_that_was_not_expected_is_listed_not, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2 row: the frames of a run that did not pass are listed     Ran 310 FAILED (failures=3); 3 test(s): a_chain_that_halted_is_summarized_as_far_as, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2 row: the last column of a chain that halted counts as whole Ran 310 FAILED (failures=7); 5 test(s): a_chain_that_halted_is_summarized_as_far_as, a_row_whose_chain_halted_at_such_an_end_is_
+KILLED   s1b2 row: the minors are not looked at                         Ran 310 FAILED (failures=2); 2 test(s): a_shape_that_was_not_expected_is_listed_not, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 row: any minor of the next column will do                 Ran 310 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: any column will do as the next                       Ran 310 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: a column of another row is not remarked              Ran 310 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: addresses out of order are not remarked              Ran 310 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: a broken chain of addresses is not remarked          Ran 310 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: the frames of S1b.1 are not compared                 Ran 310 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: the addresses S1b.1 was told are not compared        Ran 310 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: a longer column here passes for S1b.1's              Ran 310 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: a walk of S1b.1 that lists nothing passes for the same column Ran 310 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: every known frame counts as walked                   Ran 310 FAILED (failures=2); 2 test(s): a_chain_that_halted_is_summarized_as_far_as, a_row_whose_known_frames_are_passed_over_is
+KILLED   s1b2 row: the column field is taken a bit short                Ran 310 FAILED (failures=2); 2 test(s): nothing_but_the_graders_names_the_database, the_fields_of_the_address_word
+KILLED   s1b2 row: the row field begins a bit lower                     Ran 310 FAILED (failures=2); 2 test(s): the_fields_of_the_address_word, the_row_as_the_device_named_it
+KILLED   s1b2 row: an unexpected last column of a complete row is not remarked when its minors are off Ran 310 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 grade2: a different frame count is not a difference       Ran 310 FAILED (failures=3); 3 test(s): it_says_where_the_database_differs, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: a column cut short may hold more than the database gives it Ran 310 FAILED (failures=1); 1 test(s): the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: the list of columns is not compared               Ran 310 FAILED (failures=3); 3 test(s): it_says_where_the_database_differs, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: a complete row is compared with a beginning of the database's Ran 310 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: the frames of the row are not added up            Ran 310 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: the row after is the same row                     Ran 310 FAILED (failures=1); 1 test(s): the_grader_agrees_where_the_database_says_t
+KILLED   s1b2 grade2: after the top half comes the top half             Ran 310 FAILED (failures=2); 2 test(s): it_is_graded_like_any_row_and_the_grade_say, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: the address named after the row is not compared   Ran 310 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: what the summary lists as unexpected is passed over in silence Ran 310 FAILED (errors=1); 1 test(s): the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: a chain that halted is graded as a whole row      Ran 310 FAILED (errors=2); 2 test(s): the_chains_own_summary_is_graded_as_before, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: columns of another row among them are not remarked Ran 310 FAILED (failures=1); 1 test(s): the_grader_says_where_the_database_differs
+KILLED   s1b2 run: any set may be given a start                         Ran 310 FAILED (failures=3); 3 test(s): nothing_of_them_is_given_at_run_time, the_command_line
+KILLED   s1b2 run: a start outside the envelope is sent                 Ran 310 FAILED (failures=2); 2 test(s): the_command_line, the_starting_address_is_the_one_word_given_
+KILLED   s1b2 run: the start given is not put into the block            Ran 310 FAILED (failures=39, errors=7); 35 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   s1b2 run: where the start came from is not recorded            Ran 310 FAILED (failures=16, errors=10); 21 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   s1b2 run: a run of the chain is judged by the judge of S1b.1   Ran 310 FAILED (failures=6, errors=3); 9 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2 judge4: S1b.1 no longer fails a walk that began beyond the known frames Ran 310 FAILED (failures=2); 2 test(s): a_run_of_the_chain_is_not_failed_for_known_, a_walk_that_leaves_the_envelope_without_pas
+KILLED   s1b2 judge4: a run of a chain is never failed for a known frame Ran 310 FAILED (failures=1); 1 test(s): a_run_of_the_chain_is_not_failed_for_known_
+KILLED   s1b2 judge of a run: it is S1b.1's judge after all             Ran 310 FAILED (failures=7, errors=2); 9 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_is_walked_from_its_first_address_to_t
+KILLED   run: the quiet walk is judged as a stage-5 result              Ran 310 FAILED (failures=1); 1 test(s): the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the quiet walk is given the walk's old parameters         Ran 310 FAILED (failures=3); 3 test(s): the_dry_run_of_the_quiet_walk_differs_from_, the_set_is_the_quiet_walk_with_the_row_as_i
+KILLED   quiet wait: the count is stored on every poll after all        Ran 310 FAILED (failures=3, errors=133); 94 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   quiet wait: one poll more than the limit                       Ran 310 FAILED (failures=6); 2 test(s): the_count_on_the_stack_while_a_transfer_is_, the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: an error bit is not a way out                      Ran 310 FAILED (failures=4); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: PCFG_DONE gone is not a way out                    Ran 310 FAILED (failures=3, errors=133); 94 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   quiet wait: the count is not handed back                       Ran 310 FAILED (failures=23, errors=133); 96 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   quiet wait: the last status is not recorded                    Ran 310 FAILED (failures=21, errors=133); 95 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   quiet wait: PCFG_DONE gone is reported as something else       Ran 310 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: an error bit is reported as something else         Ran 310 FAILED (failures=5); 2 test(s): the_three_loops_bring_back_the_same_result_, what_stops_such_a_run
+KILLED   quiet wait: the stale status is not looked for                 Ran 310 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: PCFG_DONE is not looked for before the command     Ran 310 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: no clear before the command                        Ran 310 FAILED (failures=23, errors=133); 95 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   quiet wait: SRC and DST written in the wrong order             Ran 310 FAILED (failures=18); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: the command is queued with another length          Ran 310 FAILED (failures=60, errors=32); 53 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   quiet wait: the variant that loads the limit is given no place to load it from Ran 310 FAILED (failures=1, errors=133); 93 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   quiet wait: the variant that touches no memory loads the limit from the stack Ran 310 FAILED (failures=1, errors=133); 93 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   the choice of the wait is ignored: always as before            Ran 310 FAILED (failures=4, errors=134); 96 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   stage 3 takes the choice of the wait too                       Ran 310 FAILED (failures=1); 1 test(s): the_other_stages_wait_as_they_always_did
+KILLED   the walk does not take the choice of the wait                  Ran 310 FAILED (failures=3); 3 test(s): a_loop_that_does_not_exist_is_refused_befor, the_count_on_the_stack_while_a_transfer_is_
+KILLED   stage 5: a wait that does not exist is run                     Ran 310 FAILED (failures=1); 1 test(s): a_loop_that_does_not_exist_is_refused_befor
+KILLED   the walk: a wait that does not exist is run                    Ran 310 FAILED (failures=1); 1 test(s): a_loop_that_does_not_exist_is_refused_befor
+KILLED   stage 5: the choice of the wait is taken for extra stack       Ran 310 FAILED (failures=46, errors=7); 24 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   the walk: the choice of the wait is taken for extra stack      Ran 310 FAILED (failures=33, errors=31); 43 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   the twin is not shown the count of polls                       Ran 310 FAILED (failures=2, errors=2); 3 test(s): the_count_on_the_stack_while_a_transfer_is_, the_other_stages_wait_as_they_always_did
+KILLED   judges: a wait that does not exist is a valid plan (stage 5)   Ran 310 FAILED (errors=1); 1 test(s): the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: a wait that does not exist is a valid plan (the walk)  Ran 310 FAILED (failures=1); 1 test(s): the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: the choice of the wait is taken for extra stack        Ran 310 FAILED (failures=39, errors=39); 55 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   judges: the extra stack is taken for the choice of the wait    Ran 310 FAILED (failures=39, errors=39); 55 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_same_chain
+KILLED   the address of the polling variable is not recorded            Ran 310 FAILED (failures=4); 2 test(s): more_stack_moves_the_polling_variable_under, the_same_in_the_walk
+KILLED   judge5: the stage is taken from the result                     Ran 310 FAILED (failures=1); 1 test(s): stage_three_and_stage_five_results_are_not_
+KILLED   judge2/3: the diagnostic words may be set for stages that do not have them Ran 310 FAILED (failures=3); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   judge5: a sequence of any length is a valid parameter          Ran 310 FAILED (failures=1); 1 test(s): diagnostic_parameters_the_prober_would_refu
+KILLED   judge5: the reserved word beside the polling variable is not checked Ran 310 FAILED (failures=2); 2 test(s): tampered_buffers_fail, tampered_stage_five_buffers_fail
+KILLED   s1b2 end: the reference reads are laid out as reads of the end Ran 310 FAILED (failures=27, errors=2); 17 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 end: a repeat that differs is not noticed                 Ran 310 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: the starting addresses are taken to be one step apart Ran 310 FAILED (failures=1); 1 test(s): starting_addresses_that_are_not_one_step_ap
+KILLED   s1b2 end: one step apart is judged by a read of two steps      Ran 310 FAILED (failures=18, errors=2); 11 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: a position is counted from where a read starts, not where it ends Ran 310 FAILED (failures=21); 12 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: two values of the register at one position are not a disagreement Ran 310 FAILED (failures=2); 2 test(s): rule_2_the_last_address_is_where_the_pad_al, two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: arriving at an address written with another value is not noticed Ran 310 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: the frames of a read are placed one position late    Ran 310 FAILED (failures=11); 6 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: frames that differ at one position are not a disagreement Ran 310 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: a frame is called all zero whatever it holds         Ran 310 FAILED (failures=8); 3 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: the note on content is left out                      Ran 310 FAILED (failures=1, errors=1); 2 test(s): the_two_runs_at_the_end_of_the_row, where_every_frame_is_the_same_the_content_s
+KILLED   s1b2 end: the note on content is given whatever was delivered  Ran 310 FAILED (failures=5); 2 test(s): each_end_of_a_row_is_laid_out_as_it_is, where_every_frame_is_the_same_the_content_s
+KILLED   s1b2 end: every step beyond counts as one at which the register did not change Ran 310 FAILED (failures=12); 7 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: a step with two values of the register is taken at its first Ran 310 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: a run the judge did not pass is laid out as a finding Ran 310 FAILED (errors=3); 1 test(s): what_stops_such_a_run
+KILLED   s1b2 end: the exit code is 0 whatever was found                Ran 310 FAILED (failures=5); 3 test(s): the_three_verdicts_through_the_command_line, two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: a run that did not pass does not change the exit code Ran 310 FAILED (failures=1); 1 test(s): what_stops_such_a_run
+KILLED   s1b2 column: a frame that is not the walk's is not noticed     Ran 310 FAILED (failures=4); 4 test(s): a_frame_or_a_register_that_is_not_the_walks, rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 column: the frames of a read are all held against its first address Ran 310 FAILED (failures=20); 12 test(s): a_frame_or_a_register_that_is_not_the_walks, a_row_whose_chain_halted_at_such_an_end_is_
+KILLED   s1b2 column: the register after a read is not held against the walk Ran 310 FAILED (failures=2); 2 test(s): a_frame_or_a_register_that_is_not_the_walks, rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 column: the walk's successors are followed one step too few Ran 310 FAILED (failures=21); 13 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 column: an address that names itself is followed          Ran 310 FAILED (failures=20); 13 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 column: the register of a read made in both runs may differ Ran 310 FAILED (failures=2); 2 test(s): a_frame_or_a_register_that_is_not_the_walks, rule_3_the_address_named_after_the_row
+KILLED   s1b2 column: addresses of the walk not read again are not listed Ran 310 FAILED (failures=1); 1 test(s): a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 column: the note on content is left out                   Ran 310 FAILED (failures=1, errors=1); 2 test(s): a_column_of_frames_that_are_all_the_same, the_two_runs_at_the_end_of_the_row
+KILLED   s1b2 column: a repeat that differs is not noticed              Ran 310 FAILED (failures=1); 1 test(s): a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2e judge2: frames without a known answer are allowed in every stage Ran 310 FAILED (failures=9); 5 test(s): frames_without_a_known_answer_are_counted_h, the_diagnostic_series_of_2026_11_15_is_what
+KILLED   s1b2e judge2: the option does not allow them                   Ran 310 FAILED (failures=31, errors=1); 16 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e judge2: the count of such frames is not reported         Ran 310 FAILED (failures=2, errors=2); 2 test(s): frames_without_a_known_answer_are_counted_h, the_two_runs_at_the_end_of_the_row
+KILLED   s1b2e judge: the option is not asked for                       Ran 310 FAILED (failures=30, errors=2); 16 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e judge: judged as stage 3                                 Ran 310 FAILED (failures=36, errors=4); 21 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2e run: the end is judged by the judge of the diagnostic series Ran 310 FAILED (failures=23); 14 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e run: the column again is given the table of the end      Ran 310 FAILED (failures=22); 13 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 closed: a chain that completed is closed all the same     Ran 310 FAILED (failures=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: a row that was left is closed all the same        Ran 310 FAILED (failures=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: a summary without an address is taken             Ran 310 FAILED (errors=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: a walk of nothing is taken                        Ran 310 FAILED (failures=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: any status of the walk will do                    Ran 310 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: a walk with an anomaly will do                    Ran 310 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: the last address need not name itself             Ran 310 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: the walk need not be a chain of names             Ran 310 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: any problem of the walk is taken for the stop     Ran 310 FAILED (failures=3); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: a failed cross-check anywhere counts as the stop  Ran 310 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: the seam is not held (rule 1b)                    Ran 310 FAILED (failures=3); 1 test(s): rule_1b_the_walk_begins_with_the_last_frame
+KILLED   s1b2 closed: the seam frame may differ                         Ran 310 FAILED (failures=1); 1 test(s): rule_1b_the_walk_begins_with_the_last_frame
+KILLED   s1b2 closed: the address named at the seam may differ          Ran 310 FAILED (failures=1); 1 test(s): rule_1b_the_walk_begins_with_the_last_frame
+KILLED   s1b2 closed: the second path need not have passed              Ran 310 FAILED (failures=1); 1 test(s): rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 closed: disagreements of the second path are passed over  Ran 310 FAILED (failures=2); 2 test(s): rule_1c_every_frame_of_the_walk_was_read_ag, rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: addresses not read again are passed over          Ran 310 FAILED (failures=1); 1 test(s): rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 closed: the run at the end need not have passed           Ran 310 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: disagreements at the end are passed over          Ran 310 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: the pad alone need not leave the register standing Ran 310 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: the walk and the run at the end may name different successors Ran 310 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: an address of the same row counts as the next row Ran 310 FAILED (failures=1); 1 test(s): rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: only the half is looked at                        Ran 310 FAILED (failures=1); 1 test(s): rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: the steps standing still are counted one short    Ran 310 FAILED (failures=12); 7 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the register need not have left                   Ran 310 FAILED (failures=1); 1 test(s): rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: a row whose rule 4 failed is written all the same Ran 310 FAILED (failures=4); 1 test(s): rule_4_the_columns_the_chain_walked_whole_c
+KILLED   s1b2 closed: the seam frame is listed twice                    Ran 310 FAILED (failures=6); 4 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the chain's columns are not held (rule 4)         Ran 310 FAILED (failures=1); 1 test(s): rule_4_the_columns_the_chain_walked_whole_c
+KILLED   s1b2 closed: the column cut short may be another               Ran 310 FAILED (failures=2); 1 test(s): rule_4_the_columns_the_chain_walked_whole_c
+KILLED   s1b2 closed: the chain is said to have completed               Ran 310 FAILED (failures=5); 3 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the summary does not say it was closed            Ran 310 FAILED (errors=5); 3 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the standstill is not recorded                    Ran 310 FAILED (failures=2, errors=4); 4 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: frames from beyond are not recorded               Ran 310 FAILED (failures=6); 4 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: a refusal exits 0                                 Ran 310 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b2 grade2: a closed summary is not said to be one            Ran 310 FAILED (errors=1); 1 test(s): it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 grade2: the standstill is passed over in silence          Ran 310 FAILED (failures=2); 2 test(s): it_is_graded_like_any_row_and_the_grade_say, it_says_where_the_database_differs
+KILLED   s1b2 grade2: frames from beyond the row are passed over in silence Ran 310 FAILED (failures=2); 2 test(s): it_is_graded_like_any_row_and_the_grade_say, it_says_where_the_database_differs
+restored: Ran 310 OK; 0 test(s):  (8 copies)
+390 mutants, 0 survived

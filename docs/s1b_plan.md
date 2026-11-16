@@ -1741,3 +1741,47 @@ always.
 5. Stop and report. The grader is not run in this step.
 
 **Before the board:** the owner's review.
+
+## 31. S1b.2b on the board (2026-11-16): the register stands still twice at the end of the row
+
+Released by the owner after the review of section 30, and run as section 30 proposes: `s1b2e`,
+then `s1b2c`, each after a U-Boot `reset`, each committed as saved (`30badca`, `c5191ab`); then
+the layout, committed as it came out (`8496bec`). The image is unchanged (`2c566b1e…b296`). The
+full account is `evidence/s1b2b_17A6_2026-11-16/RESULT.md`.
+
+- **Both runs pass**: 50 and 30 records, status 1, no anomaly, no overflow, no interface
+  failure; every repeat left what the first did; the reference frame as known. The layout has no
+  disagreement (exit 0).
+- **The register beyond `0x1ba9`, by frames of words clocked**: `0x1ba9` (one step), `0x00400000`
+  (two), `0x00400000` (three), `0x00400001` (four). Each of these is what every read that ends
+  there left — 4, 3, 2 and 1 reads from different starting addresses, three times each. The
+  register does not change at the first step beyond the last address of the row, and not at the
+  third.
+- **Two frames were delivered from beyond `0x1ba9`**, the most the owner allowed and the most
+  the table can deliver. Both are all zero, as is every one of the 72 frames of that run. Their
+  content does not say what they are.
+- **Column 55 by the second path**: 42 frames compared with the walk of run 30, 42 the same; the
+  register after 13 of the 14 reads is what the walk's successors say, and the 14th ends beyond
+  the walk at `0x00400000`, as the same read does in `s1b2e`. All 42 are all zero: the agreement
+  that carries weight is the register's.
+- **For the row of S1b.2** the device has now named, one after another, `0x00000000` to
+  `0x00001ba9`: columns 0 to 55, 1,932 frames (column 55 has 42, like column 0), and after
+  them, past one step at which the register stands still, `0x00400000` — outside the envelope.
+  The stored chain of S1b.2 is not altered by this: it halted, and stays recorded as halted.
+
+Not shown: what the two positions beyond `0x1ba9` are; what a read started at `0x00400000`
+does (no address above `0x1ba9` was written); whether other rows end this way; the mechanism.
+
+One test judges the two stored runs again from their raw words, holds each against its stored
+verdict and its hash, makes the layout again and holds it against the stored one (296 tests).
+It adds no program, so no mutant was added; the programs it uses are held by the 354 of
+section 30.
+
+The grader was not run and the database was not looked at.
+
+**Stopped here.** For the owner, separately: (1) grading — the columns of the row against
+prjxray-db, now that what the device says about the end of the row is saved and committed
+first; `grade_s1b2.py` was written for a chain that completed, and what it is to do with a
+halted chain plus this step needs a word before it is run; (2) whether the walk is to learn to
+cross a row end (a change to the prober, a new image, its own proposal and review). Nothing of
+either has been built or tried.

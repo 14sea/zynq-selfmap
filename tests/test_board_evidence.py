@@ -171,6 +171,51 @@ class StoredBoardResults(unittest.TestCase):
             self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()), k)
         self.assertFalse((d / "grade.json").exists(), "the chain halted: the grader was not run")
 
+    def test_the_two_runs_at_the_end_of_the_row(self) -> None:
+        """S1b.2b, 2026-11-16: the two stored runs judged again from their raw words, and the layout made again of
+        them and of the stored walk of run 30. Beyond the last address of the row the register stood still once at
+        that address and once at 0x00400000; two frames were delivered from beyond, as the owner allowed, and no more."""
+        import s1b2_end, s1b2e_judge
+        d = ROOT / "evidence" / "s1b2b_17A6_2026-11-16"
+        again = {}
+        for name, sha, records, frames in (("s1b2e", "f76eda60fddb9b5d0c5dd88e46b336269af69839f8ff991c9e3827b5bd3c8658", 50, 72),
+                                           ("s1b2c", "8de52d701dd77006a8a4530242ec43744dc6a04896b7d66abc82f56c2a8d3f82", 30, 84)):
+            with self.subTest(run=name):
+                raw = (d / name / "result.bin").read_bytes()
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), sha)
+                planned = [int(w, 16) for w in json.loads((d / f"expected_{name}.json").read_text())["params"]]
+                self.assertEqual((planned[2], planned[3], planned[4], planned[5], planned[8], planned[15]), (5, 0, 0x1FFFF, 0xB99, 0, 2 << 8))
+                words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+                v = json.loads(json.dumps(s1b2e_judge.judge(words, KNOWN, planned)))
+                self.assertEqual(v, json.loads((d / name / "verdict.json").read_text()))
+                self.assertEqual((v["verdict"], v["problems"], v["header"]["records"], v["header"]["anomalies"], v["frames_delivered_without_a_known_answer"]),
+                                 ("PASS", [], records, 0, frames))
+                self.assertTrue(all(r["code"] == "0x0" for r in v["records"]))
+                self.assertTrue(all(not q["interface_failures"] for q in v["polling_variable"].values()))
+                words[len(words) // 2] ^= 1
+                self.assertNotEqual(s1b2e_judge.judge(words, KNOWN, planned)["verdict"], "PASS")
+                again[name] = v
+        walk = json.loads((ROOT / "evidence" / "s1b2_17A6_2026-11-15" / "run30" / "verdict.json").read_text())
+        out = {"the_end": s1b2_end.end(again["s1b2e"]), "the_column_again": s1b2_end.column(again["s1b2c"], walk, again["s1b2e"])}
+        self.assertEqual(out, json.loads((d / "end.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "end.json").read_bytes()).hexdigest(), "2fe7c13fcdd09f65e2e4e79a812bac062767e7f6644a05ad78feceb236b1c7d2")
+        end, col = out["the_end"], out["the_column_again"]
+        self.assertEqual((end["disagreements"], col["disagreements"]), ([], []))
+        self.assertEqual((end["starting_addresses"], end["starting_addresses_one_step_apart"]),
+                         (["0x00001ba6", "0x00001ba7", "0x00001ba8", "0x00001ba9"], True))
+        self.assertEqual([(q["position"], q["register"], len(q["reached_by"])) for q in end["positions"][1:]],
+                         [(1, ["0x00001ba7"], 1), (2, ["0x00001ba8"], 2), (3, ["0x00001ba9"], 3), (4, ["0x00001ba9"], 4),
+                          (5, ["0x00400000"], 3), (6, ["0x00400000"], 2), (7, ["0x00400001"], 1)])
+        self.assertEqual(end["beyond"]["steps_at_which_the_register_did_not_change"], [1, 3])
+        self.assertEqual([(f["steps_beyond"], f["all_zero"], f["ways"]) for f in end["beyond"]["frames_delivered_from_beyond"]], [(1, True, 3), (2, True, 1)])
+        self.assertEqual((end["distinct_contents_delivered"], "note_on_content" in end), (1, True))
+        self.assertEqual((col["frames_the_walk_delivered"], col["frames_compared"], col["same"], col["addresses_of_the_walk_not_read_again"],
+                          col["frames_at_places_the_walk_did_not_reach"], col["distinct_contents"]), (42, 42, 42, [], [], 1))
+        self.assertEqual([r["as_the_walk_says"] for r in col["register"]], [True] * 13 + [None])
+        self.assertEqual((col["register"][-1]["at"], col["register"][-1]["register_afterwards"]), ("0x00001ba7", ["0x00400000"]))
+        self.assertEqual(col["reads_also_made_at_the_end"], [{"at": "0x00001ba7", "steps": 4}])
+        self.assertFalse((d / "grade.json").exists(), "the grader is not run in this step")
+
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:
             with self.subTest(run=run):

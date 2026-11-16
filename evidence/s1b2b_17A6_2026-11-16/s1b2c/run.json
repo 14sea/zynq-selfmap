@@ -1,0 +1,419 @@
+{
+ "stage": "s1b2c",
+ "steps": [
+  {
+   "n": 1,
+   "what": "prompt",
+   "cmd": "version",
+   "reply": "version\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\narm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\r\nGNU ld (GNU Binutils for Ubuntu) 2.42\r\nZynq> "
+  },
+  {
+   "n": 2,
+   "what": "cache off (the verified run had it off; the prober refuses otherwise)",
+   "cmd": "dcache off",
+   "reply": "dcache off\r\nZynq> "
+  },
+  {
+   "n": 3,
+   "what": "cache state",
+   "cmd": "dcache",
+   "reply": "dcache\r\nData (writethrough) Cache is OFF\r\nZynq> "
+  },
+  {
+   "n": 4,
+   "what": "status before the PL load",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "
+  },
+  {
+   "n": 5,
+   "what": "clear the sticky PCFG_DONE bit so that the load is seen as an edge (as the verified run did)",
+   "cmd": "mw.l f800700c 00000004 1",
+   "reply": "mw.l f800700c 00000004 1\r\nZynq> "
+  },
+  {
+   "n": 6,
+   "what": "status after the clear",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "
+  },
+  {
+   "n": 7,
+   "what": "the PL design (2083863 bytes, sha256 8c3369e8\u2026) from the card; by YMODEM if the card does not have it",
+   "cmd": "fatload mmc 0:1 04000000 carrier.bit",
+   "reply": "fatload mmc 0:1 04000000 carrier.bit\r\n2083863 bytes read in 401 ms (5 MiB/s)\r\nZynq> "
+  },
+  {
+   "n": 8,
+   "what": "the design in RAM is the file, whichever way it came",
+   "cmd": "crc32 04000000 1fcc17",
+   "reply": "crc32 04000000 1fcc17\r\ncrc32 for 04000000 ... 041fcc16 ==> 72887bf4\r\nZynq> "
+  },
+  {
+   "n": 9,
+   "what": "configure the PL",
+   "cmd": "fpga loadb 0 04000000 1fcc17",
+   "reply": "fpga loadb 0 04000000 1fcc17\r\n  design filename = \"carrier_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=9392bf97\"\r\n  part number = \"7z010clg400\"\r\n  date = \"2026/08/13\"\r\n  time = \"16:01:42\"\r\n  bytes in bitstream = 2083740\r\nzynq_align_dma_buffer: Align buffer at 400007b to 4000040(swap 1)\r\nINFO:post config was not run, please run manually if needed\r\nZynq> "
+  },
+  {
+   "n": 10,
+   "what": "status after the load",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: 50021004                             ...P\r\nZynq> "
+  },
+  {
+   "n": 11,
+   "what": "zero the parameter block",
+   "cmd": "mw.l 10100000 0 20",
+   "reply": "mw.l 10100000 0 20\r\nZynq> "
+  },
+  {
+   "n": 12,
+   "what": "parameter word 0",
+   "cmd": "mw.l 10100000 31504d53 1",
+   "reply": "mw.l 10100000 31504d53 1\r\nZynq> "
+  },
+  {
+   "n": 13,
+   "what": "parameter word 1",
+   "cmd": "mw.l 10100004 00000001 1",
+   "reply": "mw.l 10100004 00000001 1\r\nZynq> "
+  },
+  {
+   "n": 14,
+   "what": "parameter word 2",
+   "cmd": "mw.l 10100008 00000005 1",
+   "reply": "mw.l 10100008 00000005 1\r\nZynq> "
+  },
+  {
+   "n": 15,
+   "what": "parameter word 4",
+   "cmd": "mw.l 10100010 0001ffff 1",
+   "reply": "mw.l 10100010 0001ffff 1\r\nZynq> "
+  },
+  {
+   "n": 16,
+   "what": "parameter word 5",
+   "cmd": "mw.l 10100014 00000b99 1",
+   "reply": "mw.l 10100014 00000b99 1\r\nZynq> "
+  },
+  {
+   "n": 17,
+   "what": "parameter word 6",
+   "cmd": "mw.l 10100018 0000000e 1",
+   "reply": "mw.l 10100018 0000000e 1\r\nZynq> "
+  },
+  {
+   "n": 18,
+   "what": "parameter word 7",
+   "cmd": "mw.l 1010001c 00000002 1",
+   "reply": "mw.l 1010001c 00000002 1\r\nZynq> "
+  },
+  {
+   "n": 19,
+   "what": "parameter word 9",
+   "cmd": "mw.l 10100024 00200000 1",
+   "reply": "mw.l 10100024 00200000 1\r\nZynq> "
+  },
+  {
+   "n": 20,
+   "what": "parameter word 10",
+   "cmd": "mw.l 10100028 33333333 1",
+   "reply": "mw.l 10100028 33333333 1\r\nZynq> "
+  },
+  {
+   "n": 21,
+   "what": "parameter word 11",
+   "cmd": "mw.l 1010002c 00333333 1",
+   "reply": "mw.l 1010002c 00333333 1\r\nZynq> "
+  },
+  {
+   "n": 22,
+   "what": "parameter word 15",
+   "cmd": "mw.l 1010003c 00000200 1",
+   "reply": "mw.l 1010003c 00000200 1\r\nZynq> "
+  },
+  {
+   "n": 23,
+   "what": "parameter word 16",
+   "cmd": "mw.l 10100040 00001b80 1",
+   "reply": "mw.l 10100040 00001b80 1\r\nZynq> "
+  },
+  {
+   "n": 24,
+   "what": "parameter word 17",
+   "cmd": "mw.l 10100044 00001b83 1",
+   "reply": "mw.l 10100044 00001b83 1\r\nZynq> "
+  },
+  {
+   "n": 25,
+   "what": "parameter word 18",
+   "cmd": "mw.l 10100048 00001b86 1",
+   "reply": "mw.l 10100048 00001b86 1\r\nZynq> "
+  },
+  {
+   "n": 26,
+   "what": "parameter word 19",
+   "cmd": "mw.l 1010004c 00001b89 1",
+   "reply": "mw.l 1010004c 00001b89 1\r\nZynq> "
+  },
+  {
+   "n": 27,
+   "what": "parameter word 20",
+   "cmd": "mw.l 10100050 00001b8c 1",
+   "reply": "mw.l 10100050 00001b8c 1\r\nZynq> "
+  },
+  {
+   "n": 28,
+   "what": "parameter word 21",
+   "cmd": "mw.l 10100054 00001b8f 1",
+   "reply": "mw.l 10100054 00001b8f 1\r\nZynq> "
+  },
+  {
+   "n": 29,
+   "what": "parameter word 22",
+   "cmd": "mw.l 10100058 00001b92 1",
+   "reply": "mw.l 10100058 00001b92 1\r\nZynq> "
+  },
+  {
+   "n": 30,
+   "what": "parameter word 23",
+   "cmd": "mw.l 1010005c 00001b95 1",
+   "reply": "mw.l 1010005c 00001b95 1\r\nZynq> "
+  },
+  {
+   "n": 31,
+   "what": "parameter word 24",
+   "cmd": "mw.l 10100060 00001b98 1",
+   "reply": "mw.l 10100060 00001b98 1\r\nZynq> "
+  },
+  {
+   "n": 32,
+   "what": "parameter word 25",
+   "cmd": "mw.l 10100064 00001b9b 1",
+   "reply": "mw.l 10100064 00001b9b 1\r\nZynq> "
+  },
+  {
+   "n": 33,
+   "what": "parameter word 26",
+   "cmd": "mw.l 10100068 00001b9e 1",
+   "reply": "mw.l 10100068 00001b9e 1\r\nZynq> "
+  },
+  {
+   "n": 34,
+   "what": "parameter word 27",
+   "cmd": "mw.l 1010006c 00001ba1 1",
+   "reply": "mw.l 1010006c 00001ba1 1\r\nZynq> "
+  },
+  {
+   "n": 35,
+   "what": "parameter word 28",
+   "cmd": "mw.l 10100070 00001ba4 1",
+   "reply": "mw.l 10100070 00001ba4 1\r\nZynq> "
+  },
+  {
+   "n": 36,
+   "what": "parameter word 29",
+   "cmd": "mw.l 10100074 00001ba7 1",
+   "reply": "mw.l 10100074 00001ba7 1\r\nZynq> "
+  },
+  {
+   "n": 37,
+   "what": "the parameter block is as intended",
+   "cmd": "crc32 10100000 80",
+   "reply": "crc32 10100000 80\r\ncrc32 for 10100000 ... 1010007f ==> eb7f4042\r\nZynq> "
+  },
+  {
+   "n": 38,
+   "what": "clear the result header",
+   "cmd": "mw.l 10000000 0 40",
+   "reply": "mw.l 10000000 0 40\r\nZynq> "
+  },
+  {
+   "n": 39,
+   "what": "send the prober (11630 bytes) by YMODEM",
+   "cmd": "loady 02000000",
+   "reply": "## Total Size      = 0x00002d6e = 11630 Bytes\r\n## Start Addr      = 0x02000000\r\nZynq> "
+  },
+  {
+   "n": 40,
+   "what": "the prober in RAM is the checked image",
+   "cmd": "crc32 02000000 2d6e",
+   "reply": "crc32 02000000 2d6e\r\ncrc32 for 02000000 ... 02002d6d ==> b0d75377\r\nZynq> "
+  },
+  {
+   "n": 41,
+   "what": "RUN",
+   "cmd": "go 02000000",
+   "reply": "go 02000000\r\n## Starting application at 0x02000000 ...\r\nSM5 start\r\nSM5 end status=00000001 records=0000001e anomalies=00000000 words=00003880\r\n## Application terminated, rc = 0x0\r\nZynq> "
+  },
+  {
+   "n": 42,
+   "what": "the result header",
+   "cmd": "md.l 10000000 40",
+   "reply": "md.l 10000000 40\r\n10000000: 31524d53 00000001 00000001 0000001e  SMR1............\r\n10000010: 00000000 00003880 000001e0 00000040  .....8......@...\r\n10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@\r\n10000030: 08c51878 800001d3 1eacab18 1ead0ec0  x...............\r\n10000040: 50033004 50000f30 ffffffff 00000000  .0.P0..P........\r\n10000050: 00000000 00000000 00000000 00000000  ................\r\n10000060: 00000000 00000000 00000000 00000000  ................\r\n10000070: 00000000 00000000 00000000 00000000  ................\r\n10000080: 31504d53 00000001 00000005 00000000  SMP1............\r\n10000090: 0001ffff 00000b99 0000000e 00000002  ................\r\n100000a0: 00000000 00200000 33333333 00333333  ...... .3333333.\r\n100000b0: 00000000 00000000 00000000 00000200  ................\r\n100000c0: 00001b80 00001b83 00001b86 00001b89  ................\r\n100000d0: 00001b8c 00001b8f 00001b92 00001b95  ................\r\n100000e0: 00001b98 00001b9b 00001b9e 00001ba1  ................\r\n100000f0: 00001ba4 00001ba7 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 43,
+   "what": "the result checksum on the board",
+   "cmd": "crc32 10000000 e200",
+   "reply": "crc32 10000000 e200\r\ncrc32 for 10000000 ... 1000e1ff ==> bc7ef00f\r\nZynq> "
+  },
+  {
+   "n": 44,
+   "what": "save the result to the card",
+   "cmd": "fatwrite mmc 0:1 10000000 safb4e5d.bin e200",
+   "reply": "fatwrite mmc 0:1 10000000 safb4e5d.bin e200\r\n57856 bytes written in 115 ms (491.2 KiB/s)\r\nZynq> "
+  },
+  {
+   "n": 45,
+   "what": "read the card copy back to a scratch address",
+   "cmd": "fatload mmc 0:1 11000000 safb4e5d.bin",
+   "reply": "fatload mmc 0:1 11000000 safb4e5d.bin\r\n57856 bytes read in 34 ms (1.6 MiB/s)\r\nZynq> "
+  },
+  {
+   "n": 46,
+   "what": "the card copy is the result",
+   "cmd": "crc32 11000000 e200",
+   "reply": "crc32 11000000 e200\r\ncrc32 for 11000000 ... 1100e1ff ==> bc7ef00f\r\nZynq> "
+  },
+  {
+   "n": 47,
+   "what": "the board's checksum of piece 0 of the result",
+   "cmd": "crc32 10000000 2000",
+   "reply": "crc32 10000000 2000\r\ncrc32 for 10000000 ... 10001fff ==> e2337275\r\nZynq> "
+  },
+  {
+   "n": 48,
+   "what": "pull piece 0 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 10000000 800",
+   "reply": "md.l 10000000 800\r\n10000000: 31524d53 00000001 00000001 0000001e  SMR1............\r\n10000010: 00000000 00003880 000001e0 00000040  .....8......@...\r\n10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@\r\n10000030: 08c51878 800001d3 1eacab18 1ead0ec0  x...............\r\n10000040: 50033004 50 \u2026 00000 20000000  ... ... ... ... \r\n10001fc0: 20000000 20000000 20000000 20000000  ... ... ... ... \r\n10001fd0: 20000000 20000000 20000000 20000000  ... ... ... ... \r\n10001fe0: 20000000 20000000 20000000 20000000  ... ... ... ... \r\n10001ff0: 28002001 20000000 20000000 20000000  . .(... ... ... \r\nZynq> "
+  },
+  {
+   "n": 49,
+   "what": "the board's checksum of piece 1 of the result",
+   "cmd": "crc32 10002000 2000",
+   "reply": "crc32 10002000 2000\r\ncrc32 for 10002000 ... 10003fff ==> 79218306\r\nZynq> "
+  },
+  {
+   "n": 50,
+   "what": "pull piece 1 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 10002000 800",
+   "reply": "md.l 10002000 800\r\n10002000: 30008001 0000000d 20000000 20000000  ...0....... ... \r\n10002010: 50033004 00000002 50033004 00000002  .0.P.....0.P....\r\n10002020: 00001b8d 00000000 1eacaa20 00000000  ........ .......\r\n10002030: 00000000 00000000 00000000 00000000  ................\r\n10002040: 00000000 00 \u2026 00000 00000000  ................\r\n10003fc0: 00000000 00000000 00000000 00000000  ................\r\n10003fd0: 00000000 00000000 00000000 00000000  ................\r\n10003fe0: 00000000 00000000 00000000 00000000  ................\r\n10003ff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 51,
+   "what": "the board's checksum of piece 2 of the result",
+   "cmd": "crc32 10004000 2000",
+   "reply": "crc32 10004000 2000\r\ncrc32 for 10004000 ... 10005fff ==> 0f2084ed\r\nZynq> "
+  },
+  {
+   "n": 52,
+   "what": "pull piece 2 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 10004000 800",
+   "reply": "md.l 10004000 800\r\n10004000: 00000000 00000000 00000000 00000000  ................\r\n10004010: 00000000 00000000 00000000 00000000  ................\r\n10004020: 00000000 00000000 00000000 00000000  ................\r\n10004030: 00000000 00000000 00000000 00000000  ................\r\n10004040: 00000000 00 \u2026 00000 00000000  ................\r\n10005fc0: 00000000 00000000 00000000 00000000  ................\r\n10005fd0: 00000000 00000000 00000000 00000000  ................\r\n10005fe0: 00000000 00000000 00000000 00000000  ................\r\n10005ff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 53,
+   "what": "the board's checksum of piece 3 of the result",
+   "cmd": "crc32 10006000 2000",
+   "reply": "crc32 10006000 2000\r\ncrc32 for 10006000 ... 10007fff ==> 67c36d65\r\nZynq> "
+  },
+  {
+   "n": 54,
+   "what": "pull piece 3 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 10006000 800",
+   "reply": "md.l 10006000 800\r\n10006000: 00000000 00000000 00000000 00000000  ................\r\n10006010: 00000000 00000000 00000000 00000000  ................\r\n10006020: 00000000 00000000 00000000 00000000  ................\r\n10006030: 00000000 00000000 00000000 00000000  ................\r\n10006040: 00000000 00 \u2026 00000 00000000  ................\r\n10007fc0: 00000000 00000000 00000000 00000000  ................\r\n10007fd0: 00000000 00000000 00000000 00000000  ................\r\n10007fe0: 00000000 00000000 00000000 00000000  ................\r\n10007ff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 55,
+   "what": "the board's checksum of piece 4 of the result",
+   "cmd": "crc32 10008000 2000",
+   "reply": "crc32 10008000 2000\r\ncrc32 for 10008000 ... 10009fff ==> e8b144d6\r\nZynq> "
+  },
+  {
+   "n": 56,
+   "what": "pull piece 4 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 10008000 800",
+   "reply": "md.l 10008000 800\r\n10008000: 00000000 00000000 00000000 00000000  ................\r\n10008010: 00000000 00000000 00000000 00000000  ................\r\n10008020: 00000000 00000000 00000000 00000000  ................\r\n10008030: 00000000 00000000 00000000 00000000  ................\r\n10008040: 00000000 00 \u2026 00000 00000000  ................\r\n10009fc0: 00000000 00000000 00000000 00000000  ................\r\n10009fd0: 00000000 00000000 00000000 00000000  ................\r\n10009fe0: 00000000 00000000 00000000 00000000  ................\r\n10009ff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 57,
+   "what": "the board's checksum of piece 5 of the result",
+   "cmd": "crc32 1000a000 2000",
+   "reply": "crc32 1000a000 2000\r\ncrc32 for 1000a000 ... 1000bfff ==> 5df3beef\r\nZynq> "
+  },
+  {
+   "n": 58,
+   "what": "pull piece 5 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 1000a000 800",
+   "reply": "md.l 1000a000 800\r\n1000a000: 00000000 00000000 00000000 00000000  ................\r\n1000a010: 00000000 00000000 00000000 00000000  ................\r\n1000a020: 00000000 00000000 00000000 00000000  ................\r\n1000a030: 00000000 00000000 00000000 00000000  ................\r\n1000a040: 00000000 00 \u2026 00000 00000000  ................\r\n1000bfc0: 00000000 00000000 00000000 00000000  ................\r\n1000bfd0: 00000000 00000000 00000000 00000000  ................\r\n1000bfe0: 00000000 00000000 00000000 00000000  ................\r\n1000bff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 59,
+   "what": "the board's checksum of piece 6 of the result",
+   "cmd": "crc32 1000c000 2000",
+   "reply": "crc32 1000c000 2000\r\ncrc32 for 1000c000 ... 1000dfff ==> 065931bc\r\nZynq> "
+  },
+  {
+   "n": 60,
+   "what": "pull piece 6 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 1000c000 800",
+   "reply": "md.l 1000c000 800\r\n1000c000: 00000000 00000000 00000000 00000000  ................\r\n1000c010: 00000000 00000000 00000000 00000000  ................\r\n1000c020: 00000000 00000000 00000000 00000000  ................\r\n1000c030: 00000000 00000000 00000000 00000000  ................\r\n1000c040: 00000000 00 \u2026 00000 00000000  ................\r\n1000dfc0: 00000000 00000000 00000000 00000000  ................\r\n1000dfd0: 00000000 00000000 00000000 00000000  ................\r\n1000dfe0: 00000000 00000000 00000000 00000000  ................\r\n1000dff0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 61,
+   "what": "the board's checksum of piece 7 of the result",
+   "cmd": "crc32 1000e000 200",
+   "reply": "crc32 1000e000 200\r\ncrc32 for 1000e000 ... 1000e1ff ==> b2aa7578\r\nZynq> "
+  },
+  {
+   "n": 62,
+   "what": "pull piece 7 of the result over the console (attempt 1 of at most 5)",
+   "cmd": "md.l 1000e000 80",
+   "reply": "md.l 1000e000 80\r\n1000e000: 00000000 00000000 00000000 00000000  ................\r\n1000e010: 00000000 00000000 00000000 00000000  ................\r\n1000e020: 00000000 00000000 00000000 00000000  ................\r\n1000e030: 00000000 00000000 00000000 00000000  ................\r\n1000e040: 00000000 000 \u2026 00000 00000000  ................\r\n1000e1c0: 00000000 00000000 00000000 00000000  ................\r\n1000e1d0: 00000000 00000000 00000000 00000000  ................\r\n1000e1e0: 00000000 00000000 00000000 00000000  ................\r\n1000e1f0: 00000000 00000000 00000000 00000000  ................\r\nZynq> "
+  },
+  {
+   "n": 63,
+   "what": "status afterwards",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: 50033004                             .0.P\r\nZynq> "
+  },
+  {
+   "n": 64,
+   "what": "the prober image in RAM after the run",
+   "cmd": "crc32 02000000 2d6e",
+   "reply": "crc32 02000000 2d6e\r\ncrc32 for 02000000 ... 02002d6d ==> b0d75377\r\nZynq> "
+  },
+  {
+   "n": 65,
+   "what": "U-Boot still answers",
+   "cmd": "version",
+   "reply": "version\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\narm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\r\nGNU ld (GNU Binutils for Ubuntu) 2.42\r\nZynq> "
+  }
+ ],
+ "problems": [],
+ "card_file": "safb4e5d.bin",
+ "started": "2026-11-16T18:41:33+0000",
+ "pl_source": "card",
+ "went": true,
+ "return_code": "0x0",
+ "console": [
+  "SM5 start",
+  "SM5 end status=00000001 records=0000001e anomalies=00000000 words=00003880"
+ ],
+ "result_layout": "s1b2c",
+ "result_words": 14464,
+ "board_crc32": "bc7ef00f",
+ "card_written": true,
+ "card_verified": true,
+ "pull": {
+  "piece_words": 2048,
+  "pieces": 8,
+  "repeated": []
+ },
+ "host_crc32": "bc7ef00f",
+ "judge": "PASS",
+ "int_sts_afterwards": "50033004",
+ "verdict": "PASS"
+}

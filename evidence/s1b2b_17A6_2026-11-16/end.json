@@ -1,0 +1,690 @@
+{
+ "the_end": {
+  "run": {
+   "verdict": "PASS",
+   "status": "0x1",
+   "problems": [],
+   "polling_loop": "no stores and no loads: no memory touched while the transfer runs"
+  },
+  "disagreements": [],
+  "starting_addresses": [
+   "0x00001ba6",
+   "0x00001ba7",
+   "0x00001ba8",
+   "0x00001ba9"
+  ],
+  "reads": [
+   {
+    "at": "0x00001ba6",
+    "steps": 1,
+    "frames_delivered": 0,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba7"
+    ]
+   },
+   {
+    "at": "0x00001ba6",
+    "steps": 2,
+    "frames_delivered": 1,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba8"
+    ]
+   },
+   {
+    "at": "0x00001ba6",
+    "steps": 3,
+    "frames_delivered": 2,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba6",
+    "steps": 4,
+    "frames_delivered": 3,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba7",
+    "steps": 1,
+    "frames_delivered": 0,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba8"
+    ]
+   },
+   {
+    "at": "0x00001ba7",
+    "steps": 2,
+    "frames_delivered": 1,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba7",
+    "steps": 3,
+    "frames_delivered": 2,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba7",
+    "steps": 4,
+    "frames_delivered": 3,
+    "times": 3,
+    "register_afterwards": [
+     "0x00400000"
+    ]
+   },
+   {
+    "at": "0x00001ba8",
+    "steps": 1,
+    "frames_delivered": 0,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba8",
+    "steps": 2,
+    "frames_delivered": 1,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba8",
+    "steps": 3,
+    "frames_delivered": 2,
+    "times": 3,
+    "register_afterwards": [
+     "0x00400000"
+    ]
+   },
+   {
+    "at": "0x00001ba8",
+    "steps": 4,
+    "frames_delivered": 3,
+    "times": 3,
+    "register_afterwards": [
+     "0x00400000"
+    ]
+   },
+   {
+    "at": "0x00001ba9",
+    "steps": 1,
+    "frames_delivered": 0,
+    "times": 3,
+    "register_afterwards": [
+     "0x00001ba9"
+    ]
+   },
+   {
+    "at": "0x00001ba9",
+    "steps": 2,
+    "frames_delivered": 1,
+    "times": 3,
+    "register_afterwards": [
+     "0x00400000"
+    ]
+   },
+   {
+    "at": "0x00001ba9",
+    "steps": 3,
+    "frames_delivered": 2,
+    "times": 3,
+    "register_afterwards": [
+     "0x00400000"
+    ]
+   },
+   {
+    "at": "0x00001ba9",
+    "steps": 4,
+    "frames_delivered": 3,
+    "times": 3,
+    "register_afterwards": [
+     "0x00400001"
+    ]
+   }
+  ],
+  "starting_addresses_one_step_apart": true,
+  "positions": [
+   {
+    "position": 0,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba6",
+    "register": [],
+    "reached_by": [],
+    "agree": true
+   },
+   {
+    "position": 1,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba7",
+    "register": [
+     "0x00001ba7"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba6",
+      1
+     ]
+    ],
+    "agree": true
+   },
+   {
+    "position": 2,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba8",
+    "register": [
+     "0x00001ba8"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba6",
+      2
+     ],
+     [
+      "0x00001ba7",
+      1
+     ]
+    ],
+    "agree": true
+   },
+   {
+    "position": 3,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba9",
+    "register": [
+     "0x00001ba9"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba6",
+      3
+     ],
+     [
+      "0x00001ba7",
+      2
+     ],
+     [
+      "0x00001ba8",
+      1
+     ]
+    ],
+    "agree": true
+   },
+   {
+    "position": 4,
+    "beyond_the_last_address_written": 1,
+    "address_written": null,
+    "register": [
+     "0x00001ba9"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba6",
+      4
+     ],
+     [
+      "0x00001ba7",
+      3
+     ],
+     [
+      "0x00001ba8",
+      2
+     ],
+     [
+      "0x00001ba9",
+      1
+     ]
+    ],
+    "agree": true
+   },
+   {
+    "position": 5,
+    "beyond_the_last_address_written": 2,
+    "address_written": null,
+    "register": [
+     "0x00400000"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba7",
+      4
+     ],
+     [
+      "0x00001ba8",
+      3
+     ],
+     [
+      "0x00001ba9",
+      2
+     ]
+    ],
+    "agree": true
+   },
+   {
+    "position": 6,
+    "beyond_the_last_address_written": 3,
+    "address_written": null,
+    "register": [
+     "0x00400000"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba8",
+      4
+     ],
+     [
+      "0x00001ba9",
+      3
+     ]
+    ],
+    "agree": true
+   },
+   {
+    "position": 7,
+    "beyond_the_last_address_written": 4,
+    "address_written": null,
+    "register": [
+     "0x00400001"
+    ],
+    "reached_by": [
+     [
+      "0x00001ba9",
+      4
+     ]
+    ],
+    "agree": true
+   }
+  ],
+  "delivered": [
+   {
+    "position": 0,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba6",
+    "frame_sha256": [
+     "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+    ],
+    "all_zero": true,
+    "delivered_by": [
+     [
+      "0x00001ba6",
+      2
+     ],
+     [
+      "0x00001ba6",
+      3
+     ],
+     [
+      "0x00001ba6",
+      4
+     ]
+    ],
+    "ways": 3,
+    "agree": true
+   },
+   {
+    "position": 1,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba7",
+    "frame_sha256": [
+     "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+    ],
+    "all_zero": true,
+    "delivered_by": [
+     [
+      "0x00001ba6",
+      3
+     ],
+     [
+      "0x00001ba6",
+      4
+     ],
+     [
+      "0x00001ba7",
+      2
+     ],
+     [
+      "0x00001ba7",
+      3
+     ],
+     [
+      "0x00001ba7",
+      4
+     ]
+    ],
+    "ways": 5,
+    "agree": true
+   },
+   {
+    "position": 2,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba8",
+    "frame_sha256": [
+     "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+    ],
+    "all_zero": true,
+    "delivered_by": [
+     [
+      "0x00001ba6",
+      4
+     ],
+     [
+      "0x00001ba7",
+      3
+     ],
+     [
+      "0x00001ba7",
+      4
+     ],
+     [
+      "0x00001ba8",
+      2
+     ],
+     [
+      "0x00001ba8",
+      3
+     ],
+     [
+      "0x00001ba8",
+      4
+     ]
+    ],
+    "ways": 6,
+    "agree": true
+   },
+   {
+    "position": 3,
+    "beyond_the_last_address_written": 0,
+    "address_written": "0x00001ba9",
+    "frame_sha256": [
+     "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+    ],
+    "all_zero": true,
+    "delivered_by": [
+     [
+      "0x00001ba7",
+      4
+     ],
+     [
+      "0x00001ba8",
+      3
+     ],
+     [
+      "0x00001ba8",
+      4
+     ],
+     [
+      "0x00001ba9",
+      2
+     ],
+     [
+      "0x00001ba9",
+      3
+     ],
+     [
+      "0x00001ba9",
+      4
+     ]
+    ],
+    "ways": 6,
+    "agree": true
+   },
+   {
+    "position": 4,
+    "beyond_the_last_address_written": 1,
+    "address_written": null,
+    "frame_sha256": [
+     "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+    ],
+    "all_zero": true,
+    "delivered_by": [
+     [
+      "0x00001ba8",
+      4
+     ],
+     [
+      "0x00001ba9",
+      3
+     ],
+     [
+      "0x00001ba9",
+      4
+     ]
+    ],
+    "ways": 3,
+    "agree": true
+   },
+   {
+    "position": 5,
+    "beyond_the_last_address_written": 2,
+    "address_written": null,
+    "frame_sha256": [
+     "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+    ],
+    "all_zero": true,
+    "delivered_by": [
+     [
+      "0x00001ba9",
+      4
+     ]
+    ],
+    "ways": 1,
+    "agree": true
+   }
+  ],
+  "distinct_contents_delivered": 1,
+  "note_on_content": "every frame delivered is the same (all zero): that two reads delivered the same content says nothing about which position either of them read",
+  "beyond": {
+   "last_address_written": "0x00001ba9",
+   "register_step_by_step": [
+    {
+     "steps_beyond": 1,
+     "register": "0x00001ba9"
+    },
+    {
+     "steps_beyond": 2,
+     "register": "0x00400000"
+    },
+    {
+     "steps_beyond": 3,
+     "register": "0x00400000"
+    },
+    {
+     "steps_beyond": 4,
+     "register": "0x00400001"
+    }
+   ],
+   "frames_delivered_from_beyond": [
+    {
+     "steps_beyond": 1,
+     "frame_sha256": [
+      "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+     ],
+     "all_zero": true,
+     "ways": 3
+    },
+    {
+     "steps_beyond": 2,
+     "frame_sha256": [
+      "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+     ],
+     "all_zero": true,
+     "ways": 1
+    }
+   ],
+   "steps_at_which_the_register_did_not_change": [
+    1,
+    3
+   ]
+  }
+ },
+ "the_column_again": {
+  "run": {
+   "verdict": "PASS",
+   "status": "0x1",
+   "problems": [],
+   "polling_loop": "no stores and no loads: no memory touched while the transfer runs"
+  },
+  "walk": {
+   "verdict": "FAIL",
+   "status": "0x800"
+  },
+  "disagreements": [],
+  "frames_the_walk_delivered": 42,
+  "frames_compared": 42,
+  "same": 42,
+  "addresses_of_the_walk_not_read_again": [],
+  "frames_at_places_the_walk_did_not_reach": [],
+  "register": [
+   {
+    "at": "0x00001b80",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b84"
+    ],
+    "the_walk_says": "0x00001b84",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b83",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b87"
+    ],
+    "the_walk_says": "0x00001b87",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b86",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b8a"
+    ],
+    "the_walk_says": "0x00001b8a",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b89",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b8d"
+    ],
+    "the_walk_says": "0x00001b8d",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b8c",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b90"
+    ],
+    "the_walk_says": "0x00001b90",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b8f",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b93"
+    ],
+    "the_walk_says": "0x00001b93",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b92",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b96"
+    ],
+    "the_walk_says": "0x00001b96",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b95",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b99"
+    ],
+    "the_walk_says": "0x00001b99",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b98",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b9c"
+    ],
+    "the_walk_says": "0x00001b9c",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b9b",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001b9f"
+    ],
+    "the_walk_says": "0x00001b9f",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001b9e",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001ba2"
+    ],
+    "the_walk_says": "0x00001ba2",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001ba1",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001ba5"
+    ],
+    "the_walk_says": "0x00001ba5",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001ba4",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00001ba8"
+    ],
+    "the_walk_says": "0x00001ba8",
+    "as_the_walk_says": true
+   },
+   {
+    "at": "0x00001ba7",
+    "steps": 4,
+    "register_afterwards": [
+     "0x00400000"
+    ],
+    "the_walk_says": null,
+    "as_the_walk_says": null
+   }
+  ],
+  "distinct_contents": 1,
+  "note_on_content": "every frame is the same (all zero): that the two paths delivered the same content says nothing about which frame either of them read",
+  "reads_also_made_at_the_end": [
+   {
+    "at": "0x00001ba7",
+    "steps": 4
+   }
+  ]
+ }
+}

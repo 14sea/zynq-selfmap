@@ -26,6 +26,7 @@ CORE, JUDGE, RUN, JUDGE2 = "prober/sm_core.c", "host/s1a_judge.py", "host/s1a_ru
 JUDGE4, GRADE = "host/s1b1_judge.py", "host/grade_s1b1.py"
 CHAIN, ROW, GRADE2, JUDGE5 = "host/s1b2_chain.py", "host/s1b2_row.py", "host/grade_s1b2.py", "host/s1b2_judge.py"
 END, JUDGE6 = "host/s1b2_end.py", "host/s1b2e_judge.py"
+CLOSED = "host/s1b2_closed.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -405,6 +406,43 @@ MUTANTS = [
     (JUDGE6, "s1b2e judge: judged as stage 3", "STAGE = 5", "STAGE = 3"),
     (RUN, "s1b2e run: the end is judged by the judge of the diagnostic series", "\"s1b2e\": {\"judge\": s1b2e_judge,", "\"s1b2e\": {\"judge\": dx_judge,"),
     (RUN, "s1b2e run: the column again is given the table of the end", "\"s1b2c\": {\"judge\": s1b2e_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b2c.json\"}", "\"s1b2c\": {\"judge\": s1b2e_judge, \"expected\": ROOT / \"build\" / \"prober\" / \"expected_s1b2e.json\"}"),
+    # ---- S1b.2b: the row as closed (section 32)
+    (CLOSED, 's1b2 closed: a chain that completed is closed all the same', 'row.get("chain", {}).get("state") != "halted" or ', ''),
+    (CLOSED, 's1b2 closed: a row that was left is closed all the same', ' or row.get("end", {}).get("reached") or ', ' or '),
+    (CLOSED, 's1b2 closed: a summary without an address is taken', 'not row.get("addresses") or not row.get("columns")', 'not row.get("columns")'),
+    (CLOSED, 's1b2 closed: a walk of nothing is taken', '    if not steps:\n        return {"refused": ["the run the chain stopped on walked nothing"]}', '    if not steps:\n        steps = [{"far": "0x00000000", "next": "0x00000000", "frame_sha256": ""}]'),
+    (CLOSED, 's1b2 closed: any status of the walk will do', 'header.get("status") == STOPPED and ', ''),
+    (CLOSED, 's1b2 closed: a walk with an anomaly will do', 'header.get("anomalies") == 0 and ', ''),
+    (CLOSED, 's1b2 closed: the last address need not name itself', ' and steps[-1]["next"] == last\n', '\n'),
+    (CLOSED, 's1b2 closed: the walk need not be a chain of names', 'and all(a["next"] == b["far"] for a, b in zip(steps, steps[1:])) and ', 'and '),
+    (CLOSED, 's1b2 closed: any problem of the walk is taken for the stop', 'all(of_the_stop(p) for p in walk.get("problems", [])),', 'True,'),
+    (CLOSED, 's1b2 closed: a failed cross-check anywhere counts as the stop', 'and p.endswith(f"but the device names {last} after {last}"))', ')'),
+    (CLOSED, 's1b2 closed: the seam is not held (rule 1b)', 'all(steps[0].get(k) == seam.get(k) for k in ("far", "next", "frame_sha256")),', 'True,'),
+    (CLOSED, 's1b2 closed: the seam frame may differ', 'for k in ("far", "next", "frame_sha256")),', 'for k in ("far", "next")),'),
+    (CLOSED, 's1b2 closed: the address named at the seam may differ', 'for k in ("far", "next", "frame_sha256")),', 'for k in ("far", "frame_sha256")),'),
+    (CLOSED, 's1b2 closed: the second path need not have passed', 'col["run"]["verdict"] == "PASS" and not col["disagreements"]', 'not col["disagreements"]'),
+    (CLOSED, 's1b2 closed: disagreements of the second path are passed over', 'col["run"]["verdict"] == "PASS" and not col["disagreements"] and', 'col["run"]["verdict"] == "PASS" and'),
+    (CLOSED, 's1b2 closed: addresses not read again are passed over', 'not col["addresses_of_the_walk_not_read_again"]\n         and not col["frames_at_places_the_walk_did_not_reach"] and col["frames_compared"] == col["same"] == len(steps),', 'not col["frames_at_places_the_walk_did_not_reach"] and col["frames_compared"] == col["same"],'),
+    (CLOSED, 's1b2 closed: the run at the end need not have passed', 'end["run"]["verdict"] == "PASS" and not end["disagreements"]', 'not end["disagreements"]'),
+    (CLOSED, 's1b2 closed: disagreements at the end are passed over', 'end["run"]["verdict"] == "PASS" and not end["disagreements"] and', 'end["run"]["verdict"] == "PASS" and'),
+    (CLOSED, 's1b2 closed: the pad alone need not leave the register standing', 'and end.get("beyond", {}).get("last_address_written") == last and alone == [[last]]', 'and end.get("beyond", {}).get("last_address_written") == last'),
+    (CLOSED, 's1b2 closed: the walk and the run at the end may name different successors', '         and all(walked.get(a) == b for a, b in zip(starts, starts[1:])),', '         and True,'),
+    (CLOSED, 's1b2 closed: an address of the same row counts as the next row', 'outside = named is not None and s1b2_row.place(int(named, 16))[:3] != s1b2_row.place(int(last, 16))[:3]', 'outside = named is not None'),
+    (CLOSED, 's1b2 closed: only the half is looked at', 's1b2_row.place(int(named, 16))[:3] != s1b2_row.place(int(last, 16))[:3]', 's1b2_row.place(int(named, 16))[1] != s1b2_row.place(int(last, 16))[1]'),
+    (CLOSED, 's1b2 closed: the steps standing still are counted one short', '            stood += 1; continue', '            stood += 0; continue'),
+    (CLOSED, 's1b2 closed: the register need not have left', '    rule("3", stood >= 1 and outside,', '    rule("3", stood >= 1 and (outside or named is None),'),
+    (CLOSED, 's1b2 closed: a row whose rule 4 failed is written all the same', '    if refused:\n        return {"refused": refused, "rules": rules}\n\n    out = dict(row)\n', '    out = dict(row)\n'),
+    (CLOSED, 's1b2 closed: the seam frame is listed twice', 'for s in steps[1:]]', 'for s in steps]'),
+    (CLOSED, "s1b2 closed: the chain's columns are not held (rule 4)", '    rule("4", made["columns"][:before] == row["columns"][:before] and len(made["columns"]) > before', '    rule("4", len(made["columns"]) > before'),
+    (CLOSED, 's1b2 closed: the column cut short may be another', 'for k in ("block_type", "half", "row", "column", "first")),', 'for k in ("block_type", "half", "row")),'),
+    (CLOSED, 's1b2 closed: the chain is said to have completed', '    out = dict(row)\n', '    out = dict(row, chain=dict(row["chain"], state="complete"))\n'),
+    (CLOSED, 's1b2 closed: the summary does not say it was closed', '    out["closed"] = {"by":', '    out["shut"] = {"by":'),
+    (CLOSED, 's1b2 closed: the standstill is not recorded', '                      the_register_stood_still={', '                      register={'),
+    (CLOSED, 's1b2 closed: frames from beyond are not recorded', 'for f in beyond["frames_delivered_from_beyond"]],', 'for f in []],'),
+    (CLOSED, 's1b2 closed: a refusal exits 0', '    return 1 if "refused" in out else 0', '    return 0'),
+    (GRADE2, 's1b2 grade2: a closed summary is not said to be one', '    if "closed" in row:', '    if False:'),
+    (GRADE2, 's1b2 grade2: the standstill is passed over in silence', '    if still:\n', '    if False:\n'),
+    (GRADE2, 's1b2 grade2: frames from beyond the row are passed over in silence', '    if beyond:\n', '    if False:\n'),
 ]
 
 

@@ -216,6 +216,31 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual(col["reads_also_made_at_the_end"], [{"at": "0x00001ba7", "steps": 4}])
         self.assertFalse((d / "grade.json").exists(), "the grader is not run in this step")
 
+    def test_the_row_as_closed_from_the_stored_results(self) -> None:
+        """Section 32: what s1b2_closed.py makes of the stored summary of the chain, the stored walk of run 30 and the
+        two stored runs of S1b.2b. No database is read. The chain's 55 columns are as they were; the 56th has the 42
+        frames of the walk, each read again by the second path; the address after the row is the first the register
+        showed other than the last frame's own."""
+        import s1b2_closed
+        a, b = ROOT / "evidence" / "s1b2_17A6_2026-11-15", ROOT / "evidence" / "s1b2b_17A6_2026-11-16"
+        row = json.loads((a / "row.json").read_text())
+        given = [row] + [json.loads(f.read_text()) for f in (a / "run30" / "verdict.json", b / "s1b2c" / "verdict.json", b / "s1b2e" / "verdict.json")]
+        out = s1b2_closed.close(*given)
+        self.assertNotIn("refused", out)
+        self.assertEqual(out["closed"]["rules"], {"1a": True, "1b": True, "1c": True, "2": True, "3": True, "4": True})
+        self.assertEqual((out["chain"], out["columns"][:55], out["addresses"][:1891], out["unexpected"]), (row["chain"], row["columns"][:55], row["addresses"], []))
+        self.assertEqual((out["frames"], len(out["columns"]), out["frames_per_column"][55], all(c["walked_whole"] for c in out["columns"])), (1932, 56, [55, 42], True))
+        self.assertEqual((out["columns"][55]["first"], out["columns"][55]["last"], out["columns"][55]["minors_are_0_to_n_minus_1"]), ("0x00001b80", "0x00001ba9", True))
+        self.assertEqual((out["end"]["reached"], out["end"]["last_frame"], out["end"]["named_after_the_last_frame"]), (True, "0x00001ba9", "0x00400000"))
+        self.assertEqual((out["end"]["the_register_stood_still"]["steps_before_that_address"], out["end"]["the_register_stood_still"]["at_steps_beyond_the_last_frame"]), (1, [1, 3]))
+        self.assertEqual(out["end"]["frames_delivered_from_beyond_the_last_frame"], [{"steps_beyond": 1, "all_zero": True}, {"steps_beyond": 2, "all_zero": True}])
+        self.assertEqual((out["closed"]["frames_added"], out["closed"]["frames_read_again"], out["closed"]["of_which_the_same"], out["closed"]["distinct_contents_among_them"]), (41, 42, 42, 1))
+        stored = b / "row_closed.json"                       # written and committed before the grader is run; then held here as it was
+        if stored.exists():
+            self.assertEqual(out, json.loads(stored.read_text()))
+        swapped = s1b2_closed.close(given[0], given[1], given[3], given[2])       # the two runs of S1b.2b given in each other's place
+        self.assertIn("refused", swapped)
+
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:
             with self.subTest(run=run):

@@ -12,6 +12,9 @@ Compared: the columns of the row and the number of frames in each; and, if the c
 device named after the last frame against the first frame of the row that comes next in the database's own order
 (the next row of the same half; after the last row of the top half, row 0 of the bottom half). The database lists
 frames; it does not say what a device names after a row — that last comparison is offered as such.
+
+A summary closed by a later step (s1b2_closed.py, section 32) is graded like any other; the grade says that it was,
+and lists what such a summary records about the end of the row that the database has nothing to say about.
 """
 from __future__ import annotations
 
@@ -29,6 +32,8 @@ def address(block_type: int, half: str, row: int, column: int, minor: int) -> in
 
 def grade(row: dict, part: dict) -> dict:
     out: dict = {"chain": row.get("chain", {}).get("state"), "agrees": [], "differs": [], "not_compared": [], "columns": []}
+    if "closed" in row:                                  # a summary closed by a later step says so, and so does its grade
+        out["summary_closed_by"] = row["closed"].get("by")
     walked = row.get("columns", [])
     if not walked:
         out["not_compared"].append("the summary lists no column"); return out
@@ -70,6 +75,14 @@ def grade(row: dict, part: dict) -> dict:
         return out
     total = sum(c["frames"] for c in walked)
     (out["agrees"] if total == sum(theirs.values()) else out["differs"]).append(f"frames in the row: the walk found {total}, the database's columns add up to {sum(theirs.values())}")
+
+    still = row["end"].get("the_register_stood_still")
+    if still:
+        out["not_compared"].append(f"the register stood still at step(s) {still.get('at_steps_beyond_the_last_frame')} beyond the last frame of the row: "
+                                   "the database lists frames and has nothing to hold that against")
+    beyond = row["end"].get("frames_delivered_from_beyond_the_last_frame")
+    if beyond:
+        out["not_compared"].append(f"{len(beyond)} frame(s) were delivered from beyond the last frame of the row: they are not graded")
 
     # ---- what follows the row
     named = int(row["end"]["named_after_the_last_frame"], 16)

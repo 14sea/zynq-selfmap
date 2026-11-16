@@ -2009,3 +2009,136 @@ of block type 0, both halves) needs a walk that can cross a row end; what the re
 there is now known for one row end (it stands still, then names the next row), and the change
 to the prober, a new image, and how its guard is to bound a walk that leaves a row each need a
 proposal and a review of their own.
+
+## 35. S1b.3a — proposal: a walk that crosses the end of a row (2026-11-16; a proposal, nothing built, nothing on a board)
+
+S1b.3 is "all of block type 0, both halves". The walk as it is stops at the end of a row
+(status `0x800`). Before any chain over more than one row: the walk has to cross a row end, and
+that has to be seen once, alone, on the one row end that is known. This proposes that first
+step only. The chain over block type 0, its summary over several rows and its grading are a
+later proposal, written when this one's result is in.
+
+### What is known, and what the walk already reads there
+
+At the last address A of the row (section 31; one row end, one day):
+
+| read at A | register afterwards |
+|---|---|
+| the pad alone | A — it stands still |
+| the pad and the frame at A | N, an address outside the row (`0x00400000`) |
+
+The walk makes exactly these two reads at every address: the pad alone ("what follows?") and
+the pad with the frame (its content). **So at a row end it already has N in hand, in the record
+of the content read. No new read is needed to cross; only what the prober does with what it
+has read changes.**
+
+### The rule proposed
+
+At an address `cur`, after the two reads as now:
+
+- the pad alone left the register **above** `cur`: as now, that is the next address;
+- the pad alone left it **at** `cur` (a standstill), and the read of the frame at `cur` left it
+  at some `N` **above** `cur`: `N` is the next address, and the step is marked as a standstill
+  in the walk. If `N` is beyond the envelope the pass ends as "left", as now; otherwise the walk
+  goes on at `N` — an address the device named, written to the register like any other;
+- anything else stops the run with `0x800` as now: the register below `cur` after the pad
+  alone; or at `cur` after the pad alone and not above `cur` after the frame (a place where it
+  stands still for longer than was seen — the twin has such an end, and it must halt there).
+
+A parameter gives **how many standstills a pass may cross; 0 in every existing parameter set**,
+where the prober then behaves exactly as now (stop at the first). One more than allowed stops
+the run with a status of its own. For this step: **1**.
+
+### The reads of three frames must not span a standstill
+
+After its passes the walk reads the frames again three in one read, from every third address of
+the list. A read of three starting two frames before a row end would deliver the last two
+frames of the row **and whatever lies at the place where the register stands still** — and the
+prober would hold that against the first frame of the next row.
+
+So the list is cut at every standstill, and the reads of three are laid within each piece by
+the rule that now applies to the whole list (three from every third address; one or two left
+over: the last three of the piece again; a piece of two: both; a piece of one: no second path,
+and the judge lists it). **With that, no read of this walk delivers anything from a place the
+device has not named**: the pad alone delivers nothing, a content read delivers the frame at the
+address written, and a read of three delivers three addresses that follow one another by the
+device's own word with no standstill between them.
+
+One limit of that, said plainly: the prober takes "no standstill between them" as "nothing lies
+between them". If a device had a place between two named addresses at which the register does
+*not* stand still, a read of three across it would deliver one frame from there before the
+check that catches it (the register after the read is one step short) stops the run. That has
+been so since S1b.1 and has not happened across 55 column ends.
+
+### The guard
+
+Unchanged. It still holds every address written inside the envelope and every read to at most
+three frames, by arithmetic. It does not know where a row ends, and is not asked to: the
+envelope keeps the walk inside what the owner released; that reads do not run across a row end
+is the walk's rule above, re-derived by the judge from the records.
+
+### The judge
+
+`s1b1_judge` re-derives the same rule from the raw words: a standstill is accepted only as
+above, counted against the allowance in the parameter block, and — with the allowance 0 — is the
+stop it is now, so every stored run is judged as before. For a standstill step the cross-check
+of the register changes its form: "after any read whose last frame delivered is X, the register
+is what it was after the single read of X" (elsewhere this is the check there is now, in other
+words). Every read of three is checked to lie within one piece. The second pass must stand
+still where the first did.
+
+### The image
+
+A new image: `sm_core.c` changes in the walk stage only (the rule, the allowance, the pieces).
+The other stages' source is untouched, but the binary moves. The wait that touches no memory is
+used, as in every run since section 22; the address of the polling variable is recorded in
+every result as before; no anomaly is budgeted for, so an overflow would stop the run and be
+seen. The twin gets no new model: its four row ends (section 30) are what the walk is tested
+on — it must cross two of them, halt at the one where the register stands still for longer,
+and walk straight on at the one with no standstill.
+
+### The run proposed for the board: one, across the known row end
+
+- The walk's parameter set with three differences: **the envelope is block type 0 whole,
+  `0x00000000..0x007fffff`**; the allowance is 1; the start is `0x00001b80`, the last frame of
+  the chain's last accepted run (the seam). Two passes, at most 64 frames a pass, the reference
+  frame `0xb99` every 16 frames, the quiet wait, no extra stack.
+- What it would read, if the device does again what it did: the 42 frames of column 55 (read
+  twice already, by two paths), the standstill at `0x1ba9`, and then **22 frames from
+  `0x00400000` on — the bottom half, where nothing has been read or written to the register
+  yet**. Block type 0 only (configuration of logic, I/O and clocking; block-RAM content is block
+  type 1, outside the envelope and never written to the register). Read-only, as everything so
+  far.
+- What it answers that is open: what a read started at `0x00400000` does (the pad alone there:
+  does the register go on, or stand still again?), and whether the walk carries on beyond a row
+  end as it does along a row.
+
+### What would count as what
+
+- **PASS** (the judge): the run completes; both passes the same list and the same standstill;
+  every cross-check of the register holds; every read of three within one piece and equal to
+  the single reads; the reference frame as known throughout; no anomaly.
+- Afterwards, on the host and from stored results only: the seam with run 29 at `0x1b80`, the
+  42 frames against run 30's and `s1b2c`'s, the registers at the row end against `s1b2e`'s. A
+  difference is reported; it does not alter the run.
+- **A second standstill within the pass** (for one, at `0x00400000` itself): the run stops with
+  the status for "more than allowed". That is a finding about the device, saved and reported;
+  the walk is not made to go on.
+- Anything else that stops the run: saved, committed, reported; nothing retried.
+- The grader is not run in this step. (What the database says of the top half's rows was seen
+  in section 34's grade; nothing of the bottom half has been looked at.)
+
+### For the owner
+
+1. **Only this step now** (one run across the known row end), and the chain over block type 0
+   as a proposal of its own afterwards — or both at once.
+2. **The rule**: one more step and no more — the register after the frame's own read. A row
+   end at which that is not enough halts. (The alternative, clocking further frames until the
+   register moves, delivers from places without a name; I do not propose it.)
+3. **The allowance: 1** (a second standstill in the pass halts and is reported) — or 2, which
+   would let the walk go on if `0x00400000` itself turns out to be an address at which the
+   register stands still.
+4. **The envelope `0x0..0x007fffff`**: this run enters the bottom half, up to 22 frames. A
+   smaller bite is possible (a limit of 48 frames a pass: 6 frames beyond the row end — enough
+   for the pad alone at `0x00400000` and two reads of three there).
+5. **A new image**, with the walk's behaviour unchanged wherever the allowance is 0.

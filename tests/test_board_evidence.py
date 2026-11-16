@@ -235,9 +235,9 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual((out["end"]["the_register_stood_still"]["steps_before_that_address"], out["end"]["the_register_stood_still"]["at_steps_beyond_the_last_frame"]), (1, [1, 3]))
         self.assertEqual(out["end"]["frames_delivered_from_beyond_the_last_frame"], [{"steps_beyond": 1, "all_zero": True}, {"steps_beyond": 2, "all_zero": True}])
         self.assertEqual((out["closed"]["frames_added"], out["closed"]["frames_read_again"], out["closed"]["of_which_the_same"], out["closed"]["distinct_contents_among_them"]), (41, 42, 42, 1))
-        stored = b / "row_closed.json"                       # written and committed before the grader is run; then held here as it was
-        if stored.exists():
-            self.assertEqual(out, json.loads(stored.read_text()))
+        stored = b / "row_closed.json"                       # written and committed before the grader was run; held here as it was
+        self.assertEqual(out, json.loads(stored.read_text()))
+        self.assertEqual(hashlib.sha256(stored.read_bytes()).hexdigest(), "d8457ed86e16648eeb5b042021f71dbcde8af8273f644c3e23652b9cf4c7de59")
         swapped = s1b2_closed.close(given[0], given[1], given[3], given[2])       # the two runs of S1b.2b given in each other's place
         self.assertIn("refused", swapped)
 

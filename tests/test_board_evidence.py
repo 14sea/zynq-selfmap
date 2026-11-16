@@ -214,7 +214,6 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual([r["as_the_walk_says"] for r in col["register"]], [True] * 13 + [None])
         self.assertEqual((col["register"][-1]["at"], col["register"][-1]["register_afterwards"]), ("0x00001ba7", ["0x00400000"]))
         self.assertEqual(col["reads_also_made_at_the_end"], [{"at": "0x00001ba7", "steps": 4}])
-        self.assertFalse((d / "grade.json").exists(), "the grader is not run in this step")
 
     def test_the_row_as_closed_from_the_stored_results(self) -> None:
         """Section 32: what s1b2_closed.py makes of the stored summary of the chain, the stored walk of run 30 and the
@@ -240,6 +239,14 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual(hashlib.sha256(stored.read_bytes()).hexdigest(), "d8457ed86e16648eeb5b042021f71dbcde8af8273f644c3e23652b9cf4c7de59")
         swapped = s1b2_closed.close(given[0], given[1], given[3], given[2])       # the two runs of S1b.2b given in each other's place
         self.assertIn("refused", swapped)
+        # the grader's stored word (run once, after row_closed.json was committed) is about that summary: the database is not read here
+        g = json.loads((b / "grade.json").read_text())
+        self.assertEqual(hashlib.sha256((b / "grade.json").read_bytes()).hexdigest(), "6ecfc55f220827eda8403785321b57f0ec6a6e7970585b4ebb59bf0f49b59887")
+        self.assertEqual((g["chain"], g["differs"], len(g["agrees"]), len(g["not_compared"]), g["row_walked"]), ("halted", [], 4, 2, {"block_type": 0, "half": "top", "row": 0}))
+        self.assertIn("the chain itself halted", g["summary_closed_by"])
+        self.assertEqual([[c["column"], c["walked"]] for c in g["columns"]], out["frames_per_column"])
+        self.assertTrue(all(c["walked"] == c["database"] and c["walked_whole"] for c in g["columns"]))
+        self.assertFalse((a / "grade.json").exists(), "the chain's own summary, halted, was never graded")
 
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:

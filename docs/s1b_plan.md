@@ -1977,3 +1977,35 @@ end of a row: the grader will list what it could not compare.
 4. The record, and stop. A difference is a finding and nothing is changed to make it go away.
 
 **Before any of it:** the owner's review.
+
+## 34. The row graded (2026-11-16): no difference from prjxray-db
+
+Released by the owner after the review of section 33; no board involved. In the order laid
+down: `row_closed.json` written and committed (`6c06397`), then the grader once, its output
+committed as it came (`fffe4cc`). The account is at the end of
+`evidence/s1b2b_17A6_2026-11-16/RESULT.md`.
+
+- **The closing**: all six rules hold on the stored results. 56 columns, 1,932 frames; the
+  chain's 55 columns and 1,891 addresses unchanged; the chain still recorded as halted.
+- **The grade**: each of the 56 columns has the number of frames the database gives it; they
+  are the database's columns 0..55 of row 0 of the top half, in order, and it has no more;
+  1,932 frames on both sides; the address the device named after the row, `0x00400000`, is the
+  first frame of the row next in the database's order — row 0 of the bottom half, the top half
+  having one row in the database. **Nothing differs.**
+- **Not compared**: the two steps at which the register stood still, and the two frames
+  delivered from beyond the row. The database has nothing on either.
+
+So S1b.2's three questions are answered for this row: which addresses the device names along
+it, into which columns they fall and how many frames each has, and what it names after the
+last — the last with a standstill the walk's rule did not foresee.
+
+A test holds the stored `row_closed.json` and `grade.json` by their hashes and against the
+programs (310 tests; the stored grade is read, the database is not). A slip is recorded in the
+result note: the grade was committed before the suite was run, and an assertion that had
+become untrue ("no grade in this directory") failed until the next commit replaced it.
+
+**Stopped here.** Next, for the owner — nothing of it proposed in detail or built: S1b.3 (all
+of block type 0, both halves) needs a walk that can cross a row end; what the register does
+there is now known for one row end (it stands still, then names the next row), and the change
+to the prober, a new image, and how its guard is to bound a walk that leaves a row each need a
+proposal and a review of their own.

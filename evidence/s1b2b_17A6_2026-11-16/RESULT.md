@@ -121,3 +121,43 @@ The stored chain of S1b.2 remains what it was: halted.
 For the owner: grading (the row against prjxray-db, with the end of the row now recorded
 first), and whether the walk is to learn to cross a row end, are separate decisions; neither has
 been started.
+
+## Afterwards: the row closed, and the grader (2026-11-16, later the same day)
+
+Everything above was written before this, and stands as written. Then, as sections 32 and 33 of
+the plan lay down and the owner released after review:
+
+1. **`row_closed.json`** (sha256 `d8457ed8…de59`), written by `s1b2_closed.py` from the stored
+   `row.json` of the chain, the stored verdict of run 30 and the two verdicts above, and
+   committed (`6c06397`) before the grader was run. All six rules hold. It is the chain's
+   summary — still `halted`, its 55 columns and 1,891 addresses unchanged — with the 41 further
+   frames of run 30's walk added, each read again by `s1b2c`: 56 columns, 1,932 frames, column
+   55 `0x1b80..0x1ba9`; after the row `0x00400000`, the register having stood still one step
+   before it.
+2. **`grade.json`** (sha256 `6ecfc55f…9887`), `grade_s1b2.py` run once on that file against
+   `/home/test/prjxray-db/zynq7/xc7z010clg400-1/part.json` (sha256 `1754ec1c…d095`, the
+   checkout at `0a0adde` — the file S1b.1 was graded against), committed as it came out
+   (`fffe4cc`):
+   - each of the 56 columns has the number of frames the database gives it (41 of 36, 9 of 28,
+     4 of 30, 2 of 42);
+   - the columns walked are the database's columns 0..55 of this row, in order — the database
+     has no further column in it;
+   - frames in the row: 1,932 found, 1,932 in the database;
+   - the address named after the row, `0x00400000`, is the first frame of the row next in the
+     database's order: row 0 of the bottom half; the database has no second row in the top half;
+   - **nothing differs.**
+   - Not compared, and listed as such: the steps at which the register stood still (1 and 3
+     beyond the last frame) — the database lists frames and has nothing to hold that against;
+     and the two frames delivered from beyond the row.
+
+What the agreement is worth: the frame counts and the order of the columns were found by asking
+the device what follows what; no count and no layout is in the prober, the judges, the chain or
+the program that closed the row. The database is a second witness to them, and agrees. It is
+not a witness to the two places where the register stands still, nor to what a read delivers
+there: on those the device's word stands alone, from one row end.
+
+One slip in the order of work, recorded: `grade.json` was committed (`fffe4cc`) without the
+suite having been run first, and one test then failed — it asserted that no `grade.json` lay
+in this directory, which was true of the board step and no longer was. The assertion was
+replaced by one that holds the stored grade (its hash, and that it is the grade of
+`row_closed.json`) in the next commit. Neither file was touched.

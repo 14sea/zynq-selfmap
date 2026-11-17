@@ -2296,3 +2296,123 @@ unforeseen), a summary over more than one row, and its grading — needs its pro
 the things it has to settle: whether the chain starts again at `0x00000000` with the new image
 or takes up from the stored row; and that from here on most of what is read may again be all
 zero, so that the register is what the result rests on.
+
+## 38. S1b.3 — proposal: the chain over block type 0 (2026-11-17; a proposal, nothing built, nothing on a board)
+
+S1b.3 is "all of block type 0, both halves: the frame list of block type 0" (section 3). The
+walk can now cross a row end (section 37). This proposes the chain that uses it, what is made
+of its runs, and how that is graded. Nothing of it is built.
+
+### What is known and what is not
+
+Known, from the device: the top half begins with a row of 56 columns and 1,932 frames,
+`0x00000000..0x00001ba9`; after it the device names `0x00400000`, the bottom half, where 22
+frames have been walked. Not known: how long that row is, whether more rows follow in either
+half, what the device does at their ends, and what it names after the last frame of block
+type 0. No number of rows or frames is assumed below; the chain goes where the device names
+and stops where it leaves the envelope or does something not provided for.
+
+### The chain
+
+The chain driver of S1b.2, with a parameter set of its own and nothing else changed in its
+rules (section 25): each run starts at the last frame of the run before; a run is relied on
+only if the run script, the judge, the two passes and the seam all agree; nothing is retried.
+
+- **The set `s1b3`**: the walk with the envelope `0x00000000..0x007fffff` (block type 0 whole
+  and nothing above it), one standstill a pass allowed, two passes, at most 64 frames a pass,
+  the reference frame `0xb99` at most 16 frames apart, the wait that touches no memory. The
+  start is the one word given at run time, by the chain. The image is the one of section 37
+  (`fdc4f07f…9452`), unchanged.
+- **It goes on** after a run that ended at the limit, as now.
+- **It is complete** when a run's passes both end because the device named an address beyond
+  the envelope — after a standstill or without one — and every frame with a known answer was
+  walked by some run. No address at or above `0x00800000` is ever written to the register:
+  block type 1 (block-RAM content) is outside the envelope, and a read of one frame at the last
+  address named delivers that frame and nothing after it.
+- **It halts** on anything else, as now. In particular: a second standstill within one pass
+  (status `0x900` — a row shorter than a pass, which would be news); a standstill that one more
+  step does not resolve, or an address named that is not above (`0x800`) — which is what the
+  end of block type 0 may turn out to be, since nothing is known of it; any anomaly; any seam
+  that does not match. A halt is saved, committed and reported, and what the chain has by then
+  is summarised as that.
+
+### Where it starts: at `0x00000000`, again
+
+Two ways. **A: from `0x00000000`**, walking the top row a second time (31 runs, about 2 h 15
+min) and going on from there. **B: taking up at `0x00400015`**, the last frame of section
+37's run, and putting the list together from four stored sources made with two images.
+
+I propose **A**:
+
+- the frame list of block type 0 is then one chain's, with one image and one envelope;
+- the top row is read on another day by another image — 1,932 addresses against the stored
+  ones, among them the 178 frames that are not all zero and the three with a known answer.
+  That is a repetition worth having: the new image has so far delivered nothing but zeros;
+- the chain's completion rule ("every known frame was walked by some run of the chain") holds
+  as it is. A chain that begins beyond the known frames can never be complete by that rule
+  (section 27), and B would need the rule changed.
+
+The cost is the board time. The runs are unattended.
+
+### How long, and the bound
+
+A run is about 4 min 20 s. The top row is 31 runs. How many the rest takes is not known. The
+driver has a bound on the number of runs, "a bound on unattended board time, not a statement
+about the row": 48 for S1b.2. Proposed here: **96 runs** (about 7 hours) for the chain as a
+whole, in this order, as in S1b.2:
+
+1. the first run alone (`--max-new 1`), looked at;
+2. then the chain until it is complete, halts, or reaches the bound.
+
+At the bound the chain stops and says where it stands; going on needs a word from the owner
+and a new bound. Each run is about 3 MB of evidence, mostly its console log; the repository's
+history compresses that well (it is 21 MB now with 34 such runs in it).
+
+### What is made of the runs
+
+Three programs, all working from stored results, none reading a database but the grader:
+
+- **The summary over rows** (`s1b3_rows.py`). The chain's list of addresses, cut into rows
+  where the register stood still — the device's own mark — and each row described by the
+  program that described the row of S1b.2 (columns by the column field, frames in each, minors
+  0, 1, 2, …, the next column's minor 0 named after each). For every row: its block type, half
+  and row fields; that all of its addresses share them; that the fields change exactly where
+  the register stood still and nowhere else. Anything that is not so is listed as unexpected,
+  as found. It holds no number of rows, columns or frames.
+- **The top row against the stored one**: every address of the chain's first row against
+  `row_closed.json` — the same addresses in the same order, the same frames, the same address
+  named after each, the standstill and its registers. A difference is listed; it alters
+  neither.
+- **The grader** (`grade_s1b3.py`), for afterwards: each row by the grader of the row as it
+  is; the rows being the database's rows in the database's own order; the frames of block type
+  0 in all; and the address named after the last frame against the first frame of the next
+  block type in the database — offered as such, since the database lists frames and not what a
+  device names. The standstills are listed as not compared.
+
+The order is the one kept so far: **the chain's runs and its summary are saved, judged and
+committed first; the grader is run once afterwards**, on a complete chain, and its output
+committed whatever it says. If the chain halts, nothing is graded without a word from the
+owner about what is to be graded.
+
+### What this step cannot show, said beforehand
+
+- **Most frames may again be all zero.** The carrier design occupies little: in the top row,
+  1,754 of 1,932 frames are all zero. Wherever frames are all zero, "the same frame in two
+  passes, in a read of three and at the seam" says nothing; the list rests on the register,
+  read after every read, and on the reference frame. That is a real limit of a read-only
+  census with this design, and S2 (patterns written through user logic) is where content
+  begins to discriminate.
+- What the places at a row end are. The chain delivers nothing from them.
+- Block types 1 and 2: outside the envelope; a separate decision (section 3).
+
+### For the owner
+
+1. **A or B** for the start (A proposed: from `0x00000000` again).
+2. **The envelope `0x0..0x007fffff`, one standstill a pass, and the rule that everything not
+   provided for halts** — a second standstill in a pass among them.
+3. **The bound: 96 runs**, the first run alone and looked at, then unattended to the end, a
+   halt or the bound.
+4. **The three programs**, and the order: summary and comparison first and committed; the
+   grader once, afterwards, on a complete chain only.
+5. Whether the summary, the comparison and the grading may follow one another after the chain
+   completes (as in section 33), or each waits for a word.

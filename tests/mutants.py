@@ -535,6 +535,10 @@ MUTANTS = [
     (GRADE3, 's1b3 grade: a chain that halted is graded as the whole block type', '    reached = bool(rows.get("end", {}).get("reached"))', '    reached = True'),
     (GRADE3, "s1b3 grade: the database's rows by their text, not their number", 'for k in sorted(regions.get(half, {}).get("rows", {}), key=int) if bus in', 'for k in sorted(regions.get(half, {}).get("rows", {}), reverse=True) if bus in'),
     (GRADE3, 's1b3 grade: a difference exits 0', '    return 0 if not result["differs"] else 1', '    return 0'),
+    # ---- review of 1140ce6: the seam and the standstill
+    (CHAIN, "s1b3 chain: a seam at which only one run stood still is taken", "            elif bool(b.get(\"stood_still\")) != bool(a.get(\"stood_still\")):", "            elif False:"),
+    (CHAIN, "s1b3 chain: a seam is refused only where the later run stood still and the earlier did not", "            elif bool(b.get(\"stood_still\")) != bool(a.get(\"stood_still\")):", "            elif bool(b.get(\"stood_still\")) and not bool(a.get(\"stood_still\")):"),
+    (CHAIN, "s1b3 chain: a seam is refused only where the earlier run stood still and the later did not", "            elif bool(b.get(\"stood_still\")) != bool(a.get(\"stood_still\")):", "            elif bool(a.get(\"stood_still\")) and not bool(b.get(\"stood_still\")):"),
 ]
 
 

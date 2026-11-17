@@ -2539,3 +2539,38 @@ With nothing else running on the host. The chain's directory is
 5. The record, and stop.
 
 **Before the board:** the owner's review.
+
+## 40. Review of `1140ce6` (2026-11-17): one finding, accepted — the seam did not compare the standstill
+
+**Finding (P2).** The seam between two runs — one frame read by both — was held on three
+things: the address, the frame, the address named after it. Since section 36 a step also says
+whether the register stood still there, and the seam did not compare that. Two runs can agree
+on all three and differ in it: in one the pad alone leaves the register standing and the next
+address shows only after the frame is read, in the other the pad alone names it at once. Each
+run passes its judge; the chain went on and could report "complete"; and the summary over
+rows, which lists a seam frame once — as the earlier run had it — showed nothing unexpected.
+The reviewer reproduced it on the twin. Checked against the code, and so it is.
+
+That is the chain failing by its own rule: the seam exists so that two runs have to agree on
+one frame, and what the register does there is, at the end of a row, the observation that
+matters most.
+
+**Changed.** `s1b2_chain.py`, rule 4: the register stood still at the seam frame in both runs
+or in neither; otherwise the run is not accepted and the chain halts, saying which run saw
+what. For the stored chain of S1b.2 nothing changes (no step of it stood still; the test that
+holds it passes). The summary's taking the seam frame from the earlier run is left as it is:
+with this rule the two records of a seam frame agree on everything the summary uses.
+
+Looked at for the same gap and found without it: the judge compares the second pass with the
+first record by record, register included; `s1b3a_seam.py` and `s1b3_top.py` both compare the
+standstill itself.
+
+**Tests.** One new test (359 in all), both directions, on the twin: a row whose last frame is
+a seam, with the device one thing for the run that ends there and another for the run that
+begins there — the mark disappears; the mark appears. In each the two runs pass by themselves
+and agree on the frame and on the address named; the chain halts at the seam with the reason;
+driving it again leaves it halted. Where both runs stood still there, or neither, it completes.
+
+**Mutants.** Three: the comparison removed (which is the code as reviewed) — the new test then
+fails in both directions, confirming the reproduction — and the comparison made one-sided
+either way. All killed, by that test.

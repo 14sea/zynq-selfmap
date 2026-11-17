@@ -74,7 +74,8 @@ def runner(dev, seen: list | None = None, per_run: dict | None = None):
         k = int(out.name[3:])
         change = (per_run or {}).get(k, {})
         exp = s1a_run.with_start(STAGE, json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()), start, came_from)
-        u = fake.FakeUBoot(change.get("fault", ""), far_rule="skip", succ=succ, shows=shows, frames={**model, **change.get("frames", {})})
+        u = fake.FakeUBoot(change.get("fault", ""), far_rule="skip", succ=change.get("succ", succ), shows=change.get("shows", shows),
+                           frames={**model, **change.get("frames", {})})
         out.mkdir()
         s1a_run.execute(u, exp, out, lambda con, cmd, path: con.load(cmd, path), KNOWN, len(pl), f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}", f"s{k:07d}.bin", STAGE)
         if seen is not None:
@@ -181,6 +182,35 @@ class TheChainOverSeveralRows(unittest.TestCase):
         self.assertEqual((a["runs"][2]["first"], a["runs"][2]["walk"][0].get("stood_still"), a["runs"][2]["walk"][1]["far"]), (h(dev[0][126]), True, h(BOTTOM)))
         s = s1b3_rows.summarize(a, KNOWN)
         self.assertEqual((s["frames_per_row"], s["unexpected"]), ([[0, "top", 0, 127], [0, "bottom", 0, 70], [0, "bottom", 1, 66]], []))
+
+    def test_a_seam_at_which_only_one_of_the_two_runs_stood_still_halts_the_chain(self) -> None:
+        """Review of 1140ce6: the seam frame is read by two runs, and they have to agree on what the register did there
+        — not only on the address named. Here the seam is the last frame of the first row; the device is one thing
+        for the run that ends there and another for the run that begins there. Each run passes its judge, the frame
+        and the address named are the same in both, and the chain must halt all the same."""
+        sizes = list(SIZES); sizes[5] -= 1                  # 127 frames: the second run ends with the last frame of the row
+        rows = [(0, sizes), BOTTOM_0, BOTTOM_1]
+        still, at_once = device(rows), device(rows, ends={0: "no place"})
+        last = h(still[0][126])
+        for name, dev, later, first_said, then_said in (("the mark disappears", still, at_once, "stood still after the pad alone", "did not stand still"),
+                                                       ("the mark appears", at_once, still, "did not stand still", "stood still after the pad alone")):
+            with self.subTest(case=name):
+                root, _, a = drive(dev, per_run={2: {"succ": later[2], "shows": later[3]}})
+                self.assertEqual((a["state"], [r["decision"] for r in a["runs"]]), ("halted", ["go on", "go on", "halt"]))
+                self.assertEqual(a["why"], [f"run02: seam: at {last} the register {then_said} in this run, and {first_said} in the run before"])
+                # each of the two runs, by itself, is a run that passed; they agree on the frame and on the address named
+                one, two = a["runs"][1], a["runs"][2]
+                self.assertEqual((one["judge"], two["judge"], one["walk"][-1]["far"], two["walk"][0]["far"]), ("PASS", "PASS", last, last))
+                self.assertEqual((one["walk"][-1]["next"], two["walk"][0]["next"], one["walk"][-1]["frame_sha256"]), (h(BOTTOM), h(BOTTOM), two["walk"][0]["frame_sha256"]))
+                self.assertEqual((bool(one["walk"][-1].get("stood_still")), bool(two["walk"][0].get("stood_still"))), (name == "the mark disappears", name == "the mark appears"))
+                # and the summary has what the accepted runs walked: the row is not said to have ended either way by a run that was set aside
+                s = s1b3_rows.summarize(a, KNOWN)
+                self.assertEqual((s["chain"]["state"], s["frames"], s["end"]["reached"]), ("halted", 127, False))
+                again = chain.drive(root, base(), KNOWN, runner(dev), chain.BOUNDS[STAGE], stage=STAGE)
+                self.assertEqual((again["state"], len(again["runs"])), ("halted", 3), "nothing is retried")
+        # where both runs stood still there, or neither did, the chain goes on (the two tests beside this one)
+        self.assertEqual(drive(still)[2]["state"], "complete")
+        self.assertEqual(drive(at_once)[2]["state"], "complete")
 
     def test_the_end_of_the_block_type_without_a_standstill(self) -> None:
         dev, _, _, a, s = the("no place at the end", last="no place")

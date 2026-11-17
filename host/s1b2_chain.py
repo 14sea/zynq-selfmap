@@ -15,8 +15,8 @@ chain goes on after a run only if
   1. the run script reports no stop and a passing run, and the stored result is the one whose checksum the board gave;
   2. the judge passes it;
   3. both passes ended at the limit, after the same frames, having been told the same address;
-  4. (every run but the first) its first frame is the last frame of the run before, with the same content, and the
-     address named after it is the one named there.
+  4. (every run but the first) its first frame is the last frame of the run before, with the same content, the
+     address named after it is the one named there, and the register stood still there in both runs or in neither.
 It is complete when a run satisfies 1, 2 and 4, both of its passes ended because the device named an address
 outside the envelope, and every frame with a known answer in the envelope was walked by some run of the chain.
 Anything else halts it, and so does a bound on the number of runs. Nothing is retried: a run
@@ -128,6 +128,11 @@ def assess(root: Path, base: list[int], known: dict, max_runs: int = MAX_RUNS, s
                 bad(f"seam: the frame at {b['far']} is not the frame the run before read there")
             elif b["next"] != a["next"]:
                 bad(f"seam: after {b['far']} this run was told {b['next']}, the run before {a['next']}")
+            elif bool(b.get("stood_still")) != bool(a.get("stood_still")):
+                # the same address named in both runs, but reached differently: in one the register stood still
+                # after the pad alone and showed that address only after the frame was read, in the other at once
+                said = lambda s: "stood still after the pad alone" if s.get("stood_still") else "did not stand still"  # noqa: E731
+                bad(f"seam: at {b['far']} the register {said(b)} in this run, and {said(a)} in the run before")
         if r["problems"]:
             r["decision"] = "halt"
             if names[k + 1:]:

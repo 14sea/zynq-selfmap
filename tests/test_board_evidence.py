@@ -248,6 +248,43 @@ class StoredBoardResults(unittest.TestCase):
         self.assertTrue(all(c["walked"] == c["database"] and c["walked_whole"] for c in g["columns"]))
         self.assertFalse((a / "grade.json").exists(), "the chain's own summary, halted, was never graded")
 
+    def test_the_run_across_the_end_of_the_row(self) -> None:
+        """S1b.3a, 2026-11-17: the stored run judged again from its raw words, and held again against the stored row.
+        With one standstill allowed the walk crossed the end of the row at 0x1ba9 and went on at 0x00400000, where the
+        pad alone names the next number; 22 frames of the bottom half, each read twice and in a read of three."""
+        import s1b2_judge, s1b3a_seam
+        d = ROOT / "evidence" / "s1b3a_17A6_2026-11-17"
+        raw = (d / "run" / "result.bin").read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), "e35a57e1f4c9c997b71ef4ef079a7eb0e27e20bc7044236b7a70cce88faf5dda")
+        self.assertEqual(hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest(), "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
+        planned = [int(w, 16) for w in json.loads((d / "expected_s1b3a.json").read_text())["params"]]
+        self.assertEqual((planned[2], planned[3], planned[4], planned[5], planned[7], planned[10], planned[12], planned[15], planned[16]),
+                         (4, 0, 0x007FFFFF, 0xB99, 2, 1, 64, 2 << 8, 0x1B80))
+        words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+        v = json.loads(json.dumps(s1b2_judge.judge(words, KNOWN, planned)))
+        self.assertEqual(v, json.loads((d / "run" / "verdict.json").read_text()))
+        self.assertEqual((v["verdict"], v["problems"], v["header"]["status"], v["header"]["records"], v["header"]["anomalies"]), ("PASS", [], "0x1", 292, 0))
+        self.assertEqual(v["passes"], [{"frames": 64, "ended": "the limit of frames was reached", "last_address_named": "0x00400016"}] * 2)
+        self.assertEqual([int(s["far"], 16) for s in v["walk"]], list(range(0x1B80, 0x1BAA)) + list(range(0x00400000, 0x00400016)))
+        self.assertEqual([int(s["next"], 16) for s in v["walk"]], list(range(0x1B81, 0x1BAA)) + list(range(0x00400000, 0x00400017)))
+        self.assertEqual(v["standstills"], [{"at": "0x00001ba9", "register_after_the_pad_alone": "0x00001ba9", "register_after_the_frame": "0x00400000"}])
+        self.assertEqual((v["pieces"], v["frames_without_a_second_path"], [s["far"] for s in v["walk"] if s.get("stood_still")]), ([42, 22], [], ["0x00001ba9"]))
+        self.assertEqual(v["walk"][42], {"far": "0x00400000", "next": "0x00400001", "register_after_the_frame": "0x00400002", "frame_sha256": v["walk"][0]["frame_sha256"]})
+        self.assertEqual(len({s["frame_sha256"] for s in v["walk"]}), 1, "every one of the 64 frames is the same content (all zero)")
+        self.assertTrue(all(not q["interface_failures"] for q in v["polling_variable"].values()))
+        several = [(r["far"], r["frames"], r["far_read_back"]) for r in v["records"] if r["read"] == "read of several frames"]
+        self.assertEqual((len(several), several[13], several[14]), (22, ("0x00001ba7", 3, "0x00400000"), ("0x00400000", 3, "0x00400004")))
+        words[len(words) // 2] ^= 1
+        self.assertNotEqual(s1b2_judge.judge(words, KNOWN, planned)["verdict"], "PASS")
+        # held against the stored row
+        row = json.loads((ROOT / "evidence" / "s1b2b_17A6_2026-11-16" / "row_closed.json").read_text())
+        out = s1b3a_seam.against(v, row)
+        self.assertEqual(out, json.loads((d / "seam.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "seam.json").read_bytes()).hexdigest(), "222162b8dfa0b5f2f6383a994effea6b1a30221d12c1236e062ada873dd8bb0e")
+        self.assertEqual((out["disagreements"], out["addresses_in_both"], out["same_frames"]), ([], 42, 42))
+        self.assertEqual(out["addresses_the_stored_row_does_not_have"], {"count": 22, "first": "0x00400000", "last": "0x00400015", "standstills_among_them": []})
+        self.assertFalse((d / "grade.json").exists(), "the grader is not run in this step")
+
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:
             with self.subTest(run=run):

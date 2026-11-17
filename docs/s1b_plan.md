@@ -2261,3 +2261,38 @@ With nothing else running on the host; a U-Boot `reset` and a fresh load before 
    the row already graded.
 
 **Before the board:** the owner's review.
+
+## 37. S1b.3a on the board (2026-11-17): PASS — the walk crossed the end of the row
+
+Released by the owner after the review of section 36, and run as section 36 proposes: one run
+of `s1b3a` with the new image (`fdc4f07f…9452`) after a U-Boot `reset`, committed as saved
+(`f46bea7`); then `s1b3a_seam.py` against the stored row, committed as it came out (`9a2328a`).
+The full account is `evidence/s1b3a_17A6_2026-11-17/RESULT.md`.
+
+- **PASS**: 292 records, status 1, no anomaly, no overflow, no interface failure. Both passes
+  the same 64 addresses and ended at the limit.
+- **The standstill at `0x1ba9` was crossed**: the pad alone left `0x1ba9`, the read of the
+  frame `0x00400000` — the values of sections 28 and 31, a third time.
+- **At `0x00400000` the register goes on**: the pad alone there names `0x00400001`. The open
+  question of section 31 ("what a read started at `0x00400000` does") is answered for this
+  row end: nothing unusual; the address behaves like any other. So, by the register, the end
+  of this row is two steps at which it does not advance as along a row, and then the next row.
+- **22 frames of the bottom half**, `0x00400000..0x00400015`, each named after the one before,
+  read in both passes and in reads of three. No read lay across the standstill; nothing was
+  delivered from the two places without an address.
+- **Against the stored row**: no disagreement — the 42 shared addresses, the standstill, its two
+  registers.
+- **All 64 frames are all zero.** The content checks are empty here; the register and the
+  reference frame carry the result.
+- The new image: one clean run. The polling variable of the walk's reads lay 32 bytes lower
+  than with the old image, in the same residue (24 mod 32).
+
+One test judges the stored run again from its raw words and holds verdict, comparison and
+image by their hashes (335 tests). The grader was not run.
+
+**Stopped here.** For the owner: S1b.3 proper — a chain of runs over block type 0 with the
+allowance set, where it stops (the device naming an address beyond `0x007fffff`, or anything
+unforeseen), a summary over more than one row, and its grading — needs its proposal. Among
+the things it has to settle: whether the chain starts again at `0x00000000` with the new image
+or takes up from the stored row; and that from here on most of what is read may again be all
+zero, so that the register is what the result rests on.

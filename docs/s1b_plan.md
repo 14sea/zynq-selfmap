@@ -2416,3 +2416,126 @@ owner about what is to be graded.
    grader once, afterwards, on a complete chain only.
 5. Whether the summary, the comparison and the grading may follow one another after the chain
    completes (as in section 33), or each waits for a word.
+
+## 39. S1b.3 as built (2026-11-17; host side, nothing on a board yet, no database read)
+
+The owner agreed to section 38 as proposed: the chain starts at `0x00000000` again; the
+envelope `0x0..0x007fffff` with one standstill a pass, everything not provided for halting;
+a bound of 96 runs with the first run alone; the three programs, the summary and the
+comparison committed before the grader is run once on a complete chain. Point 5 had no
+proposal of mine beside it; I take the precedent of section 33 — after the chain completes the
+summary, the comparison and the grading follow one another, each committed before the next —
+and say so here so that it can be overruled before the board.
+
+### What was built
+
+- **The image is unchanged**: `fdc4f07f…9452`, the one of section 37.
+- **The set `s1b3`**: `s1b3a`'s set with its starting address given at run time — the one word
+  that differs, checked by a test. The run script takes `--start` for it as for `s1b2`, and
+  refuses an address outside the envelope (`0x00800000` among them).
+- **The chain driver, `s1b2_chain.py`**: the set it drives is now a parameter (`--stage s1b2`
+  or `s1b3`; the default is the row's, so the stored chain of S1b.2 is assessed as before, and
+  the test that holds it still passes). The bound is the set's: 48 and 96. A step at which the
+  register stood still carries that into the chain's list. **No rule of the chain changed.**
+- **`host/s1b3_rows.py`** — the summary over rows: the list cut after every frame at which the
+  register stood still; each piece described by `s1b2_row.summarize` (the program that described
+  the row of S1b.2); for each row its block type, half and row, whether it was walked whole and
+  how it ended, the address named after it. Listed as unexpected: columns of a row that do not
+  share its fields (`s1b2_row` says so), a standstill after which the address named is in the
+  same row, a row whose fields are those of an earlier one, a list that is not a chain of names
+  or does not rise.
+- **`host/s1b3_top.py`** — the chain's first row against `row_closed.json`: the same addresses
+  in the same order, the same frame at each, the same address named after each, the standstill
+  at the end and the address gone on to, the same numbers of frames in the columns; and how
+  many of the frames compared are not all zero.
+- **`host/grade_s1b3.py`** — for afterwards: each row through `grade_s1b2.grade` unchanged; the
+  rows against the database's rows of the block type in its order (the top half's by number,
+  then the bottom half's); if the chain left the envelope, the frames in all and the address
+  named after the last frame against the first frame of the next block type in the database.
+  The standstills are listed as not compared. It is the only new file that names the database;
+  the two tests that guard that were given its name.
+- **The twin** has room for a model of several rows (400 frames, 96 successors, 32 shown
+  values). It is test equipment; the image does not contain it.
+
+### On the twin
+
+A made-up device of three rows — 128, 70 and 66 frames, in the top half and in rows 0 and 1 of
+the bottom half, each ending as the board's row ended — through the chain on the pretended
+board:
+
+- **Complete in five runs**: every address the device names, in order, once; the three
+  standstills each met by one run; the device naming `0x00800000` after the last, which is
+  never written. No address was written that the device did not name, and nothing was
+  delivered from the six places without an address.
+- The summary: three rows with their fields, lengths and columns, nothing unexpected.
+- A chain taken up again after two runs is the chain run through. A seam that falls on the
+  last frame of a row (the next run begins with the standstill) is walked the same.
+- **The end of the block type**: without a standstill — complete; with the register standing
+  still for longer — the chain halts (`0x800`), and the summary has the last row as not ended.
+- **A row of ten frames**: the chain halts with `0x900`, as section 38 said a row shorter than
+  a pass would.
+- A fault in a run halts the chain, and driving it again leaves it where it halted.
+- A row that ends without a standstill is not cut, and the summary lists the change of fields
+  inside the piece as unexpected — the chain itself follows what the device names.
+- The grader on a made-up database: agrees, and says where a count, a row more, a row fewer
+  or the address after the block type differs; a halted chain is graded as far as it went.
+
+### What is not tested
+
+The function that makes a run on the board (`board_runner`) now passes the set's name to the
+run script. No test drives a board; a wrong name there would show at the first run — the
+chain checks each run's record for the stage — which is why the first run is made alone and
+looked at.
+
+### Tests and mutants
+
+23 new tests (358 in all). Four older tests were adjusted to the driver's parameter and the
+new set (the list of sets that take a start; the bound 96 among the driver's numbers; a
+stand-in for `read_run`; "every other set asks for no standstill"), and two guard tests were
+given the new grader's name. A slip, recorded: the checkpoint `33e8f37` was committed by a
+command that did not wait for the suite, and those two guard tests were failing in it; the
+next commit (`62d0f6a`) put that right. Nothing but the two lists changed.
+
+45 mutants written: 5 in the chain driver, 2 in the run script, 16 in the summary, 11 in the
+comparison, 11 in the grader; one older mutant re-anchored (the stage of a run record).
+An attempt to run the 45 by themselves first was cut off by a time limit of mine after 32
+(all killed) and left its eight scratch copies in the temporary directory; they were removed
+by hand. The complete run then served for all of them.
+
+The complete run (`evidence/host_checks/mutants_2026-11-17_s1b3.txt`): 478 mutants (the 433 of
+section 36 and these 45), 478 killed, none survived, none BROKEN, none STALE; the unmutated
+tree before and the restored tree after both run 358 tests, OK. The temporary directory was
+empty afterwards.
+
+### What the tests cannot show
+
+- How long the bottom half is, how many rows it has, and what the device does at the end of
+  block type 0. The twin has an end with a standstill, one without, and one where the register
+  stands still for longer; the chain completes at the first two and halts at the third.
+- That the new image, which has run one walk of 292 records on the board, runs some thousands
+  more as cleanly. Each run stops at the first anomaly, and the chain at the first run that
+  did not pass.
+- Whether most of what is read will again be all zero. `s1b3_top.py` counts the frames that
+  are not.
+
+### Proposed for the board
+
+With nothing else running on the host. The chain's directory is
+`evidence/s1b3_17A6_<date>/`, with the set kept beside the runs as `expected_s1b3.json`.
+
+1. `s1b2_chain.py --stage s1b3 --dir … --go --max-new 1` — **the first run alone**, from
+   `0x00000000`. Looked at: the run record's stage, the judge's verdict, 64 frames, the seam
+   address the chain plans next. Committed.
+2. `s1b2_chain.py --stage s1b3 --dir … --go` — the chain, unattended, until it is complete,
+   halts, or has 96 runs. A U-Boot `reset` (checked) before every run, as always. Its output
+   kept; everything committed as it is when it stops, whatever the state.
+3. If it is **complete**: `s1b3_rows.py` → `rows.json`, committed; `s1b3_top.py` against
+   `row_closed.json` → `top.json`, committed; then `grade_s1b3.py` once → `grade.json`,
+   committed whatever it says. The whole suite is run before each commit of a new evidence
+   file.
+4. If it **halts**, or stops at the bound: the summary is made of what there is and committed
+   as that; the comparison of the first row is made if that row was walked whole; **nothing is
+   graded**, and nothing is retried or moved aside, without a word from the owner.
+5. The record, and stop.
+
+**Before the board:** the owner's review.

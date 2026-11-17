@@ -176,6 +176,10 @@ class Image(unittest.TestCase):
         # last frame of the chain's last accepted run. Nothing of it is given at run time.
         p6 = list(p5); p6[4], p6[10], p6[16] = 0x007FFFFF, 1, 0x00001B80
         (BUILD / "expected_s1b3a.json").write_text(json.dumps(dict(e4, stage="S1b.3a, one run across the end of the row", params=[f"{w:08x}" for w in p6]), indent=1) + "\n")
+        # S1b.3 (docs/s1b_plan.md, section 38): the chain over block type 0. s1b3a's set with the start given at run
+        # time by the chain; this file holds the first run's, address 0.
+        p7 = list(p6); p7[16] = 0x00000000
+        (BUILD / "expected_s1b3.json").write_text(json.dumps(dict(e4, stage="S1b.3, one run of the chain over block type 0", params=[f"{w:08x}" for w in p7]), indent=1) + "\n")
         (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
         # S1b.2b (docs/s1b_plan.md, section 29): the end of the row, by the table-driven stage in its stage-5 form with
         # the wait that touches no memory. The addresses are the last ones the device named in the row (S1b.2, run 30);

@@ -28,6 +28,7 @@ CHAIN, ROW, GRADE2, JUDGE5 = "host/s1b2_chain.py", "host/s1b2_row.py", "host/gra
 END, JUDGE6 = "host/s1b2_end.py", "host/s1b2e_judge.py"
 CLOSED = "host/s1b2_closed.py"
 SEAM = "host/s1b3a_seam.py"
+ROWS3, TOP3, GRADE3 = "host/s1b3_rows.py", "host/s1b3_top.py", "host/grade_s1b3.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -277,7 +278,7 @@ MUTANTS = [
     (JUDGE2, "judge5: the pad alone is counted as an operation without a read", "rec[\"n\"] == NONE else \"frame_reads\"", "rec[\"n\"] in (0, NONE) else \"frame_reads\""),
     # ---- 2026-11-15: S1b.2, the chain along the row (section 26)
     (CHAIN, "s1b2: the block planned for a run does not carry its start", "    block[P_START] = start\n", "    block[P_START] = base[P_START]\n"),
-    (CHAIN, "s1b2: a run record of another stage is taken", "    if rec.get(\"stage\") != STAGE:", "    if False:"),
+    (CHAIN, "s1b2: a run record of another stage is taken", '    if rec.get("stage") != stage:', '    if False:'),
     (CHAIN, "s1b2: a run in which the prober was not started is taken", "    if not rec.get(\"went\"):", "    if False:"),
     (CHAIN, "s1b2: a run the run script stopped is taken", "    if rec.get(\"stop\"):", "    if False:"),
     (CHAIN, "s1b2: a run the run script failed is taken", "    if rec.get(\"verdict\") != \"PASS\":", "    if False:"),
@@ -488,6 +489,52 @@ MUTANTS = [
     (SEAM, 's1b3a seam: a run that did not pass exits 0', '    return 1 if out["disagreements"] or out["run"]["verdict"] != "PASS" else 0', '    return 1 if out["disagreements"] else 0'),
     (SEAM, 's1b3a seam: disagreements exit 0', '    return 1 if out["disagreements"] or out["run"]["verdict"] != "PASS" else 0', '    return 1 if out["run"]["verdict"] != "PASS" else 0'),
     (SEAM, 's1b3a seam: the new addresses are not counted', '"count": len(new),', '"count": 0,'),
+    # ---- S1b.3: the chain over block type 0 (section 38)
+    (CHAIN, "s1b3 chain: the bound of the row's chain", 'BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96}', 'BOUNDS = {"s1b2": MAX_RUNS, "s1b3": MAX_RUNS}'),
+    (CHAIN, "s1b3 chain: every run is read as one of the row's set", '        r = read_run(root / name, base, start, known, stage)', '        r = read_run(root / name, base, start, known)'),
+    (CHAIN, 's1b3 chain: a step at which the register stood still does not say so', '**({"stood_still": True} if s.get("stood_still") else {})}', '**({})}'),
+    (CHAIN, 's1b3 chain: asked where a chain stands, the set named is not used', '        state = assess(a.dir, base, known, BOUNDS[a.stage], a.stage)', '        state = assess(a.dir, base, known, BOUNDS[a.stage])'),
+    (CHAIN, "s1b3 chain: driven, the chain is assessed as one of the row's set", '        a = assess(root, base, known, max_runs, stage)\n', '        a = assess(root, base, known, max_runs)\n'),
+    (RUN, 's1b3 run: judged as a walk of its own, not a run of a chain', '"s1b3": {"judge": s1b2_judge,', '"s1b3": {"judge": s1b1_judge,'),
+    (RUN, "s1b3 run: the chain's set takes no start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3")', 'STARTS_AT_RUN_TIME = ("s1b2",)'),
+    (ROWS3, 's1b3 rows: the list is not cut where the register stood still', '        if s.get("stood_still"):\n            pieces.append((cur, True)); cur = []', '        if False:\n            pieces.append((cur, True)); cur = []'),
+    (ROWS3, 's1b3 rows: a row is whole only if the register stood still after it', '        whole = stood or (complete and k == len(pieces) - 1)', '        whole = stood'),
+    (ROWS3, 's1b3 rows: every row is said to have been walked whole', '        whole = stood or (complete and k == len(pieces) - 1)', '        whole = True'),
+    (ROWS3, 's1b3 rows: an address is given as named after a row that was not ended', '"named_after_the_last_frame": named if whole else None,', '"named_after_the_last_frame": named,'),
+    (ROWS3, 's1b3 rows: a standstill inside a row is passed over', '        if stood and s1b2_row.place(int(named, 16))[:3] == s1b2_row.place(last)[:3]:', '        if False:'),
+    (ROWS3, 's1b3 rows: a row met twice is passed over', '        if place in seen:', '        if False:'),
+    (ROWS3, 's1b3 rows: what is unexpected in a row is not carried to the summary', '        for u in row["unexpected"]:', '        for u in []:'),
+    (ROWS3, 's1b3 rows: a list that is not a chain of names is passed over', '    if any(a["next"] != b["far"] for a, b in zip(seq, seq[1:])):', '    if False:'),
+    (ROWS3, 's1b3 rows: addresses that do not rise are passed over', '    if any(int(b["far"], 16) <= int(a["far"], 16) for a, b in zip(seq, seq[1:])):', '    if False:'),
+    (ROWS3, 's1b3 rows: the seam frame is listed twice', '        seq += [dict(s, run=r["dir"]) for s in r["walk"][(1 if seq else 0):]]', '        seq += [dict(s, run=r["dir"]) for s in r["walk"]]'),
+    (ROWS3, 's1b3 rows: a run that did not pass adds its frames', '        if r["decision"] == "halt":                      # a run that did not pass adds nothing\n            break', '        if False:                      # a run that did not pass adds nothing\n            break'),
+    (ROWS3, 's1b3 rows: the end is never said to follow a standstill', '"after_a_standstill": bool(seq[-1].get("stood_still"))}', '"after_a_standstill": False}'),
+    (ROWS3, 's1b3 rows: every row is listed among the standstills', 'for r in rows if r["ended_by"] == "the register stood still"]', 'for r in rows if True]'),
+    (ROWS3, 's1b3 rows: the known frames are not looked for', '    out["known_frames_walked"] = [f"{a:#010x}" for a in known_addresses if a in walked]', '    out["known_frames_walked"] = []'),
+    (ROWS3, "s1b3 rows: the chain is assessed as one of the row's set", 'STAGE = "s1b3"', 'STAGE = "s1b2"'),
+    (ROWS3, 's1b3 rows: a chain that halted is said to have reached the end', '    complete = assessment["state"] == "complete"', '    complete = True'),
+    (TOP3, 's1b3 top: a frame that differs is not noticed', '        if s["frame_sha256"] == t["frame_sha256"]:', '        if True:'),
+    (TOP3, 's1b3 top: the chain need not have stood still at the end of the stored row', '            if not s.get("stood_still"):', '            if False:'),
+    (TOP3, 's1b3 top: the address gone on to is not held', '            elif s["next"] != end.get("named_after_the_last_frame"):', '            elif False:'),
+    (TOP3, 's1b3 top: another address named along the row is not noticed', '        elif s["next"] != t["next"]:', '        elif False:'),
+    (TOP3, 's1b3 top: a standstill inside the stored row is not noticed', '        elif s.get("stood_still"):', '        elif False:'),
+    (TOP3, 's1b3 top: lists of addresses that differ are not noticed', '    if a != b:', '    if False:'),
+    (TOP3, 's1b3 top: a first row not walked whole is not noticed', '    if not first["walked_whole"]:', '    if False:'),
+    (TOP3, 's1b3 top: columns of other lengths are not noticed', '    if first["frames_per_column"] != stored.get("frames_per_column"):', '    if False:'),
+    (TOP3, 's1b3 top: all-zero frames are counted as the ones that say something', 'if t["frame_sha256"] != ALL_ZERO),', 'if t["frame_sha256"] == ALL_ZERO),'),
+    (TOP3, "s1b3 top: more of the chain's list than its first row is taken", '    mine = rows["addresses"][:first["frames"]]', '    mine = rows["addresses"]'),
+    (TOP3, 's1b3 top: disagreements exit 0', '    return 1 if out["disagreements"] else 0', '    return 0'),
+    (GRADE3, 's1b3 grade: what differs within a row is not carried up', '        out["differs"] += [f"{name}: {d}" for d in g["differs"]]', '        out["differs"] += []'),
+    (GRADE3, 's1b3 grade: nothing is ever said to differ within a row', '    if not any(r["differs"] for r in out["rows"]):', '    if True:'),
+    (GRADE3, 's1b3 grade: the rows are not compared', '    (out["agrees"] if mine == expected else out["differs"]).append(', '    (out["agrees"] if True else out["differs"]).append('),
+    (GRADE3, "s1b3 grade: a complete chain is compared with a beginning of the database's rows", '    expected = theirs if reached else theirs[:len(mine)]', '    expected = theirs[:len(mine)]'),
+    (GRADE3, 's1b3 grade: the frames in all are not compared', '    (out["agrees"] if total == there else out["differs"]).append(', '    (out["agrees"] if True else out["differs"]).append('),
+    (GRADE3, 's1b3 grade: the address after the block type is not compared', '    (out["agrees"] if named == nxt else out["differs"]).append(', '    (out["agrees"] if True else out["differs"]).append('),
+    (GRADE3, 's1b3 grade: the block type after is this one', '    after = grade_s1b2.BUS.get(block + 1)', '    after = grade_s1b2.BUS.get(block)'),
+    (GRADE3, 's1b3 grade: the standstills are passed over in silence', '    if stood:\n', '    if False:\n'),
+    (GRADE3, 's1b3 grade: a chain that halted is graded as the whole block type', '    reached = bool(rows.get("end", {}).get("reached"))', '    reached = True'),
+    (GRADE3, "s1b3 grade: the database's rows by their text, not their number", 'for k in sorted(regions.get(half, {}).get("rows", {}), key=int) if bus in', 'for k in sorted(regions.get(half, {}).get("rows", {}), reverse=True) if bus in'),
+    (GRADE3, 's1b3 grade: a difference exits 0', '    return 0 if not result["differs"] else 1', '    return 0'),
 ]
 
 

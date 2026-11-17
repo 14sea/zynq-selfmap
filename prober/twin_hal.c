@@ -43,19 +43,19 @@ static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_
 static char uart[4096]; static unsigned uart_n;
 
 /* frames */
-#define MAX_FRAMES 200
+#define MAX_FRAMES 400
 static uint32_t f_far[MAX_FRAMES], f_words[MAX_FRAMES][FRAME_WORDS]; static unsigned n_frames;
 
 /* engine */
 static int synced, rcfg; static uint32_t far_reg;
-static uint32_t succ_from[32], succ_to[32]; static unsigned n_succ;
+static uint32_t succ_from[96], succ_to[96]; static unsigned n_succ;
 static uint32_t succ(uint32_t f)
 {
     unsigned i;
     for (i = 0; i < n_succ; i++) if (succ_from[i] == f) return succ_to[i];
     return f + 1u;
 }
-static uint32_t shows_at[16], shows_what[16]; static unsigned n_shows;
+static uint32_t shows_at[32], shows_what[32]; static unsigned n_shows;
 static uint32_t shows(uint32_t position)
 {
     unsigned i;
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
         far_skips = far_skips_data_only || (getenv("SM_FAR_RULE") && !strcmp(getenv("SM_FAR_RULE"), "skip"));
         if (getenv("SM_SUCC")) {
             const char *s = getenv("SM_SUCC"); char *e;
-            while (*s && n_succ < 32) {
+            while (*s && n_succ < 96) {
                 succ_from[n_succ] = (uint32_t)strtoul(s, &e, 16); if (*e != ':') return 2;
                 succ_to[n_succ++] = (uint32_t)strtoul(e + 1, &e, 16);
                 s = *e == ',' ? e + 1 : e;
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
         }
         if (getenv("SM_SHOWS")) {
             const char *s = getenv("SM_SHOWS"); char *e;
-            while (*s && n_shows < 16) {
+            while (*s && n_shows < 32) {
                 shows_at[n_shows] = (uint32_t)strtoul(s, &e, 16); if (*e != ':') return 2;
                 shows_what[n_shows++] = (uint32_t)strtoul(e + 1, &e, 16);
                 s = *e == ',' ? e + 1 : e;

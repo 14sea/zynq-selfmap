@@ -3,6 +3,7 @@
 
     s1b2_chain.py --dir DIR                 say where the chain stored in DIR stands; touches no serial port, writes nothing
     s1b2_chain.py --dir DIR --go            go on with it on the board, run after run, until it is complete or halts
+    s1b2_chain.py --stage s1b3 ...          the same for the chain over block type 0 (section 38): the set s1b3
 
 One run is the walk of S1b.1 (the parameter set s1b2: the row as the envelope, at most 64 frames a pass; judged by
 s1b2_judge, which is the walk's judge but for one rule about the known frames), started at an address this program gives it. The first run starts at the first address of the set; every
@@ -42,6 +43,9 @@ import s1b2_judge  # noqa: E402
 
 STAGE = "s1b2"
 MAX_RUNS = 48                                        # a bound on unattended board time, not a statement about the row
+# S1b.3 (section 38): the same chain with the set s1b3 — block type 0 whole as the envelope, one standstill a pass
+# allowed. Nothing in the rules below differs; the bound is its own.
+BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96}
 P_LO, P_HI, P_PASSES, P_START = 3, 4, 7, 16          # words of the parameter block: the envelope, the passes, the start
 LEFT, LIMIT = s1b2_judge.END[1], s1b2_judge.END[2]
 RUN_DIR = re.compile(r"^run(\d\d)$")
@@ -54,7 +58,7 @@ def planned(base: list[int], start: int) -> list[int]:
     return block
 
 
-def read_run(d: Path, base: list[int], start: int, known: dict) -> dict:
+def read_run(d: Path, base: list[int], start: int, known: dict, stage: str = STAGE) -> dict:
     """One stored run: what the run script recorded, and the result judged again from its raw words against the block
     planned for a run starting at `start`. Everything found wanting is listed in "problems"."""
     out: dict = {"dir": d.name, "start": f"{start:#010x}", "problems": []}
@@ -63,8 +67,8 @@ def read_run(d: Path, base: list[int], start: int, known: dict) -> dict:
         rec = json.loads((d / "run.json").read_text())
     except (OSError, ValueError):
         bad("there is no run record"); return out
-    if rec.get("stage") != STAGE:
-        bad(f"the run record is of stage {rec.get('stage')}, not {STAGE}")
+    if rec.get("stage") != stage:
+        bad(f"the run record is of stage {rec.get('stage')}, not {stage}")
     if not rec.get("went"):
         bad("the prober was not started")
     if rec.get("stop"):
@@ -87,11 +91,12 @@ def read_run(d: Path, base: list[int], start: int, known: dict) -> dict:
     if v["verdict"] != "PASS":
         bad(f"the judge says {v['verdict']}: {v['problems'][:3]}")
     out["passes"] = v.get("passes", [])
-    out["walk"] = [{"far": s["far"], "next": s["next"], "frame_sha256": s["frame_sha256"]} for s in v.get("walk", [])]
+    out["walk"] = [{"far": s["far"], "next": s["next"], "frame_sha256": s["frame_sha256"], **({"stood_still": True} if s.get("stood_still") else {})}
+                   for s in v.get("walk", [])]                 # a step at which the register stood still says so (a set that allows it)
     return out
 
 
-def assess(root: Path, base: list[int], known: dict, max_runs: int = MAX_RUNS) -> dict:
+def assess(root: Path, base: list[int], known: dict, max_runs: int = MAX_RUNS, stage: str = STAGE) -> dict:
     """Where the chain stored under `root` stands: every run in order, each with the decision taken after it, and then
     one of — "go on" (with the number and the starting address of the next run), "complete" (with the address the
     device named after the last frame), "halted" (with the reasons)."""
@@ -105,7 +110,7 @@ def assess(root: Path, base: list[int], known: dict, max_runs: int = MAX_RUNS) -
         return halted(f"the run directories are not run00, run01, ... without a gap: {names}")
     start, prev = base[P_START], None
     for k, name in enumerate(names):
-        r = read_run(root / name, base, start, known)
+        r = read_run(root / name, base, start, known, stage)
         out["runs"].append(r)
         bad = r["problems"].append
         ends: list[tuple] = []
@@ -161,14 +166,15 @@ def brief(a: dict) -> dict:
     return {**a, "runs": [{k: v for k, v in r.items() if k not in ("walk", "passes")} for r in a["runs"]]}
 
 
-def drive(root: Path, base: list[int], known: dict, runner, max_runs: int = MAX_RUNS, max_new: int | None = None, say=lambda *_: None) -> dict:
+def drive(root: Path, base: list[int], known: dict, runner, max_runs: int = MAX_RUNS, max_new: int | None = None, say=lambda *_: None,
+          stage: str = STAGE) -> dict:
     """Go on with the chain until it is complete or halts (or `max_new` runs have been added). `runner(start, out,
     came_from)` makes one run starting at `start` and leaves its files in the directory `out`. After every run the
     whole chain is assessed again from what is stored."""
     root.mkdir(parents=True, exist_ok=True)
     added = 0
     while True:
-        a = assess(root, base, known, max_runs)
+        a = assess(root, base, known, max_runs, stage)
         (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\n")
         if a["runs"]:
             last = a["runs"][-1]
@@ -181,7 +187,7 @@ def drive(root: Path, base: list[int], known: dict, runner, max_runs: int = MAX_
         added += 1
 
 
-def board_runner(root: Path):
+def board_runner(root: Path, stage: str = STAGE):
     """One run on the board: a U-Boot `reset` (as before every run so far), then the run script."""
     import os
     os.environ["SELFMAP_CONSOLE_LOG"] = str(root / "resets_console.log")
@@ -195,7 +201,7 @@ def board_runner(root: Path):
         u.s.close(); u.log.close()
         if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:
             raise RuntimeError(f"before {out.name}: reset did not give the usual fresh prompt; nothing was run")
-        r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", STAGE, "--start", f"{start:x}", "--start-from", came_from,
+        r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, "--start", f"{start:x}", "--start-from", came_from,
                             "--go", "--out", str(out)], capture_output=True, text=True)
         (root / f"{out.name}.out").write_text(r.stdout + r.stderr)
     return run
@@ -207,14 +213,16 @@ def main() -> int:
     ap.add_argument("--dir", type=Path, required=True)
     ap.add_argument("--go", action="store_true")
     ap.add_argument("--max-new", type=int, help="add at most this many runs, then stop where the chain stands")
+    ap.add_argument("--stage", choices=sorted(BOUNDS), default=STAGE, help="the parameter set the chain drives (s1b2: the row; s1b3: block type 0)")
     a = ap.parse_args()
-    base = [int(w, 16) for w in json.loads(s1a_run.STAGES[STAGE]["expected"].read_text())["params"]]
+    base = [int(w, 16) for w in json.loads(s1a_run.STAGES[a.stage]["expected"].read_text())["params"]]
     known = json.loads(s1a_run.KNOWN.read_text())
     if not a.go:
-        state = assess(a.dir, base, known)
+        state = assess(a.dir, base, known, BOUNDS[a.stage], a.stage)
     else:
         try:
-            state = drive(a.dir, base, known, board_runner(a.dir), max_new=a.max_new, say=lambda line: print(line, flush=True))
+            state = drive(a.dir, base, known, board_runner(a.dir, a.stage), BOUNDS[a.stage], max_new=a.max_new, say=lambda line: print(line, flush=True),
+                          stage=a.stage)
         except RuntimeError as e:
             print(f"HALT {e}"); return 1
     print(json.dumps({k: v for k, v in brief(state).items() if k != "runs"}, indent=1))

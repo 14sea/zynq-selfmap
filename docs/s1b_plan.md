@@ -2574,3 +2574,35 @@ driving it again leaves it halted. Where both runs stood still there, or neither
 **Mutants.** Three: the comparison removed (which is the code as reviewed) — the new test then
 fails in both directions, confirming the reproduction — and the comparison made one-sided
 either way. All killed, by that test.
+
+The complete run after the change (`evidence/host_checks/mutants_2026-11-17_s1b3_review.txt`):
+481 mutants (the 478 of section 39 and these three), 481 killed, none survived, none BROKEN,
+none STALE; the unmutated tree before and the restored tree after both run 359 tests, OK. The
+temporary directory was empty afterwards.
+
+## 41. How the mutants are run from here on (owner, 2026-11-17)
+
+Until now the complete set was run after every step and after every change made on review:
+some 480 runs of the whole suite, about an hour, during which nothing may run on the board.
+The owner asked whether that is necessary. What the mutants are for stands — they show whether
+a test fails when the program is wrong, which reading the program cannot show — and so do
+their limits: they try only checks that exist. The gap of section 40 was a check that had
+never been written; every mutant was killed while it was there, and a review found it.
+
+What was out of proportion was running all of them every time. Agreed:
+
+1. **After a change, the mutants of the files that were changed**, by themselves — minutes —
+   together with the check that every mutant's anchor still occurs exactly once in its file.
+   The result is waited for before the change is committed.
+2. **The complete set at key points only**: a change of substance to the prober (the guard,
+   the walk) or to a judge or the chain's rules of acceptance; and before a new image is run
+   on the board for the first time.
+3. **Programs that only run on the host over stored results** — summaries, comparisons,
+   graders: their own mutants once, when they are written. A fault in one of them costs no
+   board time and spoils no evidence; it can be run again on what is stored.
+
+A record of a step says which mutants were run and that the complete set was not.
+
+On the time: it is not the compiling. A clean build of the image and the twin takes under
+three seconds and happens only where a mutant changes C source (141 of the 481); the hour is
+the whole suite, about a minute, once for every mutant whatever file it is in.

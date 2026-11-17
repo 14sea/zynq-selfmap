@@ -1,0 +1,122 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000b                             ....
+Zynq> 
+<<TX b'fatls mmc 0:1\r'>>
+fatls mmc 0:1
+   130652   BOOT.BIN
+  1080688   u-boot.img
+      637   uEnv.txt
+   131072   uboot-redund.env
+    65536   smr0.bin
+    11960   saf77233.bin
+  2083863   carrier.bit
+    21376   saf88051.bin
+    50176   saf89f4b.bin
+   107776   saf8b892.bin
+    32896   saf8ba7b.bin
+   249856   saf8be1f.bin
+   249856   saf8bf42.bin
+   249856   saf8c097.bin
+   249856   saf8c10b.bin
+    67456   saf8c66d.bin
+    44416   saf8c69d.bin
+    77056   saf8c6d4.bin
+   249856   saf8c73f.bin
+   249856   saf8c7b3.bin
+    34816   saf8c8e9.bin
+    34816   saf8c910.bin
+    34816   saf8c937.bin
+    34816   saf8c96a.bin
+    34816   saf8c991.bin
+    34816   saf8c9b8.bin
+    34816   saf8c9ec.bin
+    34816   saf8ca12.bin
+    34816   saf8ca39.bin
+    34816   saf8ca61.bin
+    71296   saf94c02.bin
+   103936   saf94c3f.bin
+    71296   saf94c7f.bin
+    17536   saf94cb6.bin
+   228736   saf94cd4.bin
+   228736   saf94d46.bin
+   221056   saf94dbd.bin
+   103936   saf94e2f.bin
+    27136   saf94e6f.bin
+    17536   saf94e91.bin
+   228736   saf94eb0.bin
+   171136   saf94f22.bin
+   228736   saf94f7c.bin
+   103936   saf94fed.bin
+   103936   saf9502d.bin
+    25216   saf9506e.bin
+   228736   saf95090.bin
+   213376   saf95104.bin
+    21376   saf970c6.bin
+   103936   saf970e6.bin
+   103936   saf9712d.bin
+   163456   saf97170.bin
+   228736   saf971cb.bin
+   228736   saf9723c.bin
+   103936   saf972b4.bin
+   103936   saf972f6.bin
+   103936   saf97337.bin
+   109696   saf97377.bin
+   228736   saf973ba.bin
+   228736   saf9742b.bin
+   103936   saf9749d.bin
+   103936   saf974dd.bin
+   103936   saf9751d.bin
+    84736   saf97561.bin
+   228736   saf9759d.bin
+   228736   saf9760e.bin
+   315136   saf979a3.bin
+   560896   saf9eec0.bin
+   560896   saf9efd6.bin
+   560896   saf9f0d0.bin
+   560896   saf9f1c3.bin
+   560896   saf9f2b7.bin
+   560896   saf9f3ae.bin
+   560896   saf9f4a8.bin
+   560896   saf9f59f.bin
+   560896   saf9f696.bin
+   560896   saf9f78a.bin
+   560896   saf9f87e.bin
+   560896   saf9f972.bin
+   560896   saf9fa69.bin
+   560896   saf9fb60.bin
+   560896   saf9fc57.bin
+   560896   saf9fd54.bin
+   560896   saf9fe48.bin
+   560896   saf9ff40.bin
+   560896   safa0037.bin
+   560896   safa012b.bin
+   560896   safa0222.bin
+   560896   safa031a.bin
+   560896   safa0411.bin
+   560896   safa0505.bin
+   560896   safa05fd.bin
+   560896   safa06f1.bin
+   560896   safa07ec.bin
+   560896   safa08e6.bin
+   560896   safa09dd.bin
+   560896   safa0ad5.bin
+   167296   safa0bcc.bin
+    96256   safb4e0e.bin
+    57856   safb4e5d.bin
+   560896   safbdda6.bin
+
+101 file(s), 0 dir(s)
+
+Zynq> 

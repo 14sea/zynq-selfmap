@@ -2606,3 +2606,45 @@ A record of a step says which mutants were run and that the complete set was not
 On the time: it is not the compiling. A clean build of the image and the twin takes under
 three seconds and happens only where a mutant changes C source (141 of the 481); the hour is
 the whole suite, about a minute, once for every mutant whatever file it is in.
+
+## 42. S1b.3 on the board (2026-11-17): halted at run 51 — the result header was not read back
+
+Released by the owner after sections 39 to 41, and run as section 39 proposes: the first run
+alone, looked at and committed (`904f668`); then the chain unattended. It halted at its 52nd
+run. Everything was committed as it stood (`0834b50`), then the summary of what there is
+(`e7c43a6`) and the comparison of the first row. The full account is
+`evidence/s1b3_17A6_2026-11-17/RESULT.md`.
+
+- **51 runs accepted**, 14,892 records, no anomaly, no overflow, no interface failure. 3,214
+  addresses, `0x00000000..0x00401283`.
+- **The first row whole**, 1,932 frames in 56 columns, and **no disagreement with the stored
+  row** in any of its addresses, frames (178 of them not all zero), names or column lengths:
+  the row read on a second day by the second image.
+- **The standstill at `0x1ba9` was crossed in the chain** (run 30), and the walk went on in the
+  bottom half: 1,282 frames so far, columns 0 to 36 whole, with the lengths of the first 37
+  columns of the first row.
+- **Run 51**: the prober reported a clean run on the console; the sixteen-line dump of the
+  result header came back with a stretch of characters missing; the run script stopped and
+  stored no result; the chain halted. Console losses of this kind happened 71 times in this
+  chain while pieces of results were pulled, and each cost one repeat — a piece is checked
+  against the board's checksum and pulled again. **The header read has no second attempt.**
+- Nothing was graded, nothing retried, nothing moved.
+
+One test assesses the stored chain again from the raw words of its 51 results and holds the
+summary and the comparison by their hashes (360 tests).
+
+**Stopped here.** For the owner, two things, neither done:
+
+1. **The header read.** I propose that the run script read the header again when the dump is
+   not sixteen whole lines — the same command, at most a few times, every attempt recorded, the
+   run stopping as now if none is whole — and likewise for the other short read-only replies it
+   depends on (a status word, a checksum). Never for a command that does anything: `go`, a
+   write, a save. That is a change to the run script: its tests, the related mutants, a review.
+   Without it the remaining runs each carry the chance that stopped this one (once in 52 runs
+   here).
+2. **Going on.** With the owner's word: the directory of run 51 is renamed, kept and committed
+   as what it is (the driver lists such directories as set aside), and the chain makes its
+   52nd run again from `0x00401283`, the last frame of run 50, and goes on to the end, a halt
+   or the bound of 96 runs. The result of the run that was not read is probably still in the
+   board's memory; taking it out by hand would put into the chain a result that did not come
+   through the run script, and I do not propose it — the run takes four minutes.

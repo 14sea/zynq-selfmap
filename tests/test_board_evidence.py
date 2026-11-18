@@ -340,16 +340,24 @@ class StoredBoardResults(unittest.TestCase):
         self.assertFalse((h / "grade.json").exists() or (d / "grade.json").exists(), "the chain halted: nothing was graded")
 
     def test_the_chain_over_block_type_0_as_it_stands(self) -> None:
-        """2026-11-18, before it is taken up again: 51 runs, nothing to halt on, the 52nd planned from `0x00401283`.
-        This test is the one to change when the chain has gone on."""
+        """2026-11-18: taken up again from `0x00401283` with the run script that asks again for a reply that is not whole
+        (it never had to). Eleven more runs; the 62nd stood still at `0x00401ba9` and was then told `0x00800000`,
+        which is outside the envelope: the chain is complete. Every run is judged again here from its raw words."""
         import s1b2_chain
         d = ROOT / "evidence" / "s1b3_17A6_2026-11-17"
         base = [int(w, 16) for w in json.loads((d / "expected_s1b3.json").read_text())["params"]]
         a = s1b2_chain.assess(d, base, KNOWN, s1b2_chain.BOUNDS["s1b3"], "s1b3")
-        self.assertEqual((a["state"], len(a["runs"]), a["next_run"], a["next_start"], a["set_aside"]), ("go on", 51, 51, "0x00401283", ["halted_at_run51"]))
-        self.assertTrue(a["next_start_from"].startswith("the last frame walked by run50 (result sha256 27077e14b769"))
+        self.assertEqual((a["state"], len(a["runs"]), a["named_after_the_last_frame"], a["set_aside"]), ("complete", 62, "0x00800000", ["halted_at_run51"]))
+        self.assertEqual([r["decision"] for r in a["runs"]], ["go on"] * 61 + ["complete"])
         self.assertEqual(s1b2_chain.brief(a), json.loads((d / "chain.json").read_text()))
-        self.assertFalse((d / "run51").exists() or (d / "rows.json").exists() or (d / "top.json").exists())
+        self.assertEqual((a["runs"][51]["first"], a["runs"][61]["frames"], a["runs"][61]["last"]), ("0x00401283", 21, "0x00401ba9"))
+        self.assertEqual([(r["dir"], s["far"], s["next"]) for r in a["runs"] for s in r["walk"] if s.get("stood_still")],
+                         [("run30", "0x00001ba9", "0x00400000"), ("run61", "0x00401ba9", "0x00800000")], "two standstills, each met by one run")
+        for k in range(51, 62):                              # the runs of this day: nothing asked twice but pieces, no overflow, no interface failure
+            rec = json.loads((d / f"run{k:02d}" / "run.json").read_text())
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], v["header"]["anomalies"]), ("PASS", [], [], 0), k)
+            self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()), k)
 
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The

@@ -5,6 +5,57 @@ has listed its own frames. Each step gets its plan reviewed, its host side built
 the owner's go-ahead before it touches the board. This document proposes how to walk, and
 details the first step only.
 
+## Where S1b stands (an index, kept up to date; last changed 2026-11-18, after S1b.4)
+
+The sections below are in the order in which things were proposed, built, reviewed and run,
+and none is rewritten afterwards. This table says where each step is to be found and what it
+gave. Evidence is under `evidence/`; every directory with a board run has a `RESULT.md`.
+
+| step | the question | sections | evidence | what came of it |
+|---|---|---|---|---|
+| S1b.0 | does the device name its next address? | 2, 5–8 | `s1b0_17A6_2026-11-14` | PASS. The address register can be read back; after n frames read from F it holds F + n + 1 |
+| S1b.0b | where does the register stand after the pad alone? | 9–11 | `s1b0b_17A6_2026-11-14` | PASS. On F + 1: one step for every 101 words, the pad included. This is how the walk asks for the next frame without reading it |
+| S1b.1 | the walk of one column | 12–14, 23, 24 | `s1b1r_17A6_2026-11-15` | PASS with the quiet wait. 36 frames, `0xb80..0xba3`, then `0xc00`. Graded: no difference |
+| — the receive-FIFO overflow | why the walk stopped at first | 15–22 | `s1b1_17A6_2026-11-14`, `fifo_rate_17A6_2026-11-14`, `dx_17A6_2026-11-15`, `quiet_17A6_2026-11-15` | The polling loop stored to the stack while a transfer ran. A wait that stores nothing does not overflow. The mechanism in the hardware is not known |
+| S1b.2 | the row: its columns and their frames | 25–28 | `s1b2_17A6_2026-11-15` | 30 runs, columns 0 to 54 walked whole; the chain halted, by its rule, at the end of the row |
+| S1b.2b | what the end of a row is | 29–31 | `s1b2b_17A6_2026-11-16` | After the last frame the register stands still for one step, then names `0x00400000`. The row: 56 columns, 1,932 frames |
+| — the row graded | | 32–34 | `s1b2b_17A6_2026-11-16` (`row_closed.json`, `grade.json`) | No difference from prjxray-db |
+| S1b.3a | a walk that crosses the end of a row | 35–37 | `s1b3a_17A6_2026-11-17` | PASS. One standstill allowed in a pass; beyond it the register behaves as before |
+| S1b.3 | all of block type 0 | 38–45 | `s1b3_17A6_2026-11-17` | Complete in 62 runs. 3,864 addresses: the top half and the bottom half, one row each, 1,932 frames and 56 columns each, the columns of equal length one for one. After the second row the device names `0x00800000`. Graded: nothing differs |
+| — a halt of the host's making | run 51 of that chain | 42–44 | `s1b3_17A6_2026-11-17/halted_at_run51` | The console lost characters while the result header was read. The run script now asks again for a short read-only reply that is not whole; the run was set aside and the chain taken up again |
+| S1b.4a | does the walk work in block type 1? | 46–48 | `s1b4a_17A6_2026-11-18` | PASS. `0x00800000..0x0080003f`, the register as in block type 0, every frame all zero |
+| S1b.4 | all of block type 1 | 49–52 | `s1b4_17A6_2026-11-18` | Complete in 21 runs. 1,280 addresses: the top half and the bottom half, one row each, 5 columns of 128 frames. After the second row the device names `0x01000000`. Graded: nothing differs. Two things seen and not explained (section 52) |
+
+Section 3 is the outline as it was first drawn, section 4 the owner's first decisions, and
+section 41 how the mutants are run.
+
+**What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
+row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
+loaded, 428 of those frames are not all zero (178 in the top row, 250 in the bottom row).
+Block type 1 has 1,280 frame addresses in two rows of 5 columns of 128 frames; the frames of
+columns 0 and 1 are all zero, those of columns 2 to 4 all hold one and the same content that
+is not zero. After block type 1 the device names `0x01000000`. In all 5,144 addresses, the
+number the proposal gave as the database's; graded, none differs.
+
+**What S1b can and cannot stand behind** is said in section 3 and has not changed: which
+addresses the device names, and that reading them is repeatable and does not depend on the
+path. Not the content. Where frames are all alike — all zero in most of block type 0, all
+zero or all one pattern in block type 1 — the list rests on the address register and on the
+reference frame alone. UG470 says block-RAM content is skipped in readback, so what is
+delivered in block type 1 says nothing about what is stored there.
+
+**Still open in S1b.**
+
+- Block type 2, which the device names at `0x01000000`. No proposal yet; it is a decision
+  of its own (section 3).
+- The status bit that appears when the frames of columns 2 to 4 of block type 1 are read,
+  and what those frames hold (section 52). Not looked into.
+- The frame census as one document beside the schema (proposal, section 4): which addresses
+  exist, their block type, whether readback is stable. So far each step has its own summary
+  (`rows.json`, `top.json`, `layout.json`); the one document has not been written.
+- Not explained: why the stores to the stack overflowed the FIFO; what the places at the end
+  of a row are.
+
 ## 1. How to find the next frame: ask the device
 
 The open question since the proposal is what happens when a frame address that does not exist is
@@ -3271,3 +3322,61 @@ one moved to the line as it now reads: 524 in all, none stale. Run as section 41
 of the summary program, all killed (`evidence/host_checks/mutants_2026-11-18_s1b4_review.txt`);
 the others were not run, the complete set having been run on `b97dad9`, which this does not
 touch beyond that one line. Nothing was run on the board.
+
+## 52. S1b.4 on the board (2026-11-18): the chain complete; block type 1 graded — nothing differs; two things not explained
+
+Released by the owner after the review of sections 50 and 51. The record is
+`evidence/s1b4_17A6_2026-11-18/RESULT.md`; this section is its short form and what is left
+open by it.
+
+**What was done, in the order of section 50.** The devices checked; the first run alone,
+looked at, committed (`34a4874`); the chain unattended, 20 more runs, a `reset` before each;
+its result committed as it stood (`245b25b`); the summary over rows (`25ef37f`); the stored
+run of S1b.4a against it (`7491ad5`); the record, written before the grader was run
+(`9e12785`, a count corrected in `25637da`); the grader once (`d29fcf9`). Nothing was halted,
+retried or moved. The new second attempt at a short reply was never used.
+
+**What the device said.**
+
+- Block type 1: 1,280 addresses, `0x00800000..0x0080027f` and `0x00c00000..0x00c0027f` — the
+  top half and the bottom half, row 0 each, five columns of 128 frames each, minors 0 to 127.
+- The register as in block type 0, with a standstill at the end of each row; the walk and the
+  chain needed nothing new.
+- After the last frame the device names `0x01000000`: by the fields of the address, block
+  type 2. Above the envelope; named, not read.
+- Graded against prjxray-db: nothing differs. With block type 0 that is 5,144 addresses.
+
+**Seen and not explained** (in full in the record; found before the grader was run):
+
+1. The 512 frames of columns 0 and 1 are all zero. The 768 frames of columns 2, 3 and 4 all
+   hold the same content: ten words of `0x00020000`, every tenth word from word 4, the middle
+   word passed over. The same at every reading.
+2. In every run, from the first read of a frame in columns 2 to 4 on, `devcfg.INT_STS` shows
+   bit 5 (`50033024` instead of `50033004`), which UG585's register reference names
+   `PCFG_SEU_ERR`: "triggers when PL detects POST_CRC or ECC error". The read of the pad
+   alone at the same address does not show it; the runs that stay in columns 0 and 1 never
+   show it; no run of this project had shown it before. It is not among the bits the prober
+   and the judges treat as errors, so nothing stopped; `SEU_EN` is clear, so the PS does
+   nothing about it; the reference frame read as known afterwards in every run. The prober
+   does not clear the bit, so whether every such read raises it cannot be seen.
+
+Neither changes the list of addresses. Both bear on what comes later: S2 reads LUT RAM back
+while a design runs, and the block-RAM columns were always to be approached last (proposal,
+section 10).
+
+**What the tests hold.** One new test in `tests/test_board_evidence.py` (420 in all): the 21
+runs judged again from their raw words against the set kept with them, the summary and the
+comparison made again, the stored files by their hashes, and both findings above as the
+stored records have them — the content by column, and the bit from exactly the first read of
+a frame in columns 2 to 4 in each run. No program was changed, so no mutants were run.
+
+**Open, for the owner — nothing of it has been begun.**
+
+- Block type 2: whether to read into it, and how. The walk's rules were found in block type 0
+  and held in block type 1; nothing says they hold there. A first step would be one run, as
+  S1b.4a was.
+- The status bit: whether to look into it now (which read raises it, whether it can be
+  cleared, whether the design is disturbed) or to leave it recorded until S2 needs the
+  answer. The judges do not report it at present; they could, without treating it as an error.
+- The frame census as one document beside the schema (proposal, section 4). With block types
+  0 and 1 walked and graded there is now something to put in it.

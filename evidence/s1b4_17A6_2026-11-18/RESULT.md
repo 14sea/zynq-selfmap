@@ -111,7 +111,29 @@ the other 7.**
 - Not looked into: whether the design in the PL still works as it should after such a read.
   S1b uses nothing of the design, and nothing here tests it.
 
-## Not graded yet
+## The grader (`grade.json`, sha256 `3e70bb86…9892`, commit `d29fcf9`)
 
-The grader has not been run at the time of this record. It follows, once, as section 50 says,
-and its output is added below whatever it says.
+Everything above this heading was written and committed (`9e12785`; one count corrected in
+`25637da`) before the grader was run. Then `grade_s1b3.py`, once, on `rows.json` against
+`part.json` of `xc7z010clg400-1` in the prjxray-db checkout at `0a0adde` (sha256
+`1754ec1c…d095`, the file the earlier grades used). No bitstream was parsed.
+
+- **Nothing differs.**
+- Both rows: each of the 5 columns has the number of frames the database gives it, 128, and
+  they are the database's columns 0 to 4 in order; 640 frames a row.
+- The rows walked are the database's rows of block type 1 in its order; 1,280 frames in all,
+  as the database's columns add up to.
+- After the first row the device named `0x00c00000`, the first frame of the next row in the
+  database's order.
+- Not compared, the database having nothing to hold them against: the two standstills, and
+  `0x01000000` — the database lists no block type after this one.
+
+With block type 0 (3,864, `evidence/s1b3_17A6_2026-11-17`) that is 5,144 frame addresses named
+by the device and found in the database, and none in the one that is not in the other.
+
+The two things under "Seen and not explained" are not something the frame list of the
+database speaks to; they were not graded and stand as written.
+
+A test (`tests/test_board_evidence.py`) judges the 21 runs again from their raw words, makes
+the summary and the comparison again, and holds the files here by their hashes; it also holds
+the two unexplained findings as they are in the stored records.

@@ -86,8 +86,9 @@ was run. Nothing was read again on the board for either.
 **2. The status register after a run reads `50033024` in 14 of the 21 runs, `50033004` in
 the other 7.**
 
-- The difference is bit 5. No stored run of this project had shown it before: 251 runs,
-  all of block type 0 and S1b.4a's run among them.
+- The difference is bit 5. No stored run of this project had shown it before: 159 runs with
+  a run record — 138 ending in `50033004`, 16 ending with an error bit set, 5 with no status
+  read — all of block type 0 and S1b.4a's run among them.
 - Where it appears, in the status words kept with every record: **in each of the 14 runs, at
   the first read of a frame in columns 2 to 4**, and it stays set to the end of the run. In
   run 4 that is the read of the pad and the frame at `0x00800100`, the first frame of column

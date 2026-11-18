@@ -1,0 +1,106 @@
+{
+ "chain": "complete",
+ "agrees": [
+  "nothing differs within any of the 2 row(s) walked",
+  "the rows walked are the database's rows of block type 1, in its order",
+  "frames of block type 1: the chain found 1280, the database's columns add up to 1280"
+ ],
+ "differs": [],
+ "not_compared": [
+  "the register stood still after the last frame of 2 row(s) (0x0080027f, 0x00c0027f): the database lists frames and has nothing to hold that against",
+  "the address named after the last frame is 0x01000000; the database lists no block type after this one"
+ ],
+ "rows": [
+  {
+   "row": "row 0 (block type 1, top half, row 0)",
+   "frames": 640,
+   "walked_whole": true,
+   "agrees": [
+    "each of the 5 column(s) walked whole has the number of frames the database gives it",
+    "the columns walked are the database's columns 0..4 of this row, in order",
+    "frames in the row: the walk found 640, the database's columns add up to 640",
+    "the address named after the last frame of the row is 0x00c00000; the first frame of the row next in the database's order, row 0 of the bottom half (this is the last row of the top half in the database), is 0x00c00000"
+   ],
+   "differs": [],
+   "not_compared": [],
+   "columns": [
+    {
+     "column": 0,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 1,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 2,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 3,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 4,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    }
+   ]
+  },
+  {
+   "row": "row 1 (block type 1, bottom half, row 0)",
+   "frames": 640,
+   "walked_whole": true,
+   "agrees": [
+    "each of the 5 column(s) walked whole has the number of frames the database gives it",
+    "the columns walked are the database's columns 0..4 of this row, in order",
+    "frames in the row: the walk found 640, the database's columns add up to 640"
+   ],
+   "differs": [],
+   "not_compared": [
+    "the address named after the last frame is 0x01000000; the database has no row after this one in its order"
+   ],
+   "columns": [
+    {
+     "column": 0,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 1,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 2,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 3,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    },
+    {
+     "column": 4,
+     "walked": 128,
+     "database": 128,
+     "walked_whole": true
+    }
+   ]
+  }
+ ]
+}

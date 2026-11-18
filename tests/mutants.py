@@ -30,6 +30,7 @@ CLOSED = "host/s1b2_closed.py"
 SEAM = "host/s1b3a_seam.py"
 ROWS3, TOP3, GRADE3 = "host/s1b3_rows.py", "host/s1b3_top.py", "host/grade_s1b3.py"
 LAYOUT4, FIRST4 = "host/s1b4a_layout.py", "host/s1b4_first.py"
+SEEN, LOOK = "host/status_seen.py", "host/ps_look.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -591,6 +592,34 @@ MUTANTS = [
     (CHAIN, "s1b3 chain: a seam at which only one run stood still is taken", "            elif bool(b.get(\"stood_still\")) != bool(a.get(\"stood_still\")):", "            elif False:"),
     (CHAIN, "s1b3 chain: a seam is refused only where the later run stood still and the earlier did not", "            elif bool(b.get(\"stood_still\")) != bool(a.get(\"stood_still\")):", "            elif bool(b.get(\"stood_still\")) and not bool(a.get(\"stood_still\")):"),
     (CHAIN, "s1b3 chain: a seam is refused only where the earlier run stood still and the later did not", "            elif bool(b.get(\"stood_still\")) != bool(a.get(\"stood_still\")):", "            elif bool(a.get(\"stood_still\")) and not bool(b.get(\"stood_still\")):"),
+    # ---- the listing of status bits that are neither an error nor usual (plan section 54); host only
+    (SEEN, "seen: a bit the judges take for an error is listed too", "    other = 0xFFFFFFFF & ~(ERR_MASK | USUAL)", "    other = 0xFFFFFFFF & ~USUAL"),
+    (SEEN, "seen: bit 5 is taken for usual", "USUAL = 0x50033004 ", "USUAL = 0x50033024 "),
+    (SEEN, "seen: the header's readings are passed over", '    if "int_sts_initial" in header:', "    if False:"),
+    (SEEN, "seen: the header's last reading is passed over", '    if "int_sts_final" in header:', "    if False:"),
+    (SEEN, "seen: only the last status word of a record is looked at", '        words += [(int(x, 16), where) for x in r.get("int_sts") or []]', '        words += [(int(x, 16), where) for x in (r.get("int_sts") or [])[-1:]]'),
+    (SEEN, "seen: a bit that went away again is said to have stayed", '"stayed_once_it_showed": all(has[first:])', '"stayed_once_it_showed": True'),
+    (SEEN, "seen: the bit is said to be there at the end whenever it showed", '"in_the_last_word": has[-1]}', '"in_the_last_word": True}'),
+    (SEEN, "seen: every directory inside a directory is taken for a run", '    return sorted(p for p in arg.glob("run[0-9][0-9]/verdict.json"))', '    return sorted(p for p in arg.glob("*/verdict.json"))'),
+    (SEEN, "seen: nothing to read exits 0", "        print(__doc__); return 2", "        print(__doc__); return 0"),
+    # ---- the look at PS registers and its one write (plan section 54); host side of a board step
+    (LOOK, "look: the write is sent whatever the status says", "    if not (got[0] & BIT and got[0] & PCFG_DONE):", "    if False:"),
+    (LOOK, "look: the write is sent without PCFG_DONE", "    if not (got[0] & BIT and got[0] & PCFG_DONE):", "    if not (got[0] & BIT):"),
+    (LOOK, "look: the write is sent without the bit", "    if not (got[0] & BIT and got[0] & PCFG_DONE):", "    if not (got[0] & PCFG_DONE):"),
+    (LOOK, "look: the write clears another bit", 'CLEAR = "mw.l f800700c 00000020"', 'CLEAR = "mw.l f800700c 00000040"'),
+    (LOOK, "look: the write clears every bit", 'CLEAR = "mw.l f800700c 00000020"', 'CLEAR = "mw.l f800700c ffffffff"'),
+    (LOOK, "look: the write goes to another register", 'CLEAR = "mw.l f800700c 00000020"', 'CLEAR = "mw.l f8007000 00000020"'),
+    (LOOK, "look: a dump that is not whole is taken as it is", "            if got is not None:\n                return got\n            record[\"replies_not_whole\"]", "            if True:\n                return got or [0] * 8\n            record[\"replies_not_whole\"]"),
+    (LOOK, "look: a dump is asked for without end", "        for attempt in range(1, MAX_READS + 1):", "        for attempt in range(1, 50):"),
+    (LOOK, "look: the look goes on after a dump that could not be read", "        got = read(cmd)\n        if got is None:\n            return record", "        got = read(cmd)\n        if got is None:\n            continue"),
+    (LOOK, "look: the write goes out although the status could not be read", "    got = read(STATUS)\n    if got is None:\n        return record\n    record[\"status_before\"]", "    got = read(STATUS) or [BIT | PCFG_DONE]\n    record[\"status_before\"]"),
+    (LOOK, "look: the look goes on without a prompt after the write", "        record[\"stopped\"] = f\"no prompt after `{CLEAR}`\"; return record", "        record[\"stopped\"] = None"),
+    (LOOK, "look: no pause before the reads after the write", "        pause(PAUSE)\n", ""),
+    (LOOK, "look: one read after the write", "READS_AFTER, PAUSE = 3, 1.0", "READS_AFTER, PAUSE = 1, 1.0"),
+    (LOOK, "look: no prompt at the start and it goes on", '        record["stopped"] = "no U-Boot prompt"; return record', "        pass"),
+    (LOOK, "look: a missing prompt after a dump is not noticed", "            if not ok:\n                record[\"stopped\"] = f\"no prompt after `{cmd}`\"; return None", "            if False:\n                return None"),
+    (LOOK, "look: without --go it sends", "    if a.dry_run or not a.go:", "    if a.dry_run:"),
+    (LOOK, "look: an existing directory is written into", "    if a.out is None or a.out.exists():", "    if a.out is None:"),
 ]
 
 

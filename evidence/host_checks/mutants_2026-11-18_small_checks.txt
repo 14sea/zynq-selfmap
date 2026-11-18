@@ -1,0 +1,34 @@
+# python3 tests/mutants.py 'seen: '
+unmutated: Ran 441 OK; 0 test(s): 
+KILLED   seen: a bit the judges take for an error is listed too         Ran 441 FAILED (failures=2); 2 test(s): a_bit_that_is_an_error_is_the_judges_busine, before_s1b4_no_stored_run_has_such_a_bit
+KILLED   seen: bit 5 is taken for usual                                 Ran 441 FAILED (failures=4, errors=3); 7 test(s): a_verdict_with_little_in_it_is_still_answer, every_other_bit_is_listed_whichever_it_is
+KILLED   seen: the header's readings are passed over                    Ran 441 FAILED (failures=2, errors=1); 3 test(s): a_run_within_the_usual_lists_nothing, the_headers_readings_count_too
+KILLED   seen: the header's last reading is passed over                 Ran 441 FAILED (failures=2, errors=1); 3 test(s): a_run_within_the_usual_lists_nothing, the_headers_readings_count_too
+KILLED   seen: only the last status word of a record is looked at       Ran 441 FAILED (failures=3); 3 test(s): a_run_within_the_usual_lists_nothing, every_other_bit_is_listed_whichever_it_is
+KILLED   seen: a bit that went away again is said to have stayed        Ran 441 FAILED (failures=2); 2 test(s): the_headers_readings_count_too, where_it_first_showed_and_whether_it_stayed
+KILLED   seen: the bit is said to be there at the end whenever it showed Ran 441 FAILED (failures=1); 1 test(s): where_it_first_showed_and_whether_it_stayed
+KILLED   seen: every directory inside a directory is taken for a run    Ran 441 FAILED (failures=1); 1 test(s): files_and_directories
+KILLED   seen: nothing to read exits 0                                  Ran 441 FAILED (failures=1); 1 test(s): files_and_directories
+restored: Ran 441 OK; 0 test(s):  (8 copies)
+9 mutants, 0 survived
+# python3 tests/mutants.py 'look: '
+unmutated: Ran 441 OK; 0 test(s): 
+KILLED   look: the write is sent whatever the status says               Ran 441 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write is sent without PCFG_DONE                      Ran 441 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write is sent without the bit                        Ran 441 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write clears another bit                             Ran 441 FAILED (failures=7); 7 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: the write clears every bit                               Ran 441 FAILED (failures=7); 7 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: the write goes to another register                       Ran 441 FAILED (failures=7); 7 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: a dump that is not whole is taken as it is               Ran 441 FAILED (failures=2); 2 test(s): a_dump_that_is_not_whole_is_asked_for_again, five_times_and_no_more_and_then_it_stops
+KILLED   look: a dump is asked for without end                          Ran 441 FAILED (failures=1); 1 test(s): five_times_and_no_more_and_then_it_stops
+KILLED   look: the look goes on after a dump that could not be read     Ran 441 FAILED (failures=2); 2 test(s): five_times_and_no_more_and_then_it_stops, no_prompt_after_a_dump_stops_the_look
+KILLED   look: the write goes out although the status could not be read Ran 441 FAILED (failures=1); 1 test(s): five_times_and_no_more_and_then_it_stops
+KILLED   look: the look goes on without a prompt after the write        Ran 441 FAILED (failures=1); 1 test(s): the_write_is_sent_once_whatever_comes_back
+KILLED   look: no pause before the reads after the write                Ran 441 FAILED (failures=1); 1 test(s): the_commands_are_the_ones_written_here_and_
+KILLED   look: one read after the write                                 Ran 441 FAILED (failures=7); 7 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: no prompt at the start and it goes on                    Ran 441 FAILED (failures=1); 1 test(s): no_prompt_at_the_start_and_nothing_is_sent
+KILLED   look: a missing prompt after a dump is not noticed             Ran 441 FAILED (failures=1); 1 test(s): no_prompt_after_a_dump_stops_the_look
+KILLED   look: without --go it sends                                    Ran 441 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_commands_and_needs_n
+KILLED   look: an existing directory is written into                    Ran 441 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_commands_and_needs_n
+restored: Ran 441 OK; 0 test(s):  (8 copies)
+17 mutants, 0 survived

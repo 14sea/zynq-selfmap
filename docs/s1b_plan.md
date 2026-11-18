@@ -26,8 +26,9 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 | S1b.4a | does the walk work in block type 1? | 46–48 | `s1b4a_17A6_2026-11-18` | PASS. `0x00800000..0x0080003f`, the register as in block type 0, every frame all zero |
 | S1b.4 | all of block type 1 | 49–52 | `s1b4_17A6_2026-11-18` | Complete in 21 runs. 1,280 addresses: the top half and the bottom half, one row each, 5 columns of 128 frames. After the second row the device names `0x01000000`. Graded: nothing differs. Two things seen and not explained (section 52) |
 
-Section 3 is the outline as it was first drawn, section 4 the owner's first decisions, and
-section 41 how the mutants are run.
+Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
+section 41 how the mutants are run. Section 53 is the account of what is not understood so
+far; sections 54 and 55 are the small checks proposed and built after it.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -3381,3 +3382,194 @@ a frame in columns 2 to 4 in each run. No program was changed, so no mutants wer
   answer. The judges do not report it at present; they could, without treating it as an error.
 - The frame census as one document beside the schema (proposal, section 4). With block types
   0 and 1 walked and graded there is now something to put in it.
+
+## 53. What is not understood so far (2026-11-18): an account, with what is known and what is guessed kept apart
+
+Written at the owner's request after S1b.4. Three things are taken one by one — the two
+findings of section 52 and the overflow of sections 15 to 22 — and then everything else that
+is not clear is listed. For each: what was observed; what the official documents say; a
+guess, marked as one. **The guesses rest in part on general knowledge of this device family.
+They may stand in this document. They go into no program and no judge, and nothing is
+concluded from them.**
+
+### A correction first
+
+On 2026-11-18 two short texts (the index at the head of this plan and the record of S1b.4)
+said "UG470 says block-RAM content is skipped in readback". That sentence of UG470 stands in
+its chapter on the background readback check and is about that check. Of a readback that is
+asked for, UG470 says that it reads "all configuration memory cells, including the current
+values on all user memory elements (LUT RAM, SRL, and block RAM)". Section 46 had both in
+their place. Both texts were corrected (`af96955`).
+
+### 1. Columns 2 to 4 of block type 1: 768 frames with one content
+
+*Observed.* Ten words of `0x00020000` in each frame, at words 4, 14, 24, 34, 44, 55, 65, 75,
+85, 95 of 101; the same in all 768 frames and at every reading. The 512 frames of columns 0
+and 1 are all zero.
+
+*Guess.* A frame is 50 words, one word, 50 words. The ten bits are then one in every unit of
+ten words, ten units to a column and row; three columns, two rows: 60 units. If the part has
+60 block RAMs — a number I believe to be the datasheet's and have not checked in a document
+here — this is one bit for each block-RAM site, repeated in each of the 128 frames, and
+columns 0 and 1 are addresses with no RAM behind them. It does not look like stored content:
+the carrier's source instantiates no block RAM, and content would not be the same at one
+place in 128 frames.
+
+*What would test it without a database.* What S2 does for LUT RAM, done for block RAM: user
+logic writes a known pattern, readback finds it. The proposal puts block RAM last. Not now.
+
+### 2. `PCFG_SEU_ERR` from the first read of such a frame
+
+*Observed* (section 52): only a read that delivers a frame of columns 2 to 4 shows it; the
+pad alone does not; block type 0 never did, its 428 frames that are not zero included.
+
+*The documents.* UG585, register reference: bit 5 of `devcfg.INT_STS`, write one to clear,
+"triggers when PL detects POST_CRC or ECC error". UG470, chapter 8, of the background check:
+"after a frame with erroneous bits is read, ECCERROR is asserted".
+
+*Guess.* The frame ECC logic looks at every frame that is read back, whoever asked for it.
+The frames of block type 0 carry check bits the tools computed, and pass. A frame of zeros
+passes by itself. The 768 frames have ten bits set and a middle word of zero: no check can
+come out right, and the error is flagged. That one guess accounts for all four observations.
+If it is right, the flag is not an upset; it is what reading a frame does whose check bits do
+not cover its content.
+
+*What follows from it, if it is right.* S2 reads LUT RAM frames after user logic has changed
+them, and S4 writes frames back changed: in both the check bits no longer fit, and the bit
+would then show as a matter of course. That is a test S2 makes without being asked to. Until
+then: the bit must stay out of the error mask but must be seen; and `SEU_EN` in
+`devcfg.CTRL` must never be set, since with it this bit locks the PS down.
+
+### 3. The receive-FIFO overflow (sections 15 to 22)
+
+*Observed.* With the data cache off, a polling loop that stores two words to the stack while
+a transfer runs overflows the FIFO in about one read in a hundred — when those words lie at
+offsets 24 and 28 of a 32-byte block, and in no read when they lie at 0 and 4. Only those two
+places were tried. With a wait that stores nothing: 119 runs, 33,515 records, no overflow.
+
+*The documents.* UG585: the PCAP side has no flow control; when the FIFO overflows "incoming
+read data from PCAP will be dropped and the DEVCI DMA may enter an unrecoverable state".
+After an overflow the status also showed the AXI write time-out bit.
+
+*What can be said.* An overflow means the DMA's writes to memory were held up for a moment,
+and the one thing that differed was the processor writing to memory at the same time.
+
+*Not known.* Why the end of a 32-byte block, and why one read in a hundred. Directions, none
+with evidence: how the DDR controller arbitrates between its ports; whether the level-2
+cache is in fact on (only SCTLR was ever recorded); the alignment of the DDR's bursts.
+
+*How much it matters.* The rule "nothing is stored while a transfer runs" is held by a test
+of the machine code, and the count above is large. Low priority.
+
+### 4. Everything else that is not clear
+
+- **The end of a row.** The step at which the register stands still, and the two frames of
+  zeros a longer read delivers there (section 31). A guess: filler between rows. Not tested.
+- **Whether readback disturbs the running design** (proposal, question 5). Known only: the
+  reference frame and the status did not change. What the design does was never checked.
+- **Whether what is read is what the PL holds.** S1b never claimed it (section 3). S2.
+- **Addresses the device does not name.** The walk goes only where it is pointed. Nothing
+  outside that was read; nor block type 2 or above.
+- **The carrier's three small memories** without an attribute (section 46): the source does
+  not say whether they became block RAM. It bears on item 1.
+- **`a802000a` after a `reset`, `a802000b` after power-on.** Bit 0, which UG585 calls
+  `PCFG_INIT_NE_INT`. Presumably an edge only power-on produces. Not tested.
+- **The console loses characters** — 23 of 1,402 pieces had to be pulled again in S1b.4.
+  The cause (adapter, USB forwarding, host) is not known; it is worked around.
+- **Not begun:** the AXI path from the returning program to user logic (question 9), the
+  readback mask, GCAPTURE, the bit order of shift registers (questions 4 to 7).
+
+*One thing can be closed.* Earlier records call bit 16 of the status "set by the first
+readback, not explained". UG585's register reference: bit 16 is "Rx FIFO level >= threshold",
+bit 17 the same for the transmit FIFO, bit 13 "DMA command is done", bit 12 both DMA and
+PCAP done. They are states, not errors, and are what `50033004` consists of beside
+`PCFG_DONE` and two bits above them.
+
+## 54. Small checks before S2 — proposal (2026-11-18; the owner: do what can be done now, leave the rest to S2)
+
+Three things, of which two are host only and one is a short session at the U-Boot prompt. No
+new image, no run of the prober, nothing addressed in the PL.
+
+**(a) A listing of status bits that are neither an error nor usual** — host only. The judges
+hold every status word against the error mask and ask for `PCFG_DONE`; bit 5 passed them
+unseen and was found by chance. A program reads the verdicts the judges wrote, stored or
+new, and lists for every run each bit outside the error mask and outside `50033004`, where
+it first showed and whether it stayed. It is a listing: it fails nothing.
+
+- *Why not a field in the judges' verdicts:* stored verdicts are held equal, in tests, to what
+  the judges give now. A new field would make every stored verdict differ, or have them
+  rewritten. A program beside the judges changes neither.
+- From here on it is run over every board result before the record is written.
+
+**(b) A look at registers, from U-Boot** — on the board, read only. One `md.l` each:
+
+| registers | why |
+|---|---|
+| `devcfg` CTRL, LOCK, CFG, INT_STS, INT_MASK, STATUS; MCTRL | the state the checks are made in; CFG holds the FIFO thresholds |
+| `slcr` ARM, DDR and IO PLL control; ARM and DDR clock control; PCAP clock control | how fast the PCAP side delivers and the memory side takes (item 3) |
+| `l2cpl310` reg1_control, reg1_aux_control | whether the level-2 cache is on (item 3) |
+| `ddrc` axi_priority_wr_port0–3, axi_priority_rd_port0–3 | how the DDR controller ranks its ports (item 3) |
+
+They are recorded. Nothing is concluded from them in a program; the record says what UG585
+says of the values.
+
+**(c) Can bit 5 be cleared, and does it stay away?** — on the board, one write to a PS
+register. The board stands as run 20 of S1b.4 left it: PL configured, status `50033024`.
+
+1. `md.l f800700c 1`. If it does not show `PCFG_DONE` and bit 5, nothing is written and the
+   check is not made (the record says so).
+2. `mw.l f800700c 00000020`, once. The register is write-one-to-clear; the prober writes its
+   own clear mask to it before every read. This writes the one bit that mask leaves out.
+3. `md.l f800700c 1` three times, a second before each.
+
+What each outcome would say:
+
+| after the write | reading |
+|---|---|
+| the bit is gone and stays gone | a latched event: something that happened at a read, not a state the PL holds |
+| the bit is still there, or is back within seconds | the PL holds its error signal up while nothing is being read |
+
+Either is recorded as it comes. Neither proves the guess of section 53, item 2; the first
+fits it and the second would count against it.
+
+**Not in this step, left to S2 or to a later decision:** single reads at `0x008000ff` and
+`0x00800100` with the present image; a prober that clears bit 5 before every read (a new
+image, the full review); the stack offsets 8 and 16; block type 2; the census document.
+
+**On the board, when the owner says so, and not before.** The devices checked; `ps_look.py
+--dry-run` shown; no `reset` beforehand — the check needs the state the last run left. Then
+`ps_look.py --go --out evidence/pslook_17A6_<date>`, once. Its output committed as it stands;
+then the record. If the status is not as expected, or a reply cannot be read whole, the
+program stops by itself and that is what is reported.
+
+## 55. The small checks as built (2026-11-18; host side, nothing on a board yet)
+
+**`host/status_seen.py`** — (a). `status_seen.py <verdict.json | directory> ...`; a directory
+stands for its own verdict or for those of its `runNN` directories. For each run: the bits
+outside `ERR_MASK | 0x50033004` in the header's two readings and in the status words of every
+record, each with the first place it showed, how many words have it, whether it stayed once
+it showed and whether it is there at the end. One name is carried, bit 5's, from UG585.
+
+Over what is stored: of 179 verdicts, the 158 from before S1b.4 have no such bit; in S1b.4,
+bit 5 in the 14 runs of section 52, first at `0x00800100` and `0x00c00100` in runs 4 and 14.
+
+**`host/ps_look.py`** — (b) and (c). Its commands are written out in it and it has no other
+way to send one: seven dumps, the status, the write, the status three times. `--dry-run`
+prints them; `--go --out DIR` sends them and leaves `console.log` and `look.json`.
+
+- A dump whose reply is not whole is asked for again, at most five times, by the rule of
+  section 43 (`s1a_run.whole`); if it cannot be read, the look stops there.
+- The write is sent only if the status read just before has `PCFG_DONE` and bit 5; it is sent
+  once, its reply is not examined, and it is never repeated. No prompt after it: stop.
+- `--out` must not exist yet, so that a second call cannot write over a first.
+
+**Tests.** 441 in all, 21 new: `tests/test_status_seen.py` (10: made-up verdicts; every
+stored verdict; the command line) and `tests/test_ps_look.py` (11: against a pretended
+console that clears the bit as the register does — the commands sent are held to a list
+written in the test; the cases in which the write must not go out; replies that are not
+whole; the dry run). The stored evidence is not touched.
+
+**Mutants.** 26 new (9 and 17), 550 in all, none stale. Run as section 41 says for programs
+of the host: their own, once — 26 of 26 killed
+(`evidence/host_checks/mutants_2026-11-18_small_checks.txt`). No prober, judge or rule of the chain was
+changed, so the complete set was not run.

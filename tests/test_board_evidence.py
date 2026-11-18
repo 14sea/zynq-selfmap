@@ -331,6 +331,36 @@ class StoredBoardResults(unittest.TestCase):
                          ([], 1932, 1932, 1932, 178, 56))
         self.assertFalse((d / "grade.json").exists(), "the chain halted: nothing was graded")
 
+    def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
+        """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
+        rule for "whole" is held here against every such reply stored from the board so far, as the run records have
+        them: all are whole, and say what the run took from them — but one, the header dump of run 51 of the chain over
+        block type 0, which lost a stretch of characters and stopped that run."""
+        import s1a_run
+        seen = {"md.l": 0, "crc32": 0}
+        not_whole, headers = [], 0
+        for record in sorted((ROOT / "evidence").rglob("run.json")):
+            rec = json.loads(record.read_text())
+            for step in rec.get("steps", []):
+                word = step["cmd"].split()[0]
+                if word not in seen or " … " in step["reply"]:           # a long reply is stored shortened: a piece of a result
+                    continue
+                seen[word] += 1
+                got = s1a_run.whole(step["cmd"], step["reply"])
+                if got is None:
+                    not_whole.append((str(record.relative_to(ROOT / "evidence")), step["cmd"]))
+                elif step["cmd"] == "md.l 10000000 40" and step["what"] == "the result header":
+                    headers += 1
+                    self.assertEqual(b"".join(struct.pack("<I", x) for x in got), (record.parent / "header.bin").read_bytes(), record)
+                elif step["what"] == "the result checksum on the board":
+                    self.assertEqual(got, rec["board_crc32"], record)
+                elif step["what"] == "status afterwards":
+                    self.assertEqual(f"{got[0]:08x}", rec["int_sts_afterwards"], record)
+        self.assertEqual(not_whole, [("s1b3_17A6_2026-11-17/run51/run.json", "md.l 10000000 40")])
+        self.assertGreater(seen["crc32"], 7000)
+        self.assertGreater(seen["md.l"], 700)
+        self.assertGreaterEqual(headers, 145)
+
     def test_a_stored_result_with_one_word_changed_does_not_pass(self) -> None:
         for judge, run, expected, _ in RUNS:
             with self.subTest(run=run):

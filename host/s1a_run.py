@@ -17,6 +17,14 @@ prober echoed are the planned ones, and the gate readings fit), the card copy wa
 read back with the board's checksum, the pulled copy has the board's checksum, the console line
 and return code are the ones the result implies, and the live status afterwards still shows the
 PL configured with no error bit.
+
+The console loses characters now and then (a stretch of a reply is missing; on 2026-11-17 that was the dump of
+the result header, and the run stopped there). A reply this script depends on and whose form is known — a dump of a
+few words, a checksum — is therefore asked for again, a bounded number of times, when it is not whole; every
+attempt is among the recorded steps and every reply that was not whole is listed. That holds before `go` and
+after it, and for those two commands only: they change nothing on the board. A whole reply is taken as it is — a
+value that is not the one wanted is a finding and is never asked for twice — and no command that does anything
+(`go`, a write, a load, a save) is ever sent a second time, whatever came back.
 """
 from __future__ import annotations
 
@@ -96,6 +104,7 @@ MAX_RESULT_WORDS = max(m["judge"].HDR + m["judge"].MAX_RECORDS * m["judge"].REC 
 PL_CARD_NAME = "carrier.bit"
 PIECE_WORDS = 2048                                   # the result is pulled over the console in pieces of this many words
 MAX_PIECE_PULLS = 5                                  # attempts at one piece
+MAX_READS = 5                                        # attempts at one short read-only reply (a dump of a few words, a checksum)
 
 
 STARTS_AT_RUN_TIME = ("s1b2", "s1b3")                # the sets whose starting address is not fixed by the tests
@@ -173,11 +182,37 @@ def md_words(text: str) -> list[int]:
     return words
 
 
+def whole(cmd: str, text: str):
+    """What the reply to a read-only command says, if the reply is whole; None if it is not.
+
+    `md.l A N`: the N words, if the reply has every line of that dump — each at its address, with its four words (the
+    last with what is left) — and no other line of a dump. `crc32 A B`: the checksum, if the reply has U-Boot's line
+    for exactly that range. A reply that lost a stretch of characters lacks a line, or a line lacks a word, or the
+    line that follows is not at the next address: it is not whole. Whether a whole reply says what was hoped for is
+    not asked here.
+
+    These two are the only commands whose reply may be asked for a second time (`read` in execute()); any other is an
+    error here, so that none becomes one by being passed in."""
+    w = cmd.split()
+    if len(w) == 3 and w[0] == "md.l":
+        a, n = int(w[1], 16), int(w[2], 16)
+        lines = [(int(m.group(1), 16), [int(x, 16) for x in m.group(2).split()])
+                 for m in (re.match(r"^([0-9a-f]{8}):((?: [0-9a-f]{8}){1,4})(?=\s|$)", ln.strip()) for ln in text.splitlines()) if m]
+        if [(at, len(ws)) for at, ws in lines] != [(a + 4 * k, min(4, n - k)) for k in range(0, n, 4)]:
+            return None
+        return [x for _, ws in lines for x in ws]
+    if len(w) == 3 and w[0] == "crc32":
+        a, n = int(w[1], 16), int(w[2], 16)
+        m = re.search(r"crc32 for %08x \.\.\. %08x ==> ([0-9a-f]{8})(?=\s)" % (a, a + n - 1), text)
+        return m.group(1) if m else None
+    raise ValueError(f"{cmd!r} is not a command whose reply may be asked for twice")
+
+
 def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl_crc: str, card_name: str, stage: str = "s1a") -> dict:
     """Run the plan on a console object (`cmd(line, timeout) -> (bytes, prompt_seen)`, `interrupt()`), sending files
     with `send_file(con, loady_command, path) -> (bytes, prompt_seen)`. Writes result files into `out`."""
     J = STAGES[stage]["judge"]
-    record: dict = {"stage": stage, "steps": [], "problems": [], "card_file": card_name, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+    record: dict = {"stage": stage, "steps": [], "problems": [], "replies_not_whole": [], "card_file": card_name, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     problems = record["problems"]
     if "chain" in exp:                               # a starting address given at run time, and where it was taken from
         record["chain"] = exp["chain"]
@@ -190,6 +225,18 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         if not ok:
             raise Stop(f"no prompt after {cmd!r}")
         return text
+
+    def read(cmd: str, what: str, timeout: float = 10):
+        """A read-only command whose reply has a known form (nothing else gets past whole()). If the reply is not whole
+        the same command is sent again, at most MAX_READS times in all; every reply that was not whole is listed.
+        A whole reply is returned as it is, whatever it says. None if no reply was whole. A missing prompt is not
+        a reply that is not whole: there do() stops the run, as for any command."""
+        for attempt in range(1, MAX_READS + 1):
+            got = whole(cmd, do(cmd, what if attempt == 1 else f"{what} (attempt {attempt} of at most {MAX_READS}: the reply before was not whole)", timeout))
+            if got is not None:
+                return got
+            record["replies_not_whole"].append({"cmd": cmd, "what": what, "attempt": attempt})
+        return None
 
     try:
         _, ok = con.interrupt()
@@ -204,6 +251,13 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
                 m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)
                 if not ok or not m or int(m.group(1), 16) != s["size"]:
                     raise Stop(f"the transfer for {s['cmd']!r} did not report {s['size']} bytes")
+                continue
+            if "bit" in s or "crc" in s:              # a status word, a checksum: asked again if the reply is not whole
+                got = read(s["cmd"], s["what"], s.get("timeout", 10))
+                if "bit" in s and (got is None or bool(got[0] >> s["bit"][0] & 1) != s["bit"][1]):
+                    raise Stop(f"{s['cmd']!r}: {s['check']}" + (f" (read {got[0]:08x})" if got else " (nothing read)"))
+                if "crc" in s and got != s["crc"]:
+                    raise Stop(f"{s['cmd']!r}: crc32 {got}, expected {s['crc']}")
                 continue
             text = do(s["cmd"], s["what"], s.get("timeout", 10))
             if "card_or_ymodem" in s:
@@ -220,14 +274,6 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
                 continue
             if "expect" in s and not re.search(s["expect"], text):
                 raise Stop(f"{s['cmd']!r}: {s['check']}")
-            if "bit" in s:
-                w = md_words(text)
-                if not w or bool(w[0] >> s["bit"][0] & 1) != s["bit"][1]:
-                    raise Stop(f"{s['cmd']!r}: {s['check']}" + (f" (read {w[0]:08x})" if w else " (nothing read)"))
-            if "crc" in s:
-                m = re.search(r"==> ([0-9a-f]{8})", text)
-                if not m or m.group(1) != s["crc"]:
-                    raise Stop(f"{s['cmd']!r}: crc32 {m.group(1) if m else None}, expected {s['crc']}")
             if s.get("go"):
                 go_text = text
         record["went"] = True
@@ -236,10 +282,10 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         record["console"] = [ln.strip() for ln in go_text.splitlines() if re.match(r"SM\d ", ln.strip())]   # the prober's lines, of whichever stage ran
 
         # ---- from here on: save first, judge afterwards
-        hdr = md_words(do(f"md.l {RES_ADDR:08x} 40", "the result header"))
+        hdr = read(f"md.l {RES_ADDR:08x} 40", "the result header")
+        if hdr is None:
+            raise Stop(f"the result header could not be read whole in {MAX_READS} attempts")
         (out / "header.bin").write_bytes(b"".join(struct.pack("<I", x) for x in hdr))
-        if len(hdr) < 64:
-            raise Stop("the result header could not be read")
         has_header = hdr[0] == 0x31524D53 and hdr[1] == 1
         n, total = hdr[3], hdr[5]
         # How much to save does not depend on the stage that was asked for: a result that is consistent in itself is
@@ -261,10 +307,9 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
             total = MAX_RESULT_WORDS
         nbytes = total * 4
         record["result_words"] = total
-        m = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {RES_ADDR:08x} {nbytes:x}", "the result checksum on the board", 20))
-        if not m:
+        record["board_crc32"] = read(f"crc32 {RES_ADDR:08x} {nbytes:x}", "the result checksum on the board", 20)
+        if record["board_crc32"] is None:
             raise Stop("no crc32 of the result from the board")
-        record["board_crc32"] = m.group(1)
 
         text = do(f"fatwrite mmc 0:1 {RES_ADDR:08x} {card_name} {nbytes:x}", "save the result to the card", 60)
         m = re.search(r"(\d+) bytes written", text)
@@ -272,10 +317,10 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         if not record["card_written"]:
             problems.append(f"the card write was not confirmed for {nbytes} bytes: {text.strip()[-120:]!r}")
         else:                                        # by content, not by U-Boot's word: read the file back and checksum it
-            text = do(f"fatload mmc 0:1 {SCRATCH_ADDR:08x} {card_name}", "read the card copy back to a scratch address", 60)
+            text = do(f"fatload mmc 0:1 {SCRATCH_ADDR:08x} {card_name}", "read the card copy back to a scratch address", 60)   # sent once: it writes memory
             m = re.search(r"(\d+) bytes read", text)
-            m2 = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {SCRATCH_ADDR:08x} {nbytes:x}", "the card copy is the result", 20))
-            record["card_verified"] = bool(m) and int(m.group(1)) == nbytes and bool(m2) and m2.group(1) == record["board_crc32"]
+            copy = read(f"crc32 {SCRATCH_ADDR:08x} {nbytes:x}", "the card copy is the result", 20)
+            record["card_verified"] = bool(m) and int(m.group(1)) == nbytes and copy == record["board_crc32"]
             if not record["card_verified"]:
                 problems.append("the file read back from the card is not the result (size or crc32 differs)")
 
@@ -289,15 +334,15 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         for k, at in enumerate(range(0, total, PIECE_WORDS)):
             n_piece = min(PIECE_WORDS, total - at)
             addr = RES_ADDR + 4 * at
-            m = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {addr:08x} {4 * n_piece:x}", f"the board's checksum of piece {k} of the result", 20))
-            if not m:
+            piece = read(f"crc32 {addr:08x} {4 * n_piece:x}", f"the board's checksum of piece {k} of the result", 20)
+            if piece is None:
                 raise Stop(f"no crc32 of piece {k} of the result from the board")
             for attempt in range(1, MAX_PIECE_PULLS + 1):
                 got = md_words(do(f"md.l {addr:08x} {n_piece:x}", f"pull piece {k} of the result over the console (attempt {attempt} of at most {MAX_PIECE_PULLS})", 120))
                 crc = f"{zlib.crc32(b''.join(struct.pack('<I', x) for x in got)) & 0xFFFFFFFF:08x}"
-                if len(got) == n_piece and crc == m.group(1):
+                if len(got) == n_piece and crc == piece:
                     break
-                record["pull"]["repeated"].append({"piece": k, "attempt": attempt, "words": len(got), "crc32": crc, "board_crc32": m.group(1)})
+                record["pull"]["repeated"].append({"piece": k, "attempt": attempt, "words": len(got), "crc32": crc, "board_crc32": piece})
             else:
                 raise Stop(f"piece {k} of the result could not be pulled whole in {MAX_PIECE_PULLS} attempts"
                            + ("; the card file holds the result" if record.get("card_verified") else ""))
@@ -311,6 +356,9 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
             raise Stop(f"the pulled copy ({len(words)} words, crc32 {host_crc}) is not the board's ({total} words, crc32 {record['board_crc32']}), "
                        "although each piece matched the board's crc32 of that piece")
         (out / "result.bin").write_bytes(raw)
+        # The header was accepted above by its form; here it is held to the copy that has the board's checksum.
+        if words[:len(hdr)] != hdr:
+            problems.append("the header as it was read before the pull is not the header of the pulled result")
 
         verdict = J.judge(words, known, [int(w, 16) for w in exp["params"]])
         (out / "verdict.json").write_text(json.dumps(verdict, indent=1) + "\n")
@@ -319,13 +367,13 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
             problems.append(f"the return code was {record['return_code']}, the result implies {verdict.get('expected_return_code')}")
         if record["console"] != verdict.get("expected_console"):
             problems.append(f"the console showed {record['console']}, the result implies {verdict.get('expected_console')}")
-        live = md_words(do("md.l f800700c 1", "status afterwards"))
+        live = read("md.l f800700c 1", "status afterwards")
         record["int_sts_afterwards"] = f"{live[0]:08x}" if live else None
         if not live or not live[0] & J.PCFG_DONE or live[0] & J.ERR_MASK:
             problems.append(f"the live status after the run is {record['int_sts_afterwards']}: PCFG_DONE clear or an error bit set")
-        m = re.search(r"==> ([0-9a-f]{8})", do(f"crc32 {IMG_ADDR:08x} {exp['image_bytes']:x}", "the prober image in RAM after the run"))
-        if not m or m.group(1) != exp["image_crc32"]:
-            problems.append(f"the prober image in RAM after the run has crc32 {m.group(1) if m else None}, not {exp['image_crc32']}: what ran may not be what was checked")
+        after = read(f"crc32 {IMG_ADDR:08x} {exp['image_bytes']:x}", "the prober image in RAM after the run")
+        if after != exp["image_crc32"]:
+            problems.append(f"the prober image in RAM after the run has crc32 {after}, not {exp['image_crc32']}: what ran may not be what was checked")
         do("version", "U-Boot still answers")
     except Stop as e:
         record["stop"] = str(e)
@@ -393,6 +441,8 @@ def main() -> int:
         print(f"       - if the header fits no known layout, or there is no header: <bytes> is 4*{MAX_RESULT_WORDS}, the largest result any stage can produce")
         print("       - the card read-back (fatload and its crc32) is done only if fatwrite confirmed the size; otherwise the run fails, and the pull still happens")
         print(f"       - a piece that does not have the board's crc32 of it is pulled again, at most {MAX_PIECE_PULLS} times in all, every repeat recorded; if a piece cannot be had, or the whole does not have the board's crc32, the run stops there")
+        print(f"     a reply that is not whole (before go or after it): only `md.l` of a few words and `crc32` are sent again, at most {MAX_READS} times in all,")
+        print("       every attempt recorded; a whole reply with another value than the one wanted stops or fails the run as before; nothing else is ever sent twice")
         print("\nDry run: nothing was sent.")
         return 0
     if not a.out or a.out.exists():

@@ -1,0 +1,61 @@
+unmutated: Ran 373 OK; 0 test(s): 
+KILLED   run: a result of another stage's layout is not saved whole     Ran 373 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 373 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 373 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   run: the dry run does not list the YMODEM branch               Ran 373 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_plan_and_cannot_open
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 373 FAILED (failures=70, errors=56); 88 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 373 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 373 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 373 FAILED (failures=2); 2 test(s): a_run_that_did_not_do_what_was_planned_fail, the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the live status afterwards is only recorded               Ran 373 FAILED (failures=4); 3 test(s): a_short_reply_that_never_comes_whole_after_, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the card copy is not read back                            Ran 373 FAILED (failures=4); 4 test(s): a_command_that_does_something_is_sent_once_, a_short_reply_that_never_comes_whole_after_
+KILLED   run: the card read-back checksum is not compared               Ran 373 FAILED (failures=3); 3 test(s): a_run_that_does_not_pass_halts_the_chain_an, a_whole_reply_with_another_value_is_never_a
+KILLED   run: an unconfirmed card write is ignored                      Ran 373 FAILED (failures=3); 2 test(s): a_command_that_does_something_is_sent_once_, an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 373 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the return code is not compared with the result           Ran 373 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 373 FAILED (failures=2, errors=1); 3 test(s): a_damaged_card_copy_stops_the_run_before_th, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 373 FAILED (failures=1, errors=1); 2 test(s): a_whole_reply_with_another_value_is_never_a, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 373 FAILED (failures=2); 2 test(s): a_command_that_does_something_is_sent_once_, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 373 FAILED (failures=97, errors=58); 101 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   run: PASS without the judge                                    Ran 373 FAILED (failures=48); 21 test(s): a_frame_that_has_a_known_answer_is_still_he, a_gate_stop_on_the_board_is_saved_too
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 373 FAILED (failures=4); 2 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 373 FAILED (failures=61, errors=25); 60 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 373 FAILED (failures=3, errors=1); 4 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   run: a piece is taken whatever its crc32                       Ran 373 FAILED (failures=3); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is taken whatever its length                      Ran 373 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a damaged piece is not pulled again                       Ran 373 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is pulled again without end in sight              Ran 373 FAILED (failures=2); 1 test(s): a_piece_that_cannot_be_pulled_whole_stops_t
+KILLED   run: the repeats of a piece are not recorded                   Ran 373 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: pieces that match are enough, the whole is not checked    Ran 373 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the whole is checked for length only                      Ran 373 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: a copy that is not the board's is not kept                Ran 373 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the pieces are not the pieces asked for                   Ran 373 FAILED (failures=75, errors=99); 118 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_begun_above_the_known_frames_cannot
+KILLED   s1b2 run: any set may be given a start                         Ran 373 FAILED (failures=4); 4 test(s): it_is_the_walks_set_with_the_three_differen, nothing_of_them_is_given_at_run_time
+KILLED   s1b2 run: a start outside the envelope is sent                 Ran 373 FAILED (failures=3); 3 test(s): the_command_line, the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b2 run: the start given is not put into the block            Ran 373 FAILED (failures=64, errors=10); 56 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2 run: where the start came from is not recorded            Ran 373 FAILED (failures=32, errors=17); 41 test(s): a_chain_begun_above_the_known_frames_cannot, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2 run: a run of the chain is judged by the judge of S1b.1   Ran 373 FAILED (failures=7, errors=3); 10 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2 judge of a run: it is S1b.1's judge after all             Ran 373 FAILED (failures=16, errors=4); 20 test(s): a_chain_begun_above_the_known_frames_cannot, a_row_is_walked_from_its_first_address_to_t
+KILLED   run: the quiet walk is judged as a stage-5 result              Ran 373 FAILED (failures=1); 1 test(s): the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the quiet walk is given the walk's old parameters         Ran 373 FAILED (failures=3); 3 test(s): the_dry_run_of_the_quiet_walk_differs_from_, the_set_is_the_quiet_walk_with_the_row_as_i
+KILLED   s1b2e run: the end is judged by the judge of the diagnostic series Ran 373 FAILED (failures=27); 16 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e run: the column again is given the table of the end      Ran 373 FAILED (failures=26); 15 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b3a run: judged as a walk of its own, not a run of a chain   Ran 373 FAILED (failures=2); 2 test(s): a_standstill_that_leaves_the_envelope_ends_, it_is_the_walks_set_with_the_three_differen
+KILLED   s1b3 run: judged as a walk of its own, not a run of a chain    Ran 373 FAILED (failures=9, errors=2); 11 test(s): a_row_that_ends_without_a_standstill_is_not, a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 run: the chain's set takes no start                       Ran 373 FAILED (failures=2, errors=24); 22 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   run: a reply that is not whole is not asked for again          Ran 373 FAILED (failures=22); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a reply is asked for again without end in sight           Ran 373 FAILED (failures=11); 4 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the replies that were not whole are not listed            Ran 373 FAILED (failures=17); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a dump is whole whatever the addresses of its lines       Ran 373 FAILED (failures=2); 1 test(s): what_a_whole_reply_is
+KILLED   run: a dump that ends early is whole                           Ran 373 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a word run together with what follows it counts as that word Ran 373 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum of any range is taken                          Ran 373 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum that lost a character is taken                 Ran 373 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: the reply of any command may be asked for twice           Ran 373 FAILED (failures=12); 1 test(s): what_a_whole_reply_is
+KILLED   run: the header is taken from a dump that is not whole         Ran 373 FAILED (failures=1, errors=1); 2 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the header is not held to the pulled result               Ran 373 FAILED (failures=1); 1 test(s): the_header_is_held_to_the_pulled_result
+KILLED   run: the status that is only recorded is asked for again       Ran 373 FAILED (failures=1); 1 test(s): the_status_that_is_only_recorded_is_read_on
+KILLED   run: a status that never came whole passes the check before go Ran 373 FAILED (failures=1); 1 test(s): before_go_a_reply_that_is_not_whole_is_aske
+KILLED   run: a status afterwards that could not be read is no problem  Ran 373 FAILED (failures=1); 1 test(s): a_short_reply_that_never_comes_whole_after_
+restored: Ran 373 OK; 0 test(s):  (8 copies)
+58 mutants, 0 survived

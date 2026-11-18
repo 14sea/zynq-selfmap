@@ -48,6 +48,13 @@ class FakeUBoot:
         self.commands.append(line)
         w = line.split()
         out = getattr(self, "c_" + w[0].replace(".", "_"))(w)
+        lose = self.q.get("lossy", {})                                             # replies that lose a stretch of characters, as the
+        which = lose.get(line, lose.get(w[0]))                                     # console did on 2026-11-17: by the whole line or by
+        if which is not None:                                                      # the command; True: every time, or the numbers of
+            self.asked = getattr(self, "asked", {})                                # the times that line is sent (1 is the first)
+            self.asked[line] = self.asked.get(line, 0) + 1
+            if which is True or self.asked[line] in which:
+                out = out[:len(out) // 3] + out[2 * len(out) // 3:]
         return (line + "\r\n" + out).encode() + PROMPT, not (self.q.get("hang_at") == w[0])
 
     def load(self, loady: str, path: str):
@@ -76,6 +83,10 @@ class FakeUBoot:
     def c_md_l(self, w):
         a, n = int(w[1], 16), int(w[2], 16)
         vals = [self.rd(a + 4 * i) for i in range(n)]
+        if a == 0x10000000 and n == 64 and not getattr(self, "header_shown", False):  # the first dump of the result header
+            self.header_shown = True
+            for i, v in self.q.get("header_dump_lies", {}).items():                # a whole dump that is not what is in memory
+                vals[i] = v
         lines = ["%08x: %s    ....\r\n" % (a + 4 * i, " ".join("%08x" % v for v in vals[i:i + 4])) for i in range(0, n, 4)]
         if n > 64:                                                                 # a dump of the result, not of the header
             self.dumps = getattr(self, "dumps", 0) + 1
@@ -303,6 +314,205 @@ class AfterGo(unittest.TestCase):
         self.assertEqual(len((out / "result.bin").read_bytes()), 4 * s1a_run.MAX_RESULT_WORDS)
         self.assertEqual(len(u.card["s0000001.bin"]), 4 * s1a_run.MAX_RESULT_WORDS)
         self.assertEqual(json.loads((out / "verdict.json").read_text())["verdict"], "INVALID")
+
+
+HEADER, STATUS = "md.l 10000000 40", "md.l f800700c 1"
+# what a clean run sends more than once: the checksum of the image (before go and after the run), the status word
+# (before the load, after the clear, after the load, afterwards), `version` (first and last)
+TWICE_ANYWAY = ["crc32 02000000 2ec2", STATUS, "version"]
+
+
+def sent(u: FakeUBoot, word: str) -> list[str]:
+    return [c for c in u.commands if c.split()[0] == word]
+
+
+class RepliesNotWhole(unittest.TestCase):
+    """The console loses characters. A dump of a few words and a checksum are asked for again when the reply is not
+    whole; nothing else is, and a whole reply is never asked for twice whatever it says."""
+
+    def test_what_a_whole_reply_is(self) -> None:
+        u = FakeUBoot()
+        for i in range(64):
+            u.mem[0x10000000 + 4 * i] = 0x1000 + i
+        dump = lambda a, n: u.c_md_l(["md.l", f"{a:08x}", f"{n:x}"])  # noqa: E731
+        whole = s1a_run.whole
+        text = "md.l 10000000 40\r\n" + dump(0x10000000, 64) + "Zynq> "
+        self.assertEqual(whole(HEADER, text), [0x1000 + i for i in range(64)])
+        lines = dump(0x10000000, 64).splitlines(keepends=True)
+        self.assertEqual(len(lines), 16)
+        for name, damaged in (("a line missing in the middle", lines[:7] + lines[8:]), ("the last line missing", lines[:15]), ("the first line missing", lines[1:]),
+                              ("a word missing from a line", lines[:4] + [lines[4][:19] + lines[4][28:]] + lines[5:]),
+                              ("a character missing from a word", lines[:4] + [lines[4][:12] + lines[4][13:]] + lines[5:]),
+                              ("a word run together with what follows it", lines[:4] + [lines[4][:45] + "7" + lines[4][45:]] + lines[5:]),
+                              ("two lines joined, every word of the join a whole word", lines[:2] + [lines[2][:19] + lines[9][19:]] + lines[10:]),
+                              ("every line whole, one of them at another address", lines[:9] + ["1" + lines[9][:7].replace("9", "a") + lines[9][8:]] + lines[10:]),
+                              ("a line twice", lines[:6] + [lines[5]] + lines[6:]), ("a line of another dump besides", lines + ["10000100: 00000000\r\n"]),
+                              ("nothing", [])):
+            with self.subTest(name):
+                self.assertIsNone(whole(HEADER, "md.l 10000000 40\r\n" + "".join(damaged) + "Zynq> "))
+        self.assertEqual(whole("md.l 10000000 40", dump(0x10000000, 64).replace("    ....", "  " + "." * 16)), [0x1000 + i for i in range(64)], "the characters beside the words are not the words")
+        # a dump that does not end with a line of four
+        self.assertEqual(whole("md.l 10000004 6", dump(0x10000004, 6)), [0x1001 + i for i in range(6)])
+        self.assertIsNone(whole("md.l 10000004 6", dump(0x10000004, 5)))
+        self.assertIsNone(whole("md.l 10000004 6", dump(0x10000004, 7)))
+        self.assertIsNone(whole("md.l 10000004 6", dump(0x10000004, 8)))
+        self.assertEqual(whole(STATUS, "md.l f800700c 1\r\nf800700c: 50033004    .0.P\r\nZynq> "), [0x50033004])
+        self.assertIsNone(whole(STATUS, "md.l f800700c 1\r\nf800700c: 5003300    .0.P\r\nZynq> "))
+        self.assertIsNone(whole(STATUS, "md.l f800700c 1\r\nf8007008: 50033004    .0.P\r\nZynq> "))
+        # a checksum: U-Boot's line for exactly the range asked about
+        line = "crc32 for 02000000 ... 02002ec1 ==> 84f107a1\r\n"
+        self.assertEqual(whole("crc32 02000000 2ec2", "crc32 02000000 2ec2\r\n" + line + "Zynq> "), "84f107a1")
+        for name, damaged in (("of another range", line.replace("02002ec1", "02002ec0")), ("from another address", line.replace("for 02000000", "for 02000004")),
+                              ("a character of the checksum missing", line.replace("84f107a1", "84f107a")), ("the range missing", "crc32 for 020 ==> 84f107a1\r\n"),
+                              ("only the echo", "")):
+            with self.subTest(name):
+                self.assertIsNone(whole("crc32 02000000 2ec2", "crc32 02000000 2ec2\r\n" + damaged + "Zynq> "))
+        # and no other command has a reply that may be asked for twice
+        for cmd in ("go 02000000", "fatwrite mmc 0:1 10000000 s.bin 100", "fatload mmc 0:1 11000000 s.bin", "mw.l 10000000 0 40", "fpga loadb 0 04000000 100",
+                    "loady 02000000", "reset", "dcache off", "version", "md.l 10000000", "crc32 10000000 100 10200000", "md.b 10000000 40"):
+            with self.subTest(cmd):
+                with self.assertRaises(ValueError):
+                    whole(cmd, "")
+
+    def test_a_header_dump_that_lost_a_stretch_is_asked_for_again(self) -> None:
+        """What stopped run 51 of the chain over block type 0 on 2026-11-17."""
+        rec, u, out = run(lossy={HEADER: {1}})
+        self.assertEqual((rec["verdict"], rec["problems"], rec.get("stop")), ("PASS", [], None))
+        self.assertEqual(rec["replies_not_whole"], [{"cmd": HEADER, "what": "the result header", "attempt": 1}])
+        self.assertEqual(u.commands.count(HEADER), 2)
+        self.assertEqual((out / "header.bin").read_bytes(), u.twin_result[:256])
+        self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+        both = [s for s in rec["steps"] if s["cmd"] == HEADER]
+        self.assertEqual([s["what"] for s in both], ["the result header", "the result header (attempt 2 of at most 5: the reply before was not whole)"])
+        self.assertLess(len(both[0]["reply"]), len(both[1]["reply"]), "the reply that was not whole is kept among the steps as it came")
+        rec, u, out = run(lossy={HEADER: {1, 2, 3, 4}})
+        self.assertEqual((rec["verdict"], [r["attempt"] for r in rec["replies_not_whole"]], u.commands.count(HEADER)), ("PASS", [1, 2, 3, 4], 5))
+
+    def test_a_header_that_never_comes_whole_stops_the_run_with_nothing_saved(self) -> None:
+        rec, u, out = run(lossy={HEADER: True})
+        self.assertEqual((rec["verdict"], rec["stop"], rec["went"]), ("FAIL", "the result header could not be read whole in 5 attempts", True))
+        self.assertEqual(u.commands.count(HEADER), 5, "five attempts and no more")
+        self.assertEqual([r["attempt"] for r in rec["replies_not_whole"]], [1, 2, 3, 4, 5])
+        self.assertEqual((u.commands[-1], sent(u, "fatwrite"), sent(u, "go")), (HEADER, [], ["go 02000000"]))
+        self.assertFalse((out / "header.bin").exists() or (out / "result.bin").exists())
+
+    def test_a_clean_run_lists_no_reply_and_repeats_only_what_the_plan_repeats(self) -> None:
+        rec, u, _ = run()
+        self.assertEqual(rec["replies_not_whole"], [])
+        self.assertEqual(sorted(c for c in set(u.commands) if u.commands.count(c) > 1), TWICE_ANYWAY)
+        self.assertEqual([u.commands.count(c) for c in TWICE_ANYWAY], [2, 4, 2])
+
+    def test_every_short_read_only_reply_after_go_is_asked_for_again(self) -> None:
+        clean, base, _ = run()
+        after = base.commands[base.commands.index("go 02000000") + 1:]
+        short = [c for c in after if c.startswith("crc32") or c == STATUS]
+        self.assertEqual(len(short), 6, "the result, the card copy, two pieces, the status, the image")
+        for cmd in short:
+            with self.subTest(cmd):
+                # the status word is read three times before go and the image's checksum once: the reply that is lost
+                # here is the one after the run
+                rec, u, out = run(lossy={cmd: {base.commands.count(cmd)}})
+                self.assertEqual((rec["verdict"], rec["problems"]), ("PASS", []))
+                self.assertEqual([(r["cmd"], r["attempt"]) for r in rec["replies_not_whole"]], [(cmd, 1)])
+                self.assertEqual(u.commands.count(cmd), base.commands.count(cmd) + 1)
+                self.assertEqual(len(u.commands), len(base.commands) + 1, "that command once more, and nothing else")
+                self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+
+    def test_a_short_reply_that_never_comes_whole_after_go(self) -> None:
+        _, base, _ = run()
+        crcs = [c for c in base.commands[base.commands.index("go 02000000") + 1:] if c.startswith("crc32")]
+        result, card, piece0, piece1, image = crcs
+        for cmd, stop, problem, pulled in ((result, "no crc32 of the result from the board", None, False),
+                                           (card, None, "read back from the card is not the result", True),
+                                           (piece1, "no crc32 of piece 1 of the result from the board", None, False),
+                                           (image, None, "the prober image in RAM after the run has crc32 None", True)):
+            with self.subTest(cmd):
+                # the checksum of the result and of its first piece are the same command when the result is one piece; here it is two
+                first = base.commands.count(cmd)             # the image's checksum is asked for once before go: not that one
+                rec, u, out = run(lossy={cmd: set(range(first, first + 5))})
+                self.assertEqual((rec["verdict"], rec.get("stop")), ("FAIL", stop))
+                self.assertEqual(u.commands.count(cmd), first + 4)
+                self.assertEqual([(r["cmd"], r["attempt"]) for r in rec["replies_not_whole"]], [(cmd, k) for k in (1, 2, 3, 4, 5)])
+                if problem:
+                    self.assertTrue(any(problem in p for p in rec["problems"]), rec["problems"])
+                self.assertEqual((out / "result.bin").exists(), pulled)
+                self.assertEqual(sent(u, "fatwrite") != [], cmd != result, "nothing is saved under a size whose checksum the board never gave")
+        self.assertNotEqual(result, piece0)
+        rec, u, out = run(lossy={STATUS: {4, 5, 6, 7, 8}})
+        self.assertEqual((rec["judge"], rec["verdict"], rec["int_sts_afterwards"], u.commands.count(STATUS)), ("PASS", "FAIL", None, 8))
+        self.assertTrue(any("live status after the run is None" in p for p in rec["problems"]))
+
+    def test_before_go_a_reply_that_is_not_whole_is_asked_for_again_and_go_waits_for_it(self) -> None:
+        _, base, _ = run()
+        before = base.commands[:base.commands.index("go 02000000")]
+        checks = [c for c in before if c.startswith("crc32")]
+        self.assertEqual(len(checks), 3, "the PL design, the parameter block, the prober image")
+        for cmd, times in [(c, {1}) for c in checks] + [(STATUS, {2}), (STATUS, {3})]:      # after the clear; after the load
+            with self.subTest(cmd=cmd, times=times):
+                rec, u, _ = run(lossy={cmd: times})
+                self.assertEqual((rec["verdict"], rec["problems"], len(rec["replies_not_whole"])), ("PASS", [], 1))
+                self.assertEqual((u.commands.count(cmd), len(u.commands)), (base.commands.count(cmd) + 1, len(base.commands) + 1))
+        for cmd in checks:
+            with self.subTest(never=cmd):
+                rec, u, _ = run(lossy={cmd: True})
+                self.assertEqual((rec["verdict"], rec.get("went")), ("FAIL", None))
+                self.assertTrue(rec["stop"].startswith(f"{cmd!r}: crc32 None, expected "), rec["stop"])
+                self.assertEqual((u.commands.count(cmd), u.commands[-1], sent(u, "go")), (5, cmd, []))
+        rec, u, _ = run(lossy={STATUS: {2, 3, 4, 5, 6}})
+        self.assertEqual((rec["verdict"], rec.get("went"), sent(u, "go"), sent(u, "fpga")), ("FAIL", None, [], []))
+        self.assertIn("(nothing read)", rec["stop"])
+        self.assertEqual(u.commands.count(STATUS), 6, "once to record it, and five attempts after the clear")
+
+    def test_the_status_that_is_only_recorded_is_read_once_whatever_comes_back(self) -> None:
+        rec, u, _ = run(lossy={STATUS: {1}})
+        self.assertEqual((rec["verdict"], rec["replies_not_whole"], u.commands.count(STATUS)), ("PASS", [], 4))
+
+    def test_a_whole_reply_with_another_value_is_never_asked_for_twice(self) -> None:
+        rec, u, _ = run(corrupt_image=True)                  # the checksum of the image in RAM is whole and wrong
+        self.assertEqual((rec["verdict"], rec["replies_not_whole"], len(sent(u, "crc32")), sent(u, "go")), ("FAIL", [], 3, []))
+        self.assertTrue(u.commands[-1].startswith("crc32 02000000"))
+        rec, u, _ = run(pl_fails=True)                       # the status after the load is whole and has the bit clear
+        self.assertEqual((rec["verdict"], rec["replies_not_whole"], u.commands.count(STATUS), u.commands[-1]), ("FAIL", [], 3, STATUS))
+        for quirk in ({"image_changes_during_go": True}, {"done_lost_afterwards": True}, {"card_corrupt": True}, {"result_changes_before_pull": True}):
+            with self.subTest(str(quirk)):
+                rec, u, _ = run(**quirk)
+                clean = sorted(c for c in set(u.commands) if u.commands.count(c) > 1)
+                self.assertEqual((rec["verdict"], rec["replies_not_whole"]), ("FAIL", []))
+                self.assertTrue(set(clean) <= set(TWICE_ANYWAY), clean)
+
+    def test_a_command_that_does_something_is_sent_once_whatever_comes_back(self) -> None:
+        _, base, _ = run(card_has_pl=True)
+        for word, verdict in (("go", "FAIL"), ("fatwrite", "FAIL"), ("fatload", "FAIL"), ("fpga", "PASS"), ("dcache", "FAIL"), ("version", "PASS")):
+            with self.subTest(word):
+                rec, u, _ = run(card_has_pl=True, lossy={word: True})
+                self.assertEqual(rec["verdict"], verdict)
+                self.assertEqual(rec["replies_not_whole"], [])
+                for c in set(sent(u, word)):               # `version` is in the plan twice, and is sent twice
+                    self.assertEqual(u.commands.count(c), base.commands.count(c), c)
+                self.assertLessEqual(len(sent(u, word)), len(sent(base, word)))
+        rec, u, _ = run(card_has_pl=True, lossy={"go": True})
+        self.assertEqual((sent(u, "go"), rec["went"]), (["go 02000000"], True))
+        self.assertEqual((rec["judge"], rec["console"]), ("PASS", ["SM1 start"]), "the result is saved, pulled and judged; the console line that was lost is not asked for")
+        self.assertEqual(len(rec["problems"]), 1)
+        self.assertTrue(rec["problems"][0].startswith("the console showed ['SM1 start'], the result implies "))
+        rec, u, _ = run(card_has_pl=True, lossy={"fatwrite": True})
+        self.assertEqual((len(sent(u, "fatwrite")), rec["card_written"]), (1, False))
+        rec, u, _ = run(card_has_pl=True, lossy={"fatload": True})                 # the card has the design: it is sent instead, and the
+        self.assertEqual((rec["pl_source"], rec["card_verified"]), ("ymodem", False))   # copy of the result read back is not confirmed
+
+    def test_a_missing_prompt_is_not_a_reply_to_ask_for_again(self) -> None:
+        rec, u, _ = run(hang_at="crc32")
+        self.assertEqual((rec["verdict"], len(sent(u, "crc32")), rec["replies_not_whole"], sent(u, "go")), ("FAIL", 1, [], []))
+        self.assertIn("no prompt after 'crc32", rec["stop"])
+
+    def test_the_header_is_held_to_the_pulled_result(self) -> None:
+        """The header is accepted by its form when it is read. A dump that is whole in form and wrong in a word that
+        does not size the result: the pull has the board's checksum, and the two headers are not the same."""
+        rec, u, out = run(header_dump_lies={2: 0x5A5A5A5A})
+        self.assertEqual((rec["judge"], rec["verdict"], rec.get("stop")), ("PASS", "FAIL", None))
+        self.assertEqual(rec["problems"], ["the header as it was read before the pull is not the header of the pulled result"])
+        self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+        self.assertNotEqual((out / "header.bin").read_bytes(), u.twin_result[:256])
 
 
 class PlDesign(unittest.TestCase):

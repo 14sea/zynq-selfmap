@@ -2648,3 +2648,76 @@ summary and the comparison by their hashes (360 tests).
    or the bound of 96 runs. The result of the run that was not read is probably still in the
    board's memory; taking it out by hand would put into the chain a result that did not come
    through the run script, and I do not propose it — the run takes four minutes.
+
+## 43. The run script asks again for a short reply that is not whole (2026-11-18)
+
+The owner's answer to section 42: both points as proposed, the first before the second, and
+nothing on the board until the owner says so. This section is the first point. Host only: the
+prober, its image (`fdc4f07f…9452`), the judges and the chain are as they were.
+
+**What a whole reply is** (`whole()` in `host/s1a_run.py`). For `md.l A N`: every line of that
+dump is there, each at its address, each with its four words (the last with what is left), and
+there is no other line of a dump. For `crc32 A B`: U-Boot's line for exactly that range, with
+its eight digits. A reply that lost a stretch of characters lacks a line, or a line lacks a
+word, or the next line is not at the next address. Any other command is an error in that
+function: there is no way to pass one in and have it asked twice.
+
+**What is asked again** (`read()` in `execute()`): the same command, at most five times in all
+(`MAX_READS`), when the reply is not whole. Every attempt is among the recorded steps with its
+reply as it came; every reply that was not whole is listed in the run record
+(`replies_not_whole`). If none of the five is whole the run does what it did before when it
+could not read that reply. The places:
+
+| | reply | if never whole |
+|---|---|---|
+| before `go` | the status word after the clear, and after the PL load | stop; `go` is not sent |
+| before `go` | the checksums of the PL design, the parameter block, the prober image | stop; `go` is not sent |
+| after `go` | the result header (sixteen lines) | stop; nothing saved (as on 2026-11-17) |
+| after `go` | the checksum of the result | stop; nothing saved |
+| after `go` | the checksum of the card copy read back | the card copy is not verified: the run fails, the result is still pulled |
+| after `go` | the checksum of each piece | stop |
+| after `go` | the status word afterwards; the checksum of the image afterwards | a problem: the run fails |
+
+**What is never asked again.**
+
+- A whole reply, whatever it says. A checksum that is not the expected one, a status word with
+  the wrong bit: these are findings and stop or fail the run on the first reply, as before.
+- Any command that does something: `go`, `mw.l`, `fpga loadb`, `fatload`, `fatwrite`, `loady`,
+  `dcache off`. Each is sent once whatever comes back. (`fatload` only reads the card, but it
+  writes memory; it stays with the others.)
+- The status word read before the PL load, which is recorded and not checked.
+- A command after which no prompt came. That is not a reply with a stretch missing; the state
+  of the console is not known, and the run stops there as before.
+
+**Two things that are stricter than before.**
+
+- A checksum is taken only from the line for the range asked about. Until now any `==>` and
+  eight digits would do.
+- The header is accepted by its form when it is read, and is now also **held to the pulled
+  result**: the first words of the copy that has the board's checksum must be the header as it
+  was read; if not, the run fails with that as its problem. A loss of characters can only make
+  a reply shorter, and the rule for a whole dump leaves almost nothing for it to do unseen (a
+  word's last digits and the two blanks after it lost, and the characters printed beside the
+  words happening to be digits and a blank); this check closes that by content.
+
+`header.bin` is written only from a whole header (before: from whatever words the one reply
+had). The stop reads `the result header could not be read whole in 5 attempts`.
+
+**Held against what the board has said so far** (a test, from the run records in `evidence/`):
+7,227 checksum replies and 726 dumps of a few words, every one whole by this rule and saying
+what the run took from it — and one that is not whole: the header dump of run 51.
+
+**What this does not cover**, and I leave as it is:
+
+- The replies of commands that do something. A loss in the line `… bytes read` of the card
+  read-back, in `… bytes written`, or in the prober's own two console lines fails that run —
+  after its result was saved, pulled and judged — and a chain halts on it. Short lines; none
+  was lost in the 52 runs.
+- The chain driver's own check after its `reset` before every run (one status word). If that
+  reply is damaged the driver stops before anything is run and leaves no run directory.
+- The pull of the pieces is as it was (the board's checksum of the piece decides).
+
+Tests: 373 (twelve new for the run script, one for the stored replies). Mutants: fourteen new
+for this change and six older ones moved to the lines as they now read (495 in all, none
+stale). Run as section 41 says — the 58 of the run script, all killed
+(`evidence/host_checks/mutants_2026-11-18_run_script.txt`); the others were not run.

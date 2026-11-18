@@ -3018,3 +3018,140 @@ chain to change (a chain is complete only if every frame with a known answer in 
 was walked, and one that begins at `0x00800000` never walks them), which makes it a change to
 the chain's acceptance rules: a proposal, a review, the complete set of mutants. I have not
 started on it.
+
+## 49. S1b.4 — proposal: the chain over block type 1 (2026-11-18; a proposal, nothing built, nothing on a board)
+
+The walk works at `0x00800000` (section 48). This proposes the chain that goes on from there
+to the end of block type 1, the one rule of the chain that has to change for it, what is made
+of the runs, and how that is graded. Nothing of it is built.
+
+### What is known and what is not
+
+Known, from the device: 64 addresses from `0x00800000`, one column begun and not ended, the
+register behaving as in block type 0, every frame all zero. Not known: how long that column
+is, how many columns a row has, where a row ends and what the register does there, how many
+rows there are, and what the device names after the last frame — or whether it names
+anything above. No number of any of these is assumed below.
+
+### The rule that has to change
+
+When a run leaves the envelope, the chain counts for itself whether every frame with a known
+answer **inside the envelope** was walked by one of its runs; if not, it halts instead of
+being complete (section 27). That rule was made deliberately, and section 27 says of it: "a
+chain begun above the known frames cannot be complete".
+
+The chain over block type 1 is such a chain. Its envelope begins at 0 — the prober wants the
+reference frame inside it, and the only frames with a known answer are `0x0b98`–`0x0b9a` — and
+it begins at `0x00800000`. As the rule stands it would walk block type 1 to its end and then
+halt for three frames it was never meant to walk.
+
+**Proposed: the chain asks for the known frames from its own first address on** — every frame
+with a known answer whose address is at or above the starting address of the chain's set, and
+inside the envelope. Nothing else in the chain's rules changes.
+
+- For the two chains there are (`s1b2`, `s1b3`) the first address is 0, the bottom of their
+  envelope: the rule asks of them exactly what it asked. The stored chains are assessed again
+  by the tests and must come out as they did.
+- It is the rule the judge of a run already has ("only for a known frame at or above its own
+  start"), now for the chain as a whole.
+- What section 27 guarded against stays guarded: a run that goes past a known frame without
+  reading it is failed by its judge, and a chain that leaves the envelope without one of the
+  known frames at or above its first address is halted by its own count.
+- What is given up, said plainly: "begun above the known frames" no longer keeps a chain from
+  being complete. What a set's first address is, is fixed by the test that writes the set;
+  for `s1b4` it is the address the device named after block type 0, and a test holds it to the
+  stored result.
+- **For this chain the rule then asks for nothing**: there is no frame with a known answer in
+  block type 1. Its "complete" rests on what every run's judge holds — the register after
+  every read, two passes alike, every frame once more in a read of three, the reference frame
+  as known at most 16 frames apart — on the seams, and on both passes of the last run leaving
+  the envelope. Not on content, if the frames go on being all zero.
+
+This is a change to the chain's acceptance rules: by section 41, the complete set of mutants
+before anything runs on the board.
+
+**The other way, without a rule change (B):** one chain from `0x00000000` again, with the
+envelope `0x00000000..0x00ffffff`, through block type 0 and on into block type 1. The known
+frames are walked, the rule holds as it is, and the list of both block types is one chain's.
+It costs the 62 runs of block type 0 a third time — about four and a half hours of board time
+that say nothing new about block type 1 — and a bound well above 96. It would also cross from
+block type 0 into block type 1 within one pass, which no run has done. What it would add
+about block type 0 is a second walk of its bottom row (walked once so far; the top row twice,
+by two images) of a list that was graded with no difference. I propose the rule change (A).
+B remains possible later, as a census in one piece, if that is wanted.
+
+### The chain
+
+The chain driver as it is, with a parameter set of its own.
+
+- **The set `s1b4`**: the parameter block of `s1b4a`, word for word — envelope
+  `0x00000000..0x00ffffff`, two passes, 64 frames a pass, one standstill a pass, the reference
+  frame `0x0b99` — with the start given at run time by the chain. The image unchanged.
+- **It starts at `0x00800000` again.** The first run walks the 64 addresses of section 48 a
+  second time (four minutes), and they are held against that stored run.
+- **It goes on** after a run that ended at the limit; **it is complete** when both passes of a
+  run end because the device named an address above the envelope — after a standstill or
+  without one. No address at or above `0x01000000` is ever written to the register.
+- **It halts** on anything else, as now: a second standstill within a pass; a standstill one
+  more step does not resolve; an address named that is not above the one before — which is
+  what the end of block type 1 may turn out to be, since block type 0 ended by naming the
+  first address of the next block type and nothing says the last one does the like; any
+  anomaly; a seam that does not match. A halt is stored, committed and reported, and what
+  there is by then is summarised as that.
+- **The bound: 48 runs** (about three and a half hours), as for S1b.2: a bound on unattended
+  board time, not a statement about the part. At the bound the chain stops and says where it
+  stands; going on needs the owner's word.
+- **The order on the board**, as for S1b.3: the first run alone and looked at; then
+  unattended to the end, a halt or the bound.
+
+### What is made of the runs
+
+- **The summary over rows**: the program of S1b.3 (`s1b3_rows.py`) as it is, told which set's
+  chain it reads. It holds no number of rows, columns or frames.
+- **The first run against the stored run of S1b.4a**: every address that run walked — the same
+  address in the chain's list, the same frame, the same address named after it. A difference
+  is listed and alters neither.
+- **The grader**: `grade_s1b3.py` as it is. It was written for "the block type of the rows it
+  is given" and takes block type 1 without change: each row's columns and their frames, the
+  rows in the database's order, the frames of the block type in all, and the address named
+  after the last frame against the first frame of the next block type — if the database lists
+  one; if not, that is listed as not compared. Tests with a made-up database of block type 1
+  are added; the real one is not opened.
+
+The order kept so far: the runs and the summary are stored, judged and committed first; the
+grader is run once afterwards, on a complete chain, and its output committed whatever it
+says. If the chain halts, nothing is graded without a word from the owner.
+
+### What this step cannot show, said beforehand
+
+- **Content, most likely.** If every frame is again all zero, the whole list of block type 1
+  rests on the register and on the reference frame. That is a limit of a read-only census
+  with this design, and the record will say it of every row.
+- What a row end of block type 1 is, beyond what the walk's one rule for a standstill takes
+  in. If it is something else the chain halts there, and that is looked at separately.
+- What follows block type 1. Whatever is named above the envelope is named, not read.
+- Whether the carrier holds a block RAM, and whether reading these frames disturbs one.
+
+### What has to be built
+
+Host only; the image is not built again.
+
+- the chain's rule, with tests: the stored chains unchanged; a chain begun above the known
+  frames complete where nothing known lies at or above its start, and halted where something
+  does and was not walked;
+- the set `s1b4` and its bound; the summary told which set; the comparison with the stored
+  run; tests of the grader on block type 1;
+- **the complete set of mutants**, before the board.
+
+### For the owner
+
+1. **A or B**: the rule change and a chain from `0x00800000` (A, proposed) — or no rule
+   change and one chain from `0x00000000` through both block types (B, four and a half hours
+   more).
+2. **The rule as worded**: the chain asks for the frames with a known answer at or above its
+   set's starting address, inside the envelope.
+3. **The set `s1b4`, the bound of 48 runs**, the first run alone and looked at, then
+   unattended.
+4. **The summary, the comparison with S1b.4a's run, the grader as it is**; summary and
+   comparison first and committed, the grader once on a complete chain — and whether these may
+   follow one another when the chain completes, as in S1b.3, or each waits for a word.

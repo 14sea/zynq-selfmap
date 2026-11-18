@@ -85,3 +85,19 @@ lengths. The row has now been read on two days by two images.
 For the owner (section 42 of the plan): whether the header read is to get a second attempt
 like the pieces have; and whether run 51 is set aside and the chain goes on from `0x00401283`.
 Neither has been done.
+
+## 2026-11-18: run 51 set aside; the chain not yet taken up again
+
+The owner's answer: both, the header read first; nothing on the board until the owner says so.
+
+- The run script now asks again for a short read-only reply that is not whole (the header
+  among them), at most five times (plan section 43, commit `0bb3404`). The image is unchanged.
+- What the halt left was moved, as it was, into `halted_at_run51/`: the directory `run51`
+  (console log, the words of the header that did arrive, the run record), the driver's
+  `run51.out`, and `chain.json`, `rows.json` and `top.json` as they were made at the halt.
+  Where this file says `rows.json`, `top.json` or run 51 above, that is where they are now.
+  Nothing in them was altered; a test holds them by their hashes and makes the summary and
+  the comparison again from the 51 runs.
+- The chain lists that directory as set aside and stands at **51 accepted runs, to go on: its
+  52nd run from `0x00401283`**, the last frame of run 50 (`chain.json` here is that state).
+- **Nothing has run on the board since run 51.** Nothing was graded.

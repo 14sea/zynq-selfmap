@@ -2721,3 +2721,29 @@ Tests: 373 (twelve new for the run script, one for the stored replies). Mutants:
 for this change and six older ones moved to the lines as they now read (495 in all, none
 stale). Run as section 41 says — the 58 of the run script, all killed
 (`evidence/host_checks/mutants_2026-11-18_run_script.txt`); the others were not run.
+
+## 44. Run 51 set aside (2026-11-18); the chain ready to be taken up again, not started
+
+The second point of section 42, as far as it goes without the board.
+
+- `evidence/s1b3_17A6_2026-11-17/halted_at_run51/` now holds what the halt left, moved and not
+  altered: the directory `run51`, the driver's `run51.out`, and `chain.json`, `rows.json`,
+  `top.json` as made at the halt — the files that going on would have written over. The chain
+  lists the directory as set aside.
+- The chain as stored: 51 runs, each accepted, **to go on with run 51 from `0x00401283`**
+  (the last frame of run 50; the device named `0x00401284` after it).
+- The test of the stored chain was split in two: one holds the halt as it was (the state then,
+  the 51 runs as they are judged now, the summary and the comparison made again and equal to
+  the stored ones, by hash); one holds the chain as it stands, and is the one to change when
+  the chain has gone on. 374 tests. No program was changed in this step, so no mutant was run.
+
+**On the board, when the owner says so, and not before:**
+
+1. The devices checked; nothing else running on the host.
+2. `s1b2_chain.py --stage s1b3 --dir evidence/s1b3_17A6_2026-11-17 --go`, unattended: a
+   `reset`, checked, before every run; run after run to complete, a halt, or the bound of 96
+   runs (45 more at most, about four minutes each).
+3. Whatever it ends in: committed as it stands first. Then the summary over rows; then the
+   first row against the stored one; and only if the chain is complete, the grader once —
+   each committed before the next, as section 39 has it.
+4. A halt is reported and nothing is retried or moved without the owner.

@@ -662,25 +662,13 @@
    "named_after_the_last": "0x00401284",
    "ended": "the limit of frames was reached",
    "decision": "go on"
-  },
-  {
-   "dir": "run51",
-   "start": "0x00401283",
-   "problems": [
-    "the run script stopped: the result header could not be read",
-    "the run script's verdict is FAIL: ['the result header could not be read']",
-    "the card copy was not verified",
-    "there is no stored result"
-   ],
-   "decision": "halt"
   }
  ],
- "set_aside": [],
- "state": "halted",
- "why": [
-  "run51: the run script stopped: the result header could not be read",
-  "run51: the run script's verdict is FAIL: ['the result header could not be read']",
-  "run51: the card copy was not verified",
-  "run51: there is no stored result"
- ]
+ "set_aside": [
+  "halted_at_run51"
+ ],
+ "state": "go on",
+ "next_run": 51,
+ "next_start": "0x00401283",
+ "next_start_from": "the last frame walked by run50 (result sha256 27077e14b7697fd3ce2ff5202c295798df69890a15e6eac83478bfa2a701dc18)"
 }

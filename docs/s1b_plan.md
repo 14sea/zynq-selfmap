@@ -3244,3 +3244,30 @@ afterwards (`evidence/host_checks/mutants_2026-11-18_s1b4.txt`).
    against S1b.4a's stored run; and only if the chain is complete, the grader once — each
    committed before the next.
 5. A halt is reported; nothing is retried or moved, and nothing graded, without the owner.
+
+## 51. Review of `b97dad9` (2026-11-18): one finding, accepted — a word taken for a set
+
+**Finding (P3).** `s1b3_rows.py` checked its arguments in one expression: the last word had
+to be either the directory or one of the sets a chain is driven with. That was meant to cover
+the call with no set named; it also let any third word through that was spelled like the
+directory. `s1b3_rows.py s1b4a s1b4a` then ended in a `KeyError` and exit 1 instead of the
+usage text and exit 2. Reproduced here, and so it is. The commands of section 50 are not
+touched by it: there the directory and the set are not the same word.
+
+The test of that command line had tried a word that is not a set only with a directory of
+another name, which is why it did not show.
+
+**Changed.** A third word, when there is one, is looked up among the sets by itself. The test
+now also calls the program with the same word twice — one that is another stage's set, one
+that is nothing — from inside the directory, and asks for exit 2 and nothing on stderr; on
+the program as it was, it fails.
+
+**Not changed:** the rule of section 50, the set, the image, the other programs. The reviewer
+confirmed the rest: the rule takes the set's own first address, the stored chains stand as
+before, `s1b4` is `s1b4a` word for word, the image is the one stored with the runs.
+
+419 tests (none new; one made stricter). One new mutant — the check put back as it was — and
+one moved to the line as it now reads: 524 in all, none stale. Run as section 41 says: the 19
+of the summary program, all killed (`evidence/host_checks/mutants_2026-11-18_s1b4_review.txt`);
+the others were not run, the complete set having been run on `b97dad9`, which this does not
+touch beyond that one line. Nothing was run on the board.

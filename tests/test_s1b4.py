@@ -278,6 +278,9 @@ class TheSummaryOverRows(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
         self.assertEqual((json.loads(p.stdout)["chain"]["state"], json.loads(p.stdout)["frames"]), ("halted", 0))
         self.assertEqual(subprocess.run(prog + ["s1b4a"], capture_output=True).returncode, 2, "not a set a chain is driven with")
+        for word in ("s1b4a", "anything"):                                   # nor is it one because the directory is called the same
+            p = subprocess.run(prog[:-1] + [word, word], capture_output=True, text=True, cwd=root)
+            self.assertEqual((p.returncode, p.stderr), (2, ""), word)
         self.assertEqual(subprocess.run(prog + [STAGE, "more"], capture_output=True).returncode, 2)
         self.assertEqual(subprocess.run(prog[:-1], capture_output=True).returncode, 2)
 

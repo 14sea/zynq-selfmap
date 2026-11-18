@@ -1,0 +1,23 @@
+# python3 tests/mutants.py 'rows: '
+unmutated: Ran 419 OK; 0 test(s): 
+KILLED   s1b4 rows: the set named is not the set read                   Ran 419 FAILED (failures=1); 1 test(s): the_program_is_told_which_sets_chain_it_rea
+KILLED   s1b4 rows: any word is taken for a set                         Ran 419 FAILED (failures=1); 1 test(s): the_program_is_told_which_sets_chain_it_rea
+KILLED   s1b4 rows: a word is taken for a set if the directory is called the same Ran 419 FAILED (failures=1); 1 test(s): the_program_is_told_which_sets_chain_it_rea
+KILLED   s1b3 rows: the list is not cut where the register stood still  Ran 419 FAILED (failures=23); 21 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b3 rows: a row is whole only if the register stood still after it Ran 419 FAILED (failures=2); 2 test(s): an_end_is_one_only_if_both_passes_left_the_, the_end_of_the_block_type_without_a_standst
+KILLED   s1b3 rows: every row is said to have been walked whole         Ran 419 FAILED (failures=8); 7 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_row_shorter_than_a_pass_halts_the_chain
+KILLED   s1b3 rows: an address is given as named after a row that was not ended Ran 419 FAILED (failures=3); 3 test(s): an_end_where_the_register_stands_still_for_, the_chain_over_block_type_0_as_it_was_store
+KILLED   s1b3 rows: a standstill inside a row is passed over            Ran 419 FAILED (failures=1); 1 test(s): a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: a row met twice is passed over                      Ran 419 FAILED (failures=1); 1 test(s): a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: what is unexpected in a row is not carried to the summary Ran 419 FAILED (failures=2); 2 test(s): a_row_that_ends_without_a_standstill_is_not, a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: a list that is not a chain of names is passed over  Ran 419 FAILED (failures=2); 2 test(s): a_standstill_inside_a_row_and_a_row_met_twi, what_is_not_in_order_is_listed
+KILLED   s1b3 rows: addresses that do not rise are passed over          Ran 419 FAILED (failures=1); 1 test(s): a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: the seam frame is listed twice                      Ran 419 FAILED (failures=27, errors=1); 24 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b3 rows: a run that did not pass adds its frames             Ran 419 FAILED (failures=5, errors=1); 5 test(s): a_row_shorter_than_a_pass_halts_the_chain, a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 rows: the end is never said to follow a standstill        Ran 419 FAILED (failures=4); 4 test(s): an_end_is_one_only_if_both_passes_left_the_, the_chain_over_block_type_0_as_it_stands
+KILLED   s1b3 rows: every row is listed among the standstills           Ran 419 FAILED (failures=5); 5 test(s): a_run_that_ended_at_the_limit, columns_and_rows_as_the_device_named_them
+KILLED   s1b3 rows: the known frames are not looked for                 Ran 419 FAILED (failures=3); 3 test(s): the_chain_over_block_type_0_as_it_stands, the_chain_over_block_type_0_as_it_was_store
+KILLED   s1b3 rows: the chain is assessed as one of the row's set       Ran 419 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b3 rows: a chain that halted is said to have reached the end Ran 419 FAILED (failures=2, errors=17); 15 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_row_shorter_than_a_pass_halts_the_chain
+restored: Ran 419 OK; 0 test(s):  (8 copies)
+19 mutants, 0 survived

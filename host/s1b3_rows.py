@@ -106,7 +106,7 @@ def summarize(assessment: dict, known: dict) -> dict:
 
 def main(argv: list[str]) -> int:
     import s1a_run
-    if len(argv) not in (2, 3) or argv[-1] not in [argv[1], *s1b2_chain.BOUNDS]:
+    if len(argv) not in (2, 3) or (len(argv) == 3 and argv[2] not in s1b2_chain.BOUNDS):
         print(__doc__); return 2
     root, stage = Path(argv[1]), argv[2] if len(argv) == 3 else STAGE
     stored = root / f"expected_{stage}.json"             # the set as it was when the chain was run, if it was kept with the runs

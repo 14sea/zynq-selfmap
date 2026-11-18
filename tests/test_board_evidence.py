@@ -391,6 +391,34 @@ class StoredBoardResults(unittest.TestCase):
         self.assertIn("the chain found 3864, the database's columns add up to 3864", g["agrees"][2])
         self.assertIn("0x00800000", g["agrees"][3])
 
+    def test_the_run_into_block_type_1(self) -> None:
+        """S1b.4a, 2026-11-18: one run of the walk from `0x00800000`, the address the device named after the last frame
+        of block type 0. Judged again here from its raw words against the set kept with it; the layout is what the
+        program gives now."""
+        import s1b2_judge, s1b4a_layout
+        d = ROOT / "evidence" / "s1b4a_17A6_2026-11-18"
+        raw = (d / "run" / "result.bin").read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), "77fde8f5ff02ae2af329ac5d698d7a96e305a44139b983c9c290aba1f0c3df51")
+        self.assertEqual(hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest(), "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
+        planned = [int(w, 16) for w in json.loads((d / "expected_s1b4a.json").read_text())["params"]]
+        self.assertEqual((planned[3], planned[4], planned[5], planned[10], planned[12], planned[16]), (0, 0x00FFFFFF, 0xB99, 1, 64, 0x00800000))
+        v = s1b2_judge.judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), KNOWN, planned)
+        self.assertEqual(v, json.loads((d / "run" / "verdict.json").read_text()))
+        self.assertEqual((v["verdict"], v["problems"], v["header"]["status"], v["header"]["records"], v["header"]["anomalies"]), ("PASS", [], "0x1", 292, 0))
+        self.assertEqual([int(s["far"], 16) for s in v["walk"]], list(range(0x00800000, 0x00800040)), "64 addresses, each the one named after the one before")
+        self.assertEqual(v["passes"], [{"frames": 64, "ended": "the limit of frames was reached", "last_address_named": "0x00800040"}] * 2)
+        self.assertEqual((v["standstills"], v["frames_without_a_second_path"]), ([], []))
+        self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()))
+        rec = json.loads((d / "run" / "run.json").read_text())
+        self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"]), ("PASS", [], [], True, "50033004"))
+        out = s1b4a_layout.layout(v)
+        self.assertEqual(out, json.loads((d / "layout.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "layout.json").read_bytes()).hexdigest(), "f57d487ab143ec8dc2b5abb83321fd8ab79eb36b39b74fa36c8e841386de64cc")
+        self.assertEqual((out["block_types"], out["frames_per_row"], out["rows"][0]["frames_per_column"], out["unexpected"], out["end"]["reached"]),
+                         ([1], [[1, "top", 0, 64]], [[0, 64]], [], False))
+        self.assertEqual((out["content"]["frames_not_all_zero"], out["content"]["distinct_contents"]), (0, 1), "every frame all zero: the list rests on the register")
+        self.assertFalse((d / "grade.json").exists(), "one run is not a list: nothing was graded")
+
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have

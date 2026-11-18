@@ -1,0 +1,81 @@
+{
+ "run": {
+  "verdict": "PASS",
+  "status": "0x1",
+  "problems": []
+ },
+ "passes": [
+  {
+   "frames": 64,
+   "ended": "the limit of frames was reached",
+   "last_address_named": "0x00800040"
+  },
+  {
+   "frames": 64,
+   "ended": "the limit of frames was reached",
+   "last_address_named": "0x00800040"
+  }
+ ],
+ "frames": 64,
+ "first": "0x00800000",
+ "last": "0x0080003f",
+ "block_types": [
+  1
+ ],
+ "rows": [
+  {
+   "index": 0,
+   "block_type": 1,
+   "half": "top",
+   "row": 0,
+   "frames": 64,
+   "first": "0x00800000",
+   "last": "0x0080003f",
+   "walked_whole": false,
+   "ended_by": "not ended",
+   "named_after_the_last_frame": null,
+   "columns": [
+    {
+     "block_type": 1,
+     "half": "top",
+     "row": 0,
+     "column": 0,
+     "frames": 64,
+     "first": "0x00800000",
+     "last": "0x0080003f",
+     "named_after_the_last": "0x00800040",
+     "walked_whole": false,
+     "minors_are_0_to_n_minus_1": true,
+     "next_is_minor_0_of_the_column_numbered_one_higher": false
+    }
+   ],
+   "frames_per_column": [
+    [
+     0,
+     64
+    ]
+   ],
+   "unexpected": []
+  }
+ ],
+ "frames_per_row": [
+  [
+   1,
+   "top",
+   0,
+   64
+  ]
+ ],
+ "standstills": [],
+ "end": {
+  "reached": false,
+  "last_frame_walked": "0x0080003f",
+  "note": "the envelope was not left: the last row listed may go on, and what follows it is not known"
+ },
+ "unexpected": [],
+ "content": {
+  "frames_not_all_zero": 0,
+  "distinct_contents": 1,
+  "note": "every frame delivered is all zero: that two reads of an address agree says nothing about which frame either read"
+ }
+}

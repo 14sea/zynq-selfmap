@@ -2989,3 +2989,32 @@ only make the suite stricter.
 5. **If it does not pass** — a stop, an anomaly, an interface failure, a board that does not
    answer: that is what is reported. Nothing is run a second time, and nothing further is run
    at all until the owner says so.
+
+## 48. S1b.4a on the board (2026-11-18): PASS — the walk works at `0x00800000`
+
+Released by the owner after section 47. One run, 16:48–16:52 UTC, after a pre-check and a
+`reset`; stored and committed as it came (`ed538c8`) before anything was made of it. The full
+account is `evidence/s1b4a_17A6_2026-11-18/RESULT.md`.
+
+- **PASS.** 292 records, no anomaly, no overflow, no interface failure; the result is the
+  board's, the card copy verified; the PL configured and no error bit afterwards.
+- **64 addresses, `0x00800000..0x0080003f`**, each the one the device named after the one
+  before: block type 1, top half, row 0, column 0, minors 0 to 63. Both passes ended at the
+  limit, told `0x00800040`. The column has at least 64 frames; none of block type 0 has more
+  than 42.
+- **The register behaves there as in block type 0**: the pad alone names the next number, a
+  read of three goes on by itself, no standstill in these 64.
+- **The reference frame** in block type 0 was as known at each of its 14 readings in between.
+- **Every frame is all zero.** The content tells nothing; the addresses rest on the register.
+  Nothing is learnt about whether the carrier holds a block RAM.
+- Of the four outcomes section 46 set out beforehand this is the first.
+
+396 tests (one new: the stored run judged again from its raw words, the layout made again).
+No program was changed after section 47; no mutant was run.
+
+**Stopped here.** Nothing was graded and nothing further was run. What section 46 named as
+the next proposal, if this passed, is the chain over block type 1 — with one rule of the
+chain to change (a chain is complete only if every frame with a known answer in its envelope
+was walked, and one that begins at `0x00800000` never walks them), which makes it a change to
+the chain's acceptance rules: a proposal, a review, the complete set of mutants. I have not
+started on it.

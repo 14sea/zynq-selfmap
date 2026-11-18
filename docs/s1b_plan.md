@@ -3155,3 +3155,92 @@ Host only; the image is not built again.
 4. **The summary, the comparison with S1b.4a's run, the grader as it is**; summary and
    comparison first and committed, the grader once on a complete chain — and whether these may
    follow one another when the chain completes, as in S1b.3, or each waits for a word.
+
+## 50. S1b.4 as built (2026-11-18; host side, nothing on a board yet, no database read)
+
+The owner's answers to section 49: all four as proposed — the rule change and a chain from
+`0x00800000` (A); the rule as worded; the set `s1b4`, a bound of 48 runs, the first run alone
+and looked at; the summary, the comparison with S1b.4a's run and the grader as it is, in that
+order, following one another when the chain completes as in S1b.3.
+
+### The rule
+
+`s1b2_chain.assess`, one line: when a run leaves the envelope, the frames with a known answer
+the chain asks for are those whose address is **at or above the starting address of the
+chain's set** and not above the envelope's upper end. Before, it was "not below the
+envelope's lower end". Nothing else in the chain changed.
+
+- The sets of the two chains there are begin where their envelopes do (a test holds that), so
+  the rule asks of them what it asked; and the two stored chains, assessed again from their
+  raw words, come out as they are stored: S1b.2's halted at its 31st run, S1b.3's complete
+  with 62.
+- On written-out runs: a chain beginning at an address is asked for a known frame at that
+  address and for every one above it in the envelope — walked, complete; one not walked,
+  halted, also when it lies below the start of the chain's last run — and not for one below
+  its first address or above the envelope.
+
+**Two older tests say something else now**, and that is the change itself:
+
+- "a chain begun above the known frames cannot be complete" is now "a chain is asked for the
+  known frames from its first address on": the same made-up chain, begun in the column after
+  the known frames, is complete. Beside it: one begun at the last known frame is asked for
+  that frame and walks it.
+- In the test of the case found in the review of section 27, the last part — the rest of the
+  row, run as a chain of its own from above the known frames — used to be halted by the
+  chain's count and is now complete. The first part is as it was: the run that goes past the
+  known frames is failed by its judge and the chain halts there. So of the two things mended
+  in section 27, the judge's still catches that case on the twin; the chain's own count is now
+  shown only on written-out runs, where judges are not asked.
+
+### The rest
+
+- **The set `s1b4`**: the parameter block of `s1b4a` word for word (a test compares them); the
+  run script takes its start at run time; `--stage s1b4` in the chain driver, bound 48. The
+  image is `fdc4f07f…9452`, unchanged.
+- **`s1b3_rows.py <chain directory> [<set>]`**: told which set's chain it reads (`s1b3` if
+  none is named). The summary itself is as it was. For this chain it lists the three known
+  frames as not walked, which is so.
+- **`host/s1b4_first.py`** (new): a stored run held against the chain's list — every address
+  of that run in the list, the same frame, the same address named, a standstill in both or in
+  neither; and between the first and the last of them the list is that run's, none more, none
+  fewer, in order. How many of those frames are not all zero. It holds no number and reads no
+  database.
+- **The grader** is untouched. Given block type 1 with a made-up database it compares the
+  columns and their frames, the rows in the database's order and the frames in all, and lists
+  the address named after the last frame as not compared when the database has no block type
+  after this one.
+
+### What the twin was made to do
+
+A made-up block type 1 of three rows (two of the top half, one of the bottom; 100, 66 and 90
+frames in columns of lengths no part has), each row ending as the rows of block type 0 did on
+the board, and `0x01000000` named after the last:
+
+- the chain walks all 256 addresses in five runs and is complete; no address is written to
+  the register but the reference frame and addresses of block type 1;
+- the summary gives the three rows, their columns, three standstills, and the end;
+- an end where the register stands still for good halts the chain, and the summary of what
+  there is says so; the bound stops it where it stands;
+- the chain's first 64 addresses against a run of the set `s1b4a` on the same device: no
+  disagreement; and each way the two can differ is listed when it is made to happen.
+
+### Tests and mutants
+
+419 tests (23 new in `tests/test_s1b4.py`; five older ones changed — the two above, and three
+that list the sets with a start given at run time, the bounds, and the sets with a standstill
+allowed). 18 new mutants and two older ones moved to the lines as they now read: 523 in all,
+none stale. **The complete set was run**, as section 41 asks for a change to the chain's
+acceptance rules: 523 of 523 killed, none survived, none broken, the suite whole again
+afterwards (`evidence/host_checks/mutants_2026-11-18_s1b4.txt`).
+
+### On the board, when the owner says so, and not before
+
+1. The devices checked; nothing else running on the host.
+2. The first run alone: `s1b2_chain.py --stage s1b4 --dir evidence/s1b4_17A6_<date> --go
+   --max-new 1`. Looked at, committed.
+3. Then the same without `--max-new`, unattended: a `reset`, checked, before every run; to
+   complete, a halt, or the bound of 48 runs.
+4. Whatever it ends in: committed as it stands first. Then `rows.json`; then the first run
+   against S1b.4a's stored run; and only if the chain is complete, the grader once — each
+   committed before the next.
+5. A halt is reported; nothing is retried or moved, and nothing graded, without the owner.

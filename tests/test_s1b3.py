@@ -125,7 +125,7 @@ class TheSetAndTheDriver(unittest.TestCase):
         self.assertEqual((exp["params"][16], exp["chain"]["start"]), ("00400015", "0x00400015"))
         with self.assertRaises(ValueError):                 # block type 1 is outside: no run can be started there
             s1a_run.with_start(STAGE, json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()), BEYOND, "a test")
-        self.assertEqual(chain.BOUNDS, {"s1b2": 48, STAGE: 96})
+        self.assertEqual(chain.BOUNDS, {"s1b2": 48, STAGE: 96, "s1b4": 48})
 
     def test_the_driver_says_where_a_stored_chain_stands_for_either_set(self) -> None:
         _, root, _, a, _ = the()
@@ -136,7 +136,7 @@ class TheSetAndTheDriver(unittest.TestCase):
         p = subprocess.run(prog, capture_output=True, text=True)        # taken for a chain of the row's set, it is not one
         self.assertEqual(p.returncode, 1)
         self.assertIn("the run record is of stage s1b3, not s1b2", p.stdout)
-        self.assertEqual(subprocess.run(prog + ["--stage", "s1b3a"], capture_output=True).returncode, 2, "only the two sets made for a chain")
+        self.assertEqual(subprocess.run(prog + ["--stage", "s1b3a"], capture_output=True).returncode, 2, "only the sets made for a chain")
 
 
 class TheChainOverSeveralRows(unittest.TestCase):

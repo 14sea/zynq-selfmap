@@ -186,6 +186,11 @@ class Image(unittest.TestCase):
         # The envelope still begins at 0: the prober wants the reference frame inside it. Nothing is given at run time.
         p8 = list(p7); p8[4], p8[16] = 0x00FFFFFF, 0x00800000
         (BUILD / "expected_s1b4a.json").write_text(json.dumps(dict(e4, stage="S1b.4a, one run into block type 1", params=[f"{w:08x}" for w in p8]), indent=1) + "\n")
+        # S1b.4 (docs/s1b_plan.md, section 49): the chain over block type 1. s1b4a's parameter block word for word; what
+        # differs is that the run script takes its starting address at run time, from the chain. This file holds the
+        # first run's: the address the device named after block type 0.
+        p9 = list(p8)
+        (BUILD / "expected_s1b4.json").write_text(json.dumps(dict(e4, stage="S1b.4, one run of the chain over block type 1", params=[f"{w:08x}" for w in p9]), indent=1) + "\n")
         (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
         # S1b.2b (docs/s1b_plan.md, section 29): the end of the row, by the table-driven stage in its stage-5 form with
         # the wait that touches no memory. The addresses are the last ones the device named in the row (S1b.2, run 30);

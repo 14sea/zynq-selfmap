@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """S1b.3: what a chain of runs over block type 0 says about its rows (docs/s1b_plan.md, section 38).
 
-    s1b3_rows.py <chain directory>        prints the summary as JSON
+    s1b3_rows.py <chain directory> [<set>]        prints the summary as JSON; the set is s1b3 if none is named
 
-Every stored run of the chain is taken from its files and judged again (s1b2_chain.assess, with the set s1b3); from
+Every stored run of the chain is taken from its files and judged again (s1b2_chain.assess, with that set); from
 the runs that passed, the addresses the device named are put in order. The list is cut into rows where the register
 stood still — the device's own mark of the end of a row (sections 31 and 37) — and each row is described by the
 program that described the row of S1b.2 (s1b2_row: the columns by the column field of the address word, the frames
@@ -106,13 +106,13 @@ def summarize(assessment: dict, known: dict) -> dict:
 
 def main(argv: list[str]) -> int:
     import s1a_run
-    if len(argv) != 2:
+    if len(argv) not in (2, 3) or argv[-1] not in [argv[1], *s1b2_chain.BOUNDS]:
         print(__doc__); return 2
-    root = Path(argv[1])
-    stored = root / f"expected_{STAGE}.json"             # the set as it was when the chain was run, if it was kept with the runs
-    base = [int(w, 16) for w in json.loads((stored if stored.exists() else s1a_run.STAGES[STAGE]["expected"]).read_text())["params"]]
+    root, stage = Path(argv[1]), argv[2] if len(argv) == 3 else STAGE
+    stored = root / f"expected_{stage}.json"             # the set as it was when the chain was run, if it was kept with the runs
+    base = [int(w, 16) for w in json.loads((stored if stored.exists() else s1a_run.STAGES[stage]["expected"]).read_text())["params"]]
     known = json.loads(s1a_run.KNOWN.read_text())
-    print(json.dumps(summarize(s1b2_chain.assess(root, base, known, s1b2_chain.BOUNDS[STAGE], STAGE), known), indent=1))
+    print(json.dumps(summarize(s1b2_chain.assess(root, base, known, s1b2_chain.BOUNDS[stage], stage), known), indent=1))
     return 0
 
 

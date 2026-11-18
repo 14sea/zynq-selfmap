@@ -29,7 +29,7 @@ END, JUDGE6 = "host/s1b2_end.py", "host/s1b2e_judge.py"
 CLOSED = "host/s1b2_closed.py"
 SEAM = "host/s1b3a_seam.py"
 ROWS3, TOP3, GRADE3 = "host/s1b3_rows.py", "host/s1b3_top.py", "host/grade_s1b3.py"
-LAYOUT4 = "host/s1b4a_layout.py"
+LAYOUT4, FIRST4 = "host/s1b4a_layout.py", "host/s1b4_first.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -221,7 +221,7 @@ MUTANTS = [
     (JUDGE4, "judge4: known frames above the last address read count as gone past", "first_pass[0][\"far\"] < f < first_pass[-1][\"far\"]]", "first_pass[0][\"far\"] < f]"),
     (JUDGE4, "judge4: known frames below the first address read count as gone past", "first_pass[0][\"far\"] < f < first_pass[-1][\"far\"]]", "f < first_pass[-1][\"far\"]]"),
     (CHAIN, "s1b2 chain: a row left with its known frames not walked is complete", "            if not_walked:", "            if False:"),
-    (CHAIN, "s1b2 chain: a known frame outside the envelope is asked of the chain", "if base[P_LO] <= f <= base[P_HI] and f\"{f:#010x}\" not in walked]", "if f\"{f:#010x}\" not in walked]"),
+    (CHAIN, "s1b2 chain: a known frame outside the envelope is asked of the chain", "if base[P_START] <= f <= base[P_HI] and f\"{f:#010x}\" not in walked]", "if f\"{f:#010x}\" not in walked]"),
     (CHAIN, "s1b2 chain: only the last run's frames count as walked", "for run in out[\"runs\"] for s in run[\"walk\"]}", "for run in out[\"runs\"][-1:] for s in run[\"walk\"]}"),
     (JUDGE4, "judge4: leaving the envelope without the known frames is fine", "    if status == 1 and passed_by and ends and ends[0][1] == 1:", "    if False:"),
     (JUDGE4, "judge4: the header's account of the walk is not checked", "        if got != want:\n            bad(f\"pass {p}:", "        if False:\n            bad(f\"pass {p}:"),
@@ -491,13 +491,13 @@ MUTANTS = [
     (SEAM, 's1b3a seam: disagreements exit 0', '    return 1 if out["disagreements"] or out["run"]["verdict"] != "PASS" else 0', '    return 1 if out["run"]["verdict"] != "PASS" else 0'),
     (SEAM, 's1b3a seam: the new addresses are not counted', '"count": len(new),', '"count": 0,'),
     # ---- S1b.3: the chain over block type 0 (section 38)
-    (CHAIN, "s1b3 chain: the bound of the row's chain", 'BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96}', 'BOUNDS = {"s1b2": MAX_RUNS, "s1b3": MAX_RUNS}'),
+    (CHAIN, "s1b3 chain: the bound of the row's chain", 'BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96, ', 'BOUNDS = {"s1b2": MAX_RUNS, "s1b3": MAX_RUNS, '),
     (CHAIN, "s1b3 chain: every run is read as one of the row's set", '        r = read_run(root / name, base, start, known, stage)', '        r = read_run(root / name, base, start, known)'),
     (CHAIN, 's1b3 chain: a step at which the register stood still does not say so', '**({"stood_still": True} if s.get("stood_still") else {})}', '**({})}'),
     (CHAIN, 's1b3 chain: asked where a chain stands, the set named is not used', '        state = assess(a.dir, base, known, BOUNDS[a.stage], a.stage)', '        state = assess(a.dir, base, known, BOUNDS[a.stage])'),
     (CHAIN, "s1b3 chain: driven, the chain is assessed as one of the row's set", '        a = assess(root, base, known, max_runs, stage)\n', '        a = assess(root, base, known, max_runs)\n'),
     (RUN, 's1b3 run: judged as a walk of its own, not a run of a chain', '"s1b3": {"judge": s1b2_judge,', '"s1b3": {"judge": s1b1_judge,'),
-    (RUN, "s1b3 run: the chain's set takes no start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3")', 'STARTS_AT_RUN_TIME = ("s1b2",)'),
+    (RUN, "s1b3 run: the chain's set takes no start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b4")'),
     # ---- 2026-11-18: a short read-only reply that is not whole is asked for again (section 43)
     (RUN, "run: a reply that is not whole is not asked for again", "        for attempt in range(1, MAX_READS + 1):", "        for attempt in range(1, 2):"),
     (RUN, "run: a reply is asked for again without end in sight", "MAX_READS = 5  ", "MAX_READS = 50  "),
@@ -520,7 +520,7 @@ MUTANTS = [
      "        if live and (not live[0] & J.PCFG_DONE or live[0] & J.ERR_MASK):"),
     # ---- 2026-11-18: S1b.4a, one run into block type 1 (section 46): a parameter set, and the program that lays the run out
     (RUN, "s1b4a run: judged as a walk of its own, not a run of a chain", '"s1b4a": {"judge": s1b2_judge,', '"s1b4a": {"judge": s1b1_judge,'),
-    (RUN, "s1b4a run: the set may be given a start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4a")'),
+    (RUN, "s1b4a run: the set may be given a start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b4a")'),
     (LAYOUT4, "s1b4a layout: a run that did not pass is laid out without a word", '    if verdict.get("verdict") != "PASS":', "    if False:"),
     (LAYOUT4, "s1b4a layout: a run that ended at the limit is said to have reached the end", ' and bool(passes) and all(p["ended"] == LEFT for p in passes)', " and bool(passes)"),
     (LAYOUT4, "s1b4a layout: one pass beyond the envelope is enough", 'all(p["ended"] == LEFT for p in passes)', 'any(p["ended"] == LEFT for p in passes)'),
@@ -528,6 +528,25 @@ MUTANTS = [
     (LAYOUT4, "s1b4a layout: frames that are all zero count as content", '    not_zero = sum(1 for x in walk if x["frame_sha256"] != ALL_ZERO)', '    not_zero = sum(1 for x in walk if x["frame_sha256"] != "")'),
     (LAYOUT4, "s1b4a layout: nothing is said of frames that are all alike", "    if not_zero == 0:", "    if False:"),
     (LAYOUT4, "s1b4a layout: exit 0 for a run that did not pass", '    return 0 if out["run"]["verdict"] == "PASS" and not out.get("unexpected") else 1', '    return 0 if not out.get("unexpected") else 1'),
+    # ---- 2026-11-18: S1b.4, the chain over block type 1 (section 49): the chain's count of the known frames, a set, two programs
+    (CHAIN, "s1b4 chain: every known frame in the envelope is asked for, as before", "if base[P_START] <= f <= base[P_HI] and", "if base[P_LO] <= f <= base[P_HI] and"),
+    (CHAIN, "s1b4 chain: known frames are asked for from the last run's start on", "if base[P_START] <= f <= base[P_HI] and", "if start <= f <= base[P_HI] and"),
+    (CHAIN, "s1b4 chain: a known frame at the chain's first address is not asked for", "if base[P_START] <= f <= base[P_HI] and", "if base[P_START] < f <= base[P_HI] and"),
+    (CHAIN, "s1b4 chain: the bound of the chain over block type 0", '"s1b4": 48}', '"s1b4": 96}'),
+    (RUN, "s1b4 run: judged as a walk of its own, not a run of a chain", '"s1b4": {"judge": s1b2_judge,', '"s1b4": {"judge": s1b1_judge,'),
+    (RUN, "s1b4 run: the chain's set takes no start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3")'),
+    (ROWS3, "s1b4 rows: the set named is not the set read", "    root, stage = Path(argv[1]), argv[2] if len(argv) == 3 else STAGE", "    root, stage = Path(argv[1]), STAGE"),
+    (ROWS3, "s1b4 rows: any word is taken for a set", " or argv[-1] not in [argv[1], *s1b2_chain.BOUNDS]:", ":"),
+    (FIRST4, "s1b4 first: the frames are not compared", '        if s["frame_sha256"] != t["frame_sha256"]:', "        if False:"),
+    (FIRST4, "s1b4 first: the addresses named are not compared", '        if s["next"] != t["next"]:', "        if False:"),
+    (FIRST4, "s1b4 first: the standstills are not compared", '        if bool(s.get("stood_still")) != bool(t.get("stood_still")):', "        if False:"),
+    (FIRST4, "s1b4 first: an address the chain does not have is not listed", "    if missing:", "    if False:"),
+    (FIRST4, "s1b4 first: the order of the addresses is not looked at", '    if between != [t["far"] for t in theirs]:', "    if len(between) != len(theirs):"),
+    (FIRST4, "s1b4 first: only the addresses both have are counted between", '    between = [s["far"] for s in mine if first <= int(s["far"], 16) <= last]', '    between = [t["far"] for t in theirs if t["far"] in here]'),
+    (FIRST4, "s1b4 first: a stored run that did not pass is taken", '    if verdict.get("verdict") != "PASS":', "    if False:"),
+    (FIRST4, "s1b4 first: frames that are all zero count as content", 'if t["frame_sha256"] != ALL_ZERO)', 'if t["frame_sha256"] != "")'),
+    (FIRST4, "s1b4 first: nothing is said of frames that are all alike", '    if out["distinct_contents"] <= 1 and shared:', "    if False:"),
+    (FIRST4, "s1b4 first: exit 0 whatever was found", '    return 1 if out["disagreements"] else 0', "    return 0"),
     (LAYOUT4, "s1b4a layout: exit 0 with something unexpected in the list", '    return 0 if out["run"]["verdict"] == "PASS" and not out.get("unexpected") else 1', '    return 0 if out["run"]["verdict"] == "PASS" else 1'),
     (ROWS3, 's1b3 rows: the list is not cut where the register stood still', '        if s.get("stood_still"):\n            pieces.append((cur, True)); cur = []', '        if False:\n            pieces.append((cur, True)); cur = []'),
     (ROWS3, 's1b3 rows: a row is whole only if the register stood still after it', '        whole = stood or (complete and k == len(pieces) - 1)', '        whole = stood'),

@@ -350,21 +350,33 @@ class TheEndOfARow(unittest.TestCase):
             v = judge(words, KNOWN, block)
             self.assertEqual((v["verdict"], v["problems"], v["passes"][0]["ended"], v["frames_walked"]), ("FAIL", [went_past], chain.LIMIT, 64))
         self.assertLess(int(v["walk"][0]["far"], 16), 0xB98); self.assertGreater(int(v["walk"][-1]["far"], 16), 0xB9A)
-        # run from where that run ended, the rest of this row passes run by run: nothing after it would have noticed
+        # Run from where that run ended, the rest of this row passes run by run: nothing after it notices. Until section
+        # 49 the chain's own count halted such a chain ("begun above the known frames, it cannot be complete"). Since
+        # then a chain is asked for the known frames at or above the address its set begins at, and this one — a set
+        # made up here, beginning above them — is complete. What keeps the row above from counting as walked is the
+        # judge of the run that went past; the chain's own count is shown on written-out runs, here and in test_s1b4.
         rest = list(self.base); rest[chain.P_START] = int(v["walk"][-1]["far"], 16)
         b = chain.drive(self.tmp / "over_rest", rest, KNOWN, runner(addresses, succ))
-        self.assertEqual(([r["judge"] for r in b["runs"]], [r["decision"] for r in b["runs"]][:-1]), (["PASS"] * len(b["runs"]), ["go on"] * (len(b["runs"]) - 1)))
-        self.assertEqual((b["state"], b["runs"][-1]["decision"], b["runs"][-1]["ended"]), ("halted", "halt", chain.LEFT))
-        self.assertEqual(b["why"], [f"{b['runs'][-1]['dir']} left the envelope, but no run of the chain walked the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a"])
+        self.assertEqual(([r["judge"] for r in b["runs"]], [r["decision"] for r in b["runs"]]), (["PASS"] * len(b["runs"]), ["go on"] * (len(b["runs"]) - 1) + ["complete"]))
+        self.assertEqual((b["state"], b["runs"][-1]["ended"], row_summary.summarize(b, KNOWN)["known_frames_walked"]), ("complete", chain.LEFT, []))
 
-    def test_a_chain_begun_above_the_known_frames_cannot_be_complete(self) -> None:
+    def test_a_chain_is_asked_for_the_known_frames_from_its_first_address_on(self) -> None:
+        """Section 49. A chain begun above the known frames is not asked for them (until then it could not be complete);
+        one begun at or below a known frame is asked for that frame and every one above it."""
         addresses, succ = row()
         above = list(self.base); above[chain.P_START] = 24 << 7               # the model's column 24: the known frames are in column 23
         a = chain.drive(self.tmp / "above", above, KNOWN, runner(addresses, succ))
-        self.assertEqual((a["state"], [(r["judge"], r["decision"], r["frames"], r["ended"]) for r in a["runs"]]), ("halted", [("PASS", "halt", 9, chain.LEFT)]))
-        self.assertEqual(a["why"], ["run00 left the envelope, but no run of the chain walked the known frame(s) 0x00000b98, 0x00000b99, 0x00000b9a"])
-        self.assertEqual(chain.drive(self.tmp / "above", above, KNOWN, runner(addresses, succ))["state"], "halted", "and nothing more is run")
+        self.assertEqual((a["state"], [(r["judge"], r["decision"], r["frames"], r["ended"]) for r in a["runs"]]), ("complete", [("PASS", "complete", 9, chain.LEFT)]))
+        self.assertEqual(chain.drive(self.tmp / "above", above, KNOWN, runner(addresses, succ))["state"], "complete", "and nothing more is run")
         self.assertEqual(len(list((self.tmp / "above").glob("run*/run.json"))), 1)
+        at_the_last = list(self.base); at_the_last[chain.P_START] = 0xB9A     # the last of the three: asked for, and walked as the first frame
+        b = chain.drive(self.tmp / "at_the_last", at_the_last, KNOWN, runner(addresses, succ))
+        self.assertEqual((b["state"], b["runs"][0]["first"], row_summary.summarize(b, KNOWN)["known_frames_walked"]), ("complete", "0x00000b9a", ["0x00000b9a"]))
+        # the same stored runs taken for a chain that was to begin lower: the two frames below its first run are missed
+        lower = list(self.base); lower[chain.P_START] = 0xB98
+        c = chain.assess(self.tmp / "at_the_last", lower, KNOWN)
+        self.assertEqual(c["state"], "halted")
+        self.assertIn("the run was started at 0x00000b9a; the chain plans 0x00000b98 for it", c["why"][0])
 
     def test_an_address_inside_the_envelope_is_followed_whatever_its_shape(self) -> None:
         jump = {5: 7 << 7 | 2}                               # after column 5: not column 6, and not minor 0
@@ -586,7 +598,7 @@ class TheRunScriptAndTheJudgeOfARun(unittest.TestCase):
         for stage in ("s1b1", "s1b1r", "s1a", "dxw0r"):
             with self.assertRaises(ValueError):
                 s1a_run.with_start(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), 0xB80, "x")
-        self.assertEqual(s1a_run.STARTS_AT_RUN_TIME, ("s1b2", "s1b3"))
+        self.assertEqual(s1a_run.STARTS_AT_RUN_TIME, ("s1b2", "s1b3", "s1b4"))
 
     def test_the_command_line(self) -> None:
         def plan(*args):

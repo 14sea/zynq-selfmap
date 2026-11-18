@@ -4,6 +4,7 @@
     s1b2_chain.py --dir DIR                 say where the chain stored in DIR stands; touches no serial port, writes nothing
     s1b2_chain.py --dir DIR --go            go on with it on the board, run after run, until it is complete or halts
     s1b2_chain.py --stage s1b3 ...          the same for the chain over block type 0 (section 38): the set s1b3
+    s1b2_chain.py --stage s1b4 ...          and for the chain over block type 1 (section 49): the set s1b4
 
 One run is the walk of S1b.1 (the parameter set s1b2: the row as the envelope, at most 64 frames a pass; judged by
 s1b2_judge, which is the walk's judge but for one rule about the known frames), started at an address this program gives it. The first run starts at the first address of the set; every
@@ -18,7 +19,10 @@ chain goes on after a run only if
   4. (every run but the first) its first frame is the last frame of the run before, with the same content, the
      address named after it is the one named there, and the register stood still there in both runs or in neither.
 It is complete when a run satisfies 1, 2 and 4, both of its passes ended because the device named an address
-outside the envelope, and every frame with a known answer in the envelope was walked by some run of the chain.
+outside the envelope, and every frame with a known answer that lies in the envelope at or above the address the
+chain began at — the starting address of its set — was walked by some run of the chain. (A chain that begins at the
+bottom of its envelope is thus asked for every known frame in it; one that begins above them, for none of those
+below its beginning: section 49.)
 Anything else halts it, and so does a bound on the number of runs. Nothing is retried: a run
 directory that does not hold a passing run stays where it is and the chain stands there until someone moves it.
 
@@ -45,7 +49,9 @@ STAGE = "s1b2"
 MAX_RUNS = 48                                        # a bound on unattended board time, not a statement about the row
 # S1b.3 (section 38): the same chain with the set s1b3 — block type 0 whole as the envelope, one standstill a pass
 # allowed. Nothing in the rules below differs; the bound is its own.
-BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96}
+# S1b.4 (section 49): the chain over block type 1, the set s1b4 — its first address is the one the device named after
+# block type 0, above every frame with a known answer.
+BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96, "s1b4": 48}
 P_LO, P_HI, P_PASSES, P_START = 3, 4, 7, 16          # words of the parameter block: the envelope, the passes, the start
 LEFT, LIMIT = s1b2_judge.END[1], s1b2_judge.END[2]
 RUN_DIR = re.compile(r"^run(\d\d)$")
@@ -145,9 +151,10 @@ def assess(root: Path, base: list[int], known: dict, max_runs: int = MAX_RUNS, s
                 r["decision"] = "complete"
                 return halted(f"{name} left the envelope, yet there are run directories after it: {names[k + 1:]}")
             # the chain's own count, whatever the judges of the runs let pass: every frame with a known answer that
-            # lies in the envelope was walked by some run before the envelope was left
+            # lies in the envelope, at or above the address the chain began at, was walked by some run before the
+            # envelope was left. (The prober refuses a start below the envelope, so that is a part of the envelope.)
             walked = {s["far"] for run in out["runs"] for s in run["walk"]}
-            not_walked = [f"{f:#010x}" for f in sorted(int(a, 16) for a in known["frames"]) if base[P_LO] <= f <= base[P_HI] and f"{f:#010x}" not in walked]
+            not_walked = [f"{f:#010x}" for f in sorted(int(a, 16) for a in known["frames"]) if base[P_START] <= f <= base[P_HI] and f"{f:#010x}" not in walked]
             if not_walked:
                 r["decision"] = "halt"
                 return halted(f"{name} left the envelope, but no run of the chain walked the known frame(s) {', '.join(not_walked)}")
@@ -218,7 +225,7 @@ def main() -> int:
     ap.add_argument("--dir", type=Path, required=True)
     ap.add_argument("--go", action="store_true")
     ap.add_argument("--max-new", type=int, help="add at most this many runs, then stop where the chain stands")
-    ap.add_argument("--stage", choices=sorted(BOUNDS), default=STAGE, help="the parameter set the chain drives (s1b2: the row; s1b3: block type 0)")
+    ap.add_argument("--stage", choices=sorted(BOUNDS), default=STAGE, help="the parameter set the chain drives (s1b2: the row; s1b3: block type 0; s1b4: block type 1)")
     a = ap.parse_args()
     base = [int(w, 16) for w in json.loads(s1a_run.STAGES[a.stage]["expected"].read_text())["params"]]
     known = json.loads(s1a_run.KNOWN.read_text())

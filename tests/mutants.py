@@ -29,6 +29,7 @@ END, JUDGE6 = "host/s1b2_end.py", "host/s1b2e_judge.py"
 CLOSED = "host/s1b2_closed.py"
 SEAM = "host/s1b3a_seam.py"
 ROWS3, TOP3, GRADE3 = "host/s1b3_rows.py", "host/s1b3_top.py", "host/grade_s1b3.py"
+LAYOUT4 = "host/s1b4a_layout.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -517,6 +518,17 @@ MUTANTS = [
      '(got is not None and bool(got[0] >> s["bit"][0] & 1) != s["bit"][1]):'),
     (RUN, "run: a status afterwards that could not be read is no problem", "        if not live or not live[0] & J.PCFG_DONE or live[0] & J.ERR_MASK:",
      "        if live and (not live[0] & J.PCFG_DONE or live[0] & J.ERR_MASK):"),
+    # ---- 2026-11-18: S1b.4a, one run into block type 1 (section 46): a parameter set, and the program that lays the run out
+    (RUN, "s1b4a run: judged as a walk of its own, not a run of a chain", '"s1b4a": {"judge": s1b2_judge,', '"s1b4a": {"judge": s1b1_judge,'),
+    (RUN, "s1b4a run: the set may be given a start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4a")'),
+    (LAYOUT4, "s1b4a layout: a run that did not pass is laid out without a word", '    if verdict.get("verdict") != "PASS":', "    if False:"),
+    (LAYOUT4, "s1b4a layout: a run that ended at the limit is said to have reached the end", ' and bool(passes) and all(p["ended"] == LEFT for p in passes)', " and bool(passes)"),
+    (LAYOUT4, "s1b4a layout: one pass beyond the envelope is enough", 'all(p["ended"] == LEFT for p in passes)', 'any(p["ended"] == LEFT for p in passes)'),
+    (LAYOUT4, "s1b4a layout: a run that did not pass is said to have reached the end", '    left = verdict.get("verdict") == "PASS" and bool(passes) and all(', "    left = bool(passes) and all("),
+    (LAYOUT4, "s1b4a layout: frames that are all zero count as content", '    not_zero = sum(1 for x in walk if x["frame_sha256"] != ALL_ZERO)', '    not_zero = sum(1 for x in walk if x["frame_sha256"] != "")'),
+    (LAYOUT4, "s1b4a layout: nothing is said of frames that are all alike", "    if not_zero == 0:", "    if False:"),
+    (LAYOUT4, "s1b4a layout: exit 0 for a run that did not pass", '    return 0 if out["run"]["verdict"] == "PASS" and not out.get("unexpected") else 1', '    return 0 if not out.get("unexpected") else 1'),
+    (LAYOUT4, "s1b4a layout: exit 0 with something unexpected in the list", '    return 0 if out["run"]["verdict"] == "PASS" and not out.get("unexpected") else 1', '    return 0 if out["run"]["verdict"] == "PASS" else 1'),
     (ROWS3, 's1b3 rows: the list is not cut where the register stood still', '        if s.get("stood_still"):\n            pieces.append((cur, True)); cur = []', '        if False:\n            pieces.append((cur, True)); cur = []'),
     (ROWS3, 's1b3 rows: a row is whole only if the register stood still after it', '        whole = stood or (complete and k == len(pieces) - 1)', '        whole = stood'),
     (ROWS3, 's1b3 rows: every row is said to have been walked whole', '        whole = stood or (complete and k == len(pieces) - 1)', '        whole = True'),

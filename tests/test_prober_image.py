@@ -180,6 +180,12 @@ class Image(unittest.TestCase):
         # time by the chain; this file holds the first run's, address 0.
         p7 = list(p6); p7[16] = 0x00000000
         (BUILD / "expected_s1b3.json").write_text(json.dumps(dict(e4, stage="S1b.3, one run of the chain over block type 0", params=[f"{w:08x}" for w in p7]), indent=1) + "\n")
+        # S1b.4a (docs/s1b_plan.md, section 46): one run of the walk into block type 1. s1b3's set with two words
+        # changed: the start fixed at the address the device named after the last frame of block type 0, and the
+        # envelope's upper end at the last address whose block type field is 1 (UG470's layout of the address word).
+        # The envelope still begins at 0: the prober wants the reference frame inside it. Nothing is given at run time.
+        p8 = list(p7); p8[4], p8[16] = 0x00FFFFFF, 0x00800000
+        (BUILD / "expected_s1b4a.json").write_text(json.dumps(dict(e4, stage="S1b.4a, one run into block type 1", params=[f"{w:08x}" for w in p8]), indent=1) + "\n")
         (BUILD / "expected_s1b1r.json").write_text(json.dumps(dict(e4, stage="S1b.1, quiet wait", params=[f"{w:08x}" for w in p4r]), indent=1) + "\n")
         # S1b.2b (docs/s1b_plan.md, section 29): the end of the row, by the table-driven stage in its stage-5 form with
         # the wait that touches no memory. The addresses are the last ones the device named in the row (S1b.2, run 30);

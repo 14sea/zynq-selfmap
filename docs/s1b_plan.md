@@ -2925,3 +2925,67 @@ the mutants of the changed files and the check of the anchors.
 3. **64 frames** for the first run, or fewer.
 4. **One run; whatever it ends in is stored, committed and reported; nothing retried, nothing
    graded**; the chain over block type 1 is a later proposal.
+
+## 47. S1b.4a as built (2026-11-18; host side, nothing on a board yet)
+
+The owner's answers to section 46: all four as proposed — go on without settling whether the
+carrier holds a block RAM; the set as proposed; 64 frames; one run, stored, committed and
+reported whatever it ends in, nothing retried, nothing graded.
+
+### What was built
+
+- **The parameter set `s1b4a`** (`build/prober/expected_s1b4a.json`, written by the test that
+  writes the others): the set `s1b3` with word 4 = `0x00ffffff` (the envelope's upper end) and
+  word 16 = `0x00800000` (the start). The 30 other words are the same. The image it names is
+  `fdc4f07f…9452`: **the prober was not built again.**
+- **Its entry in the run script**: judged by the judge of a run of a chain; the start is fixed
+  (`--start` is refused for it).
+- **`host/s1b4a_layout.py`**: lays one run out with the program that lays out a chain's rows —
+  the addresses cut where the register stood still, block type, half and row of each piece,
+  its columns and their frames — as far as the run went. It calls an end reached only if the
+  judge passed the run and both passes left the envelope. It counts the frames that are not
+  all zero and the different contents, and says so when every frame is alike. A run that did
+  not pass is laid out too, with a note that this is not a finding. It holds no number of any
+  part and reads no database.
+
+No change to the prober, to a judge, to the chain or to the rules of the run script.
+
+### What the twin was made to do
+
+Nothing is known of block type 1 on the device, so the shapes are invented (columns of ten
+and of five frames, a row ending after fifteen) and none of them is a prediction:
+
+| pretended | the run |
+|---|---|
+| a stretch of frames with no end in reach | PASS, 64 frames, both passes at the limit |
+| every frame all zero | PASS; the layout says the content tells nothing |
+| three columns | PASS, the names followed across both changes of column |
+| a row that ends as the rows of block type 0 did | PASS, the standstill crossed, the list in two pieces |
+| the device names `0x01000000` — after a standstill, and without one | PASS, both passes "left the envelope"; that address is never written |
+| the device names an address in block type 0 | stopped (`0x800`): a name that is not above is not followed, although the envelope begins at 0 |
+| an address that names itself for good | stopped (`0x800`) |
+| a pad not zero, a short read, a frame that differs, an error bit, no end of transfer, PL lost, a register off by a bit | stopped at that read; the result stored whole and judged FAIL |
+
+In every one of them the only addresses written to the register are the reference frame and
+addresses the device had named, all inside block type 1.
+
+### Tests and mutants
+
+395 tests (21 new). Ten new mutants: two for the run script's entry, eight for the layout
+program; 505 in all, none stale. Run as section 41 says — those of the changed files: the 60
+of the run script and the 8 of the layout program, all killed
+(`evidence/host_checks/mutants_2026-11-18_s1b4a.txt`); the others were not run. One assertion
+was added to a test after that run (the addresses written in the runs with a fault): it can
+only make the suite stricter.
+
+### On the board, when the owner says so, and not before
+
+1. The devices checked; nothing else running on the host.
+2. A `reset`, checked for the usual fresh prompt.
+3. One run: `s1a_run.py --stage s1b4a --go --out evidence/s1b4a_17A6_<date>/run`. About four
+   and a half minutes.
+4. Whatever it ends in: the directory committed as it stands, with the set and the image
+   beside it. Then the layout (`layout.json`), a record, and the report.
+5. **If it does not pass** — a stop, an anomaly, an interface failure, a board that does not
+   answer: that is what is reported. Nothing is run a second time, and nothing further is run
+   at all until the owner says so.

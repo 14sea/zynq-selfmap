@@ -2747,3 +2747,30 @@ The second point of section 42, as far as it goes without the board.
    first row against the stored one; and only if the chain is complete, the grader once —
    each committed before the next, as section 39 has it.
 4. A halt is reported and nothing is retried or moved without the owner.
+
+## 45. S1b.3 on the board (2026-11-18): the chain complete; block type 0 graded — nothing differs
+
+Released by the owner after sections 43 and 44. The full account is the last sections of
+`evidence/s1b3_17A6_2026-11-17/RESULT.md`.
+
+- **The chain**: taken up from `0x00401283`, eleven more runs (51 to 61), all accepted; 62 in
+  all, 17,908 records, no anomaly, no overflow, no interface failure. No short reply came back
+  not whole, so the second attempt of section 43 was never used on the board. Committed as
+  stored (`887b479`).
+- **The end**: at `0x00401ba9` the register stood still after the pad alone and showed
+  `0x00800000` after the frame — outside the envelope; not read. Complete.
+- **The list** (`rows.json`, `9615af8`): 3,864 addresses; two rows, top half row 0 and bottom
+  half row 0, 1,932 frames and 56 columns each, the columns of the same lengths one for one;
+  a standstill at the end of each row; nothing unexpected.
+- **The first row against the stored one** (`top.json`, `57778ff`): no disagreement.
+- **The grader** (`grade.json`, `06fa08e`), once, after those commits: nothing differs from
+  prjxray-db — the columns and their frames in both rows, the rows of block type 0 and their
+  order, 3,864 frames, and the two addresses named after the rows (`0x00400000`,
+  `0x00800000`) against the first frames of the next row and of block type 1. Not compared:
+  the standstills.
+
+374 tests. No program was changed on this day after section 43; no mutant was run.
+
+**S1b.3 is done. Stopped here.** What comes next is the owner's: block type 1 from
+`0x00800000` (not read so far; the walk's rules were made on block type 0 and nothing says
+they hold there), or something else. I have not started on either.

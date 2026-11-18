@@ -1,8 +1,18 @@
-# S1b.3, the chain over block type 0 — EBAZ4203 `17A6`, 2026-11-17: HALTED at run 51 (the result could not be read back)
+# S1b.3, the chain over block type 0 — EBAZ4203 `17A6`, 2026-11-17 and -18: COMPLETE (halted once at run 51, taken up again)
 
 Question (docs/s1b_plan.md, section 38): the frame list of block type 0 — which addresses the
 device names from `0x00000000` on, into which rows and columns they fall, and what it names
 after the last.
+
+**The outcome (2026-11-18; the account is in the last sections): 62 accepted runs, 3,864
+addresses, each named by the device after the one before. Block type 0 is two rows — top half
+row 0 and bottom half row 0 — of 1,932 frames in 56 columns each, column for column the same
+lengths. At the end of each row the register stood still; after the first the device named
+`0x00400000`, after the second `0x00800000`, which is outside block type 0 and was not read.
+Graded once against prjxray-db: nothing differs.**
+
+What follows down to "2026-11-18" was written on 2026-11-17, when the chain had halted, and
+is left as it was.
 
 **What there is: 51 accepted runs, 3,214 addresses, `0x00000000..0x00401283`, each named by the
 device after the one before. The first row whole — 1,932 frames, 56 columns, as on 2026-11-15
@@ -101,3 +111,79 @@ The owner's answer: both, the header read first; nothing on the board until the 
 - The chain lists that directory as set aside and stands at **51 accepted runs, to go on: its
   52nd run from `0x00401283`**, the last frame of run 50 (`chain.json` here is that state).
 - **Nothing has run on the board since run 51.** Nothing was graded.
+
+## 2026-11-18: taken up again, complete
+
+Released by the owner after the review of sections 43 and 44 of the plan. The host side at
+commit `473b996`; the same image; nothing else ran on the host.
+
+- Pre-check 14:54 UTC: U-Boot at its prompt, `carrier.bit` on the card. The status word read
+  `a802000b`, the value of a fresh start and not the one a run leaves: the board had been
+  started anew since run 51 (by whom or how was not looked into; what that run left in memory
+  was not used in any case).
+- 14:54–15:38 UTC: the chain unattended (`chain_from_run51.out`), runs 51 to 61, a `reset`,
+  checked, before each. Every one PASS; no anomaly, no overflow, no interface failure. 12 of
+  713 pieces were pulled a second time. **No short reply came back not whole: the new second
+  attempt was never used.**
+- Run 51 again, from `0x00401283`: its first frame is the last frame of run 50, the same
+  content, the same address named after it.
+- **Run 61**: 21 frames. At `0x00401ba9` the pad alone left the register where it was, and
+  after the frame it showed `0x00800000`. That is above the envelope: both passes ended there,
+  the address was not read, and the chain is complete — every frame with a known answer was
+  walked.
+- In all: 62 runs, 17,908 records; 83 of 4,232 pieces pulled a second time, in 39 of the runs.
+- Committed as stored (`887b479`) before anything was made of it.
+
+## What the 62 runs found (`rows.json`, sha256 `16c1d239…c823`, commit `9615af8`)
+
+- **3,864 addresses**, rising, each the one named after the one before; nothing unexpected.
+- **Two rows, both walked whole**:
+
+  | | first | last | frames | columns | ended by | named after it |
+  |---|---|---|---|---|---|---|
+  | top half, row 0 | `0x00000000` | `0x00001ba9` | 1,932 | 56 | a standstill | `0x00400000` |
+  | bottom half, row 0 | `0x00400000` | `0x00401ba9` | 1,932 | 56 | a standstill | `0x00800000` |
+
+- **The columns of the two rows have the same lengths, one for one**: 41 of 36 frames, 9 of 28,
+  4 of 30, 2 of 42 (the first and the last). In every column the minors are 0, 1, 2, …, and
+  minor 0 of the next column is named after the last.
+- **Two standstills**, each met by one run (run 30, run 61), each at the last frame of a row.
+  The second behaves as the first did: the pad alone leaves the register, the frame moves it.
+- **`0x00800000`** is the first address the device names outside block type 0. In the fields
+  of the address that is block type 1. It was named, not read: nothing is known of it here.
+- **Content**: 178 of the 1,932 frames of the top row are not all zero (columns 18 to 27 and
+  39), 250 of the bottom row (columns 18 to 27, 34, 35 and 39). Elsewhere the list rests on
+  the register.
+
+## The first row against the stored one (`top.json`, sha256 `e71a717e…37ec`, commit `57778ff`)
+
+Made again from the complete chain: no disagreement, as at the halt — 1,932 addresses, the same
+frame and the same address named at every one, 56 columns.
+
+## The grader (`grade.json`, sha256 `732c389a…7148`, commit `06fa08e`)
+
+`grade_s1b3.py`, run once, after the three commits above, on `rows.json` against `part.json`
+of `xc7z010clg400-1` in the prjxray-db checkout at `0a0adde` (sha256 `1754ec1c…d095`, the file
+the earlier grades used). Its first run on real data. No bitstream was parsed.
+
+- **Nothing differs.**
+- Both rows: each of the 56 columns has the number of frames the database gives it, and they
+  are the database's columns 0 to 55 in order; 1,932 frames a row.
+- The rows walked are the database's rows of block type 0 in its order; 3,864 frames in all,
+  as the database's columns add up to.
+- After the first row the device named `0x00400000`, the first frame of the next row in the
+  database's order; after the last frame `0x00800000`, the first frame of block type 1 there.
+  The database lists frames; it does not say what a device names — these two are offered as
+  such.
+- Not compared: that the register stood still at the end of both rows.
+
+## What this does and does not say
+
+- The device's own account of block type 0 — which addresses, in which order, how many — was
+  got without a description of the part, and agrees with the one description it was then held
+  against.
+- It says nothing about what the frames mean, nor about block type 1 or anything after it.
+- What happens in the register at the end of a row is described (S1b.2b, and twice here); why
+  is not known.
+- The second attempt at a short reply is tested on the host and against the stored replies; on
+  the board it has not yet been needed.

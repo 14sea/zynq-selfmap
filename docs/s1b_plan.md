@@ -41,8 +41,9 @@ number the proposal gave as the database's; graded, none differs.
 addresses the device names, and that reading them is repeatable and does not depend on the
 path. Not the content. Where frames are all alike — all zero in most of block type 0, all
 zero or all one pattern in block type 1 — the list rests on the address register and on the
-reference frame alone. UG470 says block-RAM content is skipped in readback, so what is
-delivered in block type 1 says nothing about what is stored there.
+reference frame alone. UG470 lists block-RAM content among what a readback reads (it is the
+background readback check that skips it; section 46), but nothing in S1b tests whether what
+is delivered in block type 1 is what is stored there.
 
 **Still open in S1b.**
 

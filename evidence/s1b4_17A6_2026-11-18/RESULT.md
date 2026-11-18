@@ -79,9 +79,14 @@ was run. Nothing was read again on the board for either.
   in the reads of three, and by both runs at a seam. No address has two contents.
 - What this is, is not known. It is the same in 768 frames, so it is not something the
   walk can tell one frame from another by: for the list of addresses these columns rest on
-  the register and on the reference frame, as the all-zero ones do. UG470 says block-RAM
-  content is skipped in readback; whether what is delivered here is a fixed pattern of the
-  device, of the readback, or of the design, this run cannot say.
+  the register and on the reference frame, as the all-zero ones do. Whether what is
+  delivered here is what is stored, a fixed pattern of the device or of the readback, or
+  something of the design, this run cannot say.
+- (Corrected 2026-11-18, after the grade: this item first said "UG470 says block-RAM content
+  is skipped in readback". That sentence of UG470 is about the background readback check
+  only. Of a readback asked for, as these are, UG470 says it reads "all configuration memory
+  cells, including the current values on all user memory elements (LUT RAM, SRL, and block
+  RAM)". Plan section 46 has both statements in their place.)
 
 **2. The status register after a run reads `50033024` in 14 of the 21 runs, `50033004` in
 the other 7.**

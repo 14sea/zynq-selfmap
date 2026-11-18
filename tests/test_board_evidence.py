@@ -337,7 +337,7 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual(hashlib.sha256((h / "top.json").read_bytes()).hexdigest(), "5b9e07ba997e2040951b909d08cb88208ea652cce7cd12d2c5942d4659d51939")
         self.assertEqual((top["disagreements"], top["addresses_in_both"], top["same_frames"], top["same_address_named"], top["frames_not_all_zero"], top["columns"]),
                          ([], 1932, 1932, 1932, 178, 56))
-        self.assertFalse((h / "grade.json").exists() or (d / "grade.json").exists(), "the chain halted: nothing was graded")
+        self.assertFalse((h / "grade.json").exists(), "the chain halted: nothing was graded then")
 
     def test_the_chain_over_block_type_0_as_it_stands(self) -> None:
         """2026-11-18: taken up again from `0x00401283` with the run script that asks again for a reply that is not whole
@@ -358,6 +358,38 @@ class StoredBoardResults(unittest.TestCase):
             v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
             self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], v["header"]["anomalies"]), ("PASS", [], [], 0), k)
             self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()), k)
+        # ---- the summary over rows: what the program gives now, and the file committed before anything was compared
+        import s1b3_rows, s1b3_top
+        rows = json.loads(json.dumps(s1b3_rows.summarize(a, KNOWN)))
+        self.assertEqual(rows, json.loads((d / "rows.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "rows.json").read_bytes()).hexdigest(), "16c1d2391a8f93e4ae5a32e2c52a70985dea82684d9f1da3503f6ecbceabc823")
+        self.assertEqual((rows["frames"], rows["unexpected"], rows["frames_per_row"], rows["known_frames_not_walked"]),
+                         (3864, [], [[0, "top", 0, 1932], [0, "bottom", 0, 1932]], []))
+        self.assertEqual([(r["walked_whole"], r["ended_by"], len(r["columns"]), r["first"], r["last"], r["named_after_the_last_frame"]) for r in rows["rows"]],
+                         [(True, "the register stood still", 56, "0x00000000", "0x00001ba9", "0x00400000"),
+                          (True, "the register stood still", 56, "0x00400000", "0x00401ba9", "0x00800000")])
+        self.assertEqual([n for _, n in rows["rows"][0]["frames_per_column"]], [n for _, n in rows["rows"][1]["frames_per_column"]], "column for column the two rows are as long")
+        self.assertTrue(all(c["walked_whole"] and c["minors_are_0_to_n_minus_1"] for r in rows["rows"] for c in r["columns"]))
+        self.assertEqual(rows["standstills"], [{"after": "0x00001ba9", "named": "0x00400000"}, {"after": "0x00401ba9", "named": "0x00800000"}])
+        self.assertEqual((rows["end"]["reached"], rows["end"]["last_frame"], rows["end"]["named_after_the_last_frame"], rows["end"]["after_a_standstill"]),
+                         (True, "0x00401ba9", "0x00800000", True))
+        zero = hashlib.sha256(bytes(404)).hexdigest()        # a frame of 101 words, all zero
+        not_zero = [sum(1 for s in rows["addresses"] if int(r["first"], 16) <= int(s["far"], 16) <= int(r["last"], 16) and s["frame_sha256"] != zero) for r in rows["rows"]]
+        self.assertEqual(not_zero, [178, 250])
+        # ---- the first row against the row stored before
+        stored = json.loads((ROOT / "evidence" / "s1b2b_17A6_2026-11-16" / "row_closed.json").read_text())
+        top = s1b3_top.against(rows, stored)
+        self.assertEqual(top, json.loads((d / "top.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "top.json").read_bytes()).hexdigest(), "e71a717ef7708655db164113fad7aedd015bd918427d4655d36491b831db37ec")
+        self.assertEqual((top["chain"], top["disagreements"], top["addresses_in_both"], top["same_frames"], top["same_address_named"], top["columns"]),
+                         ("complete", [], 1932, 1932, 1932, 56))
+        # ---- the grader's stored word (run once, after rows.json and top.json were committed): the database is not read here
+        g = json.loads((d / "grade.json").read_text())
+        self.assertEqual(hashlib.sha256((d / "grade.json").read_bytes()).hexdigest(), "732c389a4ae138e6a1a8b8dc2d2aa9ce7afac58c7bc969c3fe8ab3471b297148")
+        self.assertEqual((g["chain"], g["differs"], len(g["agrees"]), len(g["not_compared"]), len(g["rows"])), ("complete", [], 4, 1, 2))
+        self.assertEqual([(r["frames"], r["walked_whole"], r["differs"], len(r["columns"])) for r in g["rows"]], [(1932, True, [], 56)] * 2)
+        self.assertIn("the chain found 3864, the database's columns add up to 3864", g["agrees"][2])
+        self.assertIn("0x00800000", g["agrees"][3])
 
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The

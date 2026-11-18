@@ -2774,3 +2774,154 @@ Released by the owner after sections 43 and 44. The full account is the last sec
 **S1b.3 is done. Stopped here.** What comes next is the owner's: block type 1 from
 `0x00800000` (not read so far; the walk's rules were made on block type 0 and nothing says
 they hold there), or something else. I have not started on either.
+
+## 46. S1b.4a — proposal: one run into block type 1 (2026-11-18; a proposal, nothing built, nothing on a board)
+
+The owner asked for a proposal for block type 1. This proposes one run, not a chain: the
+walk as it is, started once at the address the device named after block type 0. Nothing of it
+is built. Section 3 made this "a separate decision" with one condition — "the carrier design
+must be checked for block RAM first" — and that check is the first part below.
+
+### What is known and what is not
+
+Known, from the device: after the last frame of block type 0 it names `0x00800000`. By
+UG470's layout of the address (table 5-24) that is block type 1, "block RAM content", top
+half, row 0, column 0, minor 0. Nothing has been read there by this project.
+
+Not known, and none of it assumed below:
+
+- whether a read there behaves as in block type 0 at all: a pad of one frame, the register
+  after the pad alone, the address going on by itself through a read of three frames;
+- whether what is read is the same twice;
+- how long a column is, where a row ends and what the register does there, how many rows
+  there are, what the device names after the last frame;
+- whether going to and fro between the reference frame (`0x0b99`, block type 0) and block
+  type 1 needs anything the walk does not do.
+
+What the official documents say (the only outside source allowed): UG470 lists block-RAM
+content among what a readback reads; and of its background readback check it says "Block RAM
+content is skipped during readback to avoid interfering with user functions". It does not say
+what the interference is. The project's proposal (section 10) has the same warning and one
+report of block-RAM readback failing in a finished system.
+
+### The carrier design and block RAM
+
+What I may use is the source of our own design. The design loaded in every run is
+`carrier.bit` (sha256 `8c3369e8…0b8a`), built in zynq-fabricmap; its build record
+(`gate_runs/claimb_round1_carrier_2026_08_13_erratum006/carrier_build.json`) names that hash,
+the source commit `e4ffb009` and the hash of every source file, and the six Verilog files in
+that checkout have those hashes. In them:
+
+- **No block-RAM primitive is instantiated**, and no FIFO primitive.
+- Five memories are declared. Two carry `ram_style = "distributed"` (101×32 and 15×32 bits).
+  **Three carry no attribute**: two small read-only tables (64×6 and 6×64 bits) and one array
+  of 5×32 bits. They are tiny, and synthesis ordinarily builds such arrays from LUTs; but
+  **the source does not settle where they were put.**
+
+What would settle it is the build's own utilisation or cell list. That is a Vivado report,
+and the project's rule excludes those ("no Vivado report file is used, not even for
+grading"). I have not opened one. So the honest state is: *no block RAM by intent; not
+proven absent.*
+
+I propose to go on without settling it, because the step does not depend on the answer:
+
+- **Who could be interfered with.** Only the carrier's own logic. Nothing uses the carrier
+  during a run: the prober reads no PL register (a test holds that), the host does not touch
+  it, and every run begins with a fresh load of the design. If reading these frames disturbs a
+  block RAM of the carrier, nothing here relies on what it held.
+- **What could reach us instead** is one of two things, and both are provided for: content
+  that is not the same twice (an anomaly: the run stops and is stored), or the configuration
+  interface doing something not seen before (an error bit, a transfer that does not finish,
+  the PL no longer configured: the run stops and is stored; the next run loads the design
+  again; if U-Boot itself does not answer, the board is switched off and on — proposal section
+  10 counts none of that as damage).
+
+The alternative is for the owner to allow one look at that build's utilisation, for this
+question only. I do not think it is needed, and it would be the first time a Vivado report
+is read in this project.
+
+### The run
+
+One parameter set, `s1b4a`: the set `s1b3` with two words changed.
+
+| | `s1b3` | `s1b4a` |
+|---|---|---|
+| start | given by the chain | `0x00800000`, fixed |
+| envelope | `0x00000000..0x007fffff` | `0x00000000..0x00ffffff` |
+| everything else | | the same: two passes, at most 64 frames a pass, one standstill a pass, the reference frame `0x0b99` at most 16 frames apart, the wait that touches no memory |
+
+- **The image is unchanged** (`fdc4f07f…9452`). The prober is not built again.
+- **Why the envelope begins at 0.** The prober refuses a parameter block whose reference frame
+  is outside the envelope, and the only frames with a known answer are in block type 0. The
+  walk cannot use the lower part: it goes only to addresses the device names, and stops if one
+  is not above the one before. Its upper end is the end of block type 1 by the address layout:
+  an address at or above `0x01000000` is never written to the register.
+- **Judged** by the judge of a run of a chain, as it is (a run that begins above the known
+  frames is not failed for not passing them). No rule is changed for this run.
+- **One run**, after a `reset`, checked, as before every run. About four and a half minutes.
+
+Could the first look be smaller — eight frames instead of 64? It could; one word. I propose
+64: what is exposed to an unknown is the first read, not the sixty-fourth, the walk stops at
+the first thing it does not expect, and 64 is the run every test and every board run so far
+was made with.
+
+### What may come out, said beforehand
+
+1. **It passes**: 64 frames from `0x00800000`, both passes alike, ended at the limit — or
+   fewer, ended by leaving the envelope or by whatever a column or row end does there, if
+   that is something the walk provides for. Then the walk works in block type 1, and the next
+   proposal is the chain over it (below).
+2. **It stops before the first read there** (a gate, the first reference read): nothing about
+   block type 1; reported as that.
+3. **It stops at an anomaly in block type 1**: a pad that is not zero, a register that does
+   not move as the walk expects, a frame that differs between two reads or between a single
+   read and a read of three, a reference frame no longer as known. That is a finding about
+   block type 1. It is stored, committed and reported; the walk is not adjusted to it in the
+   same step. What is to be looked at then would be proposed separately, as the end of the
+   row was (section 29).
+4. **The interface fails** (an error bit, a transfer that does not complete, the PL no longer
+   configured). Stored, committed, reported, and nothing more is run until the owner says so.
+
+In no case is anything retried, and nothing is graded in this step: one run of 64 frames is
+not a list. The run's addresses are laid out by the summary of a row as far as they go.
+
+### What this step cannot show
+
+- **Content.** If the carrier holds no block RAM with content, every frame will again be all
+  zero, and "the same twice" says nothing; the list rests on the register. If frames are not
+  all zero, that is the first thing the device says about the question above — and still no
+  proof either way.
+- Where block type 1 ends, or what follows it. UG470 names a block type 2; nothing is read
+  there, and nothing at or above `0x01000000` in any case.
+- That reading these frames is harmless to a design that uses block RAM. Nothing here uses
+  the carrier, so nothing here can see that.
+
+### What would follow, not proposed yet
+
+If the run passes: the chain over block type 1, with the set's start given at run time. One
+rule of the chain has to change for it, and that is why it is not folded into this step: a
+chain is complete only if every frame with a known answer in the envelope was walked by one
+of its runs (section 27), and a chain that begins at `0x00800000` never walks `0x0b98`–
+`0x0b9a`. That is a change to the chain's acceptance rules — a proposal, a review and the
+complete set of mutants (section 41).
+
+Also worth saying: S2 (finding LUT RAM through patterns written by user logic) does not need
+block type 1. The census of S1b does: block type 0 is 3,864 of its frames, not all.
+
+### What has to be built for this step
+
+Host only. The parameter set (generated and pinned by the test that pins the others), its
+entry in the run script, tests against the twin with a pretended stretch of frames at
+`0x00800000`, the mutants of those lines. No image, no judge, no chain rule: by section 41,
+the mutants of the changed files and the check of the anchors.
+
+### For the owner
+
+1. **The carrier and block RAM**: go on as proposed (none instantiated; three tiny memories
+   not settled by the source; the step does not depend on it) — or allow one look at the
+   build's utilisation first.
+2. **The set `s1b4a`**: `s1b3` with the start `0x00800000` and the envelope
+   `0x00000000..0x00ffffff`; the image unchanged; one standstill a pass allowed as in `s1b3`.
+3. **64 frames** for the first run, or fewer.
+4. **One run; whatever it ends in is stored, committed and reported; nothing retried, nothing
+   graded**; the chain over block type 1 is a later proposal.

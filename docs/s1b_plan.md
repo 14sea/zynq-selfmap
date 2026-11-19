@@ -28,7 +28,8 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 
 Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
-far; sections 54 and 55 are the small checks proposed and built after it.
+far; sections 54 and 55 are the small checks proposed and built after it, section 56 what
+the first of them gave on the board.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -3573,3 +3574,34 @@ whole; the dry run). The stored evidence is not touched.
 of the host: their own, once — 26 of 26 killed
 (`evidence/host_checks/mutants_2026-11-18_small_checks.txt`). No prober, judge or rule of the chain was
 changed, so the complete set was not run.
+
+## 56. The look at PS registers on the board (2026-11-19): the registers read; the bit not cleared, the board having been restarted
+
+Released by the owner, who said that the board had been restarted. The record is
+`evidence/pslook_17A6_2026-11-19/RESULT.md`.
+
+- `ps_look.py`, once (`c000712`, as it came). Eight commands, all dumps, each whole at the
+  first attempt. **Nothing was written to the board.**
+- **(c) was not made.** The status read `a802000b`: no `PCFG_DONE`, no bit 5. The program
+  stopped there by its own rule. Whether bit 5 can be cleared and stays away is still open.
+- **(b), by UG585's register reference:**
+  - the level-2 cache is off (`reg1_control` 0). One of the three directions of section 53,
+    item 3, is gone;
+  - the DDR controller's four write ports, and its four read ports, have the same setting:
+    the lowest starting priority, aging on, page match on. Nothing puts the DMA's writes
+    ahead of the processor's;
+  - the PCAP clock is the IO PLL divided by 8 (200 MHz with this board's reference); the
+    PLL and clock settings are in the record.
+- This fits the plain account of the overflow — a store by the processor can hold up a write
+  of the DMA — and does not explain the two things that are odd about it: the place within a
+  32-byte block, and one read in a hundred. The mechanism is still not known.
+
+One test added (`tests/test_board_evidence.py`, 442 in all): what was sent, that nothing was
+written, and the values the record speaks of. No program was changed.
+
+**To make (c)** the state has to be there again: the PL configured and bit 5 set, which only
+a run of the prober over a frame of columns 2 to 4 of block type 1 produces. Proposed, and
+not released: one run with the set `s1b4` started where run 5 of the stored chain started
+(`s1a_run.py --stage s1b4 --start 0080013b`), which can be held against that stored run
+record for record; `status_seen.py` over it; then `ps_look.py` straight after, with no
+`reset` between. About five minutes on the board, the image and every program as they are.

@@ -482,6 +482,28 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual([(r["frames"], r["walked_whole"], r["differs"], len(r["columns"])) for r in g["rows"]], [(640, True, [], 5)] * 2)
         self.assertIn("the chain found 1280, the database's columns add up to 1280", g["agrees"][2])
 
+    def test_the_look_at_ps_registers(self) -> None:
+        """2026-11-19: ps_look.py once. The board had been started anew, so the status had neither PCFG_DONE nor bit 5
+        and nothing was written; the dumps were read. What the record says of the values is held here."""
+        import ps_look
+        d = ROOT / "evidence" / "pslook_17A6_2026-11-19"
+        rec = json.loads((d / "look.json").read_text())
+        self.assertEqual((rec["sent"], rec["clear_sent"], rec["status_before"], rec["status_after"], rec["replies_not_whole"]),
+                         ([c for c, _ in ps_look.LOOK] + [ps_look.STATUS], False, "a802000b", [], []))
+        self.assertEqual(rec["stopped"], "the status has not both PCFG_DONE and bit 5 set: nothing was written")
+        log = (d / "console.log").read_bytes()
+        self.assertEqual((log.count(b"<<TX"), log.count(b"<<TX b'md.l "), log.count(b"mw")), (9, 8, 0), "the interrupt and eight dumps; nothing written")
+        r = {k: int(v, 16) for k, v in rec["registers"].items()}
+        self.assertEqual(len(r), 23)
+        self.assertEqual(r["l2cpl310.reg1_control"] & 1, 0, "the level-2 cache is off")
+        self.assertEqual({r[f"ddrc.axi_priority_wr_port{k}"] for k in range(4)}, {0x000803FF})
+        self.assertEqual({r[f"ddrc.axi_priority_rd_port{k}"] for k in range(4)}, {0x000003FF})
+        self.assertEqual((r["slcr.PCAP_CLK_CTRL"] >> 8 & 0x3F, r["slcr.PCAP_CLK_CTRL"] >> 4 & 3, r["slcr.PCAP_CLK_CTRL"] & 1), (8, 0, 1))
+        self.assertEqual([r[f"slcr.{n}_PLL_CTRL"] >> 12 & 0x7F for n in ("IO", "ARM", "DDR")], [48, 40, 32])
+        self.assertEqual((r["slcr.ARM_CLK_CTRL"] >> 8 & 0x3F, r["slcr.DDR_CLK_CTRL"] >> 26, r["slcr.DDR_CLK_CTRL"] >> 20 & 0x3F), (2, 3, 2))
+        self.assertEqual((r["devcfg.CFG"] >> 10 & 3, r["devcfg.CFG"] >> 8 & 3, r["devcfg.CTRL"] >> 8 & 1, r["devcfg.INT_STS"] & 0x24), (1, 1, 0, 0))
+        self.assertEqual((r["devcfg.CTRL"], r["devcfg.MCTRL"]), (0x4E00E07F, 0x30800100), "as in the result headers of S1b.4")
+
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have

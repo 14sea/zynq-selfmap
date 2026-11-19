@@ -49,10 +49,10 @@ is delivered in block type 1 is what is stored there.
 
 **Still open in S1b.**
 
-- Block type 2, which the device names at `0x01000000`. No proposal yet; it is a decision
-  of its own (section 3).
-- The status bit that appears when the frames of columns 2 to 4 of block type 1 are read,
-  and what those frames hold (section 52). Not looked into.
+- Block type 2, which the device names at `0x01000000`. One run into it is proposed in
+  section 58; not decided.
+- What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
+  status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
 - The frame census as one document beside the schema (proposal, section 4): which addresses
   exist, their block type, whether readback is stable. So far each step has its own summary
   (`rows.json`, `top.json`, `layout.json`); the one document has not been written.
@@ -3641,3 +3641,109 @@ waits for, not a line of its output.
 **What is left of the small checks:** nothing. What remains open is listed in section 53 and
 goes to S2 or to a later decision: block type 2; which reads raise the bit; the stack offsets
 8 and 16; the census document.
+
+## 58. S1b.5a — proposal: one run into block type 2 (2026-11-19; a proposal, nothing built, nothing on a board)
+
+After the last frame of block type 1 the device named `0x01000000` (section 52). By the
+fields of the address that is block type 2, top half, row 0, column 0, minor 0. The proposal
+asked what is there and whether PCAP can read it (section 11, question 3). This is the
+smallest step that can answer: one run, as S1b.4a was for block type 1.
+
+### What is known and what is not
+
+- UG470, table 5-24, of the block type field: "Valid block types are CLB, I/O, CLK (000),
+  block RAM content (001), and CFG_CLB (010). A normal bitstream does not include type 011."
+  It says nothing more about type 010 that I have found. It also says every frame of a
+  7-series device has the same length, 101 words.
+- The device itself: its address register went to `0x01000000` after block type 1, in the
+  same way it went to `0x00800000` after block type 0 — after a standstill, by itself.
+- Not known: whether a frame can be read there; how the register behaves there; how many
+  addresses there are; what the device names after them (`0x01800000` would be type 011);
+  what reading there does to the status register. Reading block type 1 raised a bit nobody
+  had expected (sections 52 and 57); this may raise something too.
+- The walk's rules were found in block type 0 and held in block type 1. Nothing says they
+  hold in block type 2.
+- **There is nothing to grade against.** The grader's database has no block type after 1
+  (it said so in section 52). Whatever this finds stands on the device alone: the first
+  result of this project without a second witness.
+
+### The run
+
+The image as it is (`fdc4f07f…9452`). A new set, `s1b5a`: the set `s1b4a` with two words
+changed —
+
+| word | `s1b4a` | `s1b5a` | |
+|---|---|---|---|
+| 4 | `0x00ffffff` | `0x017fffff` | the envelope's upper end: the last address of block type 2 |
+| 16 | `0x00800000` | `0x01000000` | the start: the address the device named |
+
+Everything else as it was: the envelope's lower end 0, because the reference frame `0xb99`
+is in block type 0; the quiet wait; two passes of at most 64 frames; one standstill allowed
+in a pass; the reference frame at least every 16 frames. Neither the prober nor any host
+program limits addresses by block type — the envelope is a range of numbers — so nothing
+has to change for an address above `0x00ffffff` to be allowed. The guard still lets nothing
+out but read commands.
+
+On the board: the devices checked; a `reset`; the one run (`s1a_run.py --stage s1b5a`), about
+four minutes; its result committed as stored; `status_seen.py` over it; the layout by
+`s1b4a_layout.py`; the record. Then stop. No second run, whatever the first gave.
+
+### What may come out, said beforehand
+
+1. **It passes**: up to 64 frames from `0x01000000`, both passes alike. Then block type 2
+   can be walked like the others, and a chain over it is the next proposal.
+2. **It passes with few frames**: the device soon names an address above the envelope
+   (`0x01800000` or beyond) or stands still. That is an answer too — block type 2 is small, or
+   is only a place the register passes through — and the record says which address.
+3. **It stops at the first address**: the pad alone does not move the register, or moves it
+   to an address not above the one read (`0x800`), or the pad is not zero, or two readings
+   of a frame differ. The walk does not work there as it is. Everything read is in the result;
+   what to make of it is a later question.
+4. **The interface fails** (an error bit, a transfer that does not complete, `PCFG_DONE`
+   gone): the prober stops with one reference read, as it is made to. A `reset` — at worst
+   switching the board off and on — and the next run of block type 0 or 1 shows whether
+   anything stayed. The proposal counts that as no damage (section 10); nothing is written
+   to configuration memory at any point.
+5. **A status bit outside the usual shows**, as bit 5 did. The prober does not stop for it;
+   `status_seen.py` lists it; it goes into the record and, like everything here, to the owner
+   before anything further is run.
+
+In every case the reference frame of block type 0 is read again after the reads in block
+type 2 and held against its known content: that is the run's own check that reading there
+left block type 0 readable as before.
+
+### What this step cannot show
+
+- What block type 2 is. It lists addresses and delivers whatever comes back.
+- Whether what comes back is what the device holds. If all frames are alike, as in most of
+  what has been read, the list rests on the register alone.
+- Anything about the rest of block type 2 beyond the first 64 addresses, or about type 011.
+
+### What has to be built
+
+The set's entry in the run script and its expected values (`tests/test_prober_image.py`);
+tests on the twin with made-up layouts above `0x01000000` — one that goes on, one that ends
+after a few frames, one whose register does not move, one that names `0x01800000` at once;
+the mutants of what is touched. No new image, no change to the prober, a judge or the chain,
+so the complete set of mutants is not due (section 41).
+
+### What would follow, not proposed here
+
+If it passes: a chain over block type 2 (`s1b5`, the set with the start given at run time;
+the completion rule of section 50 already fits; the summary over rows is general). If it
+does not: a look at what the result holds, and a decision whether block type 2 is left as
+"named, not readable by this walk".
+
+### For the owner
+
+1. **Go into block type 2 now**, with nothing to grade it against — or leave it named and
+   not read, and turn to S2. I propose the one run: the device points there, question 3 of
+   the proposal asks, and it costs four minutes and no new image.
+2. **The set `s1b5a`** as above: the start `0x01000000`, the envelope up to `0x017fffff`, 64
+   frames a pass (or fewer for the first run).
+3. **One run, then stop**: stored, committed, listed for status bits, laid out, reported;
+   nothing retried, no chain without a further proposal.
+4. **What I may read about block type 2.** So far only UG470 and UG585. Since no grading is
+   possible here, the closed-book rule has no "afterwards" for this block type. I propose to
+   keep to the two documents before and after the run, and to look nowhere else for what
+   type 010 is unless the owner says so.

@@ -31,7 +31,8 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
 far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
-57 what they gave on the board. Sections 58 to 61 are the one run into block type 2.
+57 what they gave on the board. Sections 58 to 61 are the one run into block type 2;
+section 62 proposes the chain over it.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -55,8 +56,8 @@ is delivered in block type 1 is what is stored there.
 **Still open in S1b.**
 
 - Block type 2: one run has been made into it (section 61). The bottom half is not walked
-  to its end, and what the device names after it is not known. A chain over it has not
-  been proposed.
+  to its end, and what the device names after it is not known. A chain over it is proposed
+  in section 62; not decided.
 - What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
 - The frame census as one document beside the schema (proposal, section 4): which addresses
@@ -3904,3 +3905,132 @@ were run: 553, none stale.
 **Next.** Nothing until the owner says. By section 58 the next proposal after this outcome
 would be a chain over block type 2 — it would be short: the rest of the bottom row and
 whatever is named after it. It has not been written.
+
+## 62. S1b.5 — proposal: the chain over block type 2 (2026-11-19; a proposal, nothing built, nothing on a board)
+
+The walk works at `0x01000000` (section 61). This proposes the chain that goes on from there
+until the device names an address above block type 2, what is made of its runs, and what is
+said beforehand about how it may end. Nothing of it is built.
+
+### What is known and what is not
+
+Known, from the device: 64 addresses from `0x01000000` — a row of 56 columns of one frame in
+the top half, a standstill, and 8 columns of one frame in the bottom half; the register
+behaving as elsewhere; every frame all zero; no status bit raised. Not known: how long the
+bottom row is; whether there are rows after it; what the register does at its end; what the
+device names after the last frame of block type 2, or whether it names anything above. No
+number of any of these is assumed below. In particular the chain is not told that the bottom
+row has 56 columns: if it has, the chain is two runs long; it goes on for as long as the
+device names addresses inside the envelope.
+
+### The chain
+
+The chain driver as it is (`host/s1b2_chain.py`), with a parameter set of its own. **No rule
+of the chain, of a judge or of the prober changes.**
+
+- **The set `s1b5`**: the parameter block of `s1b5a`, word for word — envelope
+  `0x00000000..0x017fffff`, two passes, 64 frames a pass, one standstill a pass, the reference
+  frame `0x0b99`, the quiet wait — with the start given at run time by the chain, its first
+  address `0x01000000`. The image unchanged (`fdc4f07f…9452`).
+- **It starts at `0x01000000` again.** The stored run of S1b.5a is of another set and cannot
+  be a run of the chain. So the first run walks the 64 addresses of section 61 a second time
+  (four minutes), and they are held against that stored run. Every later run starts at the
+  last frame the run before walked, as in every chain so far.
+- **The known frames**: the chain asks for those at or above its first address (section 49).
+  There is none in block type 2, so the rule asks for nothing here, as in block type 1.
+  "Complete" rests on what every run's judge holds — the register after every read, two
+  passes alike, every frame once more in a read of three, the reference frame as known at
+  most 16 frames apart — on the seams, and on both passes of the last run leaving the
+  envelope.
+- **It goes on** after a run that ended at the limit; **it is complete** when both passes of
+  a run end because the device named an address above `0x017fffff`. That address is recorded
+  and never written to the register.
+- **It halts** on anything else, as now. A halt is stored, committed and reported, and what
+  there is by then is summarised as that.
+- **The bound: 12 runs** (about 50 minutes): a bound on unattended board time, not a
+  statement about the part. At the bound the chain stops and says where it stands.
+- **The order on the board**, as for S1b.4: the first run alone and looked at; then
+  unattended to the end, a halt or the bound. A `reset`, checked, before every run.
+
+### How it may end, said beforehand
+
+1. **Complete**: after the last frame the device names an address above the envelope —
+   `0x01800000`, by its fields the first address of block type 3, or another. The run that
+   leaves the envelope is walked to its end, so its last record is a reference read
+   (section 60, first line).
+2. **Halted because the address named is not above the one read** (`0x800`): the register
+   stands still for good, or goes back to a lower address, at the end of the bottom row or
+   of a later one. Block types 0 and 1 each ended by naming the first address of the next
+   block type; nothing says the last block type the register knows does the like. This is
+   the ending I think as likely as the first. By section 60 such a run has no reference read
+   after its last read in block type 2, and the record will say so; the next run of anything
+   begins with a new load of the design.
+3. **Halted at a second standstill in a pass** (`0x900`). The set allows one. A row here is
+   shorter than a pass — 56 frames against 64 — which was never so before: if block type 2
+   has rows after the bottom one, a pass can come to hold two row ends, and the chain would
+   halt for a reason of the walk's making, not of the device's. With the two rows seen so
+   far it cannot happen (the first run crosses one end, the second would meet one). The
+   prober and the judge take up to 4 for that word; I propose to leave it at 1, as in every
+   chain so far, and to treat such a halt as a halt: reported, and a set with 2 proposed
+   then, if the owner wants it.
+4. **Halted on an anomaly or a failure of the interface**: stored as it is; nothing retried.
+5. **The bound**: more than about 750 addresses in block type 2. Reported; going on needs
+   the owner's word.
+
+### What is made of the runs
+
+- **The summary over rows**: `s1b3_rows.py` as it is, told the set (`s1b5`). It holds no
+  number of rows, columns or frames.
+- **The first run against the stored run of S1b.5a**: `s1b4_first.py` as it is — every
+  address that run walked in the chain's list, with the same frame, the same address named
+  after it, a standstill in both or in neither. A difference is listed and alters neither.
+- **The status bits**: `status_seen.py` over every run.
+- **No grader.** The database has no block type after 1 (section 52). The list of block type
+  2 will stand on the device alone, and the record will say so. What it has instead of a
+  second witness is only its own repetition: two passes, the reads of three, the seams, and
+  64 of its addresses read on two days.
+
+The order kept so far: the runs are stored and committed as the chain stands first; then the
+summary; then the comparison and the listing of status bits; each committed before the next.
+
+### What this step cannot show, said beforehand
+
+- **Content.** If every frame is again all zero, the list rests on the register and on the
+  reference frame alone, and nothing is learnt of what these frames hold or whether anything
+  is stored behind them. That needs a write (S2 and later), not another read.
+- **What block type 2 is.** UG470 names it and no more; nothing else is consulted, as agreed
+  for section 58, unless the owner says otherwise.
+- **What follows block type 2.** An address named above the envelope is named, not read. If
+  it is `0x01800000`: UG470 says a normal bitstream does not include type 011. Whether to
+  read there is not proposed here and would be a proposal of its own.
+- Whether reading these frames disturbs the loaded design, beyond the reference frame and
+  the status register.
+
+### What has to be built
+
+Host only; the image is not built again.
+
+- the set `s1b5` (the run script takes its start at run time; the expected values written
+  with the others; a test that it is `s1b5a`'s block word for word) and its bound in the
+  chain driver;
+- tests on the twin with a made-up block type 2 of rows of one-frame columns, of lengths the
+  part does not have: a chain that is complete, with the summary and the comparison over it;
+  each of the endings 2 and 3 above, halted and summarised as that; the bound; and that no
+  address is written but the reference frame and addresses the device named inside the
+  envelope;
+- mutants as section 41 asks: no prober, no judge and no rule of the chain is changed and
+  the image is not new, so the complete set is not due — the mutants of the two files that
+  change (the run script, 64; the chain driver, 40) and whatever new ones the set gets, with
+  the anchor check over all 553.
+
+### For the owner
+
+1. **The chain as proposed**: the set `s1b5`, from `0x01000000` again, the first run alone
+   and looked at, then unattended; the bound of 12 runs.
+2. **One standstill a pass, as it is** — a second one in a pass is a halt and is reported
+   (ending 3) — or the set with 2 from the start.
+3. **What is made of the runs**: the summary, the comparison with S1b.5a's run, the listing
+   of status bits, in that order, following one another when the chain is complete or
+   halted; no grading.
+4. **The address named after block type 2 is recorded and not read**; reading there, if it
+   comes to that, is a separate proposal.

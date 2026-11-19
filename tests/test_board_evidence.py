@@ -592,6 +592,75 @@ class StoredBoardResults(unittest.TestCase):
         # ---- the board was sent nothing but what the run script sends: one console log, the pre-check's, beside the run's
         self.assertEqual(sorted(p.name for p in d.rglob("console.log")) + sorted(p.name for p in d.glob("*console.log")), ["console.log", "precheck_console.log"])
 
+    def test_the_chain_over_block_type_2(self) -> None:
+        """S1b.5, 2026-11-19: two runs from `0x01000000`; the second stood still at `0x01401b80` and was then told
+        `0x01800000`, which is outside the envelope: the chain is complete. Both runs are judged again here from their
+        raw words against the set kept with them; the summary, the comparison and the listing of status bits are what
+        the programs give now. Nothing was graded: there is nothing to grade against."""
+        import s1b2_chain, s1b3_rows, s1b4_first, status_seen
+        d = ROOT / "evidence" / "s1b5_17A6_2026-11-19"
+        expected = json.loads((d / "expected_s1b5.json").read_text())
+        self.assertEqual(hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest(), expected["image_sha256"])
+        self.assertEqual(expected["image_sha256"], "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
+        base = [int(w, 16) for w in expected["params"]]
+        self.assertEqual((base[3], base[4], base[5], base[10], base[12], base[16]), (0, 0x017FFFFF, 0xB99, 1, 64, 0x01000000))
+        self.assertEqual([hashlib.sha256((d / f"run{k:02d}" / "result.bin").read_bytes()).hexdigest() for k in range(2)],
+                         ["747952c43eee9e2754b83c309ab8bbfbc83021ffb7d00f6babb63baf0ce0552d", "49aafd335ce75257fec6af91ea50d1b9e65fe830b3b5f1e5267e4e38d26d670a"])
+        a = s1b2_chain.assess(d, base, KNOWN, s1b2_chain.BOUNDS["s1b5"], "s1b5")
+        self.assertEqual((a["state"], len(a["runs"]), a["named_after_the_last_frame"], a["set_aside"]), ("complete", 2, "0x01800000", []))
+        self.assertEqual([(r["decision"], r["start"], r["frames"], r["last"]) for r in a["runs"]],
+                         [("go on", "0x01000000", 64, "0x01400380"), ("complete", "0x01400380", 49, "0x01401b80")])
+        self.assertEqual(s1b2_chain.brief(a), json.loads((d / "chain.json").read_text()))
+        # ---- the summary over rows, and the file committed before anything else was made of the chain
+        rows = json.loads(json.dumps(s1b3_rows.summarize(a, KNOWN)))
+        self.assertEqual(rows, json.loads((d / "rows.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "rows.json").read_bytes()).hexdigest(), "4d1f2fbe02bd8432724a95e222970eeb8ca86af653720cdca1cd094b9451816d")
+        self.assertEqual((rows["frames"], rows["unexpected"], rows["frames_per_row"]), (112, [], [[2, "top", 0, 56], [2, "bottom", 0, 56]]))
+        self.assertEqual([(r["walked_whole"], r["ended_by"], r["first"], r["last"], r["named_after_the_last_frame"], r["frames_per_column"]) for r in rows["rows"]],
+                         [(True, "the register stood still", "0x01000000", "0x01001b80", "0x01400000", [[c, 1] for c in range(56)]),
+                          (True, "the register stood still", "0x01400000", "0x01401b80", "0x01800000", [[c, 1] for c in range(56)])])
+        self.assertEqual([int(s["far"], 16) for s in rows["addresses"]], [half | c << 7 for half in (0x01000000, 0x01400000) for c in range(56)])
+        self.assertEqual(rows["standstills"], [{"after": "0x01001b80", "named": "0x01400000"}, {"after": "0x01401b80", "named": "0x01800000"}])
+        self.assertEqual((rows["end"]["reached"], rows["end"]["named_after_the_last_frame"], rows["end"]["after_a_standstill"], rows["end"]["that_address"]["block_type"]),
+                         (True, "0x01800000", True, 3))
+        self.assertEqual({s["frame_sha256"] for s in rows["addresses"]}, {hashlib.sha256(bytes(404)).hexdigest()}, "every frame all zero: the list rests on the register")
+        self.assertEqual(rows["known_frames_walked"], [], "the frames with a known answer lie below the set's first address")
+        # ---- the two runs: what was read, the reference frame to the end, nothing asked for above the last address
+        records = 0
+        for k, (n, frames, pieces) in enumerate(((292, 194, 69), (224, 149, 53))):
+            rec = json.loads((d / f"run{k:02d}" / "run.json").read_text())
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"]), ("PASS", [], [], True, "50033004"), k)
+            self.assertEqual((rec["board_crc32"], rec["pull"]["pieces"], len(rec["pull"]["repeated"])), (rec["host_crc32"], pieces, 1), k)
+            self.assertEqual((v["header"]["records"], v["header"]["anomalies"], v["frames_without_a_second_path"], v["most_frames_between_reference_reads"]), (n, 0, [], 16), k)
+            self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()), k)
+            ref = [r for r in v["records"] if r["kind"] != "target"]
+            self.assertEqual(({r["far"] for r in ref}, len({r["frame_sha256"][0] for r in ref}), v["records"][-1]["kind"]), ({"0x00000b99"}, 1, "final"), k)
+            self.assertEqual(sum(len(r["frame_sha256"]) for r in v["records"] if r["kind"] == "target"), frames, k)
+            self.assertLessEqual(max(int(r["far"], 16) for r in v["records"]), 0x01401B80, "the address named above the envelope was never asked for")
+            self.assertEqual(int(v["header"]["ctrl"], 16) & 0x100, 0, "SEU_EN is clear")
+            records += len(v["records"])
+        self.assertEqual(records, 516)
+        log = (d / "resets_console.log").read_bytes()
+        self.assertEqual(log.count(b"<<TX b'reset\\r'>>"), 2, "a reset before each run, and none after the last")
+        # ---- the stored run of S1b.5a against the chain's list
+        stored = json.loads((ROOT / "evidence" / "s1b5a_17A6_2026-11-19" / "run" / "verdict.json").read_text())
+        first = s1b4_first.against(rows, stored)
+        self.assertEqual(first, json.loads((d / "first_run_against_s1b5a.json").read_text()))
+        self.assertEqual((first["disagreements"], first["of_which_in_the_chain"], first["same_frames"], first["same_address_named"], first["frames_not_all_zero"]), ([], 64, 64, 64, 0))
+        # the chain's first run is that run over again: every record, but for how many times a transfer was polled
+        again = json.loads((d / "run00" / "verdict.json").read_text())
+        self.assertEqual({k for k in again if again[k] != stored[k]}, {"records"})
+        self.assertEqual({k for x, y in zip(again["records"], stored["records"]) for k in x if x[k] != y[k]}, {"polls"})
+        # ---- the status: no bit that is neither an error nor usual, in either run
+        files = status_seen.verdicts(d)
+        self.assertEqual([f.parent.name for f in files], ["run00", "run01"])
+        seen = [status_seen.seen(json.loads(f.read_text())) for f in files]
+        self.assertEqual([(s["status_words"], s["bits"]) for s in seen], [(1462, []), (1122, [])])
+        listed = json.loads((d / "status_seen.json").read_text())
+        self.assertEqual(([{k: r[k] for k in ("status_words", "bits")} for r in listed["by_run"]], listed["bits"]), (seen, []))
+        self.assertFalse((d / "grade.json").exists(), "nothing to grade against: nothing was graded")
+
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have

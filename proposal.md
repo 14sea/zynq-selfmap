@@ -6,9 +6,9 @@ section 7, the open questions of section 11 — and those notes are dated.
 
 **Where the work stands (2026-11-19).** S0 and S1a are done. S1b, the read-only census, has
 block types 0 and 1 complete and graded: 3,864 and 1,280 frame addresses, 5,144 in all,
-nothing differs from prjxray-db. One run has been made into block type 2: it can be read, has
-columns of one frame (56 in the top half; the bottom half begun, not ended), every frame all zero;
-not graded, there being nothing to grade against. S2 to
+nothing differs from prjxray-db. Block type 2 is complete too: 112 frame addresses, two rows of 56 columns of one frame, every
+frame all zero; not graded, there being nothing to grade against. After it the device names
+`0x01800000` (block type 3), not read. S2 to
 S6 have not been begun, and nothing has written configuration memory. The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 
 ## 1. In one sentence
@@ -165,7 +165,7 @@ two things happens:
 |---|---|---|---|
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
 | S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range — **done 2026-11-13, PASS** (`evidence/s1a_17A6_2026-11-13/`) |
-| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **in progress (2026-11-18)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: one run into it (2026-11-19) read 56 columns of one frame in the top half and 8 in the bottom half, all zero, the end not seen. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
+| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **in progress (2026-11-18)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
 | S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
@@ -249,6 +249,8 @@ To be settled from documents or on the board:
    in the top half and at least 8 in the bottom half, every frame all zero, no status bit
    raised. What is in it is not answered: all zero says nothing, and the block type is not
    walked to its end.
+   *2026-11-19, later:* walked to its end (S1b.5): 112 addresses, two rows of 56 columns of one
+   frame, all zero; then the device names `0x01800000`, which was not read.
 4. **Is LUT RAM masked in PCAP readback?** UG470 describes a global GLUTMASK for the 7 series;
    on UltraScale, Attia and Betz had to edit the bitstream to clear per-frame mask bits.
    Untested here.

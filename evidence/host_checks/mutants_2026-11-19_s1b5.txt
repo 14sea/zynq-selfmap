@@ -1,0 +1,124 @@
+# python3 tests/mutants.py 'run: '
+unmutated: Ran 480 OK; 0 test(s): 
+KILLED   run: a result of another stage's layout is not saved whole     Ran 480 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 480 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 480 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   run: the dry run does not list the YMODEM branch               Ran 480 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_plan_and_cannot_open
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 480 FAILED (failures=96, errors=114); 129 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 480 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 480 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 480 FAILED (failures=2); 2 test(s): a_run_that_did_not_do_what_was_planned_fail, the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the live status afterwards is only recorded               Ran 480 FAILED (failures=4); 3 test(s): a_short_reply_that_never_comes_whole_after_, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the card copy is not read back                            Ran 480 FAILED (failures=4); 4 test(s): a_command_that_does_something_is_sent_once_, a_short_reply_that_never_comes_whole_after_
+KILLED   run: the card read-back checksum is not compared               Ran 480 FAILED (failures=3); 3 test(s): a_run_that_does_not_pass_halts_the_chain_an, a_whole_reply_with_another_value_is_never_a
+KILLED   run: an unconfirmed card write is ignored                      Ran 480 FAILED (failures=3); 2 test(s): a_command_that_does_something_is_sent_once_, an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 480 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the return code is not compared with the result           Ran 480 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 480 FAILED (failures=2, errors=1); 3 test(s): a_damaged_card_copy_stops_the_run_before_th, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 480 FAILED (failures=1, errors=1); 2 test(s): a_whole_reply_with_another_value_is_never_a, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 480 FAILED (failures=2); 2 test(s): a_command_that_does_something_is_sent_once_, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 480 FAILED (failures=126, errors=115); 144 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: PASS without the judge                                    Ran 480 FAILED (failures=66); 26 test(s): a_frame_that_has_a_known_answer_is_still_he, a_gate_stop_on_the_board_is_saved_too
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 480 FAILED (failures=4); 2 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 480 FAILED (failures=92, errors=30); 85 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 480 FAILED (failures=3, errors=1); 4 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   run: a piece is taken whatever its crc32                       Ran 480 FAILED (failures=3); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is taken whatever its length                      Ran 480 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a damaged piece is not pulled again                       Ran 480 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is pulled again without end in sight              Ran 480 FAILED (failures=2); 1 test(s): a_piece_that_cannot_be_pulled_whole_stops_t
+KILLED   run: the repeats of a piece are not recorded                   Ran 480 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: pieces that match are enough, the whole is not checked    Ran 480 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the whole is checked for length only                      Ran 480 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: a copy that is not the board's is not kept                Ran 480 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the pieces are not the pieces asked for                   Ran 480 FAILED (failures=91, errors=159); 159 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s1b2 run: any set may be given a start                         Ran 480 FAILED (failures=6); 5 test(s): it_is_the_walks_set_with_the_three_differen, nothing_of_it_is_given_at_run_time
+KILLED   s1b2 run: a start outside the envelope is sent                 Ran 480 FAILED (failures=6); 5 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_command_line
+KILLED   s1b2 run: the start given is not put into the block            Ran 480 FAILED (failures=83, errors=14); 74 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2 run: where the start came from is not recorded            Ran 480 FAILED (failures=52, errors=22); 60 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2 run: a run of the chain is judged by the judge of S1b.1   Ran 480 FAILED (failures=8, errors=2); 10 test(s): a_chain_is_asked_for_the_known_frames_from_, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2 judge of a run: it is S1b.1's judge after all             Ran 480 FAILED (failures=34, errors=8); 38 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: the quiet walk is judged as a stage-5 result              Ran 480 FAILED (failures=1); 1 test(s): the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the quiet walk is given the walk's old parameters         Ran 480 FAILED (failures=3); 3 test(s): the_dry_run_of_the_quiet_walk_differs_from_, the_set_is_the_quiet_walk_with_the_row_as_i
+KILLED   s1b2e run: the end is judged by the judge of the diagnostic series Ran 480 FAILED (failures=27); 16 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e run: the column again is given the table of the end      Ran 480 FAILED (failures=26); 15 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b3a run: judged as a walk of its own, not a run of a chain   Ran 480 FAILED (failures=2); 2 test(s): a_standstill_that_leaves_the_envelope_ends_, it_is_the_walks_set_with_the_three_differen
+KILLED   s1b3 run: judged as a walk of its own, not a run of a chain    Ran 480 FAILED (failures=10, errors=2); 12 test(s): a_row_that_ends_without_a_standstill_is_not, a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 run: the chain's set takes no start                       Ran 480 FAILED (failures=2, errors=24); 22 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   run: a reply that is not whole is not asked for again          Ran 480 FAILED (failures=22); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a reply is asked for again without end in sight           Ran 480 FAILED (failures=12); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the replies that were not whole are not listed            Ran 480 FAILED (failures=17); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a dump is whole whatever the addresses of its lines       Ran 480 FAILED (failures=2); 1 test(s): what_a_whole_reply_is
+KILLED   run: a dump that ends early is whole                           Ran 480 FAILED (failures=2); 2 test(s): a_dump_that_is_not_whole_is_asked_for_again, what_a_whole_reply_is
+KILLED   run: a word run together with what follows it counts as that word Ran 480 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum of any range is taken                          Ran 480 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum that lost a character is taken                 Ran 480 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: the reply of any command may be asked for twice           Ran 480 FAILED (failures=12); 1 test(s): what_a_whole_reply_is
+KILLED   run: the header is taken from a dump that is not whole         Ran 480 FAILED (failures=1, errors=1); 2 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the header is not held to the pulled result               Ran 480 FAILED (failures=1); 1 test(s): the_header_is_held_to_the_pulled_result
+KILLED   run: the status that is only recorded is asked for again       Ran 480 FAILED (failures=1); 1 test(s): the_status_that_is_only_recorded_is_read_on
+KILLED   run: a status that never came whole passes the check before go Ran 480 FAILED (failures=1); 1 test(s): before_go_a_reply_that_is_not_whole_is_aske
+KILLED   run: a status afterwards that could not be read is no problem  Ran 480 FAILED (failures=1); 1 test(s): a_short_reply_that_never_comes_whole_after_
+KILLED   s1b4a run: judged as a walk of its own, not a run of a chain   Ran 480 FAILED (failures=5); 3 test(s): an_end_is_one_only_if_both_passes_left_the_, it_is_the_set_of_the_chain_over_block_type_
+KILLED   s1b4a run: the set may be given a start                        Ran 480 FAILED (failures=3); 3 test(s): it_is_the_set_of_the_one_run_word_for_word_, nothing_of_it_is_given_at_run_time
+KILLED   s1b5a run: judged as a walk of its own, not a run of a chain   Ran 480 FAILED (failures=6); 5 test(s): a_block_type_of_a_few_frames_is_an_answer, it_is_the_set_of_the_run_into_block_type_1_
+KILLED   s1b5a run: the set may be given a start                        Ran 480 FAILED (failures=3); 3 test(s): it_is_the_set_of_the_one_run_word_for_word_, nothing_of_it_is_given_at_run_time
+KILLED   s1b5a run: it is given the set of the run into block type 1    Ran 480 FAILED (failures=34); 20 test(s): a_block_type_of_a_few_frames_is_an_answer, a_name_that_leads_back_below_block_type_2_s
+KILLED   s1b5 run: judged as a walk of its own, not a run of a chain    Ran 480 FAILED (failures=4, errors=1); 5 test(s): it_is_the_set_of_the_one_run_word_for_word_, rows_of_one_frame_columns_are_walked_to_the
+KILLED   s1b5 run: the chain's set takes no start                       Ran 480 FAILED (failures=3, errors=16); 18 test(s): a_register_that_stands_still_for_good_after, a_run_that_begins_on_the_last_frame_of_a_ro
+KILLED   s1b5 run: it is given the set of the chain over block type 1   Ran 480 FAILED (failures=14, errors=2); 15 test(s): a_register_that_stands_still_for_good_after, a_run_that_begins_on_the_last_frame_of_a_ro
+KILLED   s1b4 run: judged as a walk of its own, not a run of a chain    Ran 480 FAILED (failures=7, errors=1); 7 test(s): a_made_up_database_that_has_what_the_chain_, it_is_the_set_of_the_one_run_word_for_word_
+KILLED   s1b4 run: the chain's set takes no start                       Ran 480 FAILED (failures=2, errors=18); 20 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+restored: Ran 480 OK; 0 test(s):  (8 copies)
+68 mutants, 0 survived
+# exit 0
+# python3 tests/mutants.py 'chain: '
+unmutated: Ran 480 OK; 0 test(s): 
+KILLED   s1b2 chain: a row left with its known frames not walked is complete Ran 480 FAILED (failures=2, errors=5); 3 test(s): a_chain_that_begins_at_the_bottom_of_its_en, from_its_first_address_on
+KILLED   s1b2 chain: a known frame outside the envelope is asked of the chain Ran 480 FAILED (failures=15, errors=3); 14 test(s): a_chain_is_asked_for_the_known_frames_from_, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b2 chain: only the last run's frames count as walked         Ran 480 FAILED (failures=17, errors=5); 20 test(s): a_chain_that_begins_at_the_bottom_of_its_en, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b3 chain: the bound of the row's chain                       Ran 480 FAILED (failures=1); 1 test(s): the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b3 chain: every run is read as one of the row's set          Ran 480 FAILED (failures=39, errors=14); 43 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3 chain: a step at which the register stood still does not say so Ran 480 FAILED (failures=31); 28 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b3 chain: asked where a chain stands, the set named is not used Ran 480 FAILED (failures=3); 2 test(s): the_driver_says_where_a_stored_chain_stands, the_driver_says_where_the_stored_chain_stan
+KILLED   s1b3 chain: driven, the chain is assessed as one of the row's set Ran 480 FAILED (failures=38, errors=12); 40 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b5 chain: the bound of the chain over block type 1           Ran 480 FAILED (failures=2); 2 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b4 chain: every known frame in the envelope is asked for, as before Ran 480 FAILED (failures=13, errors=3); 13 test(s): a_chain_is_asked_for_the_known_frames_from_, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b4 chain: known frames are asked for from the last run's start on Ran 480 FAILED (errors=1); 1 test(s): from_its_first_address_on
+KILLED   s1b4 chain: a known frame at the chain's first address is not asked for Ran 480 FAILED (errors=1); 1 test(s): from_its_first_address_on
+KILLED   s1b4 chain: the bound of the chain over block type 0           Ran 480 FAILED (failures=2); 2 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b3 chain: a seam at which only one run stood still is taken  Ran 480 FAILED (failures=2); 1 test(s): a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 chain: a seam is refused only where the later run stood still and the earlier did not Ran 480 FAILED (failures=1); 1 test(s): a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 chain: a seam is refused only where the earlier run stood still and the later did not Ran 480 FAILED (failures=1); 1 test(s): a_seam_at_which_only_one_of_the_two_runs_st
+restored: Ran 480 OK; 0 test(s):  (8 copies)
+16 mutants, 0 survived
+# exit 0
+# python3 tests/mutants.py 's1b2: '
+unmutated: Ran 480 OK; 0 test(s): 
+KILLED   s1b2: the block planned for a run does not carry its start     Ran 480 FAILED (failures=51, errors=15); 56 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_taken_up_again_is_the_same_chain
+KILLED   s1b2: a run record of another stage is taken                   Ran 480 FAILED (failures=5); 4 test(s): the_chain_is_complete_although_no_known_fra, the_driver_says_where_a_stored_chain_stands
+KILLED   s1b2: a run in which the prober was not started is taken       Ran 480 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run the run script stopped is taken                    Ran 480 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run the run script failed is taken                     Ran 480 FAILED (failures=4); 4 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2: a run without a verified card copy is taken              Ran 480 FAILED (failures=2); 2 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run started elsewhere than the chain plans is taken    Ran 480 FAILED (failures=3); 3 test(s): a_chain_is_asked_for_the_known_frames_from_, the_chain_is_complete_although_no_known_fra
+KILLED   s1b2: a stored result is not held against the board's checksum Ran 480 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: the judge's verdict of a stored run is not asked for     Ran 480 FAILED (failures=13); 12 test(s): a_register_that_stands_still_for_good_after, a_row_shorter_than_a_pass_halts_the_chain
+KILLED   s1b2: a run is judged against the set's block, not the one planned for it Ran 480 FAILED (failures=51, errors=14); 55 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_taken_up_again_is_the_same_chain
+KILLED   s1b2: run directories with a gap are taken                     Ran 480 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: one pass is enough                                       Ran 480 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the passes need not end alike                            Ran 480 FAILED (failures=3); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the walk need not be as long as its passes say           Ran 480 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: seam: the address is not compared                        Ran 480 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: seam: the content is not compared                        Ran 480 FAILED (failures=1); 1 test(s): a_seam_that_does_not_match_halts_the_chain
+KILLED   s1b2: seam: the address named is not compared                  Ran 480 FAILED (failures=1); 1 test(s): a_seam_that_does_not_match_halts_the_chain
+KILLED   s1b2: runs after the row was left are overlooked               Ran 480 FAILED (failures=1, errors=1); 2 test(s): the_decisions_on_runs_that_the_twin_cannot_, the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run that ended neither way is gone on from             Ran 480 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: a run of one frame at the limit is gone on from          Ran 480 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the next run begins at the address named, without a seam Ran 480 FAILED (failures=54, errors=13); 57 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_taken_up_again_is_the_same_chain
+KILLED   s1b2: the bound allows one run more                            Ran 480 FAILED (failures=3, errors=1); 3 test(s): the_bound_on_runs, the_bound_on_the_number_of_runs
+KILLED   s1b2: the two endings are taken for each other                 Ran 480 FAILED (failures=55, errors=19); 61 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2: a run is judged by the judge of S1b.1                    Ran 480 FAILED (failures=23, errors=8); 30 test(s): a_chain_is_asked_for_the_known_frames_from_, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b2: a chain that is not to go on is gone on with             Ran 480 FAILED (errors=30); 20 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_chain_that_halted_is_summarized_as_far_as
+restored: Ran 480 OK; 0 test(s):  (8 copies)
+25 mutants, 0 survived
+# exit 0

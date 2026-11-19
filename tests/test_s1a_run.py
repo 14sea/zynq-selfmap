@@ -144,6 +144,9 @@ class FakeUBoot:
         if self.fault:
             env["SM_FAULT"] = self.fault
         env["SM_FAR_RULE"] = self.q.get("far_rule", "next")
+        # the twin reads 96 successors and 32 such positions and drops the rest without a word (prober/twin_hal.c): a
+        # device made up with more would be walked as another device (found 2026-11-19, section 63 of the plan)
+        assert len(self.q.get("succ", {})) <= 96 and len(self.q.get("shows", {})) <= 32, "more than the twin's tables hold"
         if "succ" in self.q:                                                       # stage 4: which address follows which
             env["SM_SUCC"] = ",".join(f"{a:x}:{b:x}" for a, b in self.q["succ"].items())
         env.pop("SM_SHOWS", None)

@@ -5,6 +5,7 @@
     s1b2_chain.py --dir DIR --go            go on with it on the board, run after run, until it is complete or halts
     s1b2_chain.py --stage s1b3 ...          the same for the chain over block type 0 (section 38): the set s1b3
     s1b2_chain.py --stage s1b4 ...          and for the chain over block type 1 (section 49): the set s1b4
+    s1b2_chain.py --stage s1b5 ...          and for the chain over block type 2 (section 62): the set s1b5
 
 One run is the walk of S1b.1 (the parameter set s1b2: the row as the envelope, at most 64 frames a pass; judged by
 s1b2_judge, which is the walk's judge but for one rule about the known frames), started at an address this program gives it. The first run starts at the first address of the set; every
@@ -51,7 +52,9 @@ MAX_RUNS = 48                                        # a bound on unattended boa
 # allowed. Nothing in the rules below differs; the bound is its own.
 # S1b.4 (section 49): the chain over block type 1, the set s1b4 — its first address is the one the device named after
 # block type 0, above every frame with a known answer.
-BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96, "s1b4": 48}
+# S1b.5 (section 62): the chain over block type 2, the set s1b5 — its first address is the one the device named after
+# block type 1. Nothing in the rules below differs; the bound is its own.
+BOUNDS = {"s1b2": MAX_RUNS, "s1b3": 96, "s1b4": 48, "s1b5": 12}
 P_LO, P_HI, P_PASSES, P_START = 3, 4, 7, 16          # words of the parameter block: the envelope, the passes, the start
 LEFT, LIMIT = s1b2_judge.END[1], s1b2_judge.END[2]
 RUN_DIR = re.compile(r"^run(\d\d)$")
@@ -225,7 +228,7 @@ def main() -> int:
     ap.add_argument("--dir", type=Path, required=True)
     ap.add_argument("--go", action="store_true")
     ap.add_argument("--max-new", type=int, help="add at most this many runs, then stop where the chain stands")
-    ap.add_argument("--stage", choices=sorted(BOUNDS), default=STAGE, help="the parameter set the chain drives (s1b2: the row; s1b3: block type 0; s1b4: block type 1)")
+    ap.add_argument("--stage", choices=sorted(BOUNDS), default=STAGE, help="the parameter set the chain drives (s1b2: the row; s1b3: block type 0; s1b4: block type 1; s1b5: block type 2)")
     a = ap.parse_args()
     base = [int(w, 16) for w in json.loads(s1a_run.STAGES[a.stage]["expected"].read_text())["params"]]
     known = json.loads(s1a_run.KNOWN.read_text())

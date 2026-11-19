@@ -125,7 +125,7 @@ class TheSetAndTheDriver(unittest.TestCase):
         self.assertEqual((exp["params"][16], exp["chain"]["start"]), ("00400015", "0x00400015"))
         with self.assertRaises(ValueError):                 # block type 1 is outside: no run can be started there
             s1a_run.with_start(STAGE, json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()), BEYOND, "a test")
-        self.assertEqual(chain.BOUNDS, {"s1b2": 48, STAGE: 96, "s1b4": 48})
+        self.assertEqual(chain.BOUNDS, {"s1b2": 48, STAGE: 96, "s1b4": 48, "s1b5": 12})
 
     def test_the_driver_says_where_a_stored_chain_stands_for_either_set(self) -> None:
         _, root, _, a, _ = the()

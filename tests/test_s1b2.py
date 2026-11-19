@@ -578,7 +578,7 @@ class TheRowSummaryAndTheGrader(unittest.TestCase):
         self.assertEqual(imported - {"__future__", "json", "sys", "pathlib"}, set(), "and the grader uses nothing of the chain's but the summary file")
         for name in ("s1b2_chain.py", "s1b2_row.py"):        # and neither holds a number of columns or of frames of any part
             numbers = {n.value for n in ast.walk(ast.parse((ROOT / "host" / name).read_text())) if isinstance(n, ast.Constant) and isinstance(n.value, int) and not isinstance(n.value, bool)}
-            self.assertEqual(numbers - {0, 1, 2, 3, 4, 7, 8, 10, 16, 17, 22, 23, 40, 48, 96, 0x1F, 0x7F, 0x3FF, 0xFFFFFFFF}, set(), name)
+            self.assertEqual(numbers - {0, 1, 2, 3, 4, 7, 8, 10, 12, 16, 17, 22, 23, 40, 48, 96, 0x1F, 0x7F, 0x3FF, 0xFFFFFFFF}, set(), name)
 
 
 class TheRunScriptAndTheJudgeOfARun(unittest.TestCase):
@@ -598,7 +598,7 @@ class TheRunScriptAndTheJudgeOfARun(unittest.TestCase):
         for stage in ("s1b1", "s1b1r", "s1a", "dxw0r"):
             with self.assertRaises(ValueError):
                 s1a_run.with_start(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), 0xB80, "x")
-        self.assertEqual(s1a_run.STARTS_AT_RUN_TIME, ("s1b2", "s1b3", "s1b4"))
+        self.assertEqual(s1a_run.STARTS_AT_RUN_TIME, ("s1b2", "s1b3", "s1b4", "s1b5"))
 
     def test_the_command_line(self) -> None:
         def plan(*args):

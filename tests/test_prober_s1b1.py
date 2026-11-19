@@ -64,6 +64,7 @@ class Run:
         self.params = params(**over)
         (tmp / "params.txt").write_text("\n".join(f"{x:x}" for x in self.params) + "\n")
         env = dict(os.environ); env.pop("SM_FAULT", None); env["SM_FAR_RULE"] = rule
+        assert len(self.succ) <= 96, "more than the twin's table holds: it would drop the rest without a word"
         env["SM_SUCC"] = ",".join(f"{a:x}:{b:x}" for a, b in self.succ.items())
         if fault:
             env["SM_FAULT"] = fault

@@ -85,6 +85,9 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # the device named after block type 1 and the envelope's upper end at the end of block type 2. Judged as a
           # run of a chain: it begins beyond the known frames.
           "s1b5a": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b5a.json"},
+          # S1b.5 (section 62): one run of the chain over block type 2 — s1b5a's set, with the starting address given
+          # at run time (--start), as for s1b2, s1b3 and s1b4.
+          "s1b5": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b5.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -118,7 +121,7 @@ MAX_PIECE_PULLS = 5                                  # attempts at one piece
 MAX_READS = 5                                        # attempts at one short read-only reply (a dump of a few words, a checksum)
 
 
-STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4")        # the sets whose starting address is not fixed by the tests
+STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5")  # the sets whose starting address is not fixed by the tests
 P_FAR_LO, P_FAR_HI, P_START = 3, 4, 16               # words of the parameter block
 
 
@@ -418,7 +421,7 @@ def main() -> int:
     ap.add_argument("--go", action="store_true")
     ap.add_argument("--out", type=Path)
     ap.add_argument("--stage", choices=sorted(STAGES), default="s1a")
-    ap.add_argument("--start", type=lambda s: int(s, 16), help="hex; only for a set whose starting address is given at run time (s1b2, s1b3, s1b4)")
+    ap.add_argument("--start", type=lambda s: int(s, 16), help="hex; only for a set whose starting address is given at run time (s1b2, s1b3, s1b4, s1b5)")
     ap.add_argument("--start-from", default="given on the command line", help="where the starting address was taken from; recorded, not used")
     a = ap.parse_args()
     exp = json.loads(STAGES[a.stage]["expected"].read_text())

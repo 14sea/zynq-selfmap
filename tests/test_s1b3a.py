@@ -118,7 +118,7 @@ class TheSet(unittest.TestCase):
         the_set()
         for name, entry in s1a_run.STAGES.items():
             p = [int(w, 16) for w in json.loads(entry["expected"].read_text())["params"]]
-            if p[2] == 4 and name not in ("s1b3a", "s1b3", "s1b4a", "s1b4", "s1b5a"):
+            if p[2] == 4 and name not in ("s1b3a", "s1b3", "s1b4a", "s1b4", "s1b5a", "s1b5"):
                 self.assertEqual(p[10], 0, name)
 
 

@@ -32,7 +32,7 @@ Section 3 is the outline as it was first drawn, section 4 the owner's first deci
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
 far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
 57 what they gave on the board. Sections 58 to 61 are the one run into block type 2;
-section 62 proposes the chain over it.
+section 62 proposes the chain over it and section 63 is that chain as built.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -56,8 +56,8 @@ is delivered in block type 1 is what is stored there.
 **Still open in S1b.**
 
 - Block type 2: one run has been made into it (section 61). The bottom half is not walked
-  to its end, and what the device names after it is not known. A chain over it is proposed
-  in section 62; not decided.
+  to its end, and what the device names after it is not known. The chain over it is agreed and built (sections 62
+  and 63); it has not run on the board.
 - What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
 - The frame census as one document beside the schema (proposal, section 4): which addresses
@@ -4034,3 +4034,109 @@ Host only; the image is not built again.
    halted; no grading.
 4. **The address named after block type 2 is recorded and not read**; reading there, if it
    comes to that, is a separate proposal.
+
+## 63. S1b.5 as built (2026-11-19; host side, nothing on a board yet)
+
+The owner's answers to section 62: all four as proposed — the chain with the set `s1b5` from
+`0x01000000`, the first run alone and looked at, a bound of 12 runs; one standstill a pass,
+as it is, a second one being a halt that is reported; the summary, the comparison with
+S1b.5a's run and the listing of status bits, in that order, following one another when the
+chain is complete or halted, and no grading; the address named after block type 2 recorded
+and not read.
+
+### What was built
+
+- **The set `s1b5`**: the parameter block of `s1b5a` word for word (a test compares them);
+  the run script takes its start at run time (`host/s1a_run.py`: the entry, judged by the
+  judge of a run of a chain, and the name in the list of sets that are given a start); the
+  expected values are written with the others (`tests/test_prober_image.py`,
+  `build/prober/expected_s1b5.json`).
+- **The chain driver**: `--stage s1b5`, bound 12 (`host/s1b2_chain.py`: the entry in the
+  table of bounds, and the help text).
+- **Nothing else.** No rule of the chain, no judge, no line of the prober; `s1b3_rows.py`,
+  `s1b4_first.py` and `status_seen.py` are untouched and take a chain over block type 2 as
+  they are. The image is `fdc4f07f…9452`.
+
+### What the twin was made to do (`tests/test_s1b5.py`, 18 tests)
+
+A made-up block type 2: two rows of 45 and 40 columns of one frame and a third row of two
+columns of 30 and 25 frames, each row ending as rows did on the board, and `0x01800000`
+named after the last.
+
+- The chain walks all 140 addresses in three runs and is complete; each run begins at the
+  last frame of the one before; no address is written but the reference frame and addresses
+  the device named in block type 2; the run that leaves the envelope ends with a reference
+  read.
+- **Ending 2**: a register that stands still for good after the last frame — the third run
+  stopped with `0x800`, the chain halted, what the two runs before it walked stands, no
+  reference read after the last read in block type 2. The same when an address of block type
+  1, or address 0, is named after the last frame: recorded as named, not followed.
+- **Ending 3**: three rows of 20 columns — the first run stopped with `0x900` at the second
+  row end, the chain halted with nothing in its list. And the case of the walk's own making:
+  a device whose first run ends, at the limit, on the last frame of a row; the second run
+  begins there, crosses that end, comes to the end of a row of 30 frames and is stopped,
+  though every row of that device ends as the rows on the board did.
+- The bound stops the chain where it stands.
+- Over the complete chain: the summary gives the three rows, their columns, three
+  standstills and the end (the address named has the fields of block type 3); the stored run
+  of the set `s1b5a` on the same device agrees with the chain's list at all 64 addresses, the
+  standstill at the row end included, and a difference made by hand is listed; frames that
+  are all zero are said to say nothing; the listing of status bits reads the runs of a chain
+  directory, a run that did not pass among them.
+- The set: its start is the address the board named after block type 1 and the address at
+  which the stored run of S1b.5a began; without `--start` the dry run is that run's, word
+  for word; a start above the envelope is refused.
+
+### Found on the way: the twin's tables
+
+The first made-up device had 165 columns of one frame. On it the chain did not end: it
+walked 757 addresses to its bound. The cause was not in the chain or the prober. The twin
+reads at most 96 successors, and 32 places at which the register shows another number, from
+what the test gives it (`prober/twin_hal.c`), and drops the rest without a word; beyond its
+table every address is followed by the next number. A column of one frame takes one entry,
+so this device was the first to need more. The test had made a device the test's own double
+could not hold, and what came back looked like a device that goes on.
+
+- The twin was not changed. The made-up devices were made smaller, which is why the third
+  row has two longer columns.
+- **The pretended board now refuses a table longer than the twin reads**
+  (`tests/test_s1a_run.py`, and the wrapper of the stage in `tests/test_prober_s1b1.py`): an
+  assertion, not a silent cut. A test holds the two numbers to the twin's source and shows
+  the refusal.
+- The whole suite passes with the refusal in place: no earlier test had given the twin more
+  than it reads, so nothing that was shown before rested on a device cut short.
+
+### Older tests changed
+
+Four, each a list that has one more entry now: the sets given a start at run time
+(`test_s1b2.py`), the table of bounds (`test_s1b3.py`), the sets that allow a standstill
+(`test_s1b3a.py`), and the numbers allowed in the chain's program — 12, the bound
+(`test_s1b2.py`).
+
+### Tests and mutants
+
+480 tests (18 new). Mutants: four new (the set judged by the other judge; not given a
+start; given the set of the chain over block type 1; the bound) and five older ones moved to
+the lines as they now read — 557 in all, none stale. Run as section 41 says, there being no
+change to the prober, a judge or a rule of the chain, and no new image: the 67 of the run
+script, the 41 of the chain driver, and one of another program that a filter takes along —
+**109 of 109 killed**, none survived, none broken, the suite whole again after each of the
+three runs (`evidence/host_checks/mutants_2026-11-19_s1b5.txt`).
+
+### On the board, when the owner says so, and not before
+
+1. The devices checked; nothing else running on the host.
+2. The first run alone: `s1b2_chain.py --stage s1b5 --dir evidence/s1b5_17A6_<date> --go
+   --max-new 1` (the driver makes a `reset`, checked, before every run). Looked at,
+   committed.
+3. Then the same without `--max-new`, unattended: to complete, a halt, or the bound of 12
+   runs.
+4. Whatever it ends in: committed as it stands first. Then the summary
+   (`s1b3_rows.py <dir> s1b5`); then the first run against S1b.5a's stored run
+   (`s1b4_first.py`); then `status_seen.py <dir>`; each committed before the next. Nothing
+   is graded.
+5. The record. If the chain halted with `0x800`, `0x900` or a failure of the interface, it
+   says in so many words that the last run does not show block type 0 readable afterwards
+   (section 60). A halt is reported; nothing is retried or moved without the owner. After
+   the chain nothing more is sent to the board, and the address named above the envelope is
+   not read.

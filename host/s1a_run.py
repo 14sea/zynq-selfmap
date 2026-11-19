@@ -36,6 +36,7 @@ import re
 import struct
 import subprocess
 import sys
+import termios
 import time
 import zlib
 from pathlib import Path
@@ -131,6 +132,13 @@ P_FAR_LO, P_FAR_HI, P_START = 3, 4, 16               # words of the parameter bl
 
 class Stop(Exception):
     pass
+
+
+# What the serial line can raise under the run script, none of it a fault of the script: pyserial's SerialException and
+# whatever the operating system says of a device that went away (OSError); the tty layer beneath pyserial, which
+# raises an error of its own when a port that vanished is flushed (termios.error is not an OSError); and the
+# program that sends a file, when it does not end in its time or cannot be run (subprocess: TimeoutExpired).
+TRANSPORT = (OSError, termios.error, subprocess.SubprocessError)
 
 
 def with_start(stage: str, exp: dict, start: int, came_from: str) -> dict:
@@ -235,8 +243,16 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
     if "chain" in exp:                               # a starting address given at run time, and where it was taken from
         record["chain"] = exp["chain"]
 
+    def link(call):
+        """Everything that goes over the serial line goes through here, and nothing else does. A failure of the line is
+        a stop like any other: the steps so far are in the record, the record is written, nothing more is sent."""
+        try:
+            return call()
+        except TRANSPORT as e:
+            raise Stop(f"the console failed after {len(record['steps'])} step(s) — {type(e).__name__}: {e}; nothing more was sent") from e
+
     def do(cmd: str, what: str, timeout: float = 10) -> str:
-        reply, ok = con.cmd(cmd, timeout)
+        reply, ok = link(lambda: con.cmd(cmd, timeout))
         text = reply.decode("utf-8", "replace")
         record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd,
                                 "reply": text if len(text) < 2000 else text[:300] + " … " + text[-300:]})
@@ -257,13 +273,13 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         return None
 
     try:
-        _, ok = con.interrupt()
+        _, ok = link(con.interrupt)
         if not ok:
             raise Stop("no U-Boot prompt")
         go_text = ""
         for s in before_go(exp, pl_bytes, pl_crc):
             if "ymodem" in s:
-                reply, ok = send_file(con, s["cmd"], s["ymodem"])
+                reply, ok = link(lambda: send_file(con, s["cmd"], s["ymodem"]))
                 text = reply.decode("utf-8", "replace")
                 record["steps"].append({"n": len(record["steps"]) + 1, "what": s["what"], "cmd": s["cmd"], "reply": text[-400:]})
                 m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)
@@ -283,7 +299,7 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
                 record["pl_source"] = "card"
                 if not m or int(m.group(1)) != s["size"]:            # not on the card (or not this size): send it
                     record["pl_source"] = "ymodem"
-                    reply, ok = send_file(con, f"loady {PL_ADDR:08x}", s["card_or_ymodem"])
+                    reply, ok = link(lambda: send_file(con, f"loady {PL_ADDR:08x}", s["card_or_ymodem"]))
                     text = reply.decode("utf-8", "replace")
                     record["steps"].append({"n": len(record["steps"]) + 1, "what": "the PL design by YMODEM", "cmd": f"loady {PL_ADDR:08x}", "reply": text[-400:]})
                     m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)

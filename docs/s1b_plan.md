@@ -71,7 +71,9 @@ is delivered in block type 1 is what is stored there.
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
 - The review of S1b as a whole (the proposal's section 7: S1 to S3 are finished and
   reviewed before S4 is decided) is written: `docs/s1b_review.md`, with eight findings. The
-  three recommended for now are done (its section 11); S1b is closed when the owner says so. The census document is written
+  three recommended for now are done (its section 11), and two reviews of that work are
+  answered (its section 12: three findings, on the run script's record when the serial port fails and on
+  the audit's comparison); S1b is closed when the owner says so. The census document is written
   (section 68).
 - Not explained: why the stores to the stack overflowed the FIFO; what the places at the end
   of a row are.

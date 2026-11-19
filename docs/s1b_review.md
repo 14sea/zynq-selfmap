@@ -258,3 +258,81 @@ The owner: as recommended — F1 to F3 now.
 so no mutants were run: 598, none stale.
 
 Left as recommended: F4 waits for the owner's word that S1b is closed; F5 to F8 stand.
+
+## 12. Two reviews of `7d7b11f` (2026-11-19): three findings, all accepted
+
+Each was checked against the source and reproduced before it was accepted. No stored result
+or verdict is changed by any of them. One stored run did meet the first (below).
+
+**First review, two findings.**
+
+- *A failure of the serial port lost the record of the run.* In the run script an exception
+  of the port went straight through `execute`; `run.json` — every step taken up to then,
+  and whether the prober had been started — was never written. Reproduced on the twin: the
+  port failing at the read of the result header, after `go`, left a directory without a
+  record. And it had happened on the board: on 2026-11-14 the adapter dropped off the host
+  during a pull and the script died before it wrote `run.json`
+  (`evidence/fifo_rate_17A6_2026-11-14/ratep_run03`; its record says it was put together
+  afterwards from the console log, and its result was fetched from the card). What was
+  learned that evening was not to load the host while the board is talked to. The script
+  was left as it was.
+- *The audit took a change for an addition.* For the 41 stored verdicts of an older form,
+  the test of F1 let `params` and `polling_variable` differ as a whole, and in a
+  record the two fields added later, whatever stood in them. A field of `params` that such a verdict has, altered,
+  passed. Reproduced on a stored verdict.
+
+**Second review, one finding.** My first repair caught `OSError`. A YMODEM transfer that
+does not end in its 900 seconds raises `subprocess.TimeoutExpired`, which is not one, and
+went through as before. Reproduced.
+
+**What I found beside them, looking for kin of the last.** The tty layer raises
+`termios.error` when a port that has vanished is flushed or drained, and that is not an
+`OSError` either. And `host/ps_look.py` — the program that may write `INT_STS` — had the
+same gap as the run script: a failure of the port lost the record of what had been sent.
+
+**What was done.**
+
+- `host/s1a_run.py`: one tuple, `TRANSPORT` (the operating system's errors, the tty
+  layer's, and every error of `subprocess`), and one place, `link()`, through which every
+  use of the line in `execute` goes — the first prompt, each command, both transfers. A
+  failure there is a stop like any other: recorded with the number of steps before it and
+  the kind of failure, the run FAIL, the record written, nothing sent afterwards.
+- `host/ps_look.py`: the same tuple; the record is written with everything sent, the
+  failure named at the last command that went out.
+- `tests/test_s1a_run.py`: four kinds of failure at each of eleven places the script
+  touches the line (before the start and after it), the reviewers' two cases by name, and a
+  test of the source that no line of `execute` names the console or a transfer outside
+  `link()` — so a use added later cannot go round it.
+- `tests/test_evidence_audit.py` (now 6 tests): the comparison goes field by field and
+  record by record and tells *changed* from *added*. Nothing a stored verdict says may
+  differ from what the judge says now, but for the one run already named and only in its
+  list of problems; what the judge says now and an old verdict lacks must be one of six
+  fields named in the test with where they came from, and each of the six must be met.
+  Tried on a copy of a stored verdict: a field altered, a record's field altered, a field
+  the judge never wrote, a record removed, the verdict flipped — each shows as a change.
+
+The 185 runs are as section 11 says: 140 PASS and 44 FAIL, 143 verdicts word for word, 41
+of an older form, one with a problem more. The stricter comparison found nothing new in
+them.
+
+**Tests and mutants.** 541 tests. 609 mutants, none stale (11 new: on the tuple, on
+`link()` and on each of its four uses, on the look program's handler). The two programs
+changed are host programs; by section 41 of the plan their own mutants were run and the
+complete set was not: the run script's 80 and the look program's 19, 99 of 99 killed
+(`evidence/host_checks/mutants_2026-11-19_port_failure.txt`). The prober, the judges and
+the chain's rules are untouched; the image is the same.
+
+**My slips here.** The oldest is five days old: the script died of this on the board on
+2026-11-14, I rebuilt the record by hand and did not repair the script, and neither the
+audit of section 5 nor the list of section 7 named it, though the rebuilt record says in
+its first field what happened. The first repair was then written for the exception in
+front of me and not for the kinds there are — the pattern of section 7 again, and the
+second review is what showed it. In the table of eleven places I guessed one wrongly (the register read I named
+is not sent in that set); the test's own check that each place is reached caught it. And a
+run of the mutants was started on a version I then replaced; its output was discarded and
+the run made again on the code as committed.
+
+**Known and left.** The chain driver resets the board between runs through the console
+itself, outside the run script. A failure of the port there ends the driver with a
+traceback. No record is lost by it — no run is in progress, and the chain is assessed from
+what is on disk when it is started again — so it is left as it is and said here.

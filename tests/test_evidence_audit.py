@@ -34,8 +34,10 @@ NEVER_PULLED = {"s1b3_17A6_2026-11-17/halted_at_run51/run51"}
 # polling variable lay and what the polling loop was, 2026-11-15; the words of a record, 2026-11-14) and the stored
 # files were left as they were. Directory: how many of its runs. PASS or FAIL is the same in every one of them.
 OLDER_FORM = {"dx_17A6_2026-11-15": 18, "fifo_rate_17A6_2026-11-14": 19, "s1b0_17A6_2026-11-14": 1, "s1b0b_17A6_2026-11-14": 1, "s1b1_17A6_2026-11-14": 2}
-SAID_LATER = {"params", "polling_variable", "records", "problems"}
-SAID_LATER_OF_A_RECORD = {"poll_variable_at", "words"}
+# What they may lack, and nothing else: every field a stored verdict has must be what the judge writes now.
+# All of it is about the polling loop that the overflow was traced to (plan, sections 15 to 22), but for the words of a
+# record, which the first judge of the address register's value did not list.
+ADDED_SINCE = {"params.polling_loop", "params.diagnostic.polling_loop", "params.extra_stack_words", "polling_variable", "records[].poll_variable_at", "records[].words"}
 # The one run in which today's judge lists a problem the stored verdict does not have: the run that first met the
 # overflow. Its header says the reference frame changed; its records imply a failure of the interface. Failed then, failed now.
 ONE_PROBLEM_MORE = {"fifo_rate_17A6_2026-11-14/s1b1_run03": "the header's status is 0x300; the records imply 0x221"}
@@ -43,6 +45,26 @@ ONE_PROBLEM_MORE = {"fifo_rate_17A6_2026-11-14/s1b1_run03": "the header's status
 
 def name(d: Path) -> str:
     return str(d.relative_to(EVIDENCE))
+
+
+def difference(now, stored, at: str = "") -> tuple[list[str], list[str]]:
+    """Where two verdicts are not the same: (what the stored one has and the judge now writes otherwise or not at all;
+    what the judge now writes and the stored one does not have). Lists of records are gone through record by record."""
+    if isinstance(now, dict) and isinstance(stored, dict):
+        changed = [f"{at}.{k}".lstrip(".") + " (not written now)" for k in stored if k not in now]
+        added = [f"{at}.{k}".lstrip(".") for k in now if k not in stored]
+        for k in stored:
+            if k in now:
+                c, a = difference(now[k], stored[k], f"{at}.{k}".lstrip("."))
+                changed += c; added += a
+        return changed, added
+    if isinstance(now, list) and isinstance(stored, list) and len(now) == len(stored) and all(isinstance(x, dict) for x in now + stored):
+        changed, added = [], []
+        for x, y in zip(now, stored):
+            c, a = difference(x, y, at + "[]")
+            changed += c; added += a
+        return changed, added
+    return ([] if now == stored else [at]), []
 
 
 def audit() -> dict:
@@ -66,12 +88,10 @@ def audit() -> dict:
                 params[s1a_run.P_START] = f"{int(rec['chain']['start'], 16):08x}"
             now = s1a_run.STAGES[stage]["judge"].judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), KNOWN, [int(w, 16) for w in params])
             now = json.loads(json.dumps(now))
-            keys = sorted(k for k in set(now) | set(stored) if now.get(k) != stored.get(k))
-            of_records = sorted({k for a, b in zip(now.get("records") or [], stored.get("records") or []) for k in set(a) | set(b) if a.get(k) != b.get(k)})
+            changed, added = difference(now, stored)
             one.update(result=home / "result.bin", crc_is_the_boards=len(raw) % 4 == 0 and f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}" == rec.get("board_crc32"),
                        verdict_now=now.get("verdict"), verdict_stored=stored.get("verdict"), judge_in_the_record=rec.get("judge"),
-                       differs_in=keys, records_differ_in=of_records, records=(len(now.get("records") or []), len(stored.get("records") or [])),
-                       problems_now=now.get("problems"), problems_stored=stored.get("problems"))
+                       changed=sorted(set(changed)), added=sorted(set(added)), problems_now=now.get("problems"), problems_stored=stored.get("problems"))
         return out
     return row_tests.once("the audit of the stored evidence", make)
 
@@ -109,23 +129,46 @@ class EveryStoredRun(unittest.TestCase):
         self.assertEqual(collections.Counter(v["verdict_now"] for v in a.values() if v["result"] is not None), {"PASS": 140, "FAIL": 44})
 
     def test_the_stored_verdict_is_the_judges_word_as_it_is_now_or_an_older_form_of_it(self) -> None:
+        """An older form lacks fields and has nothing else: whatever a stored verdict says, the judge says now."""
         a = audit()
         older = collections.Counter()
         for k, v in a.items():
-            if v["result"] is None or not v["differs_in"]:
+            if v["result"] is None:
                 continue
-            top = k.split("/")[0]
-            older[top] += 1
-            self.assertIn(top, OLDER_FORM, f"{k}: its stored verdict is not what the judge writes now: {v['differs_in']}")
-            self.assertTrue(set(v["differs_in"]) <= SAID_LATER, (k, v["differs_in"]))
-            self.assertTrue(set(v["records_differ_in"]) <= SAID_LATER_OF_A_RECORD, (k, v["records_differ_in"]))
-            self.assertEqual(v["records"][0], v["records"][1], f"{k}: as many records now as then")
-            if "problems" in v["differs_in"]:
+            if k in ONE_PROBLEM_MORE:                        # the one exception, and only in its list of problems
+                self.assertEqual(v["changed"], ["problems"], k)
                 self.assertEqual([p for p in v["problems_now"] if p not in v["problems_stored"]], [ONE_PROBLEM_MORE[k]], k)
                 self.assertTrue(set(v["problems_stored"]) <= set(v["problems_now"]), f"{k}: nothing that was a problem then is none now")
+            else:
+                self.assertEqual(v["changed"], [], f"{k}: its stored verdict says something the judge does not say now")
+            self.assertTrue(set(v["added"]) <= ADDED_SINCE, (k, sorted(set(v["added"]) - ADDED_SINCE)))
+            if v["changed"] or v["added"]:
+                top = k.split("/")[0]
+                older[top] += 1
+                self.assertIn(top, OLDER_FORM, f"{k}: its stored verdict is not what the judge writes now")
         self.assertEqual(dict(older), OLDER_FORM)
-        self.assertEqual(sum(1 for v in a.values() if v["result"] is not None and not v["differs_in"]), 184 - sum(OLDER_FORM.values()))
+        self.assertEqual(sum(1 for v in a.values() if v["result"] is not None and not v["changed"] and not v["added"]), 184 - sum(OLDER_FORM.values()))
+        self.assertEqual({x for v in a.values() if v["result"] is not None for x in v["added"]}, ADDED_SINCE, "each of the additions listed is one that is met")
 
+    def test_a_change_is_not_taken_for_an_addition(self) -> None:
+        """Review of 7d7b11f: the audit let any difference in a verdict's `params` pass as "said later". The reviewer's
+        case — a field an old stored verdict has, altered — and its kin, on a copy of such a verdict."""
+        d = EVIDENCE / "dx_17A6_2026-11-15" / "dxw0_run03"
+        stored = json.loads((d / "verdict.json").read_text())
+        now = json.loads(json.dumps(stored)); now["params"]["polling_loop"] = "as before"      # what the judge writes now: one field more
+        self.assertEqual(difference(now, stored), ([], ["params.polling_loop"]))
+        edited = json.loads(json.dumps(stored)); edited["params"]["far_lo"] = "0xdeadbeef"
+        self.assertEqual(difference(now, edited), (["params.far_lo"], ["params.polling_loop"]))
+        edited = json.loads(json.dumps(stored)); edited["records"][3]["far"] = "0x00000000"; edited["records"][5]["frame_sha256"] = ["0" * 64]
+        self.assertEqual(sorted(set(difference(now, edited)[0])), ["records[].far", "records[].frame_sha256"])
+        edited = json.loads(json.dumps(stored)); edited["params"]["an_answer"] = 5              # something the judge never wrote
+        self.assertEqual(difference(now, edited)[0], ["params.an_answer (not written now)"])
+        edited = json.loads(json.dumps(stored)); del edited["records"][-1]                      # a record taken away
+        self.assertEqual(difference(now, edited)[0], ["records"])
+        edited = json.loads(json.dumps(stored)); edited["verdict"] = "FAIL"
+        self.assertEqual(difference(now, edited)[0], ["verdict"])
+        more = json.loads(json.dumps(now)); more["records"][0]["anything"] = 1                  # an addition that is not on the list
+        self.assertFalse(set(difference(more, stored)[1]) <= ADDED_SINCE)
 
 if __name__ == "__main__":
     unittest.main()

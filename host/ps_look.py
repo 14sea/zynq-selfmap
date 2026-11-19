@@ -15,7 +15,8 @@ others:
   is sent once: its reply is not examined and it is never repeated.
 
 A dump whose reply is not whole is asked for again, at most MAX_READS times (s1a_run.whole: the rule of section 43).
-If a dump cannot be read whole, or the prompt does not come back, the look stops there and says so.
+If a dump cannot be read whole, or the prompt does not come back, or the serial port itself fails, the look stops
+there and says so: the record is written all the same, with everything that was sent.
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
-from s1a_run import MAX_READS, whole  # noqa: E402
+from s1a_run import MAX_READS, TRANSPORT, whole  # noqa: E402
 
 LOOK = [  # (the dump, the registers its words are — names and addresses from UG585's register reference)
     ("md.l f8007000 6", ["devcfg.CTRL", "devcfg.LOCK", "devcfg.CFG", "devcfg.INT_STS", "devcfg.INT_MASK", "devcfg.STATUS"]),
@@ -54,6 +55,15 @@ def commands() -> list[str]:
 def look(con, pause=time.sleep) -> dict:
     record: dict = {"started": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.gmtime()), "sent": [], "registers": {}, "replies_not_whole": [],
                     "status_before": None, "clear_sent": False, "status_after": [], "stopped": None}
+    try:
+        return steps(con, pause, record)
+    except TRANSPORT as e:                              # the serial line itself failed: nothing more is sent, and what was sent — the
+        # write, if it had been — is in the record (a command is listed before it goes out)
+        record["stopped"] = f"the console failed at `{record['sent'][-1] if record['sent'] else 'the first prompt'}` — {type(e).__name__}: {e}; nothing more was sent"
+        return record
+
+
+def steps(con, pause, record: dict) -> dict:
 
     def read(cmd: str):
         for attempt in range(1, MAX_READS + 1):

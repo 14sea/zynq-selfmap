@@ -120,6 +120,46 @@ class RepliesNotWhole(unittest.TestCase):
 
 
 class ThroughTheCommandLine(unittest.TestCase):
+    def test_a_serial_port_that_fails_stops_the_look_and_the_record_is_kept(self) -> None:
+        """Review of 7d7b11f, the same gap as in the run script: an exception of the port went through `look`, and with
+        it the record — of the write too, had it gone out."""
+        class Fails(Console):
+            def __init__(self, at: str, nth: int = 1, **kw) -> None:
+                super().__init__(**kw); self.at, self.nth, self.failed = at, nth, False
+
+            def cmd(self, line: str, timeout: float = 10):
+                if self.failed or (line == self.at and self.asked.get(line, 0) + 1 == self.nth):
+                    self.failed = True; self.sent.append(line)
+                    raise OSError(5, "Input/output error")
+                return super().cmd(line, timeout)
+        c = Fails(DUMPS[2])                                  # at a dump
+        r = ps_look.look(c, pause=lambda s: None)
+        self.assertEqual((r["sent"], c.sent, r["clear_sent"]), (DUMPS[:3], DUMPS[:3], False))
+        self.assertEqual(r["stopped"], f"the console failed at `{DUMPS[2]}` — OSError: [Errno 5] Input/output error; nothing more was sent")
+        self.assertEqual(len(r["registers"]), 6 + 1, "what was read before it is kept")
+        c = Fails(CLEAR)                                     # at the write: whether it went out is not known, and the record says it was sent
+        r = ps_look.look(c, pause=lambda s: None)
+        self.assertEqual((r["sent"], c.sent, r["clear_sent"], r["status_before"], r["status_after"]), (DUMPS + [STATUS, CLEAR], DUMPS + [STATUS, CLEAR], True, "50033024", []))
+        self.assertIn(f"the console failed at `{CLEAR}`", r["stopped"])
+        c = Fails(STATUS, nth=3)                             # after the write, at the second read
+        r = ps_look.look(c, pause=lambda s: None)
+        self.assertEqual((r["clear_sent"], r["status_after"], c.sent.count(CLEAR), c.sent[-1]), (True, ["50033004"], 1, STATUS))
+        self.assertIn("the console failed", r["stopped"])
+        import termios
+        for error in (termios.error(5, "Input/output error"), subprocess.TimeoutExpired(["x"], 1)):      # the other kinds the line can raise
+            class Other(Console):
+                def cmd(self, line: str, timeout: float = 10, error=error):
+                    self.sent.append(line)
+                    raise error
+            r = ps_look.look(Other(), pause=lambda s: None)
+            self.assertEqual((r["sent"], r["clear_sent"]), (DUMPS[:1], False))
+            self.assertIn(f"the console failed at `{DUMPS[0]}` — {type(error).__name__}", r["stopped"])
+        class Bug(Console):
+            def cmd(self, line: str, timeout: float = 10):
+                raise ZeroDivisionError("a bug")
+        with self.assertRaises(ZeroDivisionError):           # a fault of the program is not a failure of the port
+            ps_look.look(Bug(), pause=lambda s: None)
+
     def test_the_dry_run_prints_the_commands_and_needs_no_board(self) -> None:
         prog = [sys.executable, "-B", str(ROOT / "host" / "ps_look.py")]
         p = subprocess.run(prog + ["--dry-run"], capture_output=True, text=True)

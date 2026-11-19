@@ -518,6 +518,136 @@ class RepliesNotWhole(unittest.TestCase):
         self.assertNotEqual((out / "header.bin").read_bytes(), u.twin_result[:256])
 
 
+class PortFails:
+    """A console whose serial port fails at one command, the way pyserial reports it, and stays failed."""
+
+    def __init__(self, inner: FakeUBoot, at, error: Exception | None = None) -> None:
+        import serial
+        self.inner, self.at, self.failed, self.asked_after = inner, at, False, []
+        self.error = error or serial.SerialException("device reports readiness to read but returned no data (device disconnected or multiple access on port?)")
+
+    def __getattr__(self, name: str):
+        return getattr(self.inner, name)
+
+    def interrupt(self):
+        return self.cmd("\x03") if self.at("\x03", self.inner.commands) else self.inner.interrupt()
+
+    def cmd(self, line: str, timeout: float = 10):
+        if self.failed:
+            self.asked_after.append(line)
+        if self.failed or self.at(line, self.inner.commands):
+            self.failed = True
+            raise self.error
+        return self.inner.cmd(line, timeout)
+
+    def load(self, loady: str, path: str):               # the transfer of a file: `send_file` of the tests calls this
+        if self.failed:
+            self.asked_after.append(loady)
+        if self.failed or self.at("transfer " + loady, self.inner.commands):
+            self.failed = True
+            raise self.error
+        return self.inner.load(loady, path)
+
+
+def run_on(at, error: Exception | None = None):
+    subprocess.run([sys.executable, "-B", "-m", "unittest", "tests.test_prober_image"], cwd=ROOT, check=True, capture_output=True)
+    exp = json.loads(s1a_run.STAGES["s1a"]["expected"].read_text())
+    pl = s1a_run.PL.read_bytes()
+    out = Path(scratch_dirs.mkdtemp(prefix="smout_"))
+    con = PortFails(FakeUBoot(), at, error)
+    rec = s1a_run.execute(con, exp, out, lambda c, cmd, path: c.load(cmd, path), KNOWN, len(pl), f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}", "s0000001.bin", "s1a")
+    return rec, con, out
+
+
+class TheSerialPortFails(unittest.TestCase):
+    """Review of 7d7b11f: an exception of the serial port went straight through `execute`, and the record of the run —
+    every step up to it — was never written. It is a stop like any other: recorded, and nothing sent after it."""
+
+    def went(self, commands: list[str]) -> bool:
+        return any(c.startswith("go ") for c in commands)
+
+    def test_after_the_prober_returned_at_the_read_of_the_result_header(self) -> None:
+        rec, con, out = run_on(lambda line, sent: self.went(sent) and line.startswith("md.l 10000000"))      # the reviewer's case
+        self.assertEqual(rec, json.loads((out / "run.json").read_text()), "the record is written")
+        self.assertEqual(rec["verdict"], "FAIL")
+        self.assertRegex(rec["stop"], r"^the console failed after \d+ step\(s\) — SerialException: device reports readiness to read .*; nothing more was sent$")
+        self.assertEqual(rec["problems"], [rec["stop"]])
+        self.assertEqual(con.asked_after, [], "nothing is sent to a port that failed")
+        self.assertTrue(self.went(con.inner.commands))
+        self.assertEqual((rec["steps"][-1]["cmd"].split()[0], int(re.search(r"after (\d+) step", rec["stop"]).group(1))), ("go", len(rec["steps"])),
+                         "every step before it is in the record, the start of the prober the last")
+        self.assertEqual((rec.get("went"), rec.get("judge"), (out / "result.bin").exists(), (out / "verdict.json").exists()), (True, None, False, False))
+
+    def test_before_the_prober_is_started(self) -> None:
+        rec, con, out = run_on(lambda line, sent: line.startswith("crc32 04000000"))
+        self.assertIn("SerialException", rec["stop"])
+        self.assertEqual((rec["verdict"], self.went(con.inner.commands), con.asked_after, (out / "run.json").exists()), ("FAIL", False, [], True))
+        self.assertNotIn("went", rec)
+        rec, con, out = run_on(lambda line, sent: line == "\x03")                 # at the very first thing sent
+        self.assertRegex(rec["stop"], r"^the console failed after 0 step\(s\) — SerialException")
+        self.assertEqual((rec["steps"], con.inner.commands, (out / "run.json").exists()), ([], [], True))
+
+    def test_in_the_middle_of_the_pull(self) -> None:
+        rec, con, out = run_on(lambda line, sent: self.went(sent) and line.startswith("crc32 10002000"))    # the checksum of the second piece
+        self.assertIn("SerialException", rec["stop"])
+        self.assertEqual((rec["verdict"], con.asked_after, (out / "result.bin").exists(), rec.get("judge")), ("FAIL", [], False, None))
+        self.assertEqual((rec["card_written"], "s0000001.bin" in con.inner.card), (True, True), "the card copy was made before the pull: the result is not lost")
+        self.assertEqual(rec["pull"]["pieces"], 1, "what was pulled up to then is in the record")
+
+    def test_every_way_the_line_can_fail_at_every_place_it_is_used(self) -> None:
+        """Second review of the same: a transfer that does not end in its time raises an exception of `subprocess`, not
+        of the operating system, and went through. And the tty layer under pyserial raises one of its own when a port
+        that vanished is flushed. So: every kind, at every place the script touches the line — the first prompt, a
+        check, both transfers, the start, and each thing done after the prober returned."""
+        import serial, termios
+        kinds = [serial.SerialException("device reports readiness to read but returned no data"), OSError(5, "Input/output error"),
+                 termios.error(5, "Input/output error"), subprocess.TimeoutExpired(["sb", "-k", "prober.bin"], 900)]
+        places = [("the first prompt", lambda line, sent: line == "\x03", False),
+                  ("the load of the design into the PL", lambda line, sent: line.startswith("fpga loadb"), False),
+                  ("the transfer of the design", lambda line, sent: line.startswith("transfer loady 04000000"), False),
+                  ("the checksum of the design", lambda line, sent: line.startswith("crc32 04000000"), False),
+                  ("the transfer of the image", lambda line, sent: line.startswith("transfer loady 02000000"), False),
+                  ("the start", lambda line, sent: line.startswith("go "), False),
+                  ("the result header", lambda line, sent: self.went(sent) and line.startswith("md.l 10000000"), True),
+                  ("the write to the card", lambda line, sent: line.startswith("fatwrite"), True),
+                  ("the pull", lambda line, sent: self.went(sent) and line.startswith("crc32 10002000"), True),
+                  ("the status afterwards", lambda line, sent: self.went(sent) and line.startswith("md.l f800700c"), True),
+                  ("the last command", lambda line, sent: self.went(sent) and line == "version", True)]
+        for place, at, went in places:
+            for kind in kinds:
+                with self.subTest(place=place, kind=type(kind).__name__):
+                    rec, con, out = run_on(at, kind)
+                    self.assertTrue(con.failed, "the place was reached")
+                    self.assertEqual(rec, json.loads((out / "run.json").read_text()), "the record is written")
+                    self.assertRegex(rec["stop"], rf"^the console failed after \d+ step\(s\) — {type(kind).__name__}: .*; nothing more was sent$")
+                    self.assertEqual((rec["verdict"], rec["problems"], con.asked_after), ("FAIL", [rec["stop"]], []))
+                    self.assertEqual((self.went(con.inner.commands), rec.get("went", False)), (went, went))
+                    self.assertEqual(len(rec["steps"]), int(re.search(r"after (\d+) step", rec["stop"]).group(1)))
+
+    def test_the_reviewers_case_a_transfer_that_does_not_end(self) -> None:
+        rec, con, out = run_on(lambda line, sent: line.startswith("transfer loady 02000000"), subprocess.TimeoutExpired(["sb", "-k", "prober.bin"], 900))
+        self.assertRegex(rec["stop"], r"— TimeoutExpired: .* timed out after 900 seconds; nothing more was sent$")
+        self.assertEqual((self.went(con.inner.commands), con.asked_after, (out / "run.json").exists(), rec["verdict"]), (False, [], True, "FAIL"))
+        self.assertTrue(rec["steps"], "the steps up to the transfer are in the record")
+
+    def test_nothing_touches_the_line_but_through_the_one_place(self) -> None:
+        """So that a use of the console added later cannot go round it: in `execute`, every line that names the console
+        or the sending of a file does so inside `link(`."""
+        import inspect
+        body = inspect.getsource(s1a_run.execute).split('"""', 2)[2]
+        uses = [ln.strip() for ln in body.splitlines() if re.search(r"\bcon\b|send_file\(", ln)]
+        self.assertEqual(len(uses), 4, uses)
+        self.assertTrue(all("link(" in ln for ln in uses), uses)
+        self.assertEqual(s1a_run.TRANSPORT, (OSError, __import__("termios").error, subprocess.SubprocessError))
+
+    def test_any_failure_of_the_port_is_one_and_a_fault_of_the_program_is_not(self) -> None:
+        rec, con, out = run_on(lambda line, sent: self.went(sent) and line.startswith("md.l 10000000"), OSError(5, "Input/output error"))
+        self.assertRegex(rec["stop"], r"^the console failed after \d+ step\(s\) — OSError: \[Errno 5\] Input/output error; nothing more was sent$")
+        self.assertEqual((con.asked_after, (out / "run.json").exists()), ([], True))
+        with self.assertRaises(ZeroDivisionError):         # not a failure of the port: it is not to be taken for a run that stopped
+            run_on(lambda line, sent: self.went(sent) and line.startswith("md.l 10000000"), ZeroDivisionError("a bug"))
+
+
 class PlDesign(unittest.TestCase):
     def test_from_the_card_when_it_is_there_and_nothing_is_sent(self) -> None:
         rec, u, _ = run(card_has_pl=True)

@@ -172,6 +172,29 @@ class TheRun(unittest.TestCase):
                 self.assertTrue(all(a == REF or B <= a < B + 64 for a in written), sorted(h(a) for a in written))
                 self.assertEqual((rec.get("stop"), rec["card_verified"], (out / "result.bin").exists()), (None, True, True))
 
+    def test_which_endings_have_the_reference_frame_read_after_the_last_read_in_block_type_2(self) -> None:
+        """Not all of them (plan section 60). A run that is walked to its end reads the reference frame last. One that
+        the walk stops for something that is not a failure of the interface reads it once more and stops. One stopped
+        because the register does not go on, or by a failure of the interface, ends on the read in block type 2: such a
+        result does not show that block type 0 could still be read afterwards."""
+        def after(v) -> list[str]:
+            kinds = [r["kind"] for r in v["records"]]
+            last = max(i for i, k in enumerate(kinds) if k == "target")
+            return kinds[last + 1:]
+        for model in ("it goes on", "a few frames and then above the envelope", "the first address names the one above the envelope"):
+            v = the(model)[1]
+            self.assertEqual((v["verdict"], after(v)), ("PASS", ["final"]), model)
+        for model in ("the register does not move at the first address", "the first address names address 0"):
+            v = the(model)[1]
+            self.assertEqual((v["header"]["status"], after(v), [r["kind"] for r in v["records"]]), ("0x800", [], ["baseline", "target", "target"]), model)
+        for fault, status in (("err@9", "0x221"), ("err@17", "0x221"), ("timeout@11", "0x222"), ("drop@9", "0x223")):
+            v = go("it goes on", fault)[1]
+            self.assertEqual((v["header"]["status"], after(v)), (status, []), fault)
+            self.assertEqual([r["kind"] for r in v["records"]].count("baseline"), 1)
+        for fault, status in (("padnz@8", "0x711"), ("short@12", "0x710"), ("flip@9", "0x712")):
+            v = go("it goes on", fault)[1]
+            self.assertEqual((v["header"]["status"], after(v)), (status, ["health"]), fault)
+
     def test_the_result_is_not_one_of_the_run_into_block_type_1(self) -> None:
         _, _, _, out = the("it goes on")
         raw = (out / "result.bin").read_bytes()

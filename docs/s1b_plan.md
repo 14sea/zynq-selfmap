@@ -3700,17 +3700,25 @@ four minutes; its result committed as stored; `status_seen.py` over it; the layo
    of a frame differ. The walk does not work there as it is. Everything read is in the result;
    what to make of it is a later question.
 4. **The interface fails** (an error bit, a transfer that does not complete, `PCFG_DONE`
-   gone): the prober stops with one reference read, as it is made to. A `reset` — at worst
-   switching the board off and on — and the next run of block type 0 or 1 shows whether
-   anything stayed. The proposal counts that as no damage (section 10); nothing is written
-   to configuration memory at any point.
+   gone): the prober stops at once, at that read, as it is made to — with no further read,
+   the reference frame included. A `reset` — at worst switching the board off and on — and
+   the next run of block type 0 or 1 shows whether anything stayed. The proposal counts that
+   as no damage (section 10); nothing is written to configuration memory at any point.
 5. **A status bit outside the usual shows**, as bit 5 did. The prober does not stop for it;
    `status_seen.py` lists it; it goes into the record and, like everything here, to the owner
    before anything further is run.
 
-In every case the reference frame of block type 0 is read again after the reads in block
-type 2 and held against its known content: that is the run's own check that reading there
-left block type 0 readable as before.
+Whether the run itself shows that block type 0 could still be read after the reads in
+block type 2 depends on how it ends. A run walked to its end (1, 2) reads the reference frame
+last and holds it against its known content. A run the walk stops for something that is not
+a failure of the interface — a pad that is not zero, two readings that differ — reads the
+reference frame once more and then stops. A run stopped because the register does not go on
+(`0x800`, `0x900`), or by a failure of the interface (4), ends on the read in block type 2: its
+result shows nothing about block type 0 afterwards, and the record has to say so.
+
+*(Corrected 2026-11-19 after review, section 60. This paragraph first said the reference
+frame is read again "in every case", and item 4 said the prober stops "with one reference
+read". Neither is what the prober does.)*
 
 ### What this step cannot show
 
@@ -3808,3 +3816,40 @@ rule of the chain was changed, and the image is not new, so the complete set is 
 5. `status_seen.py` over it; `s1b4a_layout.py` over its verdict; each kept beside the run.
 6. The record. Then stop: no second run, no `reset`, nothing sent to the board after the run
    but what the run script itself sends. The owner decides what follows.
+
+## 60. Review of `0605838` (2026-11-19): one finding, accepted — not every ending has a reference read after it
+
+**Finding (P2).** Section 58 said that in every case the reference frame of block type 0 is
+read again after the reads in block type 2, and that on a failure of the interface the
+prober stops "with one reference read". The reviewer ran the twin: a run stopped at the first
+address with `0x800`, and one stopped by an interface error with `0x221`, hold the first
+reference read and none after it. Checked against the source, and so it is
+(`prober/sm_core.c`, `walk_op` and `run_s4`):
+
+| the run ends | reference frame after the last read in block type 2 |
+|---|---|
+| walked to its end, both passes and the reads of three | yes — the last record |
+| stopped by the walk for something that is not a failure of the interface (`0x7..`) | yes — one read, then the stop |
+| stopped because the address named is not above the one read (`0x800`), or at a standstill more than a pass may cross (`0x900`) | no |
+| stopped by a failure of the interface (`0x2..`) | no — nothing is read after it at all |
+
+That is the prober as it was reviewed and as it has run since S1b.1; stopping at once on an
+interface failure is the rule of the proposal ("data taken after a failed health check would
+not be trustworthy"). **Nothing in the prober is wrong and nothing was changed in it.** What
+was wrong is my account of it in the proposal, and the consequence I drew: a result that
+ends early does not by itself show that block type 0 was still readable.
+
+**Changed.** The two passages of section 58, in place and marked as corrected. One test added
+(`tests/test_s1b5a.py`, 18 there, 461 in all) that states the table above on the twin — for
+the endings section 58 names and for the twin's faults — so that the sentence is held by
+something.
+
+**What it means for the run on the board.** Section 59's steps stand. Added to step 6: if
+the run ends early with `0x800` or with an interface failure, the record says in so many
+words that the run does not show block type 0 readable afterwards. Showing it then needs
+another run; the run script begins every run by loading the design again, so even that run
+would show the state after a new load, not the state the reads in block type 2 left. That
+limit is stated, not worked around, and what to do in that case is the owner's decision.
+
+No program of the host was changed either (a test only), so no mutants were run: 553, none
+stale.

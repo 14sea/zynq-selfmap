@@ -107,23 +107,28 @@ once; it is not in the repository — finding F1.)
 
 | | runs |
 |---|---|
-| the stored verdict is exactly what the judge writes now | 142 (128 PASS, 14 FAIL) |
-| the same verdict, the stored file an older form of it | 37 |
-| the first run of all (S1a), its record without the name of a set | 1 — judged again by the suite, PASS |
-| no result stored; the record says why | 5 |
+| the stored verdict is exactly what the judge writes now | 143 |
+| the same verdict, the stored file an older form of it | 41 |
+| no result at all; the record says why | 1 |
+
+*(Corrected 2026-11-19, when the audit was made a test — section 11. The script had passed
+over the first run of all, whose record does not name its set, and over the four results
+recovered from the card, which lie in directories of their own; it gave 142, 37, 1 and 5.
+The test takes them all: 184 results judged, 140 PASS and 44 FAIL.)*
 
 - **In no run does PASS or FAIL differ from what was stored.**
-- The 37 are runs of 2026-11-14 and the diagnostic series of 2026-11-15. The judges were
+- The 41 are runs of 2026-11-14 and the diagnostic series of 2026-11-15. The judges were
   given fields later (where the polling variable lay, the wait in use); the stored verdicts
   are the judges' words of that day and were left as they were. In one of them — the run in
   which the overflow was first met — the judge of today lists one problem more than was
   stored (the header's status against what the records imply). It was a failed run then and
   is one now.
-- The five without a result: three pulls of 2026-11-14 that did not give the board's
-  checksum, one where the serial adapter dropped off the host, and run 51 of the chain over
-  block type 0, set aside when the console lost characters. For two of them the result was
-  recovered from the card afterwards and is kept in a directory of its own. All five are in
-  their `RESULT.md`.
+- Five runs have no result of their own: three pulls of 2026-11-14 that did not give the
+  board's checksum, one where the serial adapter dropped off the host, and run 51 of the
+  chain over block type 0, set aside when the console lost characters. For the first four
+  the result was taken from the card afterwards and is kept in a directory beside the run,
+  with the board's checksum (I first wrote "two": it is four). Run 51 has none. All five
+  are in their `RESULT.md`.
 - Every directory with a board run has a `RESULT.md`.
 
 **What no test holds** (finding F1): the 19 result files of `fifo_rate_17A6_2026-11-14` —
@@ -227,3 +232,29 @@ from review each time was something I had the means to think of and did not list
 
 **For the owner.** Whether S1b is accepted as finished with F1 to F3 done; or what else is
 wanted before it is.
+
+## 11. After the owner's word: F1 to F3 done (2026-11-19)
+
+The owner: as recommended — F1 to F3 now.
+
+- **F1. The audit is a test** (`tests/test_evidence_audit.py`, 5 tests). Every run record
+  under `evidence/` — 185 — with its result judged again from its raw words by the judge of
+  its set: the result is the one whose checksum the board gave; PASS or FAIL is what was
+  stored (140 and 44); the stored verdict is word for word what the judge writes now (143),
+  or an older form of it in fields the judges were given later (41, in five directories,
+  each counted); the one run in which today's judge lists a problem more is named, with the
+  problem; and no result or verdict lies under `evidence/` that the audit does not reach.
+  Tried on a copy of the directory no test had held: one bit of a result changed, and a
+  stored FAIL edited to PASS — each shows.
+- **F2. The proposal says what the walk does** about anomalies: a dated note in its
+  section 6.
+- **F3. The build inputs are under the closed-book test** (`tests/test_s1b2.py`): the
+  directory of the prober holds six files and no other; the Makefile's rules name no source
+  but those, include nothing and fetch nothing; the linker script pulls in no file; the
+  sources include no file of the project's but `sm.h`; and none of the six names the
+  database. Tried: a seventh file in the directory fails it.
+
+532 tests. No program of the host or the prober was changed — these are tests and a note —
+so no mutants were run: 598, none stale.
+
+Left as recommended: F4 waits for the owner's word that S1b is closed; F5 to F8 stand.

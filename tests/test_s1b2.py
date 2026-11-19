@@ -4,6 +4,7 @@ part has, so that nothing passes because a number was known."""
 from __future__ import annotations
 
 import ast
+import re
 import json
 import shutil
 import struct
@@ -567,7 +568,17 @@ class TheRowSummaryAndTheGrader(unittest.TestCase):
     def test_nothing_but_the_graders_names_the_database(self) -> None:
         """The closed-book rule, as far as a test can hold it, for the new files: the chain, the row summary, the
         judge of a run and the run script do not name the database, carry no frame count, and import no grader."""
-        for path in list((ROOT / "host").glob("*.py")) + list((ROOT / "prober").glob("*.[ch]")):
+        # every file the prober is built from, the Makefile and the linker script among them (review of S1b, finding F3):
+        # the directory holds these and no other, and the Makefile's rules name no source but these
+        built_from = {"Makefile", "link.ld", "sm.h", "sm_board.c", "sm_core.c", "twin_hal.c"}
+        self.assertEqual({p.name for p in (ROOT / "prober").iterdir()}, built_from)
+        makefile = (ROOT / "prober" / "Makefile").read_text()
+        self.assertEqual(set(re.findall(r"[\w./-]+\.(?:c|h|ld|S|s|o|a|json|db|ll|bit)\b", makefile)), {"sm_core.c", "twin_hal.c", "sm_board.c", "sm.h", "link.ld"})
+        self.assertNotRegex(makefile, r"(?m)^\s*-?include\b|\$\(shell|wildcard|curl|wget|git ")
+        self.assertNotRegex((ROOT / "prober" / "link.ld").read_text(), r"INCLUDE|INPUT|GROUP")
+        self.assertFalse(re.findall(r'#\s*include\s*"(?!sm\.h")[^"]*"', "".join((ROOT / "prober" / n).read_text() for n in ("sm.h", "sm_board.c", "sm_core.c", "twin_hal.c"))),
+                         "the sources include no file of the project's but sm.h")
+        for path in list((ROOT / "host").glob("*.py")) + list((ROOT / "prober").iterdir()):
             text = path.read_text()
             if path.name in ("grade_s1b1.py", "grade_s1b2.py", "grade_s1b3.py"):
                 continue

@@ -165,6 +165,14 @@ two things happens:
   PCFG_DONE drops, or when the anomaly budget of the run is used up. Data taken after a failed
   health check would not be trustworthy, and continuing could hide the cause.
 
+*2026-11-19 (review of S1b):* this is what the first stages do (S1a, S1b.0, S1b.0b): an
+anomaly is recorded and the run goes on, within a budget. **The walk, from S1b.1 on, is
+narrower**: it takes no anomaly budget and stops at the first anomaly — after one read of the
+reference frame if the interface has not failed, at once if it has; and a run stopped because
+the address register does not go on ends on its last read (`docs/s1b_plan.md`, sections 29,
+39 and 60). Nothing was skipped in any run of a chain; a chain's run either passed whole or
+the chain halted there.
+
 ## 7. Stages
 
 | stage | content | writes configuration memory? | output |

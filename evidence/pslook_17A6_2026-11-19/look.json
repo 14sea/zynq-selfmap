@@ -1,0 +1,43 @@
+{
+ "started": "2026-11-19T05:30:45+0000",
+ "sent": [
+  "md.l f8007000 6",
+  "md.l f8007080 1",
+  "md.l f8000100 3",
+  "md.l f8000120 2",
+  "md.l f8000168 1",
+  "md.l f8f02100 2",
+  "md.l f8006208 8",
+  "md.l f800700c 1"
+ ],
+ "registers": {
+  "devcfg.CTRL": "4e00e07f",
+  "devcfg.LOCK": "0000001a",
+  "devcfg.CFG": "00000508",
+  "devcfg.INT_STS": "a802000b",
+  "devcfg.INT_MASK": "ffffffff",
+  "devcfg.STATUS": "40000a30",
+  "devcfg.MCTRL": "30800100",
+  "slcr.ARM_PLL_CTRL": "00028008",
+  "slcr.DDR_PLL_CTRL": "00020008",
+  "slcr.IO_PLL_CTRL": "00030008",
+  "slcr.ARM_CLK_CTRL": "1f000200",
+  "slcr.DDR_CLK_CTRL": "0c200003",
+  "slcr.PCAP_CLK_CTRL": "00000801",
+  "l2cpl310.reg1_control": "00000000",
+  "l2cpl310.reg1_aux_control": "02060000",
+  "ddrc.axi_priority_wr_port0": "000803ff",
+  "ddrc.axi_priority_wr_port1": "000803ff",
+  "ddrc.axi_priority_wr_port2": "000803ff",
+  "ddrc.axi_priority_wr_port3": "000803ff",
+  "ddrc.axi_priority_rd_port0": "000003ff",
+  "ddrc.axi_priority_rd_port1": "000003ff",
+  "ddrc.axi_priority_rd_port2": "000003ff",
+  "ddrc.axi_priority_rd_port3": "000003ff"
+ },
+ "replies_not_whole": [],
+ "status_before": "a802000b",
+ "clear_sent": false,
+ "status_after": [],
+ "stopped": "the status has not both PCFG_DONE and bit 5 set: nothing was written"
+}

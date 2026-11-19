@@ -12,11 +12,22 @@
    "named_after_the_last": "0x01400400",
    "ended": "the limit of frames was reached",
    "decision": "go on"
+  },
+  {
+   "dir": "run01",
+   "start": "0x01400380",
+   "problems": [],
+   "result_sha256": "49aafd335ce75257fec6af91ea50d1b9e65fe830b3b5f1e5267e4e38d26d670a",
+   "judge": "PASS",
+   "frames": 49,
+   "first": "0x01400380",
+   "last": "0x01401b80",
+   "named_after_the_last": "0x01800000",
+   "ended": "the device named an address outside the envelope",
+   "decision": "complete"
   }
  ],
  "set_aside": [],
- "state": "go on",
- "next_run": 1,
- "next_start": "0x01400380",
- "next_start_from": "the last frame walked by run00 (result sha256 747952c43eee9e2754b83c309ab8bbfbc83021ffb7d00f6babb63baf0ce0552d)"
+ "state": "complete",
+ "named_after_the_last_frame": "0x01800000"
 }

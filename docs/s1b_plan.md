@@ -5,7 +5,7 @@ has listed its own frames. Each step gets its plan reviewed, its host side built
 the owner's go-ahead before it touches the board. This document proposes how to walk, and
 details the first step only.
 
-## Where S1b stands (an index, kept up to date; last changed 2026-11-18, after S1b.4)
+## Where S1b stands (an index, kept up to date; last changed 2026-11-19, after S1b.5a)
 
 The sections below are in the order in which things were proposed, built, reviewed and run,
 and none is rewritten afterwards. This table says where each step is to be found and what it
@@ -25,11 +25,13 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 | — a halt of the host's making | run 51 of that chain | 42–44 | `s1b3_17A6_2026-11-17/halted_at_run51` | The console lost characters while the result header was read. The run script now asks again for a short read-only reply that is not whole; the run was set aside and the chain taken up again |
 | S1b.4a | does the walk work in block type 1? | 46–48 | `s1b4a_17A6_2026-11-18` | PASS. `0x00800000..0x0080003f`, the register as in block type 0, every frame all zero |
 | S1b.4 | all of block type 1 | 49–52 | `s1b4_17A6_2026-11-18` | Complete in 21 runs. 1,280 addresses: the top half and the bottom half, one row each, 5 columns of 128 frames. After the second row the device names `0x01000000`. Graded: nothing differs. Two things seen and not explained (section 52) |
+| — small checks after S1b.4 | the PS registers; does bit 5 clear? | 53–57 | `pslook_17A6_2026-11-19`, `sbit_17A6_2026-11-19` | The level-2 cache is off, the DDR ports have equal priority. Bit 5 clears with one write and stays away |
+| S1b.5a | can block type 2 be read, and does the walk work there? | 58–61 | `s1b5a_17A6_2026-11-19` | PASS. Columns of one frame: 56 in the top half (`0x01000000..0x01001b80`), a standstill, then `0x01400000` and 8 more before the limit. Every frame all zero; bit 5 did not show. Not graded: nothing to grade against |
 
 Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
 far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
-57 what they gave on the board.
+57 what they gave on the board. Sections 58 to 61 are the one run into block type 2.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -37,7 +39,10 @@ loaded, 428 of those frames are not all zero (178 in the top row, 250 in the bot
 Block type 1 has 1,280 frame addresses in two rows of 5 columns of 128 frames; the frames of
 columns 0 and 1 are all zero, those of columns 2 to 4 all hold one and the same content that
 is not zero. After block type 1 the device names `0x01000000`. In all 5,144 addresses, the
-number the proposal gave as the database's; graded, none differs.
+number the proposal gave as the database's; graded, none differs. At `0x01000000` block
+type 2 begins, and it can be read: 56 columns of one frame in the top half, then the bottom
+half, of which 8 columns of one frame have been walked and no end seen; every frame all
+zero. These are beyond the 5,144 and have no second witness.
 
 **What S1b can and cannot stand behind** is said in section 3 and has not changed: which
 addresses the device names, and that reading them is repeatable and does not depend on the
@@ -49,8 +54,9 @@ is delivered in block type 1 is what is stored there.
 
 **Still open in S1b.**
 
-- Block type 2, which the device names at `0x01000000`. One run into it is proposed in
-  section 58; not decided.
+- Block type 2: one run has been made into it (section 61). The bottom half is not walked
+  to its end, and what the device names after it is not known. A chain over it has not
+  been proposed.
 - What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
 - The frame census as one document beside the schema (proposal, section 4): which addresses
@@ -3853,3 +3859,48 @@ limit is stated, not worked around, and what to do in that case is the owner's d
 
 No program of the host was changed either (a test only), so no mutants were run: 553, none
 stale.
+
+## 61. S1b.5a on the board (2026-11-19): PASS — block type 2 can be read, and has columns of one frame
+
+Released by the owner after the review of section 60. The steps of section 59, in their
+order: the devices checked and the host idle; a `reset` and the fresh prompt (status
+`a802000a`); the one run, 15:58–16:02 UTC; its result committed as stored (`4858ffc`);
+`status_seen.py` and `s1b4a_layout.py` over it; the record
+(`evidence/s1b5a_17A6_2026-11-19/RESULT.md`). After the run nothing was sent to the board.
+
+**Outcome 1 of section 58: it passes, 64 frames, both passes alike.** 292 records, no
+anomaly; the checksum on the board is the checksum on the host; 2 of 69 pieces pulled a
+second time; no short reply not whole; status afterwards `50033004`.
+
+- The register behaves at `0x01000000` as everywhere before: the pad alone leaves it on the
+  next address, and that address can be read.
+- The next address is always the next column at minor 0. **Each column of block type 2 has
+  one frame.**
+- **The top half is one row of 56 such columns**, `0x01000000..0x01001b80`. At its last
+  frame the register stands still for one step and then names `0x01400000` — the row end as
+  in block types 0 and 1, and the one standstill a pass may cross.
+- **The bottom half** was walked for 8 columns, `0x01400000..0x01400380`, to the limit of 64
+  frames; `0x01400400` is named. That row was not ended.
+- **Every frame delivered is all zero** (194 in all).
+- **No status bit that is neither an error nor usual** in 1,462 status words: reading these
+  frames does not raise bit 5.
+- **The reference frame** as known at all 14 readings. The run was walked to its end, so the
+  last of them is after the last read in block type 2: the case of section 60's first line.
+  The case section 60 was written for — an early end without that reading — did not arise.
+
+**What it does not say.** It is not a list: one row whole, one begun. All zero cannot tell
+frames that hold zeros from addresses with nothing behind them, and the walk has never read
+an address the device did not name, so there is nothing to hold this against. What block
+type 2 is, is not learnt: UG470 gives the name `CFG_CLB` and no more that I have found, and
+nothing else was consulted. That the 56 one-frame columns stand beside the 56 columns of a
+row of block type 0 is a guess from the count. Nothing was graded, and nothing can be: the
+grader's database has no block type after 1.
+
+**Tests.** One added (`tests/test_board_evidence.py`, 462 in all): the stored result by its
+hash, judged again from its raw words, with the addresses, the standstill, the records, the
+layout and the listing of status bits as said above. No program was changed, so no mutants
+were run: 553, none stale.
+
+**Next.** Nothing until the owner says. By section 58 the next proposal after this outcome
+would be a chain over block type 2 — it would be short: the rest of the bottom row and
+whatever is named after it. It has not been written.

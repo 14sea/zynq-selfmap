@@ -540,6 +540,58 @@ class StoredBoardResults(unittest.TestCase):
         at = lambda r: calendar.timegm(time.strptime(r["started"], "%Y-%m-%dT%H:%M:%S+0000"))     # noqa: E731
         self.assertLess(at(look) - at(rec), 300, "the look began within five minutes of the run's beginning")
 
+    def test_the_run_into_block_type_2(self) -> None:
+        """S1b.5a, 2026-11-19: one run of the walk from `0x01000000`, the address the device named after the last frame
+        of block type 1. Judged again here from its raw words against the set kept with it; the layout and the listing
+        of status bits are what the programs give now. Nothing was graded: there is nothing to grade against."""
+        import s1b2_judge, s1b4a_layout, status_seen
+        d = ROOT / "evidence" / "s1b5a_17A6_2026-11-19"
+        raw = (d / "run" / "result.bin").read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), "817a2ada61f5ee7d560519e9fab0bd20f98333f95fc2a4e00e02c60f09c75343")
+        self.assertEqual(hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest(), "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
+        planned = [int(w, 16) for w in json.loads((d / "expected_s1b5a.json").read_text())["params"]]
+        self.assertEqual((planned[3], planned[4], planned[5], planned[10], planned[12], planned[16]), (0, 0x017FFFFF, 0xB99, 1, 64, 0x01000000))
+        v = s1b2_judge.judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), KNOWN, planned)
+        self.assertEqual(v, json.loads((d / "run" / "verdict.json").read_text()))
+        self.assertEqual((v["verdict"], v["problems"], v["header"]["status"], v["header"]["records"], v["header"]["anomalies"]), ("PASS", [], "0x1", 292, 0))
+        # ---- the addresses: 56 columns of one frame in the top half, a standstill, 8 in the bottom half, the limit
+        top, bottom = [0x01000000 + (c << 7) for c in range(56)], [0x01400000 + (c << 7) for c in range(8)]
+        self.assertEqual([int(s["far"], 16) for s in v["walk"]], top + bottom)
+        self.assertEqual([int(s["next"], 16) for s in v["walk"]], (top + bottom)[1:] + [0x01400400], "each address is the one named after the one before")
+        self.assertEqual(v["passes"], [{"frames": 64, "ended": "the limit of frames was reached", "last_address_named": "0x01400400"}] * 2)
+        self.assertEqual(v["standstills"], [{"at": "0x01001b80", "register_after_the_pad_alone": "0x01001b80", "register_after_the_frame": "0x01400000"}])
+        self.assertEqual((v["frames_without_a_second_path"], v["most_frames_between_reference_reads"]), ([], 16))
+        self.assertTrue(all(not p["interface_failures"] for p in v["polling_variable"].values()))
+        # ---- the records: what was read, and the reference frame as known to the end
+        kinds = [(r["kind"], r["frames"]) for r in v["records"]]
+        self.assertEqual([kinds.count(k) for k in (("target", 0), ("target", 1), ("target", 3))], [128, 128, 22])
+        ref = [r for r in v["records"] if r["kind"] != "target"]
+        self.assertEqual(([r["kind"] for r in ref], {r["far"] for r in ref}, len({r["frame_sha256"][0] for r in ref})),
+                         (["baseline"] + ["health"] * 12 + ["final"], {"0x00000b99"}, 1))
+        self.assertIs(v["records"][-1], ref[-1], "the last record is a reference read, after the last read in block type 2")
+        self.assertEqual(max(int(r["far"], 16) for r in v["records"] if r["kind"] == "target"), 0x01400380, "nothing asked for above the last address walked")
+        self.assertEqual({h for r in v["records"] if r["kind"] == "target" for h in r["frame_sha256"]}, {hashlib.sha256(bytes(404)).hexdigest()}, "every frame all zero")
+        self.assertEqual(sum(len(r["frame_sha256"]) for r in v["records"] if r["kind"] == "target"), 194)
+        rec = json.loads((d / "run" / "run.json").read_text())
+        self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"]), ("PASS", [], [], True, "50033004"))
+        self.assertEqual((rec["board_crc32"], len(rec["pull"]["repeated"]), rec["pull"]["pieces"]), (rec["host_crc32"], 2, 69))
+        # ---- the layout
+        out = s1b4a_layout.layout(v)
+        self.assertEqual(out, json.loads((d / "layout.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "layout.json").read_bytes()).hexdigest(), "64ab6d9d6f334c9791a47dd169b1821ee0354644326251b0056905123d7be7d8")
+        self.assertEqual((out["block_types"], out["frames_per_row"], out["unexpected"], out["end"]["reached"]), ([2], [[2, "top", 0, 56], [2, "bottom", 0, 8]], [], False))
+        self.assertEqual([(r["walked_whole"], r["ended_by"], r["named_after_the_last_frame"], [(c["column"], c["frames"]) for c in r["columns"]]) for r in out["rows"]],
+                         [(True, "the register stood still", "0x01400000", [(c, 1) for c in range(56)]), (False, "not ended", None, [(c, 1) for c in range(8)])])
+        self.assertEqual((out["content"]["frames_not_all_zero"], out["content"]["distinct_contents"]), (0, 1), "every frame all zero: the list rests on the register")
+        # ---- the status: no bit that is neither an error nor usual; bit 5 did not show
+        seen = status_seen.seen(v)
+        self.assertEqual((seen["status_words"], seen["bits"]), (1462, []))
+        self.assertEqual(json.loads((d / "status_seen.json").read_text())["by_run"][0]["bits"], [])
+        self.assertEqual(int(v["header"]["ctrl"], 16) & 0x100, 0, "SEU_EN is clear")
+        self.assertFalse((d / "grade.json").exists(), "nothing to grade against: nothing was graded")
+        # ---- the board was sent nothing but what the run script sends: one console log, the pre-check's, beside the run's
+        self.assertEqual(sorted(p.name for p in d.rglob("console.log")) + sorted(p.name for p in d.glob("*console.log")), ["console.log", "precheck_console.log"])
+
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have

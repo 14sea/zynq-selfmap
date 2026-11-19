@@ -1,0 +1,43 @@
+# python3 tests/mutants.py 'census: '
+unmutated: Ran 527 OK; 0 test(s): 
+KILLED   census: a chain that is not complete is taken                  Ran 527 FAILED (failures=2); 2 test(s): a_chain_that_is_not_complete, through_the_command_line
+KILLED   census: a summary that lists something unexpected is taken     Ran 527 FAILED (failures=1); 1 test(s): a_summary_that_lists_something_unexpected
+KILLED   census: a set no chain is driven with is taken                 Ran 527 FAILED (failures=1, errors=1); 2 test(s): a_chain_that_is_not_complete, through_the_command_line
+KILLED   census: an address walked by two chains is taken twice         Ran 527 FAILED (failures=1); 1 test(s): two_chains_over_the_same_addresses_or_of_di
+KILLED   census: the frames of a read of several are all laid at its first address Ran 527 FAILED (failures=8); 8 test(s): a_reading_that_differs_is_shown_at_the_addr, a_status_bit_that_is_neither_an_error_nor_u
+KILLED   census: a read of several frames is laid across a standstill   Ran 527 FAILED (failures=1); 1 test(s): a_read_of_several_frames_is_not_laid_across
+KILLED   census: a frame read where the walk lists no address is passed over Ran 527 FAILED (failures=1); 1 test(s): a_read_of_several_frames_is_not_laid_across
+KILLED   census: every address is called stable                         Ran 527 FAILED (errors=1); 1 test(s): a_reading_that_differs_is_shown_at_the_addr
+KILLED   census: every frame is called all zero                         Ran 527 FAILED (failures=2); 2 test(s): every_reading_is_counted_and_laid_at_its_ad, the_frame_census
+KILLED   census: a frame at a seam is given the readings of one run only Ran 527 FAILED (failures=2); 2 test(s): every_reading_is_counted_and_laid_at_its_ad, the_frame_census
+KILLED   census: the frame of the list need not be among the readings   Ran 527 FAILED (failures=1); 1 test(s): a_list_whose_frame_no_reading_is
+KILLED   census: chains of different designs are taken together         Ran 527 FAILED (failures=1); 1 test(s): two_chains_over_the_same_addresses_or_of_di
+KILLED   census: a status bit that showed is not listed                 Ran 527 FAILED (failures=2); 2 test(s): a_status_bit_that_is_neither_an_error_nor_u, the_frame_census
+KILLED   census: a run with reads of several frames is taken as seen    Ran 527 FAILED (failures=1); 1 test(s): a_run_with_reads_of_several_frames_is_not_t
+KILLED   census: an address a chain walked is listed as seen            Ran 527 FAILED (failures=1); 1 test(s): an_address_a_chain_walked_is_not_listed_as_
+KILLED   census: an address that was read is listed as named and not read Ran 527 FAILED (failures=5); 5 test(s): a_read_that_did_not_succeed_gives_neither_a, an_address_a_chain_walked_is_not_listed_as_
+KILLED   census: a run that did not pass is used as another occasion    Ran 527 FAILED (failures=2); 2 test(s): the_frame_census, the_same_addresses_on_another_occasion
+KILLED   census: a reading of another occasion that differs is counted as alike Ran 527 FAILED (failures=2); 2 test(s): the_same_addresses_on_another_occasion, through_the_command_line
+KILLED   census: a different reading on another occasion is no problem  Ran 527 FAILED (failures=2); 2 test(s): the_same_addresses_on_another_occasion, through_the_command_line
+KILLED   census: an address not read alike is no problem                Ran 527 FAILED (failures=1); 1 test(s): a_reading_that_differs_is_shown_at_the_addr
+KILLED   census: exit 0 whatever the problems                           Ran 527 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   census: a read with a code counts as a read                    Ran 527 FAILED (failures=2); 2 test(s): a_read_that_did_not_succeed_gives_neither_a, a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: a short read counts as a read                          Ran 527 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: a read with a pad that is not zero counts as a read    Ran 527 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: a read that did not succeed is taken as seen           Ran 527 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_gives_neither_a
+KILLED   census: a read that did not succeed in a chain's run is taken  Ran 527 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: every entry is said to follow the one before           Ran 527 FAILED (failures=2); 2 test(s): a_chain_left_out_leaves_two_stretches_and_t, the_frame_census
+KILLED   census: the kept image is not held against the declaration     Ran 527 FAILED (failures=5); 2 test(s): a_declaration_the_kept_image_does_not_bear_, the_reviewers_case
+KILLED   census: a record with two starts or two loads is taken         Ran 527 FAILED (failures=3); 1 test(s): the_designs_checksum_stands_just_before_its
+KILLED   census: the image's checksum just before the start is not asked for Ran 527 FAILED (failures=1); 1 test(s): a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   census: the image's checksum after the return is not asked for Ran 527 FAILED (failures=2); 2 test(s): a_checksum_on_the_wrong_side_of_the_start_d, a_run_whose_record_shows_another_image_or_d
+KILLED   census: the image's checksums in RAM are not held against the image Ran 527 FAILED (failures=2); 1 test(s): a_run_whose_record_shows_another_image_or_d
+KILLED   census: a checksum of the image anywhere before the start will do Ran 527 FAILED (failures=1); 1 test(s): a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   census: a checksum of the image anywhere stands for the one after the return Ran 527 FAILED (failures=2); 2 test(s): a_checksum_on_the_wrong_side_of_the_start_d, a_run_whose_record_shows_another_image_or_d
+KILLED   census: a run's record without the design's checksum is taken  Ran 527 FAILED (failures=2); 2 test(s): a_run_whose_record_shows_another_image_or_d, the_designs_checksum_stands_just_before_its
+KILLED   census: a checksum of the design anywhere will do              Ran 527 FAILED (failures=1); 1 test(s): the_designs_checksum_stands_just_before_its
+KILLED   census: runs with different designs in RAM are taken           Ran 527 FAILED (failures=1); 1 test(s): a_run_whose_record_shows_another_image_or_d
+KILLED   census: the declared design is not held against the design in RAM Ran 527 FAILED (failures=1); 1 test(s): a_run_whose_record_shows_another_image_or_d
+restored: Ran 527 OK; 0 test(s):  (8 copies)
+38 mutants, 0 survived
+# exit 0

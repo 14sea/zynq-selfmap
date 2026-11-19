@@ -29,14 +29,14 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 | S1b.5a | can block type 2 be read, and does the walk work there? | 58–61 | `s1b5a_17A6_2026-11-19` | PASS. Columns of one frame: 56 in the top half (`0x01000000..0x01001b80`), a standstill, then `0x01400000` and 8 more before the limit. Every frame all zero; bit 5 did not show. Not graded: nothing to grade against |
 | S1b.5 | all of block type 2 | 62–64 | `s1b5_17A6_2026-11-19` | Complete in 2 runs. 112 addresses: the top half and the bottom half, one row each, 56 columns of one frame. After the second row the device names `0x01800000`, not read. Every frame all zero; no status bit raised. Not graded: nothing to grade against |
 | S1b.6a | can a frame be read at `0x01800000`, and does the register go on? | 65–67 | `s1b6a_17A6_2026-11-19` | Yes, and it goes on. Columns of one frame: 5 in the top half, a standstill, 5 in the bottom half, a second standstill, and the register at `0x02000000`. The run was stopped there by the walk (`0x900`: one standstill a pass allowed) and is a failed run: one unfinished pass, each frame read once. All zero |
-| — the census | the frame census as one document | 68 | `census/frame_census_17A6.json` | 5,256 entries from the three complete chains; 16,181 readings, none of an address differing from another; 2,146 of the addresses also walked on other occasions, alike. Block type 3 listed apart as seen, `0x02000000` as named. Not graded |
+| — the census | the frame census as one document | 68, 69 | `census/frame_census_17A6.json` | 5,256 entries from the three complete chains; 16,181 readings, none of an address differing from another; 2,146 of the addresses also walked on other occasions, alike. Block type 3 listed apart as seen, `0x02000000` as named. Not graded |
 
 Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
 far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
 57 what they gave on the board. Sections 58 to 61 are the one run into block type 2;
 sections 62 to 64 are the chain over it. Sections 65 to 67 are one run at the address named
-after it. Section 68 is the census as one document.
+after it. Section 68 is the census as one document, section 69 its two reviews.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -4490,3 +4490,71 @@ By the proposal: nothing but its review. S1 to S3 are to be finished and reviewe
 is decided; S1b has not had a review as a whole. Left open and not proposed: block type 3
 walked to the walk's standard, and what is at `0x02000000` (section 67); the things not
 explained that section 53 lists.
+
+## 69. Two reviews of the census (2026-11-19): four findings, all accepted
+
+The first review was of `f465f17`; the second of my correction of it, before that was
+committed. Each finding was reproduced before it was accepted. None concerns the numbers of
+the stored census: made again after both corrections, its entries and totals are what they
+were. All four are about what the program would have taken without a word.
+
+### First review, of `f465f17`
+
+**1 (P2). A run given as seen had its failed reads taken as observations.** The program took
+a frame and a reading of the address register from every record of such a run. On the twin:
+a frame read short (code `0x10`, words of the buffer left as they were filled beforehand)
+was listed as seen; after a read that ended with an error bit, the `0x00000000` left where
+the register was never read back was listed as an address the device named.
+*Changed:* a record counts only if the read succeeded — no code, no word left over, the pad
+all zero. Otherwise it gives neither a frame nor an address, and it is listed with its code
+(`seen_runs`), not dropped in silence. In a run of a chain such a record is refused.
+
+**2 (P2). Nothing held the chains together.** The entries were sorted and no more. Given the
+chains over block types 0 and 2 without the one over block type 1, the program reported no
+problem, while the README said every entry is named by the one before: `0x00401ba9` names
+`0x00800000`, and the next entry was `0x01000000`.
+*Changed:* the document says where its entries hang together (`stretches`): within a stretch
+each entry is the address named after the one before. The census of the board is one
+stretch; with a chain left out it is two, and nothing is claimed across the gap. I chose to
+mark rather than to refuse: a list with a gap is not wrong, calling it one line is.
+
+**3 (P2). The binding was what the set said of itself.** With the declared hash of the image
+made all zero in a copy — the image kept beside the runs and the results as they were — the
+program took the chain and bound the census to a hash of zeros.
+*Changed:* the binding is taken from the chain's own files. The image kept with the runs is
+held against the declaration (hash, size, checksum); the checksums U-Boot gave, in every
+run's record, of the image and of the design in RAM are held against that image and against
+one another; where the design file is at hand its declared hash is held against the checksum
+the runs had. What does not fit is refused.
+
+### Second review, of that correction
+
+**4 (P2). The checksums of a run's record were taken together.** Two alike were enough,
+wherever they stood. With the one after the run taken away and the one before it there
+twice, the chain was taken — and the document said the image had been checked before and
+after.
+*Changed:* the start of the prober and the load of the design are the marks. A record must
+show one load and, after it, one start; the image's checksum in the step just before the
+start and again after the return; the design's in the step just before its load. A checksum
+on the wrong side of a mark does not stand for one on the other. The reviewer named the
+image; the design had the same gap and was closed with it.
+
+All 85 runs of the three chains satisfy the stricter rule.
+
+### What it comes to
+
+- `host/s1_census.py`, the schema (three keys more: `stretches`, `seen_runs`, the binding's
+  checksums), the stored document (the same entries; those parts added) and the README.
+- Tests: 27 in `tests/test_s1_census.py` (were 17) — each reviewer's case among them, and its
+  mirror images: no checksum before the start and two after, something between the checksum
+  and the start, the design's checksum after its load, two starts, two loads — and the test
+  of the stored census holds the new parts. 527 in all.
+- Mutants: 38 for the program (were 21), all run again on the corrected program — 38 of 38
+  killed (`evidence/host_checks/mutants_2026-11-19_census_review.txt`); 598 in all, none
+  stale. A run of 33 made between the two corrections was of a version that no longer is,
+  and is not kept.
+
+What I take from it: I wrote a program whose refusals I had listed and tested, and left
+three places where it accepted whatever it was given — a failed read, a missing chain, a
+declaration. And in mending the third I made the same kind of gap once more: I checked that
+something was there, not that it was where it had to be.

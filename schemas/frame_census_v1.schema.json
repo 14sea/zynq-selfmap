@@ -11,8 +11,10 @@
   "binding",
   "address_word",
   "totals",
+  "stretches",
   "rows",
   "status_bits",
+  "seen_runs",
   "other_occasions",
   "problems",
   "notes",
@@ -35,20 +37,39 @@
   "binding": {
    "type": "object",
    "required": [
-    "pl_design_sha256",
     "prober_image_sha256",
+    "prober_image_crc32",
+    "pl_design_sha256",
+    "pl_design_bytes",
+    "pl_design_crc32_in_ram",
+    "pl_design_sha256_held_against_the_file",
     "chains"
    ],
    "additionalProperties": false,
-   "description": "what the census was made from: the design that was loaded when the frames were read (an opaque file, by its hash), the prober image, and the chains of runs",
+   "description": "what the census was made from. The image: the file kept with the runs, held against the set's declaration and against the checksum U-Boot gave of it in RAM before and after every run. The design that was loaded when the frames were read (an opaque file): its sha256 as the set declares it, and the checksum U-Boot gave of it in RAM, the same in every run; the two are held against each other only where the file itself is at hand, and the last field says whether it was",
    "properties": {
+    "prober_image_sha256": {
+     "type": "string",
+     "pattern": "^[0-9a-f]{64}$"
+    },
+    "prober_image_crc32": {
+     "type": "string",
+     "pattern": "^[0-9a-f]{8}$"
+    },
     "pl_design_sha256": {
      "type": "string",
      "pattern": "^[0-9a-f]{64}$"
     },
-    "prober_image_sha256": {
+    "pl_design_bytes": {
+     "type": "integer",
+     "minimum": 1
+    },
+    "pl_design_crc32_in_ram": {
      "type": "string",
-     "pattern": "^[0-9a-f]{64}$"
+     "pattern": "^[0-9a-f]{8}$"
+    },
+    "pl_design_sha256_held_against_the_file": {
+     "type": "boolean"
     },
     "chains": {
      "type": "array",
@@ -123,6 +144,7 @@
    "additionalProperties": false,
    "required": [
     "addresses",
+    "stretches",
     "by_block_type",
     "readings",
     "fewest_readings_of_an_address",
@@ -176,6 +198,42 @@
     "named_not_read": {
      "type": "integer",
      "minimum": 0
+    },
+    "stretches": {
+     "type": "integer",
+     "minimum": 0
+    }
+   }
+  },
+  "stretches": {
+   "type": "array",
+   "description": "where the entries hang together: within a stretch every entry is the address the device named after the entry before it. Chains that follow one another make one stretch; more than one means the list has a gap, at which nothing is claimed",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "first",
+     "last",
+     "addresses",
+     "named_after_the_last"
+    ],
+    "properties": {
+     "first": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "last": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "addresses": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "named_after_the_last": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     }
     }
    }
   },
@@ -301,6 +359,55 @@
     }
    }
   },
+  "seen_runs": {
+   "type": "array",
+   "description": "the runs given as seen: how many of their reads were taken, and which were not — a read with a code, a short read or a pad that is not zero gives neither a frame nor an address",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "name",
+     "run",
+     "verdict",
+     "status",
+     "records_used",
+     "records_not_used"
+    ],
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "run": {
+      "type": "string"
+     },
+     "verdict": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "status": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "records_used": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "records_not_used": {
+      "type": "array",
+      "description": "[record, address, code]",
+      "items": {
+       "type": "array",
+       "minItems": 3,
+       "maxItems": 3
+      }
+     }
+    }
+   }
+  },
   "other_occasions": {
    "type": "array",
    "description": "other stored runs that walked addresses of the census, taken from their verdicts as their judges wrote them",
@@ -367,7 +474,7 @@
   "entries": {
    "type": "array",
    "minItems": 1,
-   "description": "the addresses the chains walked, in rising order",
+   "description": "the addresses the chains walked, in rising order; which of them follow one another is said in stretches",
    "items": {
     "type": "object",
     "additionalProperties": false,

@@ -10,13 +10,22 @@ time, here or on another occasion; 2 if the census cannot be made from what it w
          and judged again. Each address the chain walked becomes an entry: the fields of its address word, the address
          named after it, every reading of its frame — in both passes and in the reads of several frames, in every run
          that read it — and whether those readings are all alike. A chain that is not complete, or whose summary over
-         rows lists something unexpected, is refused: the census is made of lists that are whole.
+         rows lists something unexpected, is refused: the census is made of lists that are whole. So is one whose
+         runs do not themselves show the image and the design the set declares: the image kept with the runs is held
+         against the declaration, and the checksums U-Boot gave of the image and of the design in RAM, in every run's
+         record, against the image and against one another.
 --seen   a run that is not part of a chain (PATH: its verdict.json as its judge wrote it, or a directory holding
          one). The addresses it read that no chain walked are listed apart, as seen and not walked, with what the run
-         was. An address the register showed and nothing read is listed as named and not read.
+         was. An address the register showed and nothing read is listed as named and not read. Only a read that
+         succeeded counts for either: a record with a code, a short read or a pad that is not zero gives neither a
+         frame nor an address, and is listed as not used.
 --also   other stored runs that walked addresses of the census on another occasion (PATH as for --seen, or a
          directory of runNN, or one whose directories each hold a verdict). Only runs their judges passed are used. Each is held against the entries: the same
          content or not.
+
+The entries are in rising order, and the document says where they hang together: a stretch is a run of entries each
+of which is the address named after the one before. Chains that follow one another make one stretch; a chain left
+out leaves two, and that is said, not smoothed over.
 
 What an entry stands behind is said in the document itself: that the device named the address and that its frame
 read the same every time. Not what the frame holds. Nothing here is graded and no database is read; the program
@@ -29,6 +38,7 @@ import hashlib
 import json
 import struct
 import sys
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,7 +51,7 @@ import status_seen  # noqa: E402
 from s1b3_top import ALL_ZERO  # noqa: E402
 
 NOTES = [
-    "an entry says that the device named this address after the one before it and that a frame read there came back the same at every reading listed; it does not say what the frame holds",
+    "an entry says that the device named this address — after the entry before it, within a stretch — and that a frame read there came back the same at every reading listed; it does not say what the frame holds",
     "the content is the content with the design named in the binding loaded; where frames are alike (most are all zero) agreement between readings cannot tell one frame from another, and the entry rests on the address register, read after every read",
     "addresses were only ever read where the device pointed: nothing here says what a read at an address the device does not name gives",
     "nothing in this document was graded; grading is kept apart (proposal, section 3)",
@@ -56,6 +66,12 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def good(record: dict) -> bool:
+    """A read that succeeded: no code, no word of the buffer left as it was filled beforehand, the pad all zero. Only
+    such a record's frames are frames and only its reading of the address register is one."""
+    return record.get("code") == "0x0" and record.get("survivors") == 0 and record.get("pad_all_zero") is True
+
+
 def readings(verdict: dict) -> dict[str, list[tuple[int, int, str]]]:
     """Every reading of a frame in one run, by address: (record, position in that read, sha256 of the frame). A read of
     several frames is laid along the walk: its second frame is the frame of the address named after its first."""
@@ -64,6 +80,8 @@ def readings(verdict: dict) -> dict[str, list[tuple[int, int, str]]]:
     for i, r in enumerate(verdict["records"]):
         if r["kind"] != "target":
             continue
+        if not good(r):
+            raise Refused(f"record {i}: a read that did not succeed (code {r['code']}) in a run of a chain")
         at = r["far"]
         for k, digest in enumerate(r["frame_sha256"]):
             if at not in walk:
@@ -74,6 +92,58 @@ def readings(verdict: dict) -> dict[str, list[tuple[int, int, str]]]:
                     raise Refused(f"record {i}: a read of several frames runs on past {at}, where the register stood still")
                 at = walk[at]["next"]
     return out
+
+
+def loaded(root: Path, expected: dict, runs: list[str]) -> dict:
+    """What was loaded when the chain was run, from the chain's own files: the image kept with the runs (the build's, if
+    none was kept) against what the set declares, and in every run's record the checksums U-Boot gave — of the image
+    in RAM in the step just before the prober was started, and again after it returned; of the design in RAM in the
+    step just before it was loaded into the PL. The start and the load are the marks: a checksum on the wrong side of
+    one does not stand for one on the other. Anything that does not fit is refused."""
+    import s1a_run
+    kept = root / "prober.bin"
+    image = (kept if kept.exists() else s1a_run.IMAGE).read_bytes()
+    crc = f"{zlib.crc32(image) & 0xFFFFFFFF:08x}"
+    if (hashlib.sha256(image).hexdigest(), len(image), crc) != (expected.get("image_sha256"), expected.get("image_bytes"), expected.get("image_crc32")):
+        raise Refused(f"{root.name}: the image {'kept with the runs' if kept.exists() else 'of the build'} is not the image the set declares")
+    design = expected.get("pl_design") or {}
+    if not isinstance(design.get("bytes"), int) or not isinstance(design.get("sha256"), str):
+        raise Refused(f"{root.name}: the set declares no design")
+    in_ram: set[str] = set()
+    image_cmd, design_cmd = f"crc32 {s1a_run.IMG_ADDR:08x} {len(image):x}", f"crc32 {s1a_run.PL_ADDR:08x} {design['bytes']:x}"
+    start, load = f"go {s1a_run.IMG_ADDR:08x}", f"fpga loadb 0 {s1a_run.PL_ADDR:08x} {design['bytes']:x}"
+    for run in runs:
+        steps = json.loads((root / run / "run.json").read_text()).get("steps") or []
+        cmds = [s.get("cmd") or "" for s in steps]
+        if cmds.count(start) != 1 or cmds.count(load) != 1 or cmds.index(load) > cmds.index(start):
+            raise Refused(f"{root.name}/{run}: its record does not show one load of the design and, after it, one start of the prober")
+        at_start, at_load = cmds.index(start), cmds.index(load)
+
+        def said(cmd: str, part: list[dict]) -> list[str]:
+            """The checksums in the whole replies to `cmd` among these steps (a reply that is not whole was asked for again)."""
+            return [x for x in (s1a_run.whole(cmd, s.get("reply") or "") for s in part if s.get("cmd") == cmd) if x is not None]
+        # the image: the step just before the start is its checksum, and it is asked for again after the prober returned
+        just_before, after = said(image_cmd, steps[at_start - 1:at_start]), said(image_cmd, steps[at_start + 1:])
+        if not just_before or not after or set(said(image_cmd, steps)) != {crc}:
+            raise Refused(f"{root.name}/{run}: its record does not show the declared image (crc32 {crc}) in RAM just before the prober was started and again after it "
+                          f"returned: before {said(image_cmd, steps[:at_start])}, after {after}")
+        # the design: the step just before its load into the PL is its checksum
+        of_design = said(design_cmd, steps[at_load - 1:at_load])
+        if not of_design or len(set(said(design_cmd, steps))) != 1:
+            raise Refused(f"{root.name}/{run}: its record does not show one checksum of a design of {design['bytes']} bytes in RAM just before it was loaded: "
+                          f"{said(design_cmd, steps)}")
+        in_ram |= set(of_design)
+    if len(in_ram) != 1:
+        raise Refused(f"{root.name}: its runs were not all made with one design in RAM: {sorted(in_ram)}")
+    held = False                                         # the declared sha256 of the design, against the file if the file is here
+    if s1a_run.PL.is_file():
+        file = s1a_run.PL.read_bytes()
+        if hashlib.sha256(file).hexdigest() == design["sha256"]:
+            if (len(file), f"{zlib.crc32(file) & 0xFFFFFFFF:08x}") != (design["bytes"], next(iter(in_ram))):
+                raise Refused(f"{root.name}: the design the set declares is not the design its runs had in RAM")
+            held = True
+    return {"prober_image_sha256": expected["image_sha256"], "prober_image_crc32": crc, "pl_design_sha256": design["sha256"], "pl_design_bytes": design["bytes"],
+            "pl_design_crc32_in_ram": in_ram.pop(), "pl_design_sha256_held_against_the_file": held}
 
 
 def chain_part(stage: str, root: Path, known: dict) -> dict:
@@ -95,7 +165,7 @@ def chain_part(stage: str, root: Path, known: dict) -> dict:
         raw = (root / r["dir"] / "result.bin").read_bytes()
         v = s1b2_judge.judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), known, s1b2_chain.planned(base, int(r["start"], 16)))
         runs.append({"dir": r["dir"], "result_sha256": r["result_sha256"], "verdict": v})
-    return {"set": stage, "directory": root.name, "expected": expected, "assessment": a, "rows": rows, "runs": runs}
+    return {"set": stage, "directory": root.name, "loaded": loaded(root, expected, [r["dir"] for r in a["runs"]]), "assessment": a, "rows": rows, "runs": runs}
 
 
 def stored_verdicts(path: Path) -> list[tuple[str, dict]]:
@@ -111,10 +181,8 @@ def build(parts: list[dict], seen: list[tuple[str, list]] = (), also: list[tuple
     """The census of the chains in `parts` (chain_part), with the runs of `seen` and `also` (name, stored_verdicts)."""
     entries: dict[str, dict] = {}
     chains, rows_out, bits, problems = [], [], [], []
-    designs = {(p["expected"].get("pl_design") or {}).get("sha256") for p in parts}
-    images = {p["expected"].get("image_sha256") for p in parts}
-    if len(designs) != 1 or len(images) != 1 or None in designs | images:
-        raise Refused(f"the chains were not all run with one design and one image: {sorted(map(str, designs))}, {sorted(map(str, images))}")
+    if any(p["loaded"] != parts[0]["loaded"] for p in parts):      # each chain's own runs showed what it was run with (loaded)
+        raise Refused(f"the chains were not all run with one design and one image: {[p['loaded'] for p in parts]}")
     for p in parts:
         a, rows = p["assessment"], p["rows"]
         per_run = {r["dir"]: readings(r["verdict"]) for r in p["runs"]}
@@ -149,16 +217,20 @@ def build(parts: list[dict], seen: list[tuple[str, list]] = (), also: list[tuple
     ordered = sorted(entries.values(), key=lambda e: int(e["far"], 16))
 
     # ---- runs that are not part of a chain: what they read that no chain walked, and what the register showed
-    seen_out, register_showed = [], {}
+    seen_out, seen_runs, register_showed = [], [], {}
     for p in parts:
         register_showed[p["rows"]["end"]["named_after_the_last_frame"]] = f"named after {p['rows']['end']['last_frame']}, the last frame of the chain {p['set']}"
     for name, verdicts in seen:
         for run, v in verdicts:
             what = {"name": name, "run": run, "verdict": v.get("verdict"), "status": (v.get("header") or {}).get("status")}
             got: dict[str, list] = {}
+            used, not_used = 0, []
             for i, r in enumerate(v.get("records") or []):
                 if r["kind"] != "target":
                     continue
+                if not good(r):                              # neither its frame nor its reading of the register is taken
+                    not_used.append([i, r["far"], r.get("code")]); continue
+                used += 1
                 if len(r["frame_sha256"]) > 1:
                     raise Refused(f"{name}: record {i} is a read of several frames; a run listed as seen is taken frame by frame only")
                 for digest in r["frame_sha256"]:
@@ -171,6 +243,7 @@ def build(parts: list[dict], seen: list[tuple[str, list]] = (), also: list[tuple
                 seen_out.append({"far": far, **s1b2_row.fields(int(far, 16)), "state": "seen", "readings": len(reads), "distinct_contents": len(contents),
                                  "all_zero": contents == [ALL_ZERO], "frame_sha256": contents[0] if len(contents) == 1 else contents,
                                  "evidence": {**what, "records": [i for i, _ in reads]}})
+            seen_runs.append({**what, "records_used": used, "records_not_used": not_used})
     read = set(entries) | {e["far"] for e in seen_out}
     named = [{"far": far, **s1b2_row.fields(int(far, 16)), "state": "named", "seen": how}
              for far, how in sorted(register_showed.items(), key=lambda x: int(x[0], 16)) if far not in read]
@@ -196,6 +269,13 @@ def build(parts: list[dict], seen: list[tuple[str, list]] = (), also: list[tuple
         if different:
             problems.append(f"{name}: {len(different)} reading(s) of another occasion differ from the census")
 
+    stretches: list[dict] = []                           # where the entries hang together: each the address named after the one before
+    for e in ordered:
+        if stretches and stretches[-1]["named_after_the_last"] == e["far"]:
+            stretches[-1].update(last=e["far"], addresses=stretches[-1]["addresses"] + 1, named_after_the_last=e["named_next"])
+        else:
+            stretches.append({"first": e["far"], "last": e["far"], "addresses": 1, "named_after_the_last": e["named_next"]})
+
     not_stable = [e["far"] for e in ordered if not e["stable"]]
     if not_stable:
         problems.append(f"{len(not_stable)} address(es) were not read alike every time; the first is {not_stable[0]}")
@@ -204,13 +284,13 @@ def build(parts: list[dict], seen: list[tuple[str, list]] = (), also: list[tuple
         by_type[e["block_type"]] = by_type.get(e["block_type"], 0) + 1
     return {
         "schema": "frame_census", "schema_version": "1.0.0", "label": "closed-book",
-        "binding": {"pl_design_sha256": designs.pop(), "prober_image_sha256": images.pop(), "chains": chains},
+        "binding": {**parts[0]["loaded"], "chains": chains},
         "address_word": "UG470, table 5-24: block type bits 25..23, half bit 22 (0 top, 1 bottom), row bits 21..17, column bits 16..7, minor bits 6..0",
-        "totals": {"addresses": len(ordered), "by_block_type": [[t, by_type[t]] for t in sorted(by_type)], "readings": sum(e["readings"] for e in ordered),
+        "totals": {"addresses": len(ordered), "stretches": len(stretches), "by_block_type": [[t, by_type[t]] for t in sorted(by_type)], "readings": sum(e["readings"] for e in ordered),
                    "fewest_readings_of_an_address": min((e["readings"] for e in ordered), default=0), "not_stable": len(not_stable),
                    "all_zero": sum(1 for e in ordered if e["all_zero"]), "distinct_contents_that_are_not_zero": len({e["frame_sha256"] for e in ordered if e["stable"] and not e["all_zero"]}),
                    "seen_not_walked": len(seen_out), "named_not_read": len(named)},
-        "rows": rows_out, "status_bits": bits, "other_occasions": also_out, "problems": problems, "notes": NOTES,
+        "stretches": stretches, "rows": rows_out, "status_bits": bits, "seen_runs": seen_runs, "other_occasions": also_out, "problems": problems, "notes": NOTES,
         "entries": ordered, "seen_not_walked": seen_out, "named_not_read": named,
     }
 

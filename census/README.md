@@ -24,8 +24,11 @@ the document.
 
 ## What it holds
 
-**5,256 entries**, one for each address the three complete chains walked, in rising order,
-each named by the one before:
+**5,256 entries**, one for each address the three complete chains walked, in rising order.
+They are **one stretch**: from `0x00000000` to `0x01401b80` every entry is the address the
+device named after the one before, and after the last it named `0x01800000`. The document
+says this itself (`stretches`); had a chain been left out, it would list two stretches and
+claim nothing across the gap.
 
 | block type | addresses | rows | columns a row | frames a column |
 |---|---|---|---|---|
@@ -52,10 +55,27 @@ contents those readings had, and the sha256 of the content.
 Beside the entries:
 
 - **Seen, not walked**: the ten addresses of block type 3 that the one run at `0x01800000`
-  read, once each, in a pass the walk stopped (`0x900`). They are not entries.
+  read, once each, in a pass the walk stopped (`0x900`). They are not entries. Only reads
+  that succeeded are taken from such a run — no code, no short read, the pad all zero; here
+  all 20 were, and none is listed as not used (`seen_runs`).
 - **Named, not read**: `0x02000000`, which the address register held when that run stopped.
 - **A status bit**: bit 5 of `devcfg.INT_STS` in 14 of the 21 runs over block type 1, with
   the record at which it first showed in each. Seen, not judged.
+
+## What it is bound to
+
+- **The prober image**: sha256 `fdc4f07f…9452`. The file kept beside each chain's runs is
+  held against what the chain's set declares (hash, size, checksum); and in every one of
+  the 85 run records the checksum U-Boot gave of the image in RAM — in the step just before
+  the prober was started, and again after it returned — against that file.
+- **The design** (`carrier.bit`, an opaque file here): 2,083,863 bytes, sha256
+  `8c3369e8…0b8a` as the sets declare it. U-Boot's checksum of the design in RAM, in the
+  step just before it was loaded into the PL, is the same in all 85 run records (`72887bf4`),
+  and it is the checksum of the file with that sha256 —
+  checked where the file is at hand, as it was when the document was made
+  (`pl_design_sha256_held_against_the_file`).
+
+A chain whose own files do not bear out what its set declares is refused.
 
 ## What it stands behind, and what it does not
 

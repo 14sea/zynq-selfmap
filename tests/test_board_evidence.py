@@ -723,13 +723,25 @@ class StoredBoardResults(unittest.TestCase):
         c = s1_census.build(parts, seen=[("s1b6a", s1_census.stored_verdicts(e / "s1b6a_17A6_2026-11-19"))], also=also)
         stored = ROOT / "census" / "frame_census_17A6.json"
         self.assertEqual(s1_census.dump(c), stored.read_text())
-        self.assertEqual(hashlib.sha256(stored.read_bytes()).hexdigest(), "0329255c4e1a982a38bbb54ff55d216c3590adda116ac2ce77b9f7c9a3c9682b")
+        self.assertEqual(hashlib.sha256(stored.read_bytes()).hexdigest(), "dbc6d4a16f5972fbfb354d983150143a3b83d0396729e96f5e6d64fb0b24a208")
         jsonschema.Draft202012Validator(json.loads((ROOT / "schemas" / "frame_census_v1.schema.json").read_text())).validate(c)
         self.assertEqual((c["label"], c["problems"]), ("closed-book", []))
-        self.assertEqual(c["totals"], {"addresses": 5256, "by_block_type": [[0, 3864], [1, 1280], [2, 112]], "readings": 16181, "fewest_readings_of_an_address": 3,
+        self.assertEqual(c["totals"], {"addresses": 5256, "stretches": 1, "by_block_type": [[0, 3864], [1, 1280], [2, 112]], "readings": 16181, "fewest_readings_of_an_address": 3,
                                        "not_stable": 0, "all_zero": 4060, "distinct_contents_that_are_not_zero": 425, "seen_not_walked": 10, "named_not_read": 1})
         self.assertEqual((c["binding"]["pl_design_sha256"][:8], c["binding"]["prober_image_sha256"][:8], [(x["set"], x["runs"], x["addresses"]) for x in c["binding"]["chains"]]),
                          ("8c3369e8", "fdc4f07f", [("s1b3", 62, 3864), ("s1b4", 21, 1280), ("s1b5", 2, 112)]))
+        # what each chain's own files show was loaded (review of f465f17): the image kept beside the runs, and U-Boot's checksums in all 85 run records
+        self.assertEqual({k: v for k, v in c["binding"].items() if k != "chains"},
+                         {"prober_image_sha256": "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452", "prober_image_crc32": "84f107a1",
+                          "pl_design_sha256": "8c3369e8e4755da5aceeb7844690d5e132b2e65647004c0a46c0e868e34f0b8a", "pl_design_bytes": 2083863,
+                          "pl_design_crc32_in_ram": "72887bf4", "pl_design_sha256_held_against_the_file": True})
+        self.assertTrue(all((e / x["directory"] / "prober.bin").is_file() and (e / x["directory"] / f"expected_{x['set']}.json").is_file() for x in c["binding"]["chains"]),
+                        "each chain has its image and its set kept with its runs")
+        self.assertEqual(c["stretches"], [{"first": "0x00000000", "last": "0x01401b80", "addresses": 5256, "named_after_the_last": "0x01800000"}], "one stretch: no chain left out")
+        self.assertEqual(c["seen_runs"], [{"name": "s1b6a", "run": "s1b6a_17A6_2026-11-19", "verdict": "FAIL", "status": "0x900", "records_used": 20, "records_not_used": []}])
+        two = s1_census.build([parts[0], parts[2]])        # the reviewer's case: the chain over block type 1 left out
+        self.assertEqual([(s["first"], s["last"], s["named_after_the_last"]) for s in two["stretches"]],
+                         [("0x00000000", "0x00401ba9", "0x00800000"), ("0x01000000", "0x01401b80", "0x01800000")])
         # ---- the entries: rising, each chain's list linked by the address named, the next chain beginning where the one before pointed
         fars = [int(x["far"], 16) for x in c["entries"]]
         self.assertEqual(fars, sorted(set(fars)))

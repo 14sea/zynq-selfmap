@@ -1,0 +1,687 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/14sea/zynq-selfmap/schemas/frame_census_v1.schema.json",
+ "title": "frame_census 1.0.0 — which frame addresses the device names, and whether their frames read back the same",
+ "description": "S1 of zynq-selfmap (proposal.md, section 4; docs/s1b_plan.md, section 68). Written by host/s1_census.py from stored runs judged again from their raw words. Modelled on self_map_v2.schema.json, which has no place for it: entries with a state and the records they rest on, and a binding to the runs. It says which addresses the device named and that reading them was repeatable; it says nothing of what a frame holds, and it carries no grading.",
+ "type": "object",
+ "required": [
+  "schema",
+  "schema_version",
+  "label",
+  "binding",
+  "address_word",
+  "totals",
+  "rows",
+  "status_bits",
+  "other_occasions",
+  "problems",
+  "notes",
+  "entries",
+  "seen_not_walked",
+  "named_not_read"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "schema": {
+   "const": "frame_census"
+  },
+  "schema_version": {
+   "const": "1.0.0"
+  },
+  "label": {
+   "const": "closed-book",
+   "description": "rests on observations made on the device only (proposal, section 3)"
+  },
+  "binding": {
+   "type": "object",
+   "required": [
+    "pl_design_sha256",
+    "prober_image_sha256",
+    "chains"
+   ],
+   "additionalProperties": false,
+   "description": "what the census was made from: the design that was loaded when the frames were read (an opaque file, by its hash), the prober image, and the chains of runs",
+   "properties": {
+    "pl_design_sha256": {
+     "type": "string",
+     "pattern": "^[0-9a-f]{64}$"
+    },
+    "prober_image_sha256": {
+     "type": "string",
+     "pattern": "^[0-9a-f]{64}$"
+    },
+    "chains": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "object",
+      "required": [
+       "set",
+       "directory",
+       "state",
+       "runs",
+       "addresses",
+       "first",
+       "last",
+       "named_after_the_last_frame",
+       "known_frames_walked",
+       "results_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "set": {
+        "type": "string"
+       },
+       "directory": {
+        "type": "string"
+       },
+       "state": {
+        "const": "complete"
+       },
+       "runs": {
+        "type": "integer",
+        "minimum": 1
+       },
+       "addresses": {
+        "type": "integer",
+        "minimum": 1
+       },
+       "first": {
+        "type": "string",
+        "pattern": "^0x[0-9a-f]{8}$"
+       },
+       "last": {
+        "type": "string",
+        "pattern": "^0x[0-9a-f]{8}$"
+       },
+       "named_after_the_last_frame": {
+        "type": "string",
+        "pattern": "^0x[0-9a-f]{8}$"
+       },
+       "known_frames_walked": {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "pattern": "^0x[0-9a-f]{8}$"
+        }
+       },
+       "results_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "sha256 of the sha256 of every run's result, as hex text, in the order of the runs"
+       }
+      }
+     }
+    }
+   }
+  },
+  "address_word": {
+   "type": "string"
+  },
+  "totals": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "addresses",
+    "by_block_type",
+    "readings",
+    "fewest_readings_of_an_address",
+    "not_stable",
+    "all_zero",
+    "distinct_contents_that_are_not_zero",
+    "seen_not_walked",
+    "named_not_read"
+   ],
+   "properties": {
+    "addresses": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "by_block_type": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+       "type": "integer",
+       "minimum": 0
+      }
+     }
+    },
+    "readings": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "fewest_readings_of_an_address": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "not_stable": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "all_zero": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "distinct_contents_that_are_not_zero": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "seen_not_walked": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "named_not_read": {
+     "type": "integer",
+     "minimum": 0
+    }
+   }
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "chain",
+     "block_type",
+     "half",
+     "row",
+     "first",
+     "last",
+     "frames",
+     "ended_by",
+     "named_after_the_last_frame",
+     "columns"
+    ],
+    "properties": {
+     "chain": {
+      "type": "string"
+     },
+     "block_type": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 7
+     },
+     "half": {
+      "enum": [
+       "top",
+       "bottom"
+      ]
+     },
+     "row": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 31
+     },
+     "first": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "last": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "frames": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "ended_by": {
+      "enum": [
+       "the register stood still",
+       "the device named an address beyond the envelope"
+      ]
+     },
+     "named_after_the_last_frame": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "columns": {
+      "type": "array",
+      "minItems": 1,
+      "description": "[column, frames] in the order walked",
+      "items": {
+       "type": "array",
+       "minItems": 2,
+       "maxItems": 2,
+       "items": {
+        "type": "integer",
+        "minimum": 0
+       }
+      }
+     }
+    }
+   }
+  },
+  "status_bits": {
+   "type": "array",
+   "description": "bits of the status register that showed in a run of a chain and are neither an error nor usual (host/status_seen.py); seen, not judged",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "bit",
+     "name",
+     "chain",
+     "runs",
+     "first_shown_at"
+    ],
+    "properties": {
+     "bit": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 31
+     },
+     "name": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "chain": {
+      "type": "string"
+     },
+     "runs": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "first_shown_at": {
+      "type": "array",
+      "description": "[run, record, address of that record]",
+      "items": {
+       "type": "array",
+       "minItems": 3,
+       "maxItems": 3
+      }
+     }
+    }
+   }
+  },
+  "other_occasions": {
+   "type": "array",
+   "description": "other stored runs that walked addresses of the census, taken from their verdicts as their judges wrote them",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "name",
+     "runs_used",
+     "runs_not_used",
+     "addresses",
+     "readings_alike",
+     "different"
+    ],
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "runs_used": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "runs_not_used": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "addresses": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "readings_alike": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "different": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "required": [
+        "far",
+        "run",
+        "there",
+        "census"
+       ]
+      }
+     }
+    }
+   }
+  },
+  "problems": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "notes": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "entries": {
+   "type": "array",
+   "minItems": 1,
+   "description": "the addresses the chains walked, in rising order",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "far",
+     "block_type",
+     "half",
+     "row",
+     "column",
+     "minor",
+     "state",
+     "named_next",
+     "readings",
+     "distinct_contents",
+     "stable",
+     "all_zero",
+     "frame_sha256",
+     "evidence"
+    ],
+    "properties": {
+     "far": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "block_type": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 7
+     },
+     "half": {
+      "enum": [
+       "top",
+       "bottom"
+      ]
+     },
+     "row": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 31
+     },
+     "column": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1023
+     },
+     "minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+     },
+     "state": {
+      "const": "walked"
+     },
+     "named_next": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$",
+      "description": "the address the device named after this one"
+     },
+     "stood_still": {
+      "const": true,
+      "description": "after the pad alone the register stood still here; the address named is the one it held after the frame"
+     },
+     "readings": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "distinct_contents": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "stable": {
+      "type": "boolean"
+     },
+     "all_zero": {
+      "type": "boolean"
+     },
+     "frame_sha256": {
+      "oneOf": [
+       {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+       },
+       {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+         "type": "string",
+         "pattern": "^[0-9a-f]{64}$"
+        }
+       }
+      ]
+     },
+     "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "chain",
+       "reads"
+      ],
+      "properties": {
+       "chain": {
+        "type": "string"
+       },
+       "reads": {
+        "type": "array",
+        "minItems": 1,
+        "description": "[run, record, position of the frame in that read]",
+        "items": {
+         "type": "array",
+         "minItems": 3,
+         "maxItems": 3
+        }
+       }
+      }
+     }
+    },
+    "if": {
+     "properties": {
+      "stable": {
+       "const": true
+      }
+     }
+    },
+    "then": {
+     "properties": {
+      "distinct_contents": {
+       "const": 1
+      },
+      "frame_sha256": {
+       "type": "string",
+       "pattern": "^[0-9a-f]{64}$"
+      }
+     }
+    }
+   }
+  },
+  "seen_not_walked": {
+   "type": "array",
+   "description": "addresses read by a run that is not part of a chain and walked by none",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "far",
+     "block_type",
+     "half",
+     "row",
+     "column",
+     "minor",
+     "state",
+     "readings",
+     "distinct_contents",
+     "all_zero",
+     "frame_sha256",
+     "evidence"
+    ],
+    "properties": {
+     "far": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "block_type": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 7
+     },
+     "half": {
+      "enum": [
+       "top",
+       "bottom"
+      ]
+     },
+     "row": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 31
+     },
+     "column": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1023
+     },
+     "minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+     },
+     "state": {
+      "const": "seen"
+     },
+     "readings": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "distinct_contents": {
+      "type": "integer",
+      "minimum": 1
+     },
+     "all_zero": {
+      "type": "boolean"
+     },
+     "frame_sha256": {
+      "oneOf": [
+       {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+       },
+       {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+         "type": "string",
+         "pattern": "^[0-9a-f]{64}$"
+        }
+       }
+      ]
+     },
+     "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "name",
+       "run",
+       "verdict",
+       "status",
+       "records"
+      ],
+      "properties": {
+       "name": {
+        "type": "string"
+       },
+       "run": {
+        "type": "string"
+       },
+       "verdict": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "status": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "records": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+         "type": "integer",
+         "minimum": 0
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "named_not_read": {
+   "type": "array",
+   "description": "addresses the address register showed and nothing read",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "far",
+     "block_type",
+     "half",
+     "row",
+     "column",
+     "minor",
+     "state",
+     "seen"
+    ],
+    "properties": {
+     "far": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{8}$"
+     },
+     "block_type": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 7
+     },
+     "half": {
+      "enum": [
+       "top",
+       "bottom"
+      ]
+     },
+     "row": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 31
+     },
+     "column": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1023
+     },
+     "minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+     },
+     "state": {
+      "const": "named"
+     },
+     "seen": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}

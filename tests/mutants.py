@@ -31,6 +31,7 @@ SEAM = "host/s1b3a_seam.py"
 ROWS3, TOP3, GRADE3 = "host/s1b3_rows.py", "host/s1b3_top.py", "host/grade_s1b3.py"
 LAYOUT4, FIRST4 = "host/s1b4a_layout.py", "host/s1b4_first.py"
 SEEN, LOOK = "host/status_seen.py", "host/ps_look.py"
+CENSUS = "host/s1_census.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -534,6 +535,29 @@ MUTANTS = [
     (RUN, "s1b6a run: judged as a walk of its own, not a run of a chain", '"s1b6a": {"judge": s1b2_judge,', '"s1b6a": {"judge": s1b1_judge,'),
     (RUN, "s1b6a run: the set may be given a start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5", "s1b6a")'),
     (RUN, "s1b6a run: it is given the set of the run into block type 2", 'ROOT / "build" / "prober" / "expected_s1b6a.json"', 'ROOT / "build" / "prober" / "expected_s1b5a.json"'),
+    # ---- 2026-11-19: the frame census as one document (section 68): a host program, run once when written
+    (CENSUS, "census: a chain that is not complete is taken", '    if a["state"] != "complete":', "    if False:"),
+    (CENSUS, "census: a summary that lists something unexpected is taken", '    if rows["unexpected"]:', "    if False:"),
+    (CENSUS, "census: a set no chain is driven with is taken", "    if stage not in s1b2_chain.BOUNDS:", "    if False:"),
+    (CENSUS, "census: an address walked by two chains is taken twice", '            if far in entries:\n                raise Refused(f"{far} is walked', '            if False:\n                raise Refused(f"{far} is walked'),
+    (CENSUS, "census: the frames of a read of several are all laid at its first address", '                at = walk[at]["next"]', "                pass"),
+    (CENSUS, "census: a read of several frames is laid across a standstill", '                if walk[at].get("stood_still"):', "                if False:"),
+    (CENSUS, "census: a frame read where the walk lists no address is passed over",
+     '                raise Refused(f"record {i}: a frame was read at {at}, which the walk of that run does not list")', "                break"),
+    (CENSUS, "census: every address is called stable", "stable=len(contents) == 1,", "stable=True,"),
+    (CENSUS, "census: every frame is called all zero", "all_zero=contents == [ALL_ZERO],", "all_zero=True,"),
+    (CENSUS, "census: a frame at a seam is given the readings of one run only", "for run, by_address in per_run.items() for i, k, digest", 'for run, by_address in [(s["run"], per_run[s["run"]])] for i, k, digest'),
+    (CENSUS, "census: the frame of the list need not be among the readings", '            if s["frame_sha256"] not in contents:', "            if False:"),
+    (CENSUS, "census: chains of different designs are taken together", "    if len(designs) != 1 or len(images) != 1 or None in designs | images:", "    if False:"),
+    (CENSUS, "census: a status bit that showed is not listed", '            for b in status_seen.seen(r["verdict"])["bits"]:', "            for b in []:"),
+    (CENSUS, "census: a run with reads of several frames is taken as seen", '                if len(r["frame_sha256"]) > 1:', "                if False:"),
+    (CENSUS, "census: an address a chain walked is listed as seen", "                if far in entries:\n                    continue", "                if False:\n                    continue"),
+    (CENSUS, "census: an address that was read is listed as named and not read", " if far not in read]", "]"),
+    (CENSUS, "census: a run that did not pass is used as another occasion", '            if v.get("verdict") != "PASS":', "            if False:"),
+    (CENSUS, "census: a reading of another occasion that differs is counted as alike", '                if s["frame_sha256"] == e["frame_sha256"]:', "                if True:"),
+    (CENSUS, "census: a different reading on another occasion is no problem", "        if different:", "        if False:"),
+    (CENSUS, "census: an address not read alike is no problem", "    if not_stable:", "    if False:"),
+    (CENSUS, "census: exit 0 whatever the problems", '    return 1 if census["problems"] else 0', "    return 0"),
     (LAYOUT4, "s1b4a layout: a run that did not pass is laid out without a word", '    if verdict.get("verdict") != "PASS":', "    if False:"),
     (LAYOUT4, "s1b4a layout: a run that ended at the limit is said to have reached the end", ' and bool(passes) and all(p["ended"] == LEFT for p in passes)', " and bool(passes)"),
     (LAYOUT4, "s1b4a layout: one pass beyond the envelope is enough", 'all(p["ended"] == LEFT for p in passes)', 'any(p["ended"] == LEFT for p in passes)'),

@@ -5,7 +5,7 @@ has listed its own frames. Each step gets its plan reviewed, its host side built
 the owner's go-ahead before it touches the board. This document proposes how to walk, and
 details the first step only.
 
-## Where S1b stands (an index, kept up to date; last changed 2026-11-19, after S1b.6a)
+## Where S1b stands (an index, kept up to date; last changed 2026-11-19, after the census)
 
 The sections below are in the order in which things were proposed, built, reviewed and run,
 and none is rewritten afterwards. This table says where each step is to be found and what it
@@ -29,13 +29,14 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 | S1b.5a | can block type 2 be read, and does the walk work there? | 58–61 | `s1b5a_17A6_2026-11-19` | PASS. Columns of one frame: 56 in the top half (`0x01000000..0x01001b80`), a standstill, then `0x01400000` and 8 more before the limit. Every frame all zero; bit 5 did not show. Not graded: nothing to grade against |
 | S1b.5 | all of block type 2 | 62–64 | `s1b5_17A6_2026-11-19` | Complete in 2 runs. 112 addresses: the top half and the bottom half, one row each, 56 columns of one frame. After the second row the device names `0x01800000`, not read. Every frame all zero; no status bit raised. Not graded: nothing to grade against |
 | S1b.6a | can a frame be read at `0x01800000`, and does the register go on? | 65–67 | `s1b6a_17A6_2026-11-19` | Yes, and it goes on. Columns of one frame: 5 in the top half, a standstill, 5 in the bottom half, a second standstill, and the register at `0x02000000`. The run was stopped there by the walk (`0x900`: one standstill a pass allowed) and is a failed run: one unfinished pass, each frame read once. All zero |
+| — the census | the frame census as one document | 68 | `census/frame_census_17A6.json` | 5,256 entries from the three complete chains; 16,181 readings, none of an address differing from another; 2,146 of the addresses also walked on other occasions, alike. Block type 3 listed apart as seen, `0x02000000` as named. Not graded |
 
 Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
 far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
 57 what they gave on the board. Sections 58 to 61 are the one run into block type 2;
 sections 62 to 64 are the chain over it. Sections 65 to 67 are one run at the address named
-after it.
+after it. Section 68 is the census as one document.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -68,9 +69,8 @@ is delivered in block type 1 is what is stored there.
 - What the frames of block type 2 are. All zero says nothing; that needs a write.
 - What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
-- The frame census as one document beside the schema (proposal, section 4): which addresses
-  exist, their block type, whether readback is stable. So far each step has its own summary
-  (`rows.json`, `top.json`, `layout.json`); the one document has not been written.
+- A review of S1b as a whole, before S2 is proposed (the proposal's section 7: S1 to S3 are
+  finished and reviewed before S4 is decided). The census document is written (section 68).
 - Not explained: why the stores to the stack overflowed the FIFO; what the places at the end
   of a row are.
 
@@ -4395,3 +4395,98 @@ mutants were run: 560, none stale.
    it. Reading at `0x02000000` would be a further step with its own set.
 3. **Or stop here** and write the census with block type 3 as "seen in one unfinished pass"
    and `0x02000000` as "named, not read".
+
+## 68. The frame census as one document (2026-11-19; host only)
+
+The owner's decision after section 67: not to go on above block type 3 — the census is of the
+frames a configuration has, block types 0 and 1 are done and graded, and what lies above is
+the register's own, all zero, with nothing here able to say what it is — and to write the
+census document, with block type 3 as seen in one unfinished pass and `0x02000000` as named
+and not read.
+
+### What the proposal asks, and what was made
+
+Section 4 of the proposal: the structure description has no place for "the frame census of
+S1 (which addresses exist, block type, whether readback is stable)"; it is recorded beside it
+"in documents modelled on it", and the copied schema is never extended in place.
+
+- **`schemas/frame_census_v1.schema.json`** (new, written here): modelled on
+  `self_map_v2.schema.json` — entries with a state and the records they rest on, a binding to
+  the runs — and saying of itself what it is not: nothing of what a frame holds, no grading.
+- **`host/s1_census.py`** (new): writes the document from stored runs.
+- **`census/frame_census_17A6.json`**: the document, with `census/README.md` beside it, which
+  gives the command that makes it and says in words what it holds and what it stands behind.
+
+### How the program makes it
+
+- **From complete chains only.** Each chain is assessed again by the chain's own program from
+  the raw words of its runs, with the set kept beside the runs; a chain that is not complete,
+  or whose summary over rows lists something unexpected, is refused. So are two chains over
+  the same address, and chains not all run with one design and one image.
+- **One entry for each address walked**: its fields, the address named after it, whether the
+  register stood still there, and **every reading of its frame** — in both passes and in the
+  reads of several frames, in every run that read it. A read of several frames is laid along
+  the walk (its second frame is the frame of the address named after its first); one that
+  would run across a standstill or beyond the walk is refused, not guessed at. Then: how many
+  readings, how many different contents, `stable` if one.
+- **Runs that are not part of a chain** (`--seen`): what they read that no chain walked is
+  listed apart, with what the run was; an address the register showed and nothing read is
+  listed as named. These come from the run's verdict as its judge wrote it.
+- **Other occasions** (`--also`): other stored runs with a passing walk, each address of
+  theirs that is in the census held against the entry. A difference is listed and is a
+  problem; so is an address not read alike. The document is written all the same, and the
+  exit code says it.
+- **Status bits** that are neither an error nor usual, as `status_seen.py` finds them in the
+  runs of a chain: listed with the record at which each first showed. Seen, not judged.
+- **No grading, no database, no number of any part**: the program knows the layout of the
+  address word and nothing else, and a test holds it to that.
+
+### The census of the board
+
+Made from the chains over block types 0, 1 and 2 (85 runs), the run at `0x01800000`, and all
+eight groups of other stored runs with a passing walk (46 runs) — a test checks that none is
+left out.
+
+- **5,256 entries**: 3,864 of block type 0, 1,280 of block type 1, 112 of block type 2; in
+  rising order, each named by the one before, from `0x00000000` to `0x01401b80`.
+- **16,181 readings; every address at least three**; 167 have four (the last read of several
+  in a stretch reaches back over a frame), and the 82 frames at the seams of the chains six.
+  **No address was read two ways.**
+- **Other occasions**: 2,146 of the addresses were walked again in other runs between
+  2026-11-15 and 2026-11-19, each after a load of its own — 2,498 readings, none differing.
+  That is the nearest thing here to "readback is stable" beyond one run; the other 3,110
+  addresses were walked on one occasion each.
+- 4,060 entries all zero; 1,196 not — 428 in block type 0 (424 different contents), 768 in
+  block type 1 (one content).
+- **Seen, not walked**: ten addresses of block type 3. **Named, not read**: `0x02000000`.
+- **Status**: bit 5 in 14 runs of the chain over block type 1.
+
+What it stands behind and what not is in the document's own notes and in the README: that
+the device named these addresses and that reading them was repeatable; not what a frame
+holds; not that these are all the addresses there are; nothing graded.
+
+### Tests and mutants
+
+- `tests/test_s1_census.py`, 17, on the chains the twin walked for the tests of S1b.4 and
+  S1b.5, where every address has a content of its own, so that a reading laid at the wrong
+  address shows: the entries and their order, the rows and the binding, the count of
+  readings and where each is laid, a reading that differs shown at its address, each of the
+  refusals, a stopped run listed as seen, another occasion alike and differing, a status bit
+  listed, the text form, the command line, and that the program holds no answer.
+- `tests/test_board_evidence.py`, one more: the stored document is what the program gives
+  now from the raw words, it satisfies the schema, and every number the README states is
+  held to it.
+- 517 tests in all. **Mutants**: the program's own, 21, run once as section 41 has it for a
+  program of the host — 21 of 21 killed (`evidence/host_checks/mutants_2026-11-19_census.txt`);
+  581 in all, none stale. Nothing that runs on the board or judges a run was changed.
+
+One thing learnt in writing the tests: a frame can have four readings in a run, not three —
+the last read of several frames in a stretch overlaps the one before it. My first test said
+three; the program was right and the test was not.
+
+### What S1b still lacks
+
+By the proposal: nothing but its review. S1 to S3 are to be finished and reviewed before S4
+is decided; S1b has not had a review as a whole. Left open and not proposed: block type 3
+walked to the walk's standard, and what is at `0x02000000` (section 67); the things not
+explained that section 53 lists.

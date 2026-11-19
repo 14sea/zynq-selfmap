@@ -1,0 +1,26 @@
+# python3 tests/mutants.py 'census: '
+unmutated: Ran 517 OK; 0 test(s): 
+KILLED   census: a chain that is not complete is taken                  Ran 517 FAILED (failures=2); 2 test(s): a_chain_that_is_not_complete, through_the_command_line
+KILLED   census: a summary that lists something unexpected is taken     Ran 517 FAILED (failures=1); 1 test(s): a_summary_that_lists_something_unexpected
+KILLED   census: a set no chain is driven with is taken                 Ran 517 FAILED (failures=1, errors=1); 2 test(s): a_chain_that_is_not_complete, through_the_command_line
+KILLED   census: an address walked by two chains is taken twice         Ran 517 FAILED (failures=1); 1 test(s): two_chains_over_the_same_addresses_or_of_di
+KILLED   census: the frames of a read of several are all laid at its first address Ran 517 FAILED (failures=8); 8 test(s): a_reading_that_differs_is_shown_at_the_addr, a_status_bit_that_is_neither_an_error_nor_u
+KILLED   census: a read of several frames is laid across a standstill   Ran 517 FAILED (failures=1); 1 test(s): a_read_of_several_frames_is_not_laid_across
+KILLED   census: a frame read where the walk lists no address is passed over Ran 517 FAILED (failures=1); 1 test(s): a_read_of_several_frames_is_not_laid_across
+KILLED   census: every address is called stable                         Ran 517 FAILED (errors=1); 1 test(s): a_reading_that_differs_is_shown_at_the_addr
+KILLED   census: every frame is called all zero                         Ran 517 FAILED (failures=2); 2 test(s): every_reading_is_counted_and_laid_at_its_ad, the_frame_census
+KILLED   census: a frame at a seam is given the readings of one run only Ran 517 FAILED (failures=2); 2 test(s): every_reading_is_counted_and_laid_at_its_ad, the_frame_census
+KILLED   census: the frame of the list need not be among the readings   Ran 517 FAILED (failures=1); 1 test(s): a_list_whose_frame_no_reading_is
+KILLED   census: chains of different designs are taken together         Ran 517 FAILED (failures=1); 1 test(s): two_chains_over_the_same_addresses_or_of_di
+KILLED   census: a status bit that showed is not listed                 Ran 517 FAILED (failures=2); 2 test(s): a_status_bit_that_is_neither_an_error_nor_u, the_frame_census
+KILLED   census: a run with reads of several frames is taken as seen    Ran 517 FAILED (failures=1); 1 test(s): a_run_with_reads_of_several_frames_is_not_t
+KILLED   census: an address a chain walked is listed as seen            Ran 517 FAILED (failures=1); 1 test(s): an_address_a_chain_walked_is_not_listed_as_
+KILLED   census: an address that was read is listed as named and not read Ran 517 FAILED (failures=4); 4 test(s): an_address_a_chain_walked_is_not_listed_as_, the_frame_census
+KILLED   census: a run that did not pass is used as another occasion    Ran 517 FAILED (failures=2); 2 test(s): the_frame_census, the_same_addresses_on_another_occasion
+KILLED   census: a reading of another occasion that differs is counted as alike Ran 517 FAILED (failures=2); 2 test(s): the_same_addresses_on_another_occasion, through_the_command_line
+KILLED   census: a different reading on another occasion is no problem  Ran 517 FAILED (failures=2); 2 test(s): the_same_addresses_on_another_occasion, through_the_command_line
+KILLED   census: an address not read alike is no problem                Ran 517 FAILED (failures=1); 1 test(s): a_reading_that_differs_is_shown_at_the_addr
+KILLED   census: exit 0 whatever the problems                           Ran 517 FAILED (failures=1); 1 test(s): through_the_command_line
+restored: Ran 517 OK; 0 test(s):  (8 copies)
+21 mutants, 0 survived
+# exit 0

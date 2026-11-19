@@ -709,6 +709,65 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual(json.loads((d / "status_seen.json").read_text())["by_run"][0]["bits"], [])
         self.assertFalse((d / "grade.json").exists(), "nothing to grade against: nothing was graded")
 
+    def test_the_frame_census(self) -> None:
+        """2026-11-19: the census as one document (census/frame_census_17A6.json), made by host/s1_census.py from the
+        three complete chains, the run at `0x01800000`, and every other stored run with a passing walk. The stored
+        document is what the program gives now, from the raw words of the chains; and what census/README.md says of
+        it is held here. Nothing in it is graded."""
+        import jsonschema, s1_census
+        e = ROOT / "evidence"
+        parts = [s1_census.chain_part(s, e / d, KNOWN) for s, d in (("s1b3", "s1b3_17A6_2026-11-17"), ("s1b4", "s1b4_17A6_2026-11-18"), ("s1b5", "s1b5_17A6_2026-11-19"))]
+        also = [(n, s1_census.stored_verdicts(e / d)) for n, d in (("s1b1r", "s1b1r_17A6_2026-11-15"), ("dx", "dx_17A6_2026-11-15"), ("quiet", "quiet_17A6_2026-11-15"),
+                                                                 ("s1b2", "s1b2_17A6_2026-11-15"), ("s1b3a", "s1b3a_17A6_2026-11-17"), ("s1b4a", "s1b4a_17A6_2026-11-18"),
+                                                                 ("sbit", "sbit_17A6_2026-11-19"), ("s1b5a", "s1b5a_17A6_2026-11-19"))]
+        c = s1_census.build(parts, seen=[("s1b6a", s1_census.stored_verdicts(e / "s1b6a_17A6_2026-11-19"))], also=also)
+        stored = ROOT / "census" / "frame_census_17A6.json"
+        self.assertEqual(s1_census.dump(c), stored.read_text())
+        self.assertEqual(hashlib.sha256(stored.read_bytes()).hexdigest(), "0329255c4e1a982a38bbb54ff55d216c3590adda116ac2ce77b9f7c9a3c9682b")
+        jsonschema.Draft202012Validator(json.loads((ROOT / "schemas" / "frame_census_v1.schema.json").read_text())).validate(c)
+        self.assertEqual((c["label"], c["problems"]), ("closed-book", []))
+        self.assertEqual(c["totals"], {"addresses": 5256, "by_block_type": [[0, 3864], [1, 1280], [2, 112]], "readings": 16181, "fewest_readings_of_an_address": 3,
+                                       "not_stable": 0, "all_zero": 4060, "distinct_contents_that_are_not_zero": 425, "seen_not_walked": 10, "named_not_read": 1})
+        self.assertEqual((c["binding"]["pl_design_sha256"][:8], c["binding"]["prober_image_sha256"][:8], [(x["set"], x["runs"], x["addresses"]) for x in c["binding"]["chains"]]),
+                         ("8c3369e8", "fdc4f07f", [("s1b3", 62, 3864), ("s1b4", 21, 1280), ("s1b5", 2, 112)]))
+        # ---- the entries: rising, each chain's list linked by the address named, the next chain beginning where the one before pointed
+        fars = [int(x["far"], 16) for x in c["entries"]]
+        self.assertEqual(fars, sorted(set(fars)))
+        self.assertTrue(all(a["named_next"] == b["far"] for a, b in zip(c["entries"], c["entries"][1:])), "5,256 addresses in one line, each named by the one before")
+        self.assertEqual(c["entries"][-1]["named_next"], c["seen_not_walked"][0]["far"])
+        self.assertEqual([sum(1 for x in c["entries"] if x["readings"] == n) for n in (3, 4, 6)], [5007, 167, 82])
+        self.assertEqual(sum(len(x["runs"]) for x in parts) - len(parts), 82, "the frames with six readings are the seams of the chains")
+        self.assertEqual([len({x["frame_sha256"] for x in c["entries"] if x["block_type"] == t and not x["all_zero"]}) for t in (0, 1, 2)], [424, 1, 0])
+        self.assertEqual([x["far"] for x in c["entries"] if x.get("stood_still")], [r["last"] for r in c["rows"]])
+        self.assertEqual([(r["block_type"], r["half"], r["row"], r["frames"], len(r["columns"])) for r in c["rows"]],
+                         [(0, "top", 0, 1932, 56), (0, "bottom", 0, 1932, 56), (1, "top", 0, 640, 5), (1, "bottom", 0, 640, 5), (2, "top", 0, 56, 56), (2, "bottom", 0, 56, 56)])
+        zero = {t: sum(1 for x in c["entries"] if x["block_type"] == t and x["all_zero"]) for t in (0, 1, 2)}
+        self.assertEqual(zero, {0: 3864 - 428, 1: 512, 2: 112})
+        # ---- seen and not walked, named and not read
+        self.assertEqual([x["far"] for x in c["seen_not_walked"]], [f"{half | col << 7:#010x}" for half in (0x01800000, 0x01C00000) for col in range(5)])
+        self.assertEqual({(x["state"], x["readings"], x["all_zero"], x["evidence"]["verdict"], x["evidence"]["status"]) for x in c["seen_not_walked"]}, {("seen", 1, True, "FAIL", "0x900")})
+        self.assertEqual([(x["far"], x["block_type"], x["state"]) for x in c["named_not_read"]], [("0x02000000", 4, "named")])
+        # ---- the status bit of block type 1, as the chain's test has it
+        (bit,) = c["status_bits"]
+        self.assertEqual((bit["bit"], bit["chain"], bit["runs"]), (5, "s1b4", [f"run{k:02d}" for k in (4, 5, 6, 7, 8, 9, 10, 14, 15, 16, 17, 18, 19, 20)]))
+        self.assertEqual(bit["first_shown_at"][0], ["run04", 10, "0x00800100"])
+        # ---- other occasions: every stored run with a passing walk outside the three chains, and nothing in them differs
+        outside = set()
+        for f in e.rglob("verdict.json"):
+            v = json.loads(f.read_text())
+            if v.get("verdict") == "PASS" and v.get("walk") and not any(f.is_relative_to(e / x["directory"]) for x in c["binding"]["chains"]):
+                outside.add(f.relative_to(e).parts[0])
+        self.assertEqual(outside, {"s1b1r_17A6_2026-11-15", "dx_17A6_2026-11-15", "quiet_17A6_2026-11-15", "s1b2_17A6_2026-11-15", "s1b3a_17A6_2026-11-17",
+                                   "s1b4a_17A6_2026-11-18", "sbit_17A6_2026-11-19", "s1b5a_17A6_2026-11-19"}, "none left out, none more")
+        self.assertEqual([(o["name"], o["runs_used"], o["addresses"], o["readings_alike"], o["different"]) for o in c["other_occasions"]],
+                         [("s1b1r", 1, 36, 36, []), ("dx", 5, 26, 130, []), ("quiet", 6, 26, 156, []), ("s1b2", 30, 1891, 1920, []), ("s1b3a", 1, 64, 64, []),
+                          ("s1b4a", 1, 64, 64, []), ("sbit", 1, 64, 64, []), ("s1b5a", 1, 64, 64, [])])
+        self.assertEqual((sum(o["runs_used"] for o in c["other_occasions"]), sum(o["readings_alike"] for o in c["other_occasions"])), (46, 2498))
+        again = set()
+        for _, verdicts in also:
+            again |= {s["far"] for _, v in verdicts if v.get("verdict") == "PASS" for s in v.get("walk") or []}
+        self.assertEqual(len(again & {x["far"] for x in c["entries"]}), 2146, "addresses of the census walked on more than one occasion")
+
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have

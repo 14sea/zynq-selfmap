@@ -10,7 +10,8 @@ nothing differs from prjxray-db. Block type 2 is complete too: 112 frame address
 frame all zero; not graded, there being nothing to grade against. After it the device names
 `0x01800000` (block type 3): one unfinished pass there read ten addresses, all zero, and left the
 register at `0x02000000`, which was not read. S2 to
-S6 have not been begun, and nothing has written configuration memory. The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
+S6 have not been begun, and nothing has written configuration memory. The frame census is
+written as one document (`census/`); S1b awaits its review as a whole. The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 
 ## 1. In one sentence
 
@@ -89,6 +90,10 @@ Two things it has no place for are recorded beside it, in documents modelled on 
 only when their stage is reached: the frame census of S1 (which addresses exist, block type,
 whether readback is stable) and flip-flop state (S3). The copied schema is never extended in
 place.
+
+*2026-11-19:* the frame census is written: `census/frame_census_17A6.json`, following
+`schemas/frame_census_v1.schema.json`, made by `host/s1_census.py` from the stored runs
+(`census/README.md`; `docs/s1b_plan.md`, section 68).
 
 ## 5. The prober
 

@@ -68,9 +68,11 @@ class TheBitsListed(unittest.TestCase):
 
 
 class OverTheStoredRuns(unittest.TestCase):
-    def test_before_s1b4_no_stored_run_has_such_a_bit(self) -> None:
-        files = sorted(p for p in (ROOT / "evidence").rglob("verdict.json") if "s1b4_17A6_2026-11-18" not in p.parts)
-        self.assertEqual(len(files), 158)
+    READ_COLUMNS_2_TO_4 = ("s1b4_17A6_2026-11-18", "sbit_17A6_2026-11-19")      # the directories whose runs read such frames of block type 1
+
+    def test_no_other_stored_run_has_such_a_bit(self) -> None:
+        files = sorted(p for p in (ROOT / "evidence").rglob("verdict.json") if not set(self.READ_COLUMNS_2_TO_4) & set(p.parts))
+        self.assertGreaterEqual(len(files), 158, "the 158 verdicts stored before S1b.4, and whatever was stored since elsewhere")
         self.assertEqual([str(f) for f in files if status_seen.seen(json.loads(f.read_text()))["bits"]], [])
 
     def test_the_chain_over_block_type_1(self) -> None:

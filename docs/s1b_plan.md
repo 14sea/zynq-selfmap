@@ -28,8 +28,8 @@ gave. Evidence is under `evidence/`; every directory with a board run has a `RES
 
 Section 3 is the outline as it was first drawn, section 4 the owner's first decisions,
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
-far; sections 54 and 55 are the small checks proposed and built after it, section 56 what
-the first of them gave on the board.
+far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
+57 what they gave on the board.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -3605,3 +3605,39 @@ not released: one run with the set `s1b4` started where run 5 of the stored chai
 (`s1a_run.py --stage s1b4 --start 0080013b`), which can be held against that stored run
 record for record; `status_seen.py` over it; then `ps_look.py` straight after, with no
 `reset` between. About five minutes on the board, the image and every program as they are.
+
+## 57. Bit 5 cleared after a run (2026-11-19): it can be cleared and stays away
+
+Released by the owner: the three steps of section 56. The record is
+`evidence/sbit_17A6_2026-11-19/RESULT.md`.
+
+- After a `reset`, one run of the set `s1b4` from `0x0080013b`: PASS, and run 5 of the stored
+  chain over again — every record the same but for the number of polls (`feb4f39`).
+- `status_seen.py`: bit 5 from record 2, the first read of a frame, to the end.
+- `ps_look.py` straight after, no `reset` between (`6e3cf5f`): status `50033024`; the one
+  write; `50033004` three times, a second apart.
+
+**So the bit is a recorded event, not a signal the PL keeps raised**: it clears as UG585 says
+and does not return while the design sits loaded and nothing is read. That is the outcome
+that fits the guess of section 53, item 2; it is not proof of it. Whether every read of such
+a frame raises it is still not known, and is left to a prober that clears the bit between
+reads, if one is wanted, or to what S2 shows.
+
+The second look also showed the registers of section 56 unchanged with the PL configured
+and after a run: the level-2 cache off, the DDR ports ranked alike, the same clocks.
+
+Two tests changed or added (`tests/test_board_evidence.py`: the run judged again and held
+against run 5, the listing, the look; `tests/test_status_seen.py`: see below). 443 in all. No
+program was changed, so no mutants were run.
+
+**A slip in the order of things, recorded in the result file as well.** The two commits
+above were made while one test was failing: `test_status_seen` counted every stored verdict
+outside S1b.4's directory, and the new run made one more. The suite had been run, but its
+result was passed through `tail` before the commit and did not stop it. The commits hold
+only what the board gave and were left as they are; the test now names the directories whose
+runs read frames of columns 2 to 4. From here on the suite's exit code is what a commit
+waits for, not a line of its output.
+
+**What is left of the small checks:** nothing. What remains open is listed in section 53 and
+goes to S2 or to a later decision: block type 2; which reads raise the bit; the stack offsets
+8 and 16; the census document.

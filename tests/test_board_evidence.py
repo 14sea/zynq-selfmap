@@ -504,6 +504,42 @@ class StoredBoardResults(unittest.TestCase):
         self.assertEqual((r["devcfg.CFG"] >> 10 & 3, r["devcfg.CFG"] >> 8 & 3, r["devcfg.CTRL"] >> 8 & 1, r["devcfg.INT_STS"] & 0x24), (1, 1, 0, 0))
         self.assertEqual((r["devcfg.CTRL"], r["devcfg.MCTRL"]), (0x4E00E07F, 0x30800100), "as in the result headers of S1b.4")
 
+    def test_bit_5_of_the_status_cleared_after_a_run(self) -> None:
+        """2026-11-19: one run of the set s1b4 from `0x0080013b`, where run 5 of the stored chain began; then, with no
+        reset between, ps_look.py: the status with bit 5, the one write, three reads without it."""
+        import ps_look, s1a_run, s1b2_judge, status_seen
+        d = ROOT / "evidence" / "sbit_17A6_2026-11-19"
+        chain = ROOT / "evidence" / "s1b4_17A6_2026-11-18"
+        raw = (d / "run" / "result.bin").read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), "1c4f715e24ff8b9b0a4268445a77616c30c2498ce174550588c312e724174a25")
+        exp = s1a_run.with_start("s1b4", json.loads((chain / "expected_s1b4.json").read_text()), 0x0080013B, "the first frame of run05")
+        v = s1b2_judge.judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), KNOWN, [int(w, 16) for w in exp["params"]])
+        self.assertEqual(v, json.loads((d / "run" / "verdict.json").read_text()))
+        self.assertEqual((v["verdict"], v["problems"], v["header"]["records"], v["header"]["anomalies"]), ("PASS", [], 292, 0))
+        # ---- the same run as run 5 of the chain: every record, but for how many times a transfer was polled
+        was = json.loads((chain / "run05" / "verdict.json").read_text())
+        self.assertEqual({k for k in v if v[k] != was[k]}, {"records"})
+        self.assertEqual({k for a, b in zip(v["records"], was["records"]) for k in a if a[k] != b[k]}, {"polls"})
+        rec = json.loads((d / "run" / "run.json").read_text())
+        self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"]), ("PASS", [], [], True, "50033024"))
+        # ---- the bit, as the listing has it: from the first read of a frame, to the end
+        seen = status_seen.seen(v)
+        self.assertEqual(json.loads((d / "status_seen.json").read_text())["by_run"][0]["bits"], seen["bits"])
+        (b,) = seen["bits"]
+        self.assertEqual((b["bit"], b["first"]["record"], b["first"]["far"], b["first"]["frames"], b["stayed_once_it_showed"], b["in_the_last_word"]),
+                         (5, 2, "0x0080013b", 1, True, True))
+        # ---- the look straight after it
+        look = json.loads((d / "look" / "look.json").read_text())
+        self.assertEqual((look["sent"], look["stopped"], look["replies_not_whole"]), (ps_look.commands(), None, []))
+        self.assertEqual((look["status_before"], look["clear_sent"], look["status_after"]), ("50033024", True, ["50033004"] * 3))
+        log = (d / "look" / "console.log").read_bytes()
+        self.assertEqual((log.count(b"<<TX"), log.count(b"<<TX b'mw.l f800700c 00000020\\r'>>"), log.count(b"<<TX b'mw")), (13, 1, 1), "one write, the one meant")
+        before = json.loads((ROOT / "evidence" / "pslook_17A6_2026-11-19" / "look.json").read_text())["registers"]
+        self.assertEqual({k for k in before if before[k] != look["registers"][k]}, {"devcfg.INT_STS", "devcfg.STATUS"}, "the PL is configured now; nothing else differs")
+        import calendar, time
+        at = lambda r: calendar.timegm(time.strptime(r["started"], "%Y-%m-%dT%H:%M:%S+0000"))     # noqa: E731
+        self.assertLess(at(look) - at(rec), 300, "the look began within five minutes of the run's beginning")
+
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have

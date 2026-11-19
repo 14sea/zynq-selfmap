@@ -69,8 +69,10 @@ is delivered in block type 1 is what is stored there.
 - What the frames of block type 2 are. All zero says nothing; that needs a write.
 - What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
-- A review of S1b as a whole, before S2 is proposed (the proposal's section 7: S1 to S3 are
-  finished and reviewed before S4 is decided). The census document is written (section 68).
+- The review of S1b as a whole (the proposal's section 7: S1 to S3 are finished and
+  reviewed before S4 is decided) is written and before the owner: `docs/s1b_review.md`,
+  with eight findings and what is recommended for each. The census document is written
+  (section 68).
 - Not explained: why the stores to the stack overflowed the FIFO; what the places at the end
   of a row are.
 

@@ -522,6 +522,9 @@ MUTANTS = [
     # ---- 2026-11-18: S1b.4a, one run into block type 1 (section 46): a parameter set, and the program that lays the run out
     (RUN, "s1b4a run: judged as a walk of its own, not a run of a chain", '"s1b4a": {"judge": s1b2_judge,', '"s1b4a": {"judge": s1b1_judge,'),
     (RUN, "s1b4a run: the set may be given a start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b4a")'),
+    (RUN, "s1b5a run: judged as a walk of its own, not a run of a chain", '"s1b5a": {"judge": s1b2_judge,', '"s1b5a": {"judge": s1b1_judge,'),
+    (RUN, "s1b5a run: the set may be given a start", 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4")', 'STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5a")'),
+    (RUN, "s1b5a run: it is given the set of the run into block type 1", 'ROOT / "build" / "prober" / "expected_s1b5a.json"', 'ROOT / "build" / "prober" / "expected_s1b4a.json"'),
     (LAYOUT4, "s1b4a layout: a run that did not pass is laid out without a word", '    if verdict.get("verdict") != "PASS":', "    if False:"),
     (LAYOUT4, "s1b4a layout: a run that ended at the limit is said to have reached the end", ' and bool(passes) and all(p["ended"] == LEFT for p in passes)', " and bool(passes)"),
     (LAYOUT4, "s1b4a layout: one pass beyond the envelope is enough", 'all(p["ended"] == LEFT for p in passes)', 'any(p["ended"] == LEFT for p in passes)'),

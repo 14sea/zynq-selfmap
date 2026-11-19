@@ -3747,3 +3747,64 @@ does not: a look at what the result holds, and a decision whether block type 2 i
    possible here, the closed-book rule has no "afterwards" for this block type. I propose to
    keep to the two documents before and after the run, and to look nowhere else for what
    type 010 is unless the owner says so.
+
+## 59. S1b.5a as built (2026-11-19; host side, nothing on a board yet)
+
+The owner accepted all four points of section 58 as proposed: the one run into block type 2
+now; the set as described; one run and then stop; and for what block type 2 is, UG470 and
+UG585 only, before the run and after it.
+
+**The set `s1b5a`.** `s1b4a` with two words changed, as proposed: word 4, the envelope's
+upper end, `0x017fffff`; word 16, the start, `0x01000000`. The run script has the entry
+(`host/s1a_run.py`, judged by the judge of a run of a chain, as `s1b4a` is); the expected
+values are written with the others (`tests/test_prober_image.py`,
+`build/prober/expected_s1b5a.json`). The start is fixed: `--start` is refused for it. The dry
+run differs from that of `s1b4a` in exactly the two words written for those parameters.
+
+**Nothing else was changed.** The image is the one that has been on the board
+(`fdc4f07f…9452`). No line of the prober, of a judge, of the chain, of `s1b4a_layout.py` or
+of `status_seen.py` was touched: the two programs that are run over the result take a walk
+in block type 2 as they are, and a test says so.
+
+**Tests** (`tests/test_s1b5a.py`, 17; 460 in all). The twin is given made-up layouts above
+`0x01000000`, one for each outcome section 58 names beforehand:
+
+- frames that go on: 64 walked, both passes at the limit;
+- three frames and then an address above the envelope, with and without a standstill: a
+  pass with three frames, the address named and not read;
+- the first address names the one above the envelope: a pass with one frame;
+- the register does not move at the first address: stopped there (`0x800`), one frame, the
+  result stored whole;
+- an address of block type 1, or address 0, is named: not followed, stopped (`0x800`) — the
+  envelope begins at 0 for the reference frame's sake, and the walk is given nothing below
+  its start all the same;
+- the faults of the twin (a pad that is not zero, a short read, a frame that changes, an
+  error bit, a transfer that does not end, `PCFG_DONE` gone, a register that jumps): each
+  stops the run where it should, and the result is stored;
+- in every one of them no address is written but the reference frame and what the device
+  named, and nothing above `0x017fffff`.
+
+Also: the set word for word against `s1b4a`'s; its start against the address the stored
+chain over block type 1 ended with; that the result is not accepted as one of `s1b4a`; the
+layout of such runs (block type 2 in its fields, an end that names block type 3, a run that
+stopped called that); the listing of status bits over such a run, and over the same run with
+a bit put in from the first read of a frame on.
+
+One older test was changed: the list of sets that allow a standstill has one more name.
+
+**Mutants.** Three new, of the set's entry (judged by the other judge; allowed a start;
+given `s1b4a`'s values); 553 in all, none stale. Run as section 41 says: the 64 of the run
+script, the one file of a program that was changed, and one of another program that the
+same filter takes along — 65 of 65 killed (`evidence/host_checks/mutants_2026-11-19_s1b5a.txt`). No prober, judge or
+rule of the chain was changed, and the image is not new, so the complete set is not due.
+
+### On the board, when the owner says so, and not before
+
+1. The devices checked; nothing else running on the host.
+2. A `reset`, checked for the fresh prompt.
+3. The one run: `s1a_run.py --stage s1b5a --go --out evidence/s1b5a_17A6_<date>/run`. About
+   four minutes if it goes on; shorter if it ends or stops early.
+4. Whatever it ends in — pass, fail or a stop of the run script: committed as stored.
+5. `status_seen.py` over it; `s1b4a_layout.py` over its verdict; each kept beside the run.
+6. The record. Then stop: no second run, no `reset`, nothing sent to the board after the run
+   but what the run script itself sends. The owner decides what follows.

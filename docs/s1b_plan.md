@@ -33,7 +33,8 @@ Section 3 is the outline as it was first drawn, section 4 the owner's first deci
 section 41 how the mutants are run. Section 53 is the account of what is not understood so
 far; sections 54 and 55 are the small checks proposed and built after it, sections 56 and
 57 what they gave on the board. Sections 58 to 61 are the one run into block type 2;
-sections 62 to 64 are the chain over it.
+sections 62 to 64 are the chain over it. Sections 65 and 66 are one run at the address named
+after it, proposed and built.
 
 **What the device has said so far.** Block type 0 has 3,864 frame addresses in two rows. Each
 row has 56 columns: 41 of 36 frames, 9 of 28, 4 of 30 and 2 of 42. With the carrier design
@@ -59,7 +60,8 @@ is delivered in block type 1 is what is stored there.
 
 - What the device names after block type 2, `0x01800000`: whether a frame can be read
   there and whether the register goes on. UG470 says a normal bitstream does not include
-  that block type. Not proposed.
+  that block type. One run there is agreed and built (sections 65 and 66); it has not run
+  on the board.
 - What the frames of block type 2 are. All zero says nothing; that needs a write.
 - What the frames of columns 2 to 4 of block type 1 hold, and which reads of them raise the
   status bit (sections 52, 53, 57). The bit itself clears and stays away (section 57).
@@ -4193,3 +4195,138 @@ run: 557, none stale.
 from `0x00000000` to the first address it names in block type 3. What S1b still lacks by
 the proposal (section 4) is the frame census as one document; and there is the question
 whether to read at `0x01800000`, which is not proposed.
+
+## 65. S1b.6a — one run at `0x01800000`: what was agreed, and what is said beforehand (2026-11-19)
+
+After the last frame of block type 2 the device named `0x01800000` (section 64). The owner
+asked where the work stands against the proposal; of what S1b lacks I put this first — the
+census cannot say "these are the addresses the device names" while the last address it names
+has not been looked at — and the owner agreed: read `0x01800000`, in the way of S1b.5a (one
+run, a set of its own, then stop), and write the census document after it. This section says
+what the run is and what may come of it, before it is made.
+
+### What is known and what is not
+
+- By the fields of the address, `0x01800000` is block type 3, top half, row 0, column 0,
+  minor 0. UG470, table 5-24: "Valid block types are CLB, I/O, CLK (000), block RAM content
+  (001), and CFG_CLB (010). A normal bitstream does not include type 011." So it is not
+  among the block types called valid, and nothing in UG470 that I have found says what a
+  read there does. For what it is I keep to UG470 and UG585, before the run and after it,
+  as for block type 2, unless the owner says otherwise.
+- The device itself: its register went there after block type 2 in the way it went to
+  `0x00800000`, `0x01000000` — after a standstill, by itself. That it names an address does
+  not say a frame can be read there.
+- Not known: whether a read there completes; what it delivers; whether the register moves;
+  whether the address space ends here, and how — by standing still, by beginning again at
+  0, or by going on into numbers whose block type field is 4 and above.
+- **This is the first address of the project that the documents do not call valid.** The
+  proposal's risk (section 10) is exactly this: "The effect of reading an unknown block
+  type, or a FAR that does not exist, is untested", with the rule that a wedged interface or
+  a hung PS is not damage — power-cycle and continue. Only read commands leave the prober;
+  nothing is written to configuration memory.
+- Nothing to grade against.
+
+### The run
+
+The image as it is (`fdc4f07f…9452`). A new set, `s1b6a`: the set `s1b5a` with two words
+changed —
+
+| word | `s1b5a` | `s1b6a` | |
+|---|---|---|---|
+| 4 | `0x017fffff` | `0x01ffffff` | the envelope's upper end: the last address whose block type field is 3 |
+| 16 | `0x01000000` | `0x01800000` | the start: the address the device named |
+
+Everything else as it was: the envelope's lower end 0 for the reference frame's sake; the
+quiet wait; two passes of at most 64 frames; one standstill allowed in a pass; the reference
+frame at least every 16 frames. One run, then stop.
+
+### What may come out, said beforehand
+
+1. **It passes with frames**: up to 64 from `0x01800000`, both passes alike. Then there is a
+   fourth block type the register walks, and what to do about it is a new question.
+2. **It passes with few frames**: the device soon names an address above `0x01ffffff`, with
+   or without a standstill. The address is recorded and not read.
+3. **It stops at the first address because the register does not go on** (`0x800`): it
+   stands still for good, or names address 0 or another lower address. This is what the end
+   of the address space would look like, and it is the outcome I think most likely. The
+   result then holds three records — the reference frame, the pad alone, the pad and a frame
+   at `0x01800000` — and no reference read after them (section 60): it does not by itself
+   show block type 0 readable afterwards.
+4. **It stops for something in what is delivered** (`0x7..`): a pad that is not zero, a
+   short read, two readings that differ. One reference read follows, then the stop.
+5. **The interface fails** (`0x2..`): an error bit, a transfer that does not end,
+   `PCFG_DONE` gone — at the very first read there or later. The prober stops at once and
+   returns; the run script saves what there is and reads the status. If the prober does not
+   return or U-Boot does not answer, the run script stops and says so, and what it has is
+   stored. In either case nothing more is sent to the board: whether the interface recovers
+   with a new load of the design, or needs the power taken away, is for the owner to decide
+   and, for the power, to do.
+6. **A status bit that is neither an error nor usual** shows, as bit 5 did in block type 1:
+   listed by `status_seen.py`, and not judged.
+
+Whatever comes: committed as stored; the listing of status bits and the layout over it; the
+record; then stop. No second run, no `reset`, nothing sent after the run but what the run
+script sends itself.
+
+### What this step cannot show
+
+- What is stored at such an address, if anything is. All zero, if that is what comes, says
+  as little as it did in block type 2.
+- That the address space ends there for every way of asking. The walk asks one question:
+  what does the register name after a read.
+- With outcome 3 or 5: that block type 0 was readable afterwards (section 60).
+
+## 66. S1b.6a as built (2026-11-19; host side, nothing on a board yet)
+
+**The set `s1b6a`** as section 65 has it: the run script's entry, judged by the judge of a
+run of a chain (`host/s1a_run.py`); the expected values written with the others
+(`tests/test_prober_image.py`, `build/prober/expected_s1b6a.json`). The start is fixed:
+`--start` is refused for it. The dry run differs from that of `s1b5a` in exactly the two
+words.
+
+**Nothing else was changed**: no line of the prober, of a judge, of the chain, of
+`s1b4a_layout.py` or of `status_seen.py`. Neither the prober nor a host program limits an
+address by its block type, so an address above `0x017fffff` needs nothing; a test runs the
+whole path on the twin there.
+
+**Tests** (`tests/test_s1b6a.py`, 17; 498 in all). The twin is given made-up layouts at
+`0x01800000`, one for each outcome of section 65:
+
+- frames that go on (64 walked, both passes at the limit); three frames and then an address
+  above the envelope, with and without a standstill; one frame and then above;
+- the register does not move at the first address, or names address 0: stopped there
+  (`0x800`), one frame, the result stored whole; an address of block type 2 named: not
+  followed;
+- the faults of the twin, each stopping the run where it should with the result stored —
+  and an error bit, a transfer that does not end or `PCFG_DONE` gone **at the first read at
+  the new address**: the reference frame and that one read in the result, nothing after;
+- which endings have a reference read after the last read there, as in section 60;
+- in every one of them no address is written but the reference frame and what the device
+  named, nothing below the start and nothing above `0x01ffffff`;
+- the set word for word against `s1b5a`'s; its start against the address the stored chain
+  over block type 2 ended with; the result not accepted as one of `s1b5a`; the layout (the
+  block type by its number, an end that names block type 4, a stopped run called that); the
+  listing of status bits over a run that passed and one that stopped.
+
+One older test was changed: the list of sets that allow a standstill has one more name.
+
+**Mutants.** Three new, of the set's entry (judged by the other judge; allowed a start;
+given `s1b5a`'s values); 560 in all, none stale. Run as section 41 says: the 70 of the run
+script and one of another program that the same filter takes along — 71 of 71 killed
+(`evidence/host_checks/mutants_2026-11-19_s1b6a.txt`). No prober, judge or rule of the chain
+was changed and the image is not new, so the complete set is not due.
+
+### On the board, when the owner says so, and not before
+
+1. The devices checked; nothing else running on the host.
+2. A `reset`, checked for the fresh prompt.
+3. The one run: `s1a_run.py --stage s1b6a --go --out evidence/s1b6a_17A6_<date>/run`. About
+   four minutes if it goes on; seconds if it stops at the first address.
+4. Whatever it ends in — pass, fail or a stop of the run script: committed as stored.
+5. `status_seen.py` over it; `s1b4a_layout.py` over its verdict; each kept beside the run.
+6. The record; with outcome 3 or 5 it says that the run does not show block type 0 readable
+   afterwards. Then stop: no second run, no `reset`, nothing more sent. If the board does
+   not answer, it is left as it is and reported.
+
+After it, the census document (the proposal's section 4), from the stored evidence, on the
+host alone.

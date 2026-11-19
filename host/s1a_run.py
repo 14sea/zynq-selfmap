@@ -88,6 +88,10 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # S1b.5 (section 62): one run of the chain over block type 2 — s1b5a's set, with the starting address given
           # at run time (--start), as for s1b2, s1b3 and s1b4.
           "s1b5": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b5.json"},
+          # S1b.6a (section 65): one run of the walk at the address the device named after block type 2 — s1b5a's set
+          # with the start fixed there and the envelope's upper end at the last address whose block type field is 3.
+          # Judged as a run of a chain: it begins beyond the known frames.
+          "s1b6a": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b6a.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},

@@ -165,7 +165,7 @@ two things happens:
 |---|---|---|---|
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
 | S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range — **done 2026-11-13, PASS** (`evidence/s1a_17A6_2026-11-13/`) |
-| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **in progress (2026-11-18)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
+| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **in progress (2026-11-19)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
 | S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
@@ -234,6 +234,8 @@ To be settled from documents or on the board:
    *2026-11-18:* block type 0 has been read whole, across the end of both of its rows, by
    following the addresses the device names (S1b.3), and block type 1 the same way (S1b.4).
    Not read: anything above block type 1.
+   *2026-11-19:* block type 2 has been read whole the same way (S1b.5). Not read: `0x01800000`,
+   which the device names after it, and anything above.
 2. **What happens at a FAR that does not exist?** Zeros, an error, a wrap, or a stuck
    configuration interface.
    *2026-11-18:* answered only for the end of a row. After the last frame of a row the address

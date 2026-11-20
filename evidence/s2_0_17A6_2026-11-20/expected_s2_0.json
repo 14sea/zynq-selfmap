@@ -1,0 +1,61 @@
+{
+ "stage": "S2.0, three more registers read through PCAP",
+ "image": "prober.bin",
+ "image_bytes": 13964,
+ "image_sha256": "480bbdd40bf60a2e6f2d947eaf67635d151999990b574d0d1e05064d8f31aa46",
+ "image_crc32": "cf189e46",
+ "load_address": "0x02000000",
+ "result_address": "0x10000000",
+ "param_address": "0x10100000",
+ "pl_design": {
+  "sha256": "8c3369e8e4755da5aceeb7844690d5e132b2e65647004c0a46c0e868e34f0b8a",
+  "bytes": 2083863,
+  "note": "the bitstream that was loaded when these frames were read; loaded here as an opaque file"
+ },
+ "params": [
+  "31504d53",
+  "00000001",
+  "00000006",
+  "00000b98",
+  "00000b9a",
+  "00000b99",
+  "00000004",
+  "00000003",
+  "00000000",
+  "00200000",
+  "0000fff1",
+  "00000000",
+  "00003210",
+  "00000000",
+  "00000000",
+  "00000200",
+  "00000b99",
+  "00000b99",
+  "00000b99",
+  "00000b99",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000"
+ ],
+ "return_code": 0,
+ "records": 14,
+ "result_words": 6784,
+ "frames": {
+  "0x00000b99": "9029c9d032e0287453cb5c02cd18be42bc03acef38b17ef7295ee0d16beb6b1f",
+  "0x00000b98": "09e6542e15d2236ef806ab934ff70db967cde6d248bda996b753d6542839351c",
+  "0x00000b9a": "80f782b962888a97d6a663d116d3b6158ff4d7408626ce6b83f43ba855356477"
+ },
+ "console": [
+  "SM6 start",
+  "SM6 end status=00000001 records=0000000e anomalies=00000000 words=00001a80"
+ ]
+}

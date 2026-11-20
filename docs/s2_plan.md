@@ -18,8 +18,8 @@ mutants of the run script on the script as it is now (section 16). **S2.0 has be
 board: PASS, and control register 0 has bit 8 set — LUT RAM is not masked in readback, by the
 register's word (section 17).** **S2.1 has been on the
 board: PASS — the first access to our own design returned, and the design is a RAM from its
-own side (section 18).** **S2.2 is proposed in full in section 19 and waits for the owner's
-answers; nothing of it is built.** S2.3 to S2.5 are not proposed in full yet.
+own side (section 18).** **S2.2 is proposed in full in section 19 and agreed, all eight
+points as recommended (section 20); its host side is being built.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1117,3 +1117,21 @@ are the answer, and their number is known beforehand — 256, the bits of RAM in
 8. **The complete set of mutants** for the new image before the board, as the rule has it:
    about seven hours on this host, during which nothing else heavy runs and the board is
    not used. *(No choice proposed; said so that the time is known.)*
+
+## 20. Decisions on S2.2 (owner, 2026-11-20)
+
+The owner: all eight points of section 19 as recommended.
+
+1. All of block type 0 in three states; block types 1 and 2 only if fewer than 256
+   candidates are found, and then as a proposal of its own.
+2. Three frames a read.
+3. The list of reads is made by the host from the census; the prober does no arithmetic on
+   addresses and echoes the list.
+4. A RAM that does not hold its state after a pass stops the run.
+5. CTL0 is read at the start and at the end of every run.
+6. The reference frame stays `0xb99`.
+7. One word for the whole chain of eight runs, after the review of the "as built" section;
+   the chain halts by itself and runs nothing again.
+8. The complete set of mutants for the new image before the board.
+
+The host side is built next; its account follows as a section "as built".

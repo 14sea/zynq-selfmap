@@ -13,8 +13,8 @@ frame all zero; not graded, there being nothing to grade against. After it the d
 register at `0x02000000`, which was not read. S2 to
 S6 have not been begun, and nothing has written configuration memory. The frame census is
 written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
-A plan for S2 is proposed in `docs/s2_plan.md` (2026-11-20): a proposal, not yet agreed by the
-owner; nothing of it is built.
+The plan for S2 is `docs/s2_plan.md`, agreed by the owner on 2026-11-20 (its section 12);
+where it stands is said at its head.
 
 ## 1. In one sentence
 

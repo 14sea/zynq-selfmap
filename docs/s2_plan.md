@@ -1,4 +1,4 @@
-# S2 — LUT RAM location: plan (2026-11-20; a proposal — nothing agreed, nothing built, nothing on a board)
+# S2 — LUT RAM location: plan (2026-11-20; agreed by the owner the same day, all ten points as recommended — section 12)
 
 S1b said which frame addresses the device has. It stood behind no content: three frames in four
 are all zero, and nothing in S1 tells one bit of a frame from another. S2 is the first stage in
@@ -7,8 +7,9 @@ configuration is read back through PCAP, and the places where the patterns land 
 
 This document proposes how S2 is cut into steps, describes the probe design it needs, and
 details the first two steps. The later steps are outlined; each gets a proposal of its own
-when the step before it has answered. **Nothing here is built, and no board run happens,
-before the owner has agreed.** The points for the owner are in section 11.
+when the step before it has answered. The points for the owner are in section 11 and what
+the owner decided in section 12. **No board run happens without the owner's word for that
+step.**
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -415,3 +416,45 @@ If this is agreed, the next thing built is the host side of S2.0 and S2.1 togeth
 design and its benches, the prober's two stages, the twin, the judges, the sets — followed by
 its "as built" section here and the owner's review, and only then, on the owner's word for
 each, the two board runs.
+
+## 12. Decisions (owner, 2026-11-20)
+
+Asked what I recommend on each of the ten points, I answered; the owner: all ten as
+recommended, and begin. Where the recommendation differs from section 11 as first written,
+this section is what holds.
+
+1. **The steps** as in section 4, S2.0 before S2.1. Both may be on the board on one day, but
+   the result of S2.0 is committed and reported, and S2.1 has the owner's word of its own.
+2. **The three reads** of IDCODE, CTL0 and STAT; no further register for now.
+3. **A write of MASK and CTL0, should the mask be on, needs the owner's go-ahead once, as S4
+   does.** Only the class is decided now. Nothing of it is designed until S2.0 has read bit
+   8 as clear; then it is a proposal of its own.
+4. **The AXI3 front is copied** from zynq-fabricmap: `carrier_axi3_lite.v` and its bench,
+   unchanged, with the source commit and hashes in an import record. Nothing else is copied;
+   the top level and the register file are written here. (The file was read before this was
+   recommended: it names no site and no frame address.)
+5. **What the build script may ask Vivado** as in section 5, **and one thing more: the two
+   sites are not in a column of sites that earlier projects tied to frame addresses.**
+   zynq-fabricmap's carrier constrained or measured the site columns `SLICE_X0` to
+   `SLICE_X9`, and I know addresses of some of them from there. The sites of `s2a` are
+   taken from columns of a higher number, so that nothing I already know can meet what S2.2
+   finds.
+6. **No further document for now** — this replaces point 6 of section 11. What the ports of
+   `RAM64X1S`, `SRLC32E` and `PS7` are is taken from the simulation models Vivado ships
+   (`data/verilog/src/unisims/`), which the benches need in any case; they describe behaviour
+   and hold no position in configuration memory. The libraries guide is not needed. The CLB
+   guide is asked for again if S2.4 turns out to need it.
+7. **The `SEU_EN` gate now; from the read stage of S2.2 on, the status recorded after every
+   read and bit 5 cleared alone** when it is set — the write always `0x20`, and the judge
+   holds that it happens only after a status word with bit 5 was recorded.
+8. **Grading once, at the end of S2.** The owner was told the cost: a systematic error of
+   the method is found late. What stands against it are S2.3's own conditions — every
+   candidate spells a valid number, every number has exactly one candidate, the singles
+   agree.
+9. **How far S2 goes is decided after S2.3.** My leaning, said so that it can be disagreed
+   with: one whole column of sites, and one site in each other column of SLICEM sites.
+10. **One image for S2.0 and S2.1**, the complete set of mutants once before S2.0; a second
+    image for the read stage of S2.2, whose content waits for S2.0's answer.
+
+The host side of S2.0 and S2.1 is built next. Its account follows here as a section "as
+built" before anything is put to the owner for review.

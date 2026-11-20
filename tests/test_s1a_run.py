@@ -70,11 +70,12 @@ class FakeUBoot:
 
     def load(self, loady: str, path: str):
         self.commands.append(loady)
+        after = self.q.get("restart_text", STARTS_AGAIN) if len(self.commands) in self.q.get("restarts_after_transfer_at", ()) else ""
         data = Path(path).read_bytes()
         if self.q.get("corrupt_image") and "02000000" in loady:
             data = data[:-1] + bytes([data[-1] ^ 1])
         self.blobs[int(loady.split()[1], 16)] = data
-        return f"## Total Size      = 0x{len(data):08x} = {len(data)} Bytes\r\n".encode() + PROMPT, True
+        return (f"## Total Size      = 0x{len(data):08x} = {len(data)} Bytes\r\n" + after).encode() + PROMPT, True   # the size, and then the board starts again
 
     # ---- memory
     def rd(self, a: int) -> int:
@@ -98,7 +99,9 @@ class FakeUBoot:
             self.header_shown = True
             for i, v in self.q.get("header_dump_lies", {}).items():                # a whole dump that is not what is in memory
                 vals[i] = v
-        lines = ["%08x: %s    ....\r\n" % (a + 4 * i, " ".join("%08x" % v for v in vals[i:i + 4])) for i in range(0, n, 4)]
+        # a line as U-Boot prints it, to the character: blanks up to the text column, then a character for each byte
+        text = lambda ws: "".join(chr(b) if 0x20 <= b < 0x7F else "." for x in ws for b in struct.pack("<I", x))  # noqa: E731
+        lines = [("%08x:%s" % (a + 4 * i, "".join(" %08x" % v for v in vals[i:i + 4]))).ljust(45) + "  " + text(vals[i:i + 4]) + "\r\n" for i in range(0, n, 4)]
         if n > 64:                                                                 # a dump of the result, not of the header
             self.dumps = getattr(self, "dumps", 0) + 1
             bad = self.q.get("corrupt_dump")                                       # True: every dump; a number: the first so many
@@ -563,6 +566,56 @@ class RepliesNotWhole(unittest.TestCase):
                 self.assertEqual((u.commands, rec["verdict"]), (base.commands[:at], "FAIL"))
                 self.assertIn(repr(line), rec["stop"])
 
+    def test_a_transfer_that_reports_its_size_and_then_shows_a_restart(self) -> None:
+        """Review of 7830797: the reply to a file transfer was held to the size it reports and to nothing else. A reply
+        with the right size and the board starting again after it went on to `go`."""
+        for card, loady, what in ((True, "loady 02000000", "the prober"), (False, "loady 04000000", "the PL design, which the card does not have")):
+            _, base, _ = run(card_has_pl=card)
+            at = base.commands.index(loady) + 1
+            for text, line in ((STARTS_AGAIN, STARTS_AGAIN.split("\r\n")[0]), (ABORTS + STARTS_AGAIN, "data abort"), ("resetting ...\r\n", "resetting ...")):
+                with self.subTest(what, line=line):
+                    rec, u, out = run(card_has_pl=card, restarts_after_transfer_at={at}, restart_text=text)
+                    self.assertEqual(u.commands, base.commands[:at], "nothing is sent after it")
+                    self.assertEqual((rec["verdict"], sent(u, "go"), [p.name for p in out.iterdir()]), ("FAIL", [], ["run.json"]))
+                    self.assertIn(f"U-Boot took an exception or the board started again at {loady!r} (its reply has the line {line!r})", rec["stop"])
+                    stored = json.loads((out / "run.json").read_text())
+                    self.assertEqual(stored["restart"], {"step": len(stored["steps"]), "cmd": loady, "line": line})
+                    reply = stored["steps"][-1]["reply"]
+                    self.assertRegex(reply, r"^## Total Size      = 0x[0-9a-f]{8} = \d+ Bytes\r\n")
+                    self.assertTrue(reply.endswith(text + PROMPT.decode()), "whole: the size it reported and everything after it")
+            self.assertEqual(len(ABORTS + STARTS_AGAIN) > 400, True, "longer than the end that is kept of a transfer's reply otherwise")
+
+    def test_a_whole_line_of_a_dump_is_data_whatever_its_text_column_spells(self) -> None:
+        """Review of 7830797: the names of the exceptions were looked for anywhere in a line, and a dump's line ends
+        with its bytes as text. A result is whatever the device holds; it may spell `data abort`."""
+        seen, line = s1a_run.restart_seen, s1a_run.dump_line
+        spells = {4: "10000000: 00000000 61746164 6f626120 00007472  ....data abort..", 3: "10000010: 61746164 6f626120 00007472           data abort..",
+                  2: "1000001c: 65736552 6e697474                    Resettin", 1: "f800700c: a802000a                             ...."}
+        for n, ln in spells.items():
+            with self.subTest(words=n):
+                self.assertEqual(len(ln), 47 + 4 * n)
+                self.assertTrue(line(ln))
+                self.assertIsNone(seen(f"md.l 10000000 {n}", f"md.l 10000000 {n}\r\n{ln}\r\nZynq> "))
+                if n > 2:
+                    self.assertEqual(seen("crc32 10000000 10", ln + "\r\n"), ln, "only in the reply to a dump is such a line a dump's")
+        # a line that began as a dump and ends otherwise is not data: the access was made after the line had begun
+        for ln in ("10000000:data abort", "10000000: 00000000data abort", "10000000: 00000000 61746164 data abort",
+                   "10000000: 00000000 61746164 6f626120 00007472  data abort", "10000000: 00000000 61746164 6f626120 00007472  ....data abort..data abort",
+                   "10000000: 00000000 61746164 6f626120 00007472 ....data abort..", "10000000: 00000000 61746164 6f626120 00007472   ....data abort..",
+                   "10000010: 61746164 6f626120 00007472  data abort..", "10000010: 61746164 6f626120 00007472           data abort...",
+                   "10000010: 61746164 6f626120 00007472 data abort............",          # as long as a dump's line of three words is
+                   "1000001: 00000000 61746164 6f626120 00007472  ....data abort..", "10000000: 00000000 61746164 6f626120 00007472 12345678 data abort.."):
+            with self.subTest(ln):
+                self.assertFalse(line(ln))
+                self.assertEqual(seen("md.l 10000000 4", "md.l 10000000 4\r\n" + ln + "\r\nZynq> "), ln)
+        # the lines after a dump's are looked at as ever
+        self.assertEqual(seen("md.l 10000000 4", spells[4] + "\r\ndata abort\r\n" + STARTS_AGAIN), "data abort")
+        self.assertEqual(seen("md.l 10000000 4", spells[4] + "\r\n" + STARTS_AGAIN), STARTS_AGAIN.split("\r\n")[0])
+        # and the pretend board of these tests prints its dumps in that form
+        u = FakeUBoot(); u.mem.update({0x10000004: 0x61746164, 0x10000008: 0x6f626120, 0x1000000c: 0x00007472})
+        self.assertEqual(u.c_md_l(["md.l", "10000000", "4"]), spells[4] + "\r\n")
+        self.assertEqual(u.c_md_l(["md.l", "10000004", "7"]).split("\r\n")[1], "10000014: 00000000 00000000 00000000           ............")
+
     def test_the_reply_is_recorded_whole_however_long_it_is(self) -> None:
         """Owner, 2026-11-20: such a run stops, pulls nothing, and is recorded; whether it is made again is decided from
         the record. So the reply is kept whole where any other long reply is cut to its two ends."""
@@ -612,6 +665,22 @@ class RepliesNotWhole(unittest.TestCase):
                     others += 1
                     self.assertIsNone(s1a_run.restart_seen(cmd, reply), (f, cmd))
         self.assertGreater(resets, 180); self.assertGreater(others, 25000)
+
+    def test_the_form_of_a_dump_line_is_this_board_s(self) -> None:
+        """The form dump_line() holds a line to is U-Boot's as it is generally known; here it is held to what this board
+        printed. Nearly every line that begins as a dump has it; the few that have not are the ones the console damaged
+        (a line cut short, two lines run together) — and those are looked at whole, as any line that is not a dump's."""
+        whole = damaged = 0
+        begins = re.compile(r"[0-9a-f]{8}:(?: [0-9a-f]{8}){1,4}")
+        for f in sorted((ROOT / "evidence").rglob("*console*.log")):
+            for ln in f.read_bytes().decode("utf-8", "replace").splitlines():
+                if begins.match(ln):
+                    if s1a_run.dump_line(ln):
+                        whole += 1
+                    else:
+                        damaged += 1
+        self.assertGreater(whole, 4_800_000)
+        self.assertLess(damaged, 300)
 
     def test_the_header_is_held_to_the_pulled_result(self) -> None:
         """The header is accepted by its form when it is read. A dump that is whole in form and wrong in a word that
@@ -741,8 +810,14 @@ class TheSerialPortFails(unittest.TestCase):
         import inspect
         body = inspect.getsource(s1a_run.execute).split('"""', 2)[2]
         uses = [ln.strip() for ln in body.splitlines() if re.search(r"\bcon\b|send_file\(", ln)]
-        self.assertEqual(len(uses), 4, uses)
+        self.assertEqual(len(uses), 3, uses)                      # a command, a file transfer, the first prompt
         self.assertTrue(all("link(" in ln for ln in uses), uses)
+        # and every reply goes into the record in one place, where it is looked at for an exception or a restart first
+        # (review of 7830797: the two transfers recorded theirs themselves, and were not looked at)
+        self.assertEqual(body.count('record["steps"].append('), 1)
+        note = body[body.index("def note("):body.index("def do(")]
+        self.assertLess(note.index("restart_seen(cmd, text)"), note.index('record["steps"].append('))
+        self.assertEqual(len(re.findall(r"\bnote\(", body)), 3, "its definition, and the two that receive: do() and transfer()")
         self.assertEqual(s1a_run.TRANSPORT, (OSError, __import__("termios").error, subprocess.SubprocessError))
 
     def test_any_failure_of_the_port_is_one_and_a_fault_of_the_program_is_not(self) -> None:

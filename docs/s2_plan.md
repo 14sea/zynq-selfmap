@@ -12,8 +12,8 @@ the owner decided in section 12. **No board run happens without the owner's word
 step.**
 
 **Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13). A
-review of it found one fault in the run script, which is mended (section 14). Nothing of S2
-has been on a board. S2.2 to S2.5 are not
+review of it found one fault in the run script, and a review of the mending two more; all
+three are mended (sections 14 and 15). Nothing of S2 has been on a board. S2.2 to S2.5 are not
 proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
@@ -703,8 +703,9 @@ command is not sent again. The lines:
 
 The exception lines are U-Boot's as they are generally known. **None has been seen on this
 board**; whether the board prints them so is not established. The lines of a restart are
-this board's own. The reply to a file transfer does not pass through this check; a transfer
-that does not report its size stops the run as before.
+this board's own. (As first mended, the reply to a file transfer did not pass through this
+check, and the names of the exceptions were looked for in the text column of a dump too:
+section 15.)
 
 **The rule holds for the reply to `go` as well.** Until now, a prober that did not come back
 in the ordinary way but left a prompt had its result read from memory, saved and judged,
@@ -756,5 +757,66 @@ design's sources, of the imported files and of the bitstream agree.
 and tested two — another word, and no prompt — and not the third, although it is written
 there. And the rule of section 43 asked again for whatever was not whole without asking what
 else a reply that is not whole might be.
+
+**Not changed.** The prober, its image (`480bbdd4…aa46`), the judges, the sets, the design.
+
+## 15. Review of `7830797` (2026-11-20): two findings, both accepted and mended
+
+**1. The reply to a file transfer went round the check (P2).** I had left it out and said so
+in section 14: a transfer that does not report its size stops the run anyway. The reviewer's
+case is the other one — the size is reported, and after it the board starts again.
+Reproduced: the script went on to `go`, and the run was judged PASS. The reason I gave was
+no reason; the rule is that no reply is taken for anything before it has been looked at, and
+a transfer's reply is a reply.
+
+Mended: both transfers (the prober, and the PL design when the card does not have it) go
+through one function, and every reply — a command's or a transfer's — goes into the record
+in one place, where it is looked at first. A transfer's reply that shows a restart is kept
+whole, as a command's is (otherwise its last 400 characters are kept, as before).
+
+**2. A whole line of a dump was taken for an exception when its bytes spelled one (P2).** The
+names of the exceptions are looked for anywhere in a line, and a line of `md.l` ends with
+its bytes as text. I had seen this and set it aside: a result is binary. But a result holds
+frames, and a frame holds whatever the device holds. Reproduced with a reference frame whose
+bytes read `data abort`: the judge passes the result, and the run stopped while pulling it.
+From S2.2 on the frames hold patterns that user logic wrote, so this is not far-fetched.
+
+Mended (`dump_line()`): in the reply to `md.l`, a line that is a whole line of a dump to the
+character is data and is not looked at. The form: the address and a colon, one to four
+words, blanks up to the column where the text begins, and one character of text for each
+byte — 47 characters and four more for each word. A line that began as a dump and ends
+otherwise is looked at whole as before, so an exception raised after a line had begun is
+still seen; so is every line after the dump.
+
+The form is U-Boot's as it is generally known, and it is held to this board: of the lines in
+the console logs that begin as a dump, more than 4.8 million have exactly this form, and
+fewer than 300 have not — the ones the console damaged (a line cut short, two run together).
+A damaged line is looked at whole; it would stop a run only if its own text spelled an
+exception, and then the record shows the line.
+
+**Tests** (652; 648 before).
+
+- A transfer whose reply has the right size and then a restart, for both transfers and three
+  forms of the text: nothing sent after it, `go` not sent, the reply in the record whole.
+- A dump's whole lines of one to four words whose text spells an exception are not seen;
+  twelve lines that begin as a dump and are not one are; the same line in the reply to
+  another command is; a line after the dump is.
+- The reviewer's case through the run script: S2.1 with a reference frame that spells
+  `data abort` at every alignment is pulled whole and passes.
+- The pretend U-Boot of the tests printed its dumps with a made-up text column. It prints
+  them in U-Boot's form now, with the bytes as text — otherwise no test could have met this.
+- The form of a dump's line over the console logs (above).
+- In the run script's source: one place puts a reply into the record, and looks first.
+
+**Mutants.** Six new (736, none stale). **None of the mutants of the run script has been run
+on the script as it is now** — neither these six nor the 19 of section 14: the complete set
+is still running (on `363ad58`; it is far slower than I said — most of a day, not hours), and a
+second run beside it makes both several times slower. All mutants of the run script and of
+`ps_look.py` are due when it has ended, and nothing of S2 goes on a board before.
+
+**My slips.** Both findings are things I had looked at and decided wrongly. The first I wrote
+down as a limit instead of closing it. The second I judged by what results have held so far,
+in the very stage that changes what they hold. And the pretend board's text column was a
+constant, so my own tests could not have shown it.
 
 **Not changed.** The prober, its image (`480bbdd4…aa46`), the judges, the sets, the design.

@@ -453,6 +453,19 @@ class ThroughTheRunScript(unittest.TestCase):
                 self.assertEqual((u.commands, rec["replies_not_whole"]), (base.commands[:at], []), "it is asked once and nothing is sent after it")
                 self.assertEqual(first in u.commands, cmd == first)
 
+    def test_a_frame_whose_bytes_spell_an_exception_is_pulled_like_any_other(self) -> None:
+        """Review of 7830797, as it was reproduced: a result the judge passes, and the run stopped while pulling it,
+        at a line of the dump whose text column read `data abort`. S2.1 holds no frame to a known content, so the
+        reference frame may be anything — here, those bytes at every alignment."""
+        exp = json.loads(s1a_run.STAGES["s2_1"]["expected"].read_text())
+        spell = ([0x61746164, 0x6F626120, 0x00007472, 0, 0] * 21)[:101]      # "data", " abo", "rt"
+        rec, u, out = run("s2_1", card_has_s2a=True, frames={int(exp["params"][5], 16): spell})
+        pulls = [c for c in u.commands if c.startswith("md.l 100") and int(c.split()[2], 16) > 64]
+        self.assertTrue(any("data abort" in u.c_md_l(c.split()) for c in pulls), "the pull did meet such a line")
+        self.assertEqual((rec["verdict"], rec["problems"], rec["judge"], rec.get("restart")), ("PASS", [], "PASS", None))
+        self.assertEqual((out / "result.bin").read_bytes(), u.twin_result)
+        self.assertIn(b"data abort", u.twin_result)
+
     def test_s2_1_an_slcr_word_that_is_not_the_board_s_stops_before_the_pl_is_touched(self) -> None:
         for addr, cmd in ((0xF8000900, "md.l f8000900 1"), (0xF8000170, "md.l f8000170 1")):
             with self.subTest(cmd):

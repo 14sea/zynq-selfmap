@@ -818,9 +818,16 @@ MUTANTS = [
     (RUN, "restart: the board's lines are looked for anywhere in a line", '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):', '        if EXCEPTION.search(ln) or STARTED_AGAIN.search(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):'),
     (RUN, "restart: U-Boot's own line is looked for anywhere in a line", '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):', '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.search(ln) and cmd.split()[:1] != ["version"]):'),
     (RUN, 'restart: the record does not name it', '            record["restart"] = {"step": len(record["steps"]), "cmd": cmd, "line": seen}', '            pass'),
-    (RUN, 'restart: its reply is cut like any long reply', '"reply": text if seen or len(text) < 2000 else', '"reply": text if len(text) < 2000 else'),
+    (RUN, 'restart: its reply is cut like any long reply', '"reply": text if seen else short(text)', '"reply": short(text)'),
     (RUN, 'restart: the record names the step before it', '            record["restart"] = {"step": len(record["steps"]), "cmd": cmd, "line": seen}', '            record["restart"] = {"step": len(record["steps"]) - 1, "cmd": cmd, "line": seen}'),
     (LOOK, 'restart: the look asks again for a dump whose reply shows one', '            if seen:                                    # not a reply', '            if False:                                    # not a reply'),
+    # ---- 2026-11-20, review of 7830797: a transfer's reply is looked at too; a whole line of a dump is data
+    (RUN, "restart: a transfer's reply is recorded and not looked at", '        note(loady, what, text, lambda t: t[-400:])', '        record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": loady, "reply": text[-400:]})'),
+    (RUN, 'dump: a whole line of a dump is looked at like any line', '        if dump and dump_line(ln):', '        if False:'),
+    (RUN, "dump: whatever begins as a dump's line is data", '    return bool(m) and len(ln) == 47 + 4 * n and ln[9 + 9 * n:47] == " " * (38 - 9 * n)', '    return bool(m)'),
+    (RUN, "dump: a dump's line is not held to its length", '    return bool(m) and len(ln) == 47 + 4 * n and ln[9 + 9 * n:47] == " " * (38 - 9 * n)', '    return bool(m) and ln[9 + 9 * n:47] == " " * (38 - 9 * n)'),
+    (RUN, "dump: a dump's line is not held to its blanks", '    return bool(m) and len(ln) == 47 + 4 * n and ln[9 + 9 * n:47] == " " * (38 - 9 * n)', '    return bool(m) and len(ln) == 47 + 4 * n'),
+    (RUN, 'dump: such a line is data in the reply to any command', '    dump = cmd.split()[:1] == ["md.l"]', '    dump = True'),
     (LOOK, 'restart: the look goes on reading after a write whose reply shows one', '    if seen:\n        record["stopped"] = f"U-Boot took an exception or the board started again at `{CLEAR}`', '    if False:\n        record["stopped"] = f"U-Boot took an exception or the board started again at `{CLEAR}`'),
 ]
 

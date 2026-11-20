@@ -166,14 +166,30 @@ class Stop(Exception):
 # A reply with one of these is not a reply that lost characters: what was loaded and configured before it is gone or
 # in doubt, and the next command would be given to a board in another state. The names of the exceptions are looked
 # for anywhere in a line (a dump may have begun its line before the access was made), the rest at a line's beginning.
+# Anywhere in a line but in the text column of a dump: a whole line of `md.l` ends with one character for each byte
+# it shows, and the bytes of a result are whatever the device holds — they may spell anything (dump_line()).
 EXCEPTION = re.compile(r"data abort|prefetch abort|undefined instruction|software interrupt|Resetting CPU")
 STARTED_AGAIN = re.compile(r"resetting \.\.\.|U-Boot SPL |Hit any key to stop autoboot")
 BANNER = re.compile(r"U-Boot \d{4}\.\d{2}")       # the reply to `version` has this line, and no other reply has
 
 
+def dump_line(ln: str) -> bool:
+    """Whether `ln` is a whole line of U-Boot's `md.l`, to the character: the address and a colon, one to four words,
+    blanks up to the column where the text begins, and of text one character for each byte — 47 characters and four
+    more for each word. Every dump line in this board's console logs that the console did not damage has this form
+    (4.8 million of them). A line that began as a dump and ends otherwise is not one."""
+    m = re.match(r"[0-9a-f]{8}:((?: [0-9a-f]{8}){1,4})", ln)
+    n = len(m.group(1)) // 9 if m else 0
+    return bool(m) and len(ln) == 47 + 4 * n and ln[9 + 9 * n:47] == " " * (38 - 9 * n)
+
+
 def restart_seen(cmd: str, text: str) -> str | None:
-    """The first line of a reply that says U-Boot took an exception or the board started again; None if no line does."""
+    """The first line of a reply that says U-Boot took an exception or the board started again; None if no line does.
+    In the reply to `md.l` the whole lines of the dump are data and say nothing."""
+    dump = cmd.split()[:1] == ["md.l"]
     for ln in text.splitlines():
+        if dump and dump_line(ln):
+            continue
         ln = ln.strip()
         if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):
             return ln
@@ -307,18 +323,28 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         except TRANSPORT as e:
             raise Stop(f"the console failed after {len(record['steps'])} step(s) — {type(e).__name__}: {e}; nothing more was sent") from e
 
-    def do(cmd: str, what: str, timeout: float = 10) -> str:
-        reply, ok = link(lambda: con.cmd(cmd, timeout))
-        text = reply.decode("utf-8", "replace")
-        seen = restart_seen(cmd, text)                # before the reply is taken for anything, and before it may be asked for again
-        record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd,
-                                "reply": text if seen or len(text) < 2000 else text[:300] + " … " + text[-300:]})
+    def note(cmd: str, what: str, text: str, short) -> None:
+        """Every reply goes into the record through here — a command's and a file transfer's alike — and is looked at
+        before it is taken for anything, and before it may be asked for again."""
+        seen = restart_seen(cmd, text)
+        record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd, "reply": text if seen else short(text)})
         if seen:                                      # recorded whole and by name: whether the run is made again is decided
             record["restart"] = {"step": len(record["steps"]), "cmd": cmd, "line": seen}   # by the owner from the record, not here
             raise Stop(f"U-Boot took an exception or the board started again at {cmd!r} (its reply has the line {seen!r}); nothing more was sent")
+
+    def do(cmd: str, what: str, timeout: float = 10) -> str:
+        reply, ok = link(lambda: con.cmd(cmd, timeout))
+        text = reply.decode("utf-8", "replace")
+        note(cmd, what, text, lambda t: t if len(t) < 2000 else t[:300] + " … " + t[-300:])
         if not ok:
             raise Stop(f"no prompt after {cmd!r}")
         return text
+
+    def transfer(loady: str, what: str, path: str) -> tuple[str, bool]:
+        reply, ok = link(lambda: send_file(con, loady, path))
+        text = reply.decode("utf-8", "replace")
+        note(loady, what, text, lambda t: t[-400:])     # a size reported is not enough if the reply also shows a restart
+        return text, ok
 
     def read(cmd: str, what: str, timeout: float = 10):
         """A read-only command whose reply has a known form (nothing else gets past whole()). If the reply is not whole
@@ -340,9 +366,7 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         go_text = ""
         for s in before_go(exp, pl_bytes, pl_crc):
             if "ymodem" in s:
-                reply, ok = link(lambda: send_file(con, s["cmd"], s["ymodem"]))
-                text = reply.decode("utf-8", "replace")
-                record["steps"].append({"n": len(record["steps"]) + 1, "what": s["what"], "cmd": s["cmd"], "reply": text[-400:]})
+                text, ok = transfer(s["cmd"], s["what"], s["ymodem"])
                 m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)
                 if not ok or not m or int(m.group(1), 16) != s["size"]:
                     raise Stop(f"the transfer for {s['cmd']!r} did not report {s['size']} bytes")
@@ -362,9 +386,7 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
                 record["pl_source"] = "card"
                 if not m or int(m.group(1)) != s["size"]:            # not on the card (or not this size): send it
                     record["pl_source"] = "ymodem"
-                    reply, ok = link(lambda: send_file(con, f"loady {PL_ADDR:08x}", s["card_or_ymodem"]))
-                    text = reply.decode("utf-8", "replace")
-                    record["steps"].append({"n": len(record["steps"]) + 1, "what": "the PL design by YMODEM", "cmd": f"loady {PL_ADDR:08x}", "reply": text[-400:]})
+                    text, ok = transfer(f"loady {PL_ADDR:08x}", "the PL design by YMODEM", s["card_or_ymodem"])
                     m = re.search(r"## Total Size\s+= 0x([0-9a-fA-F]+)", text)
                     if not ok or not m or int(m.group(1), 16) != s["size"]:
                         raise Stop(f"the PL design could not be loaded from the card or sent ({s['size']} bytes)")

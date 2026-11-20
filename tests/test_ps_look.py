@@ -20,8 +20,9 @@ ALL = DUMPS + [STATUS, CLEAR, STATUS, STATUS, STATUS]
 class Console:
     """Word memory behind md.l and mw.l; `devcfg.INT_STS` clears the bits written as one, as the register does."""
 
-    def __init__(self, status=0x50033024, lossy=None, no_prompt=None, hears=True, comes_back=False) -> None:
+    def __init__(self, status=0x50033024, lossy=None, no_prompt=None, hears=True, comes_back=False, restarts=None) -> None:
         self.status, self.lossy, self.no_prompt, self.hears, self.comes_back = status, lossy or {}, no_prompt, hears, comes_back
+        self.restarts = restarts or {}                  # by the command: the times its reply is an exception and the board starting again
         self.sent: list[str] = []
         self.asked: dict[str, int] = {}
 
@@ -48,6 +49,8 @@ class Console:
         which = self.lossy.get(line)
         if which is not None and (which is True or self.asked[line] in which):
             out = out[:len(out) // 3] + out[2 * len(out) // 3:]
+        if self.asked[line] in self.restarts.get(line, ()):
+            out = "data abort\r\nResetting CPU ...\r\n\r\nresetting ...\r\nU-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\n"
         return (line + "\r\n" + out).encode() + PROMPT, self.no_prompt != line
 
 
@@ -112,6 +115,23 @@ class RepliesNotWhole(unittest.TestCase):
         self.assertEqual((con.sent, rec["stopped"], rec["replies_not_whole"]), (ALL, None, []))
         con = Console(no_prompt=CLEAR); rec, waits = look(con)                 # no prompt after it: stop, nothing more
         self.assertEqual((con.sent, rec["stopped"], rec["status_after"], waits), (DUMPS + [STATUS, CLEAR], f"no prompt after `{CLEAR}`", [], []))
+
+    def test_a_reply_that_shows_an_exception_or_a_restart_is_not_asked_for_again(self) -> None:
+        """As in the run script (review of 363ad58): it is not a reply that lost characters. The pretend board answers
+        every later asking whole, so only the reply itself can stop the look."""
+        con = Console(restarts={"md.l f8000120 2": {1}}); rec, _ = look(con)
+        self.assertEqual((con.sent, rec["replies_not_whole"], rec["clear_sent"]), (DUMPS[:4], [], False))
+        self.assertEqual(rec["stopped"], "U-Boot took an exception or the board started again at `md.l f8000120 2` (its reply has the line 'data abort'); nothing more was sent")
+        self.assertEqual(sorted(rec["registers"])[-1], "slcr.IO_PLL_CTRL", "the dump before it is the last one recorded")
+        self.assertNotIn("slcr.ARM_CLK_CTRL", rec["registers"])
+        con = Console(restarts={STATUS: {1}}); rec, _ = look(con)              # the status before the write: no write
+        self.assertEqual((con.sent, rec["clear_sent"], rec["status_before"]), (DUMPS + [STATUS], False, None))
+        con = Console(restarts={CLEAR: {1}}); rec, waits = look(con)           # the write itself: nothing is read after it
+        self.assertEqual((con.sent, rec["status_after"], waits), (DUMPS + [STATUS, CLEAR], [], []))
+        self.assertIn(f"started again at `{CLEAR}`", rec["stopped"])
+        con = Console(restarts={STATUS: {3}}); rec, _ = look(con)              # a reading after the write
+        self.assertEqual((con.sent, rec["status_after"]), (DUMPS + [STATUS, CLEAR, STATUS, STATUS], ["50033004"]))
+        self.assertIn(f"started again at `{STATUS}`", rec["stopped"])
 
     def test_no_prompt_after_a_dump_stops_the_look(self) -> None:
         con = Console(no_prompt="md.l f8f02100 2"); rec, _ = look(con)

@@ -440,6 +440,19 @@ class ThroughTheRunScript(unittest.TestCase):
         self.not_started(rec, u, out, "no prompt after 'md.l 40000000 1'")
         self.assertEqual(u.commands[-1], "md.l 40000000 1", "nothing is sent after it")
 
+    def test_s2_1_an_abort_at_the_first_access_and_the_prober_is_not_started(self) -> None:
+        """Review of 363ad58, as it was reproduced: the access raises an abort, the board starts again and comes to a
+        prompt, and a second asking is answered with the word that is wanted. There is no second asking."""
+        _, base, _ = run("s2_1", card_has_s2a=True)
+        first = "md.l 40000000 1"
+        for cmd in (first, "md.l f8000900 1", "md.l f800010c 1"):
+            with self.subTest(cmd):
+                at = base.commands.index(cmd) + 1
+                rec, u, out = run("s2_1", card_has_s2a=True, restarts_at={at})
+                self.not_started(rec, u, out, f"U-Boot took an exception or the board started again at {cmd!r} (its reply has the line 'data abort')")
+                self.assertEqual((u.commands, rec["replies_not_whole"]), (base.commands[:at], []), "it is asked once and nothing is sent after it")
+                self.assertEqual(first in u.commands, cmd == first)
+
     def test_s2_1_an_slcr_word_that_is_not_the_board_s_stops_before_the_pl_is_touched(self) -> None:
         for addr, cmd in ((0xF8000900, "md.l f8000900 1"), (0xF8000170, "md.l f8000170 1")):
             with self.subTest(cmd):

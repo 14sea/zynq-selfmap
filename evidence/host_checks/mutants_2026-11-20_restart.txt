@@ -1,0 +1,21 @@
+# python3 tests/mutants.py 'restart:'      (2026-11-20, after the review of 363ad58; the complete set was running beside it)
+unmutated: Ran 647 OK; 0 test(s): 
+KILLED   restart: the run script takes such a reply like any other      Ran 647 FAILED (failures=34); 3 test(s): a_reply_that_shows_an_exception_or_a_restar, each_line_that_says_so_is_enough
+KILLED   restart: a data abort is not looked for                        Ran 647 FAILED (failures=27); 4 test(s): a_reply_that_shows_an_exception_or_a_restar, a_reply_that_shows_an_exception_or_a_restar
+KILLED   restart: a prefetch abort is not looked for                    Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: an undefined instruction is not looked for            Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: a software interrupt is not looked for                Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: U-Boot's word that it resets the processor is not looked for Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: the line of the reset itself is not looked for        Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: the loader's line is not looked for                   Ran 647 FAILED (failures=3); 3 test(s): each_line_that_says_so_is_enough, the_rule_over_everything_the_board_has_said
+KILLED   restart: the countdown's line is not looked for                Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: U-Boot's own line is no sign in any reply             Ran 647 FAILED (failures=2); 2 test(s): each_line_that_says_so_is_enough, what_is_not_such_a_line
+KILLED   restart: U-Boot's own line is a sign in the reply to version too Ran 647 FAILED (failures=133, errors=279); 229 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   restart: an exception is seen only at a line's beginning       Ran 647 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: the board's lines are looked for anywhere in a line   Ran 647 FAILED (failures=1); 1 test(s): what_is_not_such_a_line
+KILLED   restart: U-Boot's own line is looked for anywhere in a line    Ran 647 FAILED (failures=1); 1 test(s): what_is_not_such_a_line
+KILLED   restart: the look asks again for a dump whose reply shows one  Ran 647 FAILED (failures=1); 1 test(s): a_reply_that_shows_an_exception_or_a_restar
+KILLED   restart: the look goes on reading after a write whose reply shows one Ran 647 FAILED (failures=1); 1 test(s): a_reply_that_shows_an_exception_or_a_restar
+restored: Ran 647 OK; 0 test(s):  (8 copies)
+16 mutants, 0 survived
+# exit 0

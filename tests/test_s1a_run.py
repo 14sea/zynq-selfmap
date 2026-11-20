@@ -21,6 +21,15 @@ import s1a_run  # noqa: E402
 TWIN = ROOT / "build" / "prober" / "twin"
 KNOWN = json.loads((ROOT / "data" / "known_frames_17A6.json").read_text())
 PROMPT = b"Zynq> "
+# What U-Boot prints when an access raises an exception (as it is generally known; this board has shown none), and what
+# this board printed when it started again on 2026-11-19 (evidence/s1b5a_17A6_2026-11-19/precheck_console.log): it
+# comes to a prompt by itself, so a restart is followed by a prompt like any reply.
+ABORTS = ("data abort\r\npc : [<1ff5e1a4>]\t   lr : [<1ff5e194>]\r\nreloc pc : [<0403a1a4>]\t   lr : [<0403a194>]\r\n"
+          "sp : 1eb1ed28  ip : 00000000\t fp : 00000002\r\nFlags: nZCv  IRQs off  FIQs off  Mode SVC_32\r\nCode: e1a04000 e5943000 (e5933000)\r\n"
+          "Resetting CPU ...\r\n\r\nresetting ...\r\n")
+STARTS_AGAIN = ("U-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\nSilicon version:\t3\r\nTrying to boot from MMC1\r\n\r\n\r\n"
+                "U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\nCPU:   Zynq 7z010\r\nSilicon: v3.1\r\nModel: Ebang EBAZ4203\r\n"
+                "DRAM:  ECC disabled 512 MiB\r\nIn:    serial@e0001000\r\nOut:   serial@e0001000\r\nErr:   serial@e0001000\r\n\r\n")
 
 
 class FakeUBoot:
@@ -47,7 +56,9 @@ class FakeUBoot:
     def cmd(self, line: str, timeout: float = 10):
         self.commands.append(line)
         w = line.split()
-        out = getattr(self, "c_" + w[0].replace(".", "_"))(w)
+        if len(self.commands) in self.q.get("restarts_at", ()):                    # at the so-manieth thing sent: an exception, the
+            return (line + "\r\n" + self.q.get("restart_text", ABORTS + STARTS_AGAIN)).encode() + PROMPT, True   # board starts again and
+        out = getattr(self, "c_" + w[0].replace(".", "_"))(w)                      # answers everything after it as if nothing had been
         lose = self.q.get("lossy", {})                                             # replies that lose a stretch of characters, as the
         which = lose.get(line, lose.get(w[0]))                                     # console did on 2026-11-17: by the whole line or by
         if which is not None:                                                      # the command; True: every time, or the numbers of
@@ -510,6 +521,75 @@ class RepliesNotWhole(unittest.TestCase):
         rec, u, _ = run(hang_at="crc32")
         self.assertEqual((rec["verdict"], len(sent(u, "crc32")), rec["replies_not_whole"], sent(u, "go")), ("FAIL", 1, [], []))
         self.assertIn("no prompt after 'crc32", rec["stop"])
+
+    def test_a_reply_that_shows_an_exception_or_a_restart_stops_the_run_at_whatever_command(self) -> None:
+        """Review of 363ad58: such a reply has no dump in it, so it was taken for one that lost characters and asked
+        for again; the board, started again, answered, and the run went on to `go`. The pretend board here answers
+        everything after its restart as a board would that had lost nothing: only the reply itself can stop the run."""
+        _, base, _ = run(card_has_pl=True)
+        places = {}                                               # one place for each kind of command, and each place of the two
+        for i, c in enumerate(base.commands, 1):                  # that are read again when not whole
+            if c.split()[0] in ("md.l", "crc32") or c.split()[0] not in [k.split()[0] for k in places.values()]:
+                places[i] = c
+        places = {i: c for i, c in places.items() if c.split()[0] != "loady"}       # a transfer is not a command's reply
+        self.assertEqual({c.split()[0] for c in places.values()}, {"version", "dcache", "md.l", "mw.l", "fatload", "crc32", "fpga", "go", "fatwrite"})
+        self.assertGreater(len(places), 15)
+        for i, c in places.items():
+            with self.subTest(c, at=i):
+                rec, u, out = run(card_has_pl=True, restarts_at={i})
+                self.assertEqual(u.commands, base.commands[:i], "nothing is sent after it, and it is not sent again")
+                self.assertEqual((rec["verdict"], rec["replies_not_whole"]), ("FAIL", []))
+                self.assertIn(f"U-Boot took an exception or the board started again at {c!r} (its reply has the line 'data abort')", rec["stop"])
+                self.assertEqual(json.loads((out / "run.json").read_text())["steps"][-1]["cmd"], c, "the reply is in the record")
+                self.assertEqual("went" in rec, i > base.commands.index("go 02000000") + 1)
+
+    def test_each_line_that_says_so_is_enough(self) -> None:
+        _, base, _ = run(card_has_pl=True)
+        at = base.commands.index(STATUS) + 1
+        for text, line in (("data abort\r\n", "data abort"), ("f800700c:prefetch abort\r\n", "f800700c:prefetch abort"),
+                           ("undefined instruction\r\n", "undefined instruction"), ("software interrupt\r\n", "software interrupt"),
+                           ("Resetting CPU ...\r\n", "Resetting CPU ..."), ("resetting ...\r\n", "resetting ..."),
+                           ("U-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n", "U-Boot SPL 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)"),
+                           ("\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\n", "U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)"),
+                           ("Hit any key to stop autoboot:  0 \r\n", "Hit any key to stop autoboot:  0")):
+            with self.subTest(line):
+                self.assertEqual(s1a_run.restart_seen(STATUS, STATUS + "\r\n" + text + PROMPT.decode()), line)
+                rec, u, _ = run(card_has_pl=True, restarts_at={at}, restart_text=text + "f800700c: a802000a    ....\r\n")   # and the word after it, whole
+                self.assertEqual((u.commands, rec["verdict"]), (base.commands[:at], "FAIL"))
+                self.assertIn(repr(line), rec["stop"])
+
+    def test_what_is_not_such_a_line(self) -> None:
+        seen = s1a_run.restart_seen
+        version = "version\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\narm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\r\nZynq> "
+        self.assertIsNone(seen("version", version), "U-Boot's own line in the reply to `version` is the answer")
+        self.assertIsNotNone(seen("md.l f800700c 1", version), "in any other reply it is the board starting")
+        self.assertEqual(seen("version", "version\r\n" + STARTS_AGAIN + "Zynq> "), STARTS_AGAIN.split("\r\n")[0], "and before it comes the loader's line")
+        self.assertIsNone(seen(STATUS, "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "))
+        self.assertIsNone(seen("fpga", "fpga loadb 0 04000000 1fcc13\r\n  design filename = \"a;UserID=0XFFFFFFFF;Version=2025.2\"\r\nZynq> "))
+        self.assertIsNone(seen("go", "go 02000000\r\n## Starting application at 0x02000000 ...\r\nSM1 start\r\nSM1 done 1 0\r\n## Application terminated, rc = 0x1\r\nZynq> "))
+        self.assertIsNone(seen(STATUS, "a line that speaks of the U-Boot 2026.04 it runs under, or of resetting ... something\r\n"), "these two are held to a line's beginning")
+
+    def test_the_rule_over_everything_the_board_has_said(self) -> None:
+        """No reply kept with a run says so; and of everything in the console logs the replies to `reset` — sent
+        between the runs of a chain, never by the run script — say so, every one of them, and nothing else does."""
+        replies = 0
+        for f in sorted((ROOT / "evidence").rglob("run.json")):
+            for st in json.loads(f.read_text()).get("steps", []):
+                replies += 1
+                self.assertIsNone(s1a_run.restart_seen(st["cmd"], st["reply"]), (f, st["cmd"]))
+        self.assertGreater(replies, 24000)
+        resets = others = 0
+        for f in sorted((ROOT / "evidence").rglob("*console*.log")):
+            parts = re.split(r"\n<<TX b'(.*?)'>>\n", f.read_bytes().decode("utf-8", "replace"))
+            for cmd, reply in zip(parts[1::2], parts[2::2]):
+                cmd = cmd.replace("\\r", "").strip()
+                if cmd == "reset":
+                    resets += 1
+                    self.assertTrue(s1a_run.restart_seen(cmd, reply).startswith("U-Boot SPL 2026.04"), f)
+                else:
+                    others += 1
+                    self.assertIsNone(s1a_run.restart_seen(cmd, reply), (f, cmd))
+        self.assertGreater(resets, 180); self.assertGreater(others, 25000)
 
     def test_the_header_is_held_to_the_pulled_result(self) -> None:
         """The header is accepted by its form when it is read. A dump that is whole in form and wrong in a word that

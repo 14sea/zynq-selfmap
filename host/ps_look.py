@@ -29,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "host"))
-from s1a_run import MAX_READS, TRANSPORT, whole  # noqa: E402
+from s1a_run import MAX_READS, TRANSPORT, restart_seen, whole  # noqa: E402
 
 LOOK = [  # (the dump, the registers its words are — names and addresses from UG585's register reference)
     ("md.l f8007000 6", ["devcfg.CTRL", "devcfg.LOCK", "devcfg.CFG", "devcfg.INT_STS", "devcfg.INT_MASK", "devcfg.STATUS"]),
@@ -69,6 +69,9 @@ def steps(con, pause, record: dict) -> dict:
         for attempt in range(1, MAX_READS + 1):
             record["sent"].append(cmd)
             reply, ok = con.cmd(cmd, 10)
+            seen = restart_seen(cmd, reply.decode("utf-8", "replace"))
+            if seen:                                    # not a reply that lost characters: it is not asked for again
+                record["stopped"] = f"U-Boot took an exception or the board started again at `{cmd}` (its reply has the line {seen!r}); nothing more was sent"; return None
             if not ok:
                 record["stopped"] = f"no prompt after `{cmd}`"; return None
             got = whole(cmd, reply.decode("utf-8", "replace"))
@@ -94,7 +97,10 @@ def steps(con, pause, record: dict) -> dict:
         record["stopped"] = "the status has not both PCFG_DONE and bit 5 set: nothing was written"
         return record
     record["sent"].append(CLEAR); record["clear_sent"] = True
-    _, ok = con.cmd(CLEAR, 10)                          # once; never again, whatever comes back
+    reply, ok = con.cmd(CLEAR, 10)                      # once; never again, whatever comes back
+    seen = restart_seen(CLEAR, reply.decode("utf-8", "replace"))
+    if seen:
+        record["stopped"] = f"U-Boot took an exception or the board started again at `{CLEAR}` (its reply has the line {seen!r}); nothing more was sent"; return record
     if not ok:
         record["stopped"] = f"no prompt after `{CLEAR}`"; return record
     for _ in range(READS_AFTER):

@@ -160,6 +160,26 @@ class Stop(Exception):
     pass
 
 
+# What U-Boot prints when an access raises an exception in the processor, and what this board prints when it starts
+# again (its console of 2026-11-19 after `reset`: the loader's line, then U-Boot's own, then a prompt — it does not
+# wait at a countdown). The exception lines are U-Boot's as they are generally known; none has been seen on this board.
+# A reply with one of these is not a reply that lost characters: what was loaded and configured before it is gone or
+# in doubt, and the next command would be given to a board in another state. The names of the exceptions are looked
+# for anywhere in a line (a dump may have begun its line before the access was made), the rest at a line's beginning.
+EXCEPTION = re.compile(r"data abort|prefetch abort|undefined instruction|software interrupt|Resetting CPU")
+STARTED_AGAIN = re.compile(r"resetting \.\.\.|U-Boot SPL |Hit any key to stop autoboot")
+BANNER = re.compile(r"U-Boot \d{4}\.\d{2}")       # the reply to `version` has this line, and no other reply has
+
+
+def restart_seen(cmd: str, text: str) -> str | None:
+    """The first line of a reply that says U-Boot took an exception or the board started again; None if no line does."""
+    for ln in text.splitlines():
+        ln = ln.strip()
+        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):
+            return ln
+    return None
+
+
 # What the serial line can raise under the run script, none of it a fault of the script: pyserial's SerialException and
 # whatever the operating system says of a device that went away (OSError); the tty layer beneath pyserial, which
 # raises an error of its own when a port that vanished is flushed (termios.error is not an OSError); and the
@@ -292,6 +312,9 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         text = reply.decode("utf-8", "replace")
         record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd,
                                 "reply": text if len(text) < 2000 else text[:300] + " … " + text[-300:]})
+        seen = restart_seen(cmd, text)                # before the reply is taken for anything, and before it may be asked for again
+        if seen:
+            raise Stop(f"U-Boot took an exception or the board started again at {cmd!r} (its reply has the line {seen!r}); nothing more was sent")
         if not ok:
             raise Stop(f"no prompt after {cmd!r}")
         return text
@@ -300,7 +323,8 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         """A read-only command whose reply has a known form (nothing else gets past whole()). If the reply is not whole
         the same command is sent again, at most MAX_READS times in all; every reply that was not whole is listed.
         A whole reply is returned as it is, whatever it says. None if no reply was whole. A missing prompt is not
-        a reply that is not whole: there do() stops the run, as for any command."""
+        a reply that is not whole, and neither is one that shows an exception or a restart: there do() stops the run,
+        as for any command."""
         for attempt in range(1, MAX_READS + 1):
             got = whole(cmd, do(cmd, what if attempt == 1 else f"{what} (attempt {attempt} of at most {MAX_READS}: the reply before was not whole)", timeout))
             if got is not None:

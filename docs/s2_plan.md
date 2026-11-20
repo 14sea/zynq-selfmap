@@ -11,8 +11,9 @@ when the step before it has answered. The points for the owner are in section 11
 the owner decided in section 12. **No board run happens without the owner's word for that
 step.**
 
-**Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13) and
-waits for the owner's review. Nothing of S2 has been on a board. S2.2 to S2.5 are not
+**Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13). A
+review of it found one fault in the run script, which is mended (section 14). Nothing of S2
+has been on a board. S2.2 to S2.5 are not
 proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
@@ -670,3 +671,78 @@ then run again and are killed, and the five of the packet reader with them. The 
 - Whether a second build of the same sources gives the same bitstream. It was not tried; the
   set names one file by its hash.
 
+## 14. Review of `363ad58` (2026-11-20): one finding, accepted and mended
+
+**The finding (P2).** Section 7 says of the first access to user logic: if it raises an
+abort, U-Boot prints it and resets, and the prober is not started. The run script did not
+hold to that. A reply with an abort in it has no line of a dump, so `read()` took it for a
+reply that had lost characters and asked again (the rule of `docs/s1b_plan.md`, section 43).
+
+**Reproduced** as the reviewer described it: the pretend board answers `md.l 40000000 1`
+with an abort and the text of a restart, then a prompt; asked again, it answers with the
+word that is wanted. The script sent `go 02000000`, and the run was judged PASS.
+
+**It can happen on this board.** After a reset this board comes to a prompt by itself, without
+a countdown (its console of 2026-11-19, the resets between the runs of a chain). So an abort is followed by a prompt, as a reply is.
+
+**It is wider than the finding.** Every reply that may be asked for again had the same hole —
+the status word, the checksums, the result header, the SLCR words — and `host/ps_look.py`
+has the same loop.
+
+**What is changed** (`restart_seen()` in `host/s1a_run.py`, used by `do()` there and by
+`ps_look.py`). The reply to any command is looked at before it is taken for anything: if a
+line of it says that U-Boot took an exception or that the board started again, the run stops
+there. The reply is in the record, the record is written, nothing more is sent, and the
+command is not sent again. The lines:
+
+- the name of an exception (`data abort`, `prefetch abort`, `undefined instruction`,
+  `software interrupt`) or `Resetting CPU`, anywhere in a line;
+- at a line's beginning: `resetting ...`, the loader's line (`U-Boot SPL `), the line of a
+  countdown, and U-Boot's own first line — this last one not in the reply to `version`,
+  where it is the answer.
+
+The exception lines are U-Boot's as they are generally known. **None has been seen on this
+board**; whether the board prints them so is not established. The lines of a restart are
+this board's own. The reply to a file transfer does not pass through this check; a transfer
+that does not report its size stops the run as before.
+
+**For the owner: the rule holds for the reply to `go` as well.** Until now, a prober that
+did not come back in the ordinary way but left a prompt had its result read from memory,
+saved and judged, whatever the console showed. Now a restart in the reply to `go` stops the
+run with nothing pulled: after a restart the loader has run again, and what stands at the
+result's address is no longer known to be the prober's. This changes what every stage would
+do in a case that none of the 185 stored runs met. The other way — pull it all the same and
+let the judge fail it — is a small change.
+
+**Tests** (647; 641 before).
+
+- The reviewer's case, and the same at two of the SLCR words: asked once, nothing sent
+  after, `go` not sent.
+- A restart at one place of every kind of command the script sends, and at every place of
+  the two kinds that are asked again: the commands sent are those of a clean run up to that
+  place and no more.
+- Each line alone is enough, also when the word that was asked for follows it whole.
+- What is not such a line: U-Boot's line in the reply to `version`, a dump, the load of a
+  design, the prober's own lines.
+- **The rule over everything this board has said.** None of the 24,799 replies kept with
+  the 185 runs has such a line. Of the 25,940 exchanges in the console logs, the ones that
+  have are the 186 replies to `reset` — sent between the runs of a chain, never by the run
+  script — every one of them, and no other.
+- `ps_look.py`: at a dump, at the status before the write (no write follows), at the write
+  (nothing is read after it), at a reading after the write.
+
+**Mutants.** 16 new (727, none stale): the check taken out of the run script and out of each
+of the two places in `ps_look.py`, each line dropped from the list, and the three ways of
+looking for a line changed. All 16 are killed
+(`evidence/host_checks/mutants_2026-11-20_restart.txt`).
+
+**The rest of the review** found nothing to change: the six differences of section 13 were
+compared with the source; the image rebuilt from source is the image; the hashes of the
+design's sources, of the imported files and of the bitstream agree.
+
+**My slip.** Section 7 names three ways the first access can go wrong at the prompt. I built
+and tested two — another word, and no prompt — and not the third, although it is written
+there. And the rule of section 43 asked again for whatever was not whole without asking what
+else a reply that is not whole might be.
+
+**Not changed.** The prober, its image (`480bbdd4…aa46`), the judges, the sets, the design.

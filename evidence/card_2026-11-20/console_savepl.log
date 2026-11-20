@@ -1,0 +1,66 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50033004                             .0.P
+Zynq> 
+<<TX b'fatload mmc 0:1 11000000 s2a.bit\r'>>
+fatload mmc 0:1 11000000 s2a.bit
+Failed to load 's2a.bit'
+Zynq> 
+<<TX b'loady 04000000\r'>>
+loady 04000000
+## Ready for binary (ymodem) download to 0x04000000 at 115200 bps...
+C## Total Size      = 0x001fcc13 = 2083859 Bytes
+## Start Addr      = 0x04000000
+Zynq> 
+<<TX b'crc32 04000000 1fcc13\r'>>
+crc32 04000000 1fcc13
+crc32 for 04000000 ... 041fcc12 ==> 6a1efe06
+Zynq> 
+<<TX b'fatwrite mmc 0:1 04000000 s2a.bit 1fcc13\r'>>
+fatwrite mmc 0:1 04000000 s2a.bit 1fcc13
+2083859 bytes written in 725 ms (2.7 MiB/s)
+Zynq> 
+<<TX b'mmc rescan\r'>>
+mmc rescan
+Zynq> 
+<<TX b'mw.l 11000000 0 1000\r'>>
+mw.l 11000000 0 1000
+Zynq> 
+<<TX b'fatload mmc 0:1 11000000 s2a.bit\r'>>
+fatload mmc 0:1 11000000 s2a.bit
+2083859 bytes read in 426 ms (4.7 MiB/s)
+Zynq> 
+<<TX b'crc32 11000000 1fcc13\r'>>
+crc32 11000000 1fcc13
+crc32 for 11000000 ... 111fcc12 ==> 6a1efe06
+Zynq> 
+<<TX b'fatload mmc 0:1 11000000 carrier.bit\r'>>
+fatload mmc 0:1 11000000 carrier.bit
+2083863 bytes read in 402 ms (4.9 MiB/s)
+Zynq> 
+<<TX b'crc32 11000000 1fcc17\r'>>
+crc32 11000000 1fcc17
+crc32 for 11000000 ... 111fcc16 ==> 72887bf4
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50033004                             .0.P
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 

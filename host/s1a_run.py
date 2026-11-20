@@ -310,10 +310,11 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
     def do(cmd: str, what: str, timeout: float = 10) -> str:
         reply, ok = link(lambda: con.cmd(cmd, timeout))
         text = reply.decode("utf-8", "replace")
-        record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd,
-                                "reply": text if len(text) < 2000 else text[:300] + " … " + text[-300:]})
         seen = restart_seen(cmd, text)                # before the reply is taken for anything, and before it may be asked for again
-        if seen:
+        record["steps"].append({"n": len(record["steps"]) + 1, "what": what, "cmd": cmd,
+                                "reply": text if seen or len(text) < 2000 else text[:300] + " … " + text[-300:]})
+        if seen:                                      # recorded whole and by name: whether the run is made again is decided
+            record["restart"] = {"step": len(record["steps"]), "cmd": cmd, "line": seen}   # by the owner from the record, not here
             raise Stop(f"U-Boot took an exception or the board started again at {cmd!r} (its reply has the line {seen!r}); nothing more was sent")
         if not ok:
             raise Stop(f"no prompt after {cmd!r}")

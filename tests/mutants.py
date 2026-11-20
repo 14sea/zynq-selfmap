@@ -803,7 +803,7 @@ MUTANTS = [
     (RUN, "run s2: a design that is not staged is not refused", "    if not pl_file(exp).is_file():", "    if False:"),
     (RUN, "run s2: S2.0 is judged as S2.1", '"s2_0": {"judge": s2_0_judge,', '"s2_0": {"judge": s2_1_judge,'),
     # ---- 2026-11-20, review of 363ad58: a reply that shows an exception or a restart stops the run; it is not asked for again
-    (RUN, 'restart: the run script takes such a reply like any other', '        if seen:\n            raise Stop(f"U-Boot took an exception', '        if False:\n            raise Stop(f"U-Boot took an exception'),
+    (RUN, 'restart: the run script takes such a reply like any other', '        if seen:                                      # recorded whole and by name', '        if False:                                     # recorded whole and by name'),
     (RUN, 'restart: a data abort is not looked for', 'EXCEPTION = re.compile(r"data abort|prefetch abort|undefined instruction|software interrupt|Resetting CPU")', 'EXCEPTION = re.compile(r"prefetch abort|undefined instruction|software interrupt|Resetting CPU")'),
     (RUN, 'restart: a prefetch abort is not looked for', 'EXCEPTION = re.compile(r"data abort|prefetch abort|undefined instruction|software interrupt|Resetting CPU")', 'EXCEPTION = re.compile(r"data abort|undefined instruction|software interrupt|Resetting CPU")'),
     (RUN, 'restart: an undefined instruction is not looked for', 'EXCEPTION = re.compile(r"data abort|prefetch abort|undefined instruction|software interrupt|Resetting CPU")', 'EXCEPTION = re.compile(r"data abort|prefetch abort|software interrupt|Resetting CPU")'),
@@ -817,6 +817,9 @@ MUTANTS = [
     (RUN, "restart: an exception is seen only at a line's beginning", '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):', '        if EXCEPTION.match(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):'),
     (RUN, "restart: the board's lines are looked for anywhere in a line", '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):', '        if EXCEPTION.search(ln) or STARTED_AGAIN.search(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):'),
     (RUN, "restart: U-Boot's own line is looked for anywhere in a line", '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.match(ln) and cmd.split()[:1] != ["version"]):', '        if EXCEPTION.search(ln) or STARTED_AGAIN.match(ln) or (BANNER.search(ln) and cmd.split()[:1] != ["version"]):'),
+    (RUN, 'restart: the record does not name it', '            record["restart"] = {"step": len(record["steps"]), "cmd": cmd, "line": seen}', '            pass'),
+    (RUN, 'restart: its reply is cut like any long reply', '"reply": text if seen or len(text) < 2000 else', '"reply": text if len(text) < 2000 else'),
+    (RUN, 'restart: the record names the step before it', '            record["restart"] = {"step": len(record["steps"]), "cmd": cmd, "line": seen}', '            record["restart"] = {"step": len(record["steps"]) - 1, "cmd": cmd, "line": seen}'),
     (LOOK, 'restart: the look asks again for a dump whose reply shows one', '            if seen:                                    # not a reply', '            if False:                                    # not a reply'),
     (LOOK, 'restart: the look goes on reading after a write whose reply shows one', '    if seen:\n        record["stopped"] = f"U-Boot took an exception or the board started again at `{CLEAR}`', '    if False:\n        record["stopped"] = f"U-Boot took an exception or the board started again at `{CLEAR}`'),
 ]

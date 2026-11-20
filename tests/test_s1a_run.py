@@ -526,7 +526,7 @@ class RepliesNotWhole(unittest.TestCase):
         """Review of 363ad58: such a reply has no dump in it, so it was taken for one that lost characters and asked
         for again; the board, started again, answered, and the run went on to `go`. The pretend board here answers
         everything after its restart as a board would that had lost nothing: only the reply itself can stop the run."""
-        _, base, _ = run(card_has_pl=True)
+        _, base, base_out = run(card_has_pl=True)
         places = {}                                               # one place for each kind of command, and each place of the two
         for i, c in enumerate(base.commands, 1):                  # that are read again when not whole
             if c.split()[0] in ("md.l", "crc32") or c.split()[0] not in [k.split()[0] for k in places.values()]:
@@ -540,7 +540,12 @@ class RepliesNotWhole(unittest.TestCase):
                 self.assertEqual(u.commands, base.commands[:i], "nothing is sent after it, and it is not sent again")
                 self.assertEqual((rec["verdict"], rec["replies_not_whole"]), ("FAIL", []))
                 self.assertIn(f"U-Boot took an exception or the board started again at {c!r} (its reply has the line 'data abort')", rec["stop"])
-                self.assertEqual(json.loads((out / "run.json").read_text())["steps"][-1]["cmd"], c, "the reply is in the record")
+                stored = json.loads((out / "run.json").read_text())
+                self.assertEqual(stored["steps"][-1]["cmd"], c, "the reply is in the record")
+                self.assertEqual(stored["restart"], {"step": len(stored["steps"]), "cmd": c, "line": "data abort"})
+                if i <= base.commands.index("go 02000000") + 1:
+                    self.assertEqual([p.name for p in out.iterdir()], ["run.json"], "up to and at `go`: nothing is pulled")
+                self.assertNotIn("restart", json.loads((base_out / "run.json").read_text()))
                 self.assertEqual("went" in rec, i > base.commands.index("go 02000000") + 1)
 
     def test_each_line_that_says_so_is_enough(self) -> None:
@@ -557,6 +562,23 @@ class RepliesNotWhole(unittest.TestCase):
                 rec, u, _ = run(card_has_pl=True, restarts_at={at}, restart_text=text + "f800700c: a802000a    ....\r\n")   # and the word after it, whole
                 self.assertEqual((u.commands, rec["verdict"]), (base.commands[:at], "FAIL"))
                 self.assertIn(repr(line), rec["stop"])
+
+    def test_the_reply_is_recorded_whole_however_long_it_is(self) -> None:
+        """Owner, 2026-11-20: such a run stops, pulls nothing, and is recorded; whether it is made again is decided from
+        the record. So the reply is kept whole where any other long reply is cut to its two ends."""
+        _, base, _ = run(card_has_pl=True)
+        at = base.commands.index("go 02000000") + 1
+        long = "go 02000000\r\n## Starting application at 0x02000000 ...\r\nSM1 start\r\n" + "".join(f"a line of the prober, the {k}th\r\n" for k in range(100))
+        rec, u, out = run(card_has_pl=True, restarts_at={at}, restart_text=long[len("go 02000000\r\n"):] + ABORTS + STARTS_AGAIN)
+        stored = json.loads((out / "run.json").read_text())
+        self.assertEqual(stored["steps"][-1]["reply"], long + ABORTS + STARTS_AGAIN + PROMPT.decode())
+        self.assertGreater(len(stored["steps"][-1]["reply"]), 2000)
+        self.assertEqual((stored["restart"]["cmd"], stored["restart"]["line"], stored["verdict"]), ("go 02000000", "data abort", "FAIL"))
+        self.assertNotIn("went", stored)
+        self.assertEqual([p.name for p in out.iterdir()], ["run.json"], "no header, no result, no verdict of a judge")
+        self.assertEqual(u.commands[-1], "go 02000000")
+        pull = next(s for s in json.loads((ROOT / "evidence" / "s1a_17A6_2026-11-13" / "run1" / "run.json").read_text())["steps"] if " … " in s["reply"])
+        self.assertLess(len(pull["reply"]), 700, "as every other long reply is, and was")
 
     def test_what_is_not_such_a_line(self) -> None:
         seen = s1a_run.restart_seen

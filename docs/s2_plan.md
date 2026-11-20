@@ -706,15 +706,21 @@ board**; whether the board prints them so is not established. The lines of a res
 this board's own. The reply to a file transfer does not pass through this check; a transfer
 that does not report its size stops the run as before.
 
-**For the owner: the rule holds for the reply to `go` as well.** Until now, a prober that
-did not come back in the ordinary way but left a prompt had its result read from memory,
-saved and judged, whatever the console showed. Now a restart in the reply to `go` stops the
-run with nothing pulled: after a restart the loader has run again, and what stands at the
-result's address is no longer known to be the prober's. This changes what every stage would
-do in a case that none of the 185 stored runs met. The other way — pull it all the same and
-let the judge fail it — is a small change.
+**The rule holds for the reply to `go` as well.** Until now, a prober that did not come back
+in the ordinary way but left a prompt had its result read from memory, saved and judged,
+whatever the console showed. Now a restart in the reply to `go` stops the run with nothing
+pulled: after a restart the loader has run again, and what stands at the result's address is
+no longer known to be the prober's. This changes what every stage would do in a case that
+none of the 185 stored runs met.
 
-**Tests** (647; 641 before).
+**Decided by the owner (2026-11-20): stop, pull nothing, record; whether the run is made
+again is decided after the record has been looked at.** So nothing here makes a run again:
+the run script ends with FAIL, and a chain halts at a run that stopped, as it does at any
+run with a problem. For the looking, the run record names the restart (`restart`: the step,
+the command, the line) and keeps that reply whole, where any other long reply is cut to its
+two ends; the console log beside it has every byte as always.
+
+**Tests** (648; 641 before).
 
 - The reviewer's case, and the same at two of the SLCR words: asked once, nothing sent
   after, `go` not sent.
@@ -722,6 +728,8 @@ let the judge fail it — is a small change.
   the two kinds that are asked again: the commands sent are those of a clean run up to that
   place and no more.
 - Each line alone is enough, also when the word that was asked for follows it whole.
+- A restart in a long reply to `go`: the reply is in the record whole, the record names it,
+  and the run's directory holds the record and nothing else.
 - What is not such a line: U-Boot's line in the reply to `version`, a dump, the load of a
   design, the prober's own lines.
 - **The rule over everything this board has said.** None of the 24,799 replies kept with
@@ -731,10 +739,14 @@ let the judge fail it — is a small change.
 - `ps_look.py`: at a dump, at the status before the write (no write follows), at the write
   (nothing is read after it), at a reading after the write.
 
-**Mutants.** 16 new (727, none stale): the check taken out of the run script and out of each
-of the two places in `ps_look.py`, each line dropped from the list, and the three ways of
-looking for a line changed. All 16 are killed
-(`evidence/host_checks/mutants_2026-11-20_restart.txt`).
+**Mutants.** 19 new (730, none stale): the check taken out of the run script and out of each
+of the two places in `ps_look.py`, each line dropped from the list, the three ways of looking
+for a line changed, and three on what is recorded. The first 16 were run and are killed
+(`evidence/host_checks/mutants_2026-11-20_restart.txt`) — on the script as it was before the
+owner's decision put the restart into the record. **The three on the record have not been
+run, and the 16 not on the script as it is now**: the complete set is running, and two runs
+of the mutants beside each other take several times as long. All 19 are due, with every
+other mutant of the run script and of `ps_look.py`, when it has ended.
 
 **The rest of the review** found nothing to change: the six differences of section 13 were
 compared with the source; the image rebuilt from source is the image; the hashes of the

@@ -81,7 +81,9 @@ registers is not masked.
 
 **The reference frame `0xb99`** read the same first and last (sha256 `0441772f…8de9`), the
 address register `0xb9b` after each. It is not the carrier's frame (`9029c9d0…`): another
-design, another content at that address, as section 7 expected. The writes to the RAM in
+design, another content at that address, as section 7 expected. (Seen afterwards: the
+hash is that of the all-zero frame in the census. Under `s2a` this address holds nothing,
+which makes it a weak witness; docs/s2_plan.md, section 19, point 6.) The writes to the RAM in
 between did not change it.
 
 **Status words:** in the records 46 taken at a transfer — 45 of them `50033004`, and the

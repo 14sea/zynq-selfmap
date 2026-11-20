@@ -18,7 +18,8 @@ mutants of the run script on the script as it is now (section 16). **S2.0 has be
 board: PASS, and control register 0 has bit 8 set — LUT RAM is not masked in readback, by the
 register's word (section 17).** **S2.1 has been on the
 board: PASS — the first access to our own design returned, and the design is a RAM from its
-own side (section 18).** S2.2 to S2.5 are not proposed in full yet.
+own side (section 18).** **S2.2 is proposed in full in section 19 and waits for the owner's
+answers; nothing of it is built.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -950,3 +951,169 @@ family, to be checked against UG470's text before anything rests on it: the mask
 because reading back a LUT RAM or a shift register that is in use can disturb it. `s2a` is
 idle unless the PS accesses it, and the proposal has to say what idle must mean during a
 read.
+
+## 19. S2.2 — is the RAM seen in readback, where, and does reading disturb it? (proposal, 2026-11-20)
+
+For the owner. Section 8 outlined this step and left its form to S2.0's answer; the answer is
+in (bit 8 of CTL0 is set under both designs), and S2.1 has shown the design working. This
+section is the step in full. The points to decide are at its end. Nothing of it is built.
+
+### What is known now that section 8 did not have
+
+| fact | source |
+|---|---|
+| CTL0 is `0x00000501` with `s2a` loaded: by the register's word, LUT RAM and shift registers are not masked in readback | S2.1, section 18 |
+| The design answers; its RAM holds what is written through its registers, at all 64 addresses and in four states; the shift registers hold the four loaded words | S2.1 |
+| Block type 0 is 3,864 addresses in 112 columns of 28, 30, 36 or 42 frames (18, 8, 82 and 4 of them) | `census/frame_census_17A6.json` |
+| A read of up to three frames in one transfer delivers what single reads deliver, and the address register after it is known: every address of the census was read once in such a read besides its single reads, and each frame agreed | S1b (the walk's second path, `docs/s1b_plan.md`; the census's readings) |
+| A run whose result is 561 KB takes 255 s from its start to its verdict — 2.2 KB of result a second, nearly all of it the pull over the console | 118 stored runs |
+| A plain readback reads "the current values on all user memory elements (LUT RAM, SRL, and block RAM)"; the state of registers is read only after a capture (the `CAPTUREE2` primitive or the `GCAPTURE` command) | UG470, chapter 6 |
+| With `s2a` loaded the frame `0xb99` is all zero: its hash in S2.1 is the hash of the all-zero frame | S2.1's verdict; the census |
+
+And what is still not known: UG470 has no sentence that reading back a LUT RAM in use
+disturbs it (section 2). I believe from documents of older families that it can, and that
+this is why the mask exists; that belief is in no program. The step measures it.
+
+### The run
+
+One run does this, for a *share* of the addresses of block type 0:
+
+1. the gates of S2.1 (`SEU_EN` clear; the four SLCR words; the design's identification);
+2. CTL0 read once (the packet of S2.0): the run's own record of the mask while it reads;
+3. the reference frame, as in every run;
+4. **for each of three states — all zero, all one, all zero:**
+   - the RAM is written to the state through the design's registers, all 64 addresses, and
+     read back through them: it must hold the state;
+   - the counter is read;
+   - **every address of the share is read through PCAP**, the device's status recorded
+     after every read; where bit 5 of `INT_STS` shows, that bit alone is cleared and the
+     clearing recorded (section 12, point 7);
+   - the RAM is read through the design's registers again, all 64 addresses: **it must still
+     hold the state** — this is question 5, asked of the device;
+   - the counter is read again and must have gone on; the shift registers' outputs are read
+     and must be the loaded words; the design's count of writes must be the writes made and
+     its count of shifts zero;
+5. CTL0 and the reference frame again.
+
+Nothing is written to configuration memory or to a configuration register. The prober
+writes what it wrote in S2.1 — the design's RAM, through the design — and one thing more:
+`0x20` to `INT_STS`, and only after a status word with bit 5 has been recorded.
+
+**How the frames are read.** In reads of three frames, the form S1b used in every chain;
+a column's last read is of what is left (one frame, in the columns of 28). 1,300 reads cover
+block type 0 once. Nothing about reading is new in this step; what is new is that content
+is looked for.
+
+**Where the addresses come from.** From the census: the host writes the list of reads of
+the share — an address and a number of frames each — into memory before the prober is
+started, as it writes the parameters. The prober does no arithmetic on addresses; it
+refuses a list with an address outside the envelope or a count above three, and echoes the
+list in its result. The judge holds the echoed list to the planned one, and the planned one
+to the census: every address in it is one the device named, and every read lies in one
+column.
+
+**The shares.** A read with its record is 480 words; three states of a share of 179 reads
+fill the result area (1 MiB, as it is). So block type 0 is **eight runs**, each of whole
+columns, each making all three states for its own columns, a `reset` and a fresh load of
+the design between them — a chain, driven as S1b's chains were, that halts at the first run
+that is not PASS. About 7.5 MB in all: **about an hour of board time**, by the rate above.
+
+### What the host does with it
+
+Per run, from the raw words and after they are saved: everything S2.1's judge holds, the
+list, the address register after every read (as the census has it), the status words, the
+three RAM read-backs. Then, for every bit of every frame read, its three readings:
+
+| readings in the states 0, 1, 0 | the bit is |
+|---|---|
+| alike | *still* |
+| 0, 1, 0 | a *candidate*: it follows the RAM |
+| 1, 0, 1 | a candidate, inverted |
+| anything else | *restless*: it changed between two readings of the same state |
+
+A run passes if it has no restless bit and nothing else is wrong; its candidates are
+listed, each as an address, a word and a bit. A program over the eight verdicts (as
+`s1b2_closed.py` was for the chains) closes the step: **the candidates of all runs together
+are the answer, and their number is known beforehand — 256, the bits of RAM in the design.**
+
+### What may come out, said beforehand
+
+1. **256 candidates, all other bits still, the RAM undisturbed.** The RAM is seen, the mask
+   bit means what the table says, reading does not disturb a RAM that is not being written.
+   The addresses in which the candidates lie are what S2.3 reads.
+2. **No candidate.** With bit 8 set that contradicts the register's own word. Nothing is
+   concluded and no write of MASK or CTL0 is designed; the next proposal is block types 1
+   and 2 under the same three states, since nothing here says the RAM must lie in block
+   type 0.
+3. **Fewer than 256, not none.** Some of the RAM is seen and some is not, or is elsewhere.
+   The candidates are reported as they are; block types 1 and 2 as in 2.
+4. **More than 256.** Something besides the 256 cells follows the state — the same cell
+   seen at two places, or logic of the design. Reported; S2.3's code probes say which
+   candidates are cells of the RAM, because only those spell a number.
+5. **Candidates, some as written and some inverted.** Recorded as found; not a failure.
+6. **Restless bits.** A bit that reads differently in the two all-zero states. The run
+   fails and names them. (By UG470 the registers of the design — the counter among them —
+   are not read without a capture, and the prober sends none; if they show nonetheless,
+   this is where.)
+7. **The RAM does not hold its state after the frames were read.** Reading disturbs it.
+   The prober stops there with a code of its own; the result has everything up to that
+   point, and the difference. This is an answer to question 5, and S2.3 cannot be done as
+   outlined: a proposal of its own follows.
+8. **The counter stands, the shift registers read otherwise, or the counts of writes are
+   off.** The design did not go on as it was. A stop, as in S2.1.
+9. **Bit 5 shows.** Not a failure: which read raised it is recorded, it is cleared, and
+   the question S1b left (section 1) has its first answer — whether it comes with frames
+   whose RAM content is no longer what was loaded.
+10. **The interface fails, a read is short, the address register is not what the census
+    has.** A stop, as always.
+
+### What has to be built
+
+- **The prober: a new stage, and so a new image** — the second of point 10. The list of
+  reads and its checks; the three states; the RAM, counter, shift-register and count checks
+  around each pass; the status after every read and the clearing of bit 5; a stop code for
+  a disturbed RAM. The log of accesses to the design as in S2.1, larger. The guard and its
+  list of what may be sent to PCAP are not changed: every packet of this stage exists.
+- **The twin**: configuration memory in which bits chosen by the test follow the RAM of
+  the design's model, with a switch for each outcome above that a prober can meet (2 to 9).
+- **The host**: the judge; the program that makes the shares from the census; the closing
+  program; the chain's driver for this set; the run script's step that writes the list.
+- Tests and mutants; and, by the owner's rule for a new image, **the complete set of
+  mutants before it first goes on a board** — about seven hours, as measured today.
+
+### What S2.2 cannot show
+
+- Which candidate is which bit of the RAM. All 256 change together here. S2.3.
+- Anything about the shift registers' bits: they are never shifted, so they are still. S2.4.
+- Why a bit follows, or what the still bits are.
+- That reading does not disturb a RAM that is being written at that moment: the prober is
+  the only writer and does not write while it reads.
+
+### For the owner
+
+1. **The breadth:** all of block type 0, three states, and nothing of block types 1 and 2
+   unless fewer than 256 candidates are found — then as a proposal of its own. *(Recommended.
+   Block type 1 raises bit 5 by itself and would blur outcome 9.)*
+2. **The read form:** three frames a read, as proven — eight runs, about an hour. The other
+   way is one read for a whole column: five runs, about 35 minutes, but a read of up to 42
+   frames has never been made here and would first have to be shown to deliver what single
+   reads do. *(Recommended: three frames. One new thing a step.)*
+3. **The list of reads comes from the census and is written by the host;** the prober does
+   no arithmetic on addresses and echoes the list. *(Recommended.)*
+4. **A RAM that does not hold its state after a pass stops the run** (outcome 7), instead
+   of being recorded while the run goes on. *(Recommended: what follows such a pass is not
+   what this plan assumes.)*
+5. **CTL0 is read at the start and the end of every run.** One packet more, already
+   allowed. *(Recommended.)*
+6. **The reference frame stays `0xb99`,** although it is all zero under `s2a` and so a weak
+   witness. What stands in for it here: every frame of the share is read three times, and
+   every bit that is not a candidate must read alike. *(Recommended; choosing another
+   frame would need a reason to prefer one, and there is none yet that the device gave.)*
+7. **One word for the whole chain of eight runs,** after the owner's review of the "as
+   built" section. The chain halts by itself at the first run that is not PASS, at a
+   restart, and at anything the judge does not know; it runs nothing again. The first run's
+   result is committed before the second starts, as in S1b. *(Recommended. The other way
+   is the first run alone, a report, and a second word for the rest.)*
+8. **The complete set of mutants** for the new image before the board, as the rule has it:
+   about seven hours on this host, during which nothing else heavy runs and the board is
+   not used. *(No choice proposed; said so that the time is known.)*

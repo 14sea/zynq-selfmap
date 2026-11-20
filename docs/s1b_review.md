@@ -336,3 +336,13 @@ the run made again on the code as committed.
 itself, outside the run script. A failure of the port there ends the driver with a
 traceback. No record is lost by it — no run is in progress, and the chain is assessed from
 what is on disk when it is started again — so it is left as it is and said here.
+
+## 13. S1b is closed (2026-11-20)
+
+The owner, having gone through sections 11 and 12: no objections; S1b is closed.
+
+F4 is done with that: the proposal's stage table and its opening paragraph say S1b is done,
+and the index at the head of the plan says so too. Nothing else was changed, no program
+among it. F5 to F8 stand as recommended, and with section 10 and items 6 to 10 of
+section 6 they are what S2 starts from. The next thing is the proposal for S2; it has not
+been begun.

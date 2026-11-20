@@ -5,7 +5,7 @@ has listed its own frames. Each step gets its plan reviewed, its host side built
 the owner's go-ahead before it touches the board. This document proposes how to walk, and
 details the first step only.
 
-## Where S1b stands (an index, kept up to date; last changed 2026-11-19, after the census)
+## Where S1b stands (an index; S1b was closed by the owner on 2026-11-20)
 
 The sections below are in the order in which things were proposed, built, reviewed and run,
 and none is rewritten afterwards. This table says where each step is to be found and what it
@@ -60,7 +60,7 @@ reference frame alone. UG470 lists block-RAM content among what a readback reads
 background readback check that skips it; section 46), but nothing in S1b tests whether what
 is delivered in block type 1 is what is stored there.
 
-**Still open in S1b.**
+**Left open when S1b was closed (2026-11-20).** None of it is S1b's to do any more; it goes to S2 or waits for the owner.
 
 - Block type 3 (section 67): ten addresses seen in one unfinished pass, not walked as the
   others were — the walk allows one standstill a pass and this block type has two row ends
@@ -73,7 +73,7 @@ is delivered in block type 1 is what is stored there.
   reviewed before S4 is decided) is written: `docs/s1b_review.md`, with eight findings. The
   three recommended for now are done (its section 11), and two reviews of that work are
   answered (its section 12: three findings, on the run script's record when the serial port fails and on
-  the audit's comparison); S1b is closed when the owner says so. The census document is written
+  the audit's comparison). The owner closed S1b on 2026-11-20 (its section 13). The census document is written
   (section 68).
 - Not explained: why the stores to the stack overflowed the FIFO; what the places at the end
   of a row are.

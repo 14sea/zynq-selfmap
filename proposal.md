@@ -4,14 +4,15 @@ v0.3 folds in the owner's decisions of 2026-11-13 (section 12). The proposal its
 changed since; what has been done under it is noted where it belongs — the stage table of
 section 7, the open questions of section 11 — and those notes are dated.
 
-**Where the work stands (2026-11-19).** S0 and S1a are done. S1b, the read-only census, has
+**Where the work stands (2026-11-20).** S0, S1a and S1b are done: the owner closed S1b on
+2026-11-20, after its review as a whole (`docs/s1b_review.md`). S1b, the read-only census, has
 block types 0 and 1 complete and graded: 3,864 and 1,280 frame addresses, 5,144 in all,
 nothing differs from prjxray-db. Block type 2 is complete too: 112 frame addresses, two rows of 56 columns of one frame, every
 frame all zero; not graded, there being nothing to grade against. After it the device names
 `0x01800000` (block type 3): one unfinished pass there read ten addresses, all zero, and left the
 register at `0x02000000`, which was not read. S2 to
 S6 have not been begun, and nothing has written configuration memory. The frame census is
-written as one document (`census/`); S1b awaits its review as a whole. The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
+written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 
 ## 1. In one sentence
 
@@ -179,7 +180,7 @@ the chain halted there.
 |---|---|---|---|
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
 | S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range — **done 2026-11-13, PASS** (`evidence/s1a_17A6_2026-11-13/`) |
-| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **in progress (2026-11-19)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, where one unfinished pass (2026-11-19) read ten addresses of block type 3, all zero, and left the register at `0x02000000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
+| S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **done (closed by the owner 2026-11-20, after the review in `docs/s1b_review.md`)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, where one unfinished pass (2026-11-19) read ten addresses of block type 3, all zero, and left the register at `0x02000000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
 | S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |

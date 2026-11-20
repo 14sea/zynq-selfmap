@@ -1,0 +1,153 @@
+# python3 tests/mutants.py s2      (first run, 2026-11-20, on the tree with 639 tests)
+unmutated: Ran 639 OK; 0 test(s): 
+KILLED   s2: the IDCODE read sends the CTL0 header                      Ran 639 FAILED (failures=29); 20 test(s): a_ctl0_that_fits_no_description_is_recorded, each_operation_reads_the_register_its_table
+KILLED   s2: the CTL0 read sends the STAT header                        Ran 639 FAILED (failures=25); 21 test(s): a_ctl0_that_fits_no_description_is_recorded, a_register_that_moves_is_named
+KILLED   s2: the STAT read is the FAR read                              Ran 639 FAILED (failures=25); 21 test(s): a_ctl0_that_fits_no_description_is_recorded, a_register_that_moves_is_named
+KILLED   s2: the guard accepts a read of COR0 too                       Ran 639 FAILED (failures=1); 1 test(s): only_four_registers_and_only_one_word_of_ea
+KILLED   s2: the guard refuses the CTL0 read                            Ran 639 FAILED (failures=33, errors=4); 28 test(s): a_ctl0_that_fits_no_description_is_recorded, a_register_that_moves_is_named
+KILLED   s2: no SEU_EN gate                                             Ran 639 FAILED (failures=6); 6 test(s): a_gate_stop_names_the_gate, seu_en_set_stops_the_run_before_anything_is
+KILLED   s2: the SEU_EN gate in the older stages too                    Ran 639 FAILED (failures=1); 1 test(s): the_older_stages_have_no_such_gate
+KILLED   s2: the SEU_EN gate looks at another bit                       Ran 639 FAILED (failures=6); 6 test(s): a_gate_stop_names_the_gate, seu_en_set_stops_the_run_before_anything_is
+KILLED   s2: a register that is not on the list is taken                Ran 639 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: a register named beyond the last operation is taken        Ran 639 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: an address beyond the last operation is taken              Ran 639 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: nine operations are taken                                  Ran 639 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: a wait that does not exist is run                          Ran 639 FAILED (failures=1); 1 test(s): the_wait_is_the_one_asked_for_and_another_i
+KILLED   s2: word 13 is not looked at                                   Ran 639 FAILED (failures=2); 2 test(s): a_block_that_is_not_of_this_form_is_refused, bad_parameters
+KILLED   s2: word 27 is not looked at                                   Ran 639 FAILED (failures=1); 1 test(s): an_envelope_that_is_not_inside_the_design_i
+KILLED   s2: stage 6 takes a word of the second envelope                Ran 639 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: stage 6 takes an SLCR word                                 Ran 639 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: stage 6 does not take the choice of the wait               Ran 639 FAILED (failures=1); 1 test(s): the_wait_is_the_one_asked_for_and_another_i
+KILLED   s2: the console says stage 6 for stage 7                       Ran 639 FAILED (failures=11); 5 test(s): an_envelope_that_is_not_inside_the_design_i, it_completes_and_says_so
+KILLED   s2: stage 7's records begin where the PL block does            Ran 639 FAILED (failures=55, errors=13); 29 test(s): a_gate_stop_names_the_gate, an_access_to_the_design_in_a_run_that_never
+KILLED   s2: stage 6 looks at the SLCR too                              Ran 639 FAILED (failures=39, errors=8); 29 test(s): a_ctl0_that_fits_no_description_is_recorded, a_failure_of_the_interface_during_a_registe
+KILLED   s2: an SLCR word that differs is let pass                      Ran 639 FAILED (failures=13); 7 test(s): a_gate_stop_names_the_gate, an_access_to_the_design_in_a_run_that_never
+KILLED   s2: the last SLCR word is not compared                         Ran 639 FAILED (failures=2); 2 test(s): an_slcr_word_that_is_not_the_board_s_stops_, stage_seven
+KILLED   s2: an envelope beyond the design is taken                     Ran 639 FAILED (failures=1); 1 test(s): an_envelope_that_is_not_inside_the_design_i
+KILLED   s2: an envelope below the PL is taken                          Ran 639 FAILED (failures=2); 1 test(s): an_envelope_that_is_not_inside_the_design_i
+BROKEN   s2: the helper ignores the envelope                            Ran 228 FAILED (errors=450); 141 test(s): Class, a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: after a refusal the helper goes on accessing               Ran 639 FAILED (failures=2); 2 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: a refused access is made all the same                      Ran 639 FAILED (failures=3, errors=442); 261 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s2: an access is made and not counted                          Ran 639 FAILED (failures=41, errors=2); 24 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: the log says a write was a read                            Ran 639 FAILED (failures=30); 16 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: the log holds another value than was written               Ran 639 FAILED (failures=35, errors=1); 21 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: the place it stopped at is not said                        Ran 639 FAILED (failures=15); 9 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: a wrong identification word is let pass                    Ran 639 FAILED (failures=2); 2 test(s): stage_seven, the_identification_register
+KILLED   s2: a scratch register that does not read back is let pass     Ran 639 FAILED (failures=2); 2 test(s): stage_seven, the_scratch_register
+KILLED   s2: a counter that stands still is let pass                    Ran 639 FAILED (failures=2); 2 test(s): stage_seven, the_counter
+KILLED   s2: a RAM that does not read back is let pass                  Ran 639 FAILED (failures=5); 4 test(s): s2_1_user_logic_failing_under_the_prober_is, stage_seven
+BROKEN   s2: shift registers that move are let pass                     Ran 228 FAILED (errors=450); 141 test(s): Class, a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: the second reading of the shift registers is held to the wrong entry Ran 639 FAILED (failures=3); 3 test(s): s2_1_user_logic_failing_under_the_prober_is, stage_seven
+KILLED   s2: a wrong count of writes is let pass                        Ran 639 FAILED (failures=2); 2 test(s): stage_seven, the_design_s_count_of_writes
+KILLED   s2: the RAM's third state is all ones again                    Ran 639 FAILED (failures=15); 9 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2: the RAM is read back at one address only                   Ran 639 FAILED (failures=27); 16 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2: the shift registers are read once                          Ran 639 FAILED (failures=18); 12 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2: after user logic failed the registers are read all the same Ran 639 FAILED (failures=18); 11 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: user logic is used in stage 6 too                          Ran 639 FAILED (failures=33, errors=6); 27 test(s): a_ctl0_that_fits_no_description_is_recorded, a_failure_of_the_interface_during_a_registe
+KILLED   s2: the prober may write the shift registers' data register    Ran 639 FAILED (failures=1, errors=442); 259 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s2 judge: IDCODE is not held to the known word                 Ran 639 FAILED (failures=2); 2 test(s): idcode, s2_0_with_a_wrong_idcode_is_saved_whole_and
+KILLED   s2 judge: IDCODE is held to one revision                       Ran 639 FAILED (failures=1); 1 test(s): the_revision_of_the_die_is_its_own
+KILLED   s2 judge: the address register is not held to the rule         Ran 639 FAILED (failures=1); 1 test(s): the_address_register_must_follow_the_rule_t
+KILLED   s2 judge: a register that reads two ways is not named          Ran 639 FAILED (failures=2); 2 test(s): a_register_that_moves_is_named, a_value_changed_under_a_clean_code
+KILLED   s2 judge: a register that read two ways still gets its bit said Ran 639 FAILED (failures=1); 1 test(s): a_register_that_moves_is_named
+KILLED   s2 judge: GLUTMASK_B is taken from bit 9                       Ran 639 FAILED (failures=2); 2 test(s): s2_0_clean, stage_six_passes_and_says_what_the_register
+KILLED   s2 judge: the words say the opposite of the bit                Ran 639 FAILED (failures=2); 2 test(s): stage_six_passes_and_says_what_the_register, the_mask_on_is_a_finding_and_not_a_failure
+KILLED   s2 judge: a bit the table does not name is not listed          Ran 639 FAILED (failures=1); 1 test(s): a_ctl0_that_fits_no_description_is_recorded
+KILLED   s2 judge: SEU_EN in the header is not judged                   Ran 639 FAILED (failures=3); 3 test(s): stage_seven, stage_six
+KILLED   s2 judge: the SLCR words are not judged                        Ran 639 FAILED (failures=5); 2 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: SLCR words recorded behind a failing gate are let pass Ran 639 FAILED (failures=1); 1 test(s): an_access_to_the_design_in_a_run_that_never
+KILLED   s2 judge: the echoed parameters are not held to the planned ones Ran 639 FAILED (failures=1); 1 test(s): a_run_that_did_not_do_what_was_planned
+KILLED   s2 judge: a stream is not held to the pinned one               Ran 639 FAILED (failures=1); 1 test(s): a_header_that_reads_another_register
+KILLED   s2 judge: the streams are not read for writes                  Ran 639 FAILED (failures=2); 2 test(s): a_header_that_reads_another_register, a_write_among_the_streams
+KILLED   s2 judge: a record's code is not derived again                 Ran 639 FAILED (failures=1); 1 test(s): a_value_changed_under_a_clean_code
+KILLED   s2 judge: a value that differs from the first is not a code    Ran 639 FAILED (failures=5); 3 test(s): a_value_changed_under_a_clean_code, stage_seven
+KILLED   s2 judge: stage 6 does not compare frames with the known ones  Ran 639 FAILED (failures=1); 1 test(s): a_frame_that_is_not_the_known_one
+KILLED   s2 judge: the header's status is not held to the records       Ran 639 FAILED (failures=1); 1 test(s): the_headers_claims
+KILLED   s2 judge: the header's count of anomalies is not held to the records Ran 639 FAILED (failures=1); 1 test(s): the_headers_claims
+KILLED   s2 judge: the stop record is not held to the records           Ran 639 FAILED (failures=1); 1 test(s): the_headers_claims
+KILLED   s2 judge: records after the schedule's end are let pass        Ran 639 FAILED (failures=2); 2 test(s): a_record_missing_or_one_too_many, user_logic_failed_and_yet_records_follow
+KILLED   s2 judge: a value written to the design is not compared        Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the design's answers are not judged                  Ran 639 FAILED (failures=13); 3 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: accesses after a wrong answer are let pass           Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: an access that is not the one due is let pass        Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: an access outside the envelope is let pass           Ran 639 FAILED (failures=2); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a write that shifts is let pass                      Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the PL block's code is not held to its log           Ran 639 FAILED (failures=5); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: where the PL block says it stopped is not checked    Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a log that ends for no reason is let pass            Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a refusal is not derived from the envelope           Ran 639 FAILED (failures=1); 1 test(s): an_envelope_the_design_does_not_fit_in
+KILLED   s2 judge: words after the last counted access are let pass     Ran 639 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the shift registers are not held to what the design loads Ran 639 FAILED (failures=2); 2 test(s): shift_registers_changed_alike_in_both_readi, the_shift_registers_must_hold_what_the_desi
+KILLED   s2 judge: missing design facts are let pass                    Ran 639 FAILED (errors=1); 1 test(s): the_shift_registers_must_hold_what_the_desi
+KILLED   s2 judge: user logic failing does not end the schedule         Ran 639 FAILED (failures=9); 3 test(s): an_envelope_the_design_does_not_fit_in, stage_seven
+SURVIVED s2 judge: an access in a run that never came to user logic is let pass Ran 639 OK; 0 test(s): 
+KILLED   s2 judge: a gate stop with an access to the design is let pass Ran 639 FAILED (failures=1); 1 test(s): an_access_to_the_design_in_a_run_that_never
+KILLED   s2 judge: the sequence's third RAM state is the second         Ran 639 FAILED (failures=13); 7 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2 judge: the design's count may be anything                   Ran 639 FAILED (failures=2); 2 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the counter need not go on                           Ran 639 FAILED (failures=2); 2 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a stage-6 result is taken for a stage-7 one          Ran 639 FAILED (failures=47, errors=1); 16 test(s): a_gate_stop_names_the_gate, a_result_of_the_other_stage_or_of_the_wrong
+SURVIVED s2 judge: the sizes need not add up                            Ran 639 OK; 0 test(s): 
+SURVIVED s2 judge: an invalid parameter block is judged                 Ran 639 OK; 0 test(s): 
+KILLED   s2 judge: a run that did not complete passes                   Ran 639 FAILED (failures=15); 5 test(s): an_envelope_the_design_does_not_fit_in, s2_1_user_logic_failing_under_the_prober_is
+KILLED   run s2: S2.1 does not look at the SLCR or the design before go Ran 639 FAILED (failures=4, errors=2); 5 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_a_design_that_does_not_answer_stops_th
+KILLED   run s2: a word at the prompt that is not the wanted one is let pass Ran 639 FAILED (failures=3); 2 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_an_slcr_word_that_is_not_the_board_s_s
+KILLED   run s2: the design's identification is read before the SLCR    Ran 639 FAILED (failures=2, errors=1); 2 test(s): s2_1_an_slcr_word_that_is_not_the_board_s_s, s2_1_clean
+KILLED   run s2: the first access is somewhere else in the PL           Ran 639 FAILED (failures=3, errors=5); 6 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_a_design_that_does_not_answer_stops_th
+KILLED   run s2: every set loads the carrier's file                     Ran 639 FAILED (failures=3); 3 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   run s2: every set asks the card for the carrier                Ran 639 FAILED (failures=2); 2 test(s): s2_1_clean, the_plan_of_s2_1_shows_the_first_access_and
+KILLED   run s2: every set is judged against the known frames           Ran 639 FAILED (failures=2, errors=1); 3 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   run s2: a design that is not staged is not refused             Ran 639 FAILED (errors=1); 1 test(s): a_staged_design_that_is_not_the_set_s_is_re
+KILLED   run s2: S2.0 is judged as S2.1                                 Ran 639 FAILED (failures=3); 3 test(s): s2_0_clean, s2_0_with_a_wrong_idcode_is_saved_whole_and
+restored: Ran 639 OK; 0 test(s):  (8 copies)
+98 mutants, 5 survived
+# exit 1
+
+# Five were not killed. Three survived: the judge had no test for them. Two did not build: the mutant left a
+# variable unused, and the prober is built with -Werror. Three tests were added (641 tests) and the two mutants
+# rewritten so that they build. Each of the five was then run by its name, and the packet reader's five with them.
+
+# python3 tests/mutants.py 'the helper ignores the envelope'
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   s2: the helper ignores the envelope                            Ran 641 FAILED (failures=3, errors=442); 261 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+restored: Ran 641 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived
+# exit 0
+
+# python3 tests/mutants.py 'shift registers that move are let pass'
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   s2: shift registers that move are let pass                     Ran 641 FAILED (failures=3); 3 test(s): s2_1_user_logic_failing_under_the_prober_is, stage_seven
+restored: Ran 641 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived
+# exit 0
+
+# python3 tests/mutants.py 'never came to user logic is let pass'
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   s2 judge: an access in a run that never came to user logic is let pass Ran 641 FAILED (failures=3); 1 test(s): an_access_to_the_design_in_a_run_that_never
+restored: Ran 641 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived
+# exit 0
+
+# python3 tests/mutants.py 'the sizes need not add up'
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   s2 judge: the sizes need not add up                            Ran 641 FAILED (failures=9); 1 test(s): sizes_that_do_not_add_up
+restored: Ran 641 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived
+# exit 0
+
+# python3 tests/mutants.py 'an invalid parameter block is judged'
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   s2 judge: an invalid parameter block is judged                 Ran 641 FAILED (failures=12, errors=2); 1 test(s): parameters_no_prober_would_have_run_with
+restored: Ran 641 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived
+# exit 0
+
+# python3 tests/mutants.py 'reader:'
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   reader: a second read on an address that has moved on is accepted Ran 641 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   reader: COR0 may be read                                       Ran 641 FAILED (failures=2); 2 test(s): a_header_that_reads_another_register, only_four_registers_and_only_one_word_of_ea
+KILLED   reader: MASK may be read                                       Ran 641 FAILED (failures=1); 1 test(s): only_four_registers_and_only_one_word_of_ea
+KILLED   reader: CTL0 may not be read                                   Ran 641 FAILED (failures=13); 13 test(s): a_ctl0_that_fits_no_description_is_recorded, everything_sent_is_read_only_and_nothing_is
+KILLED   reader: two words of a register may be read                    Ran 641 FAILED (failures=4); 1 test(s): only_four_registers_and_only_one_word_of_ea
+restored: Ran 641 OK; 0 test(s):  (5 copies)
+5 mutants, 0 survived
+# exit 0

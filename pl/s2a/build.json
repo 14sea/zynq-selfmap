@@ -1,0 +1,28 @@
+{
+ "schema": "probe_design_build",
+ "schema_version": 1,
+ "name": "s2a",
+ "part": "xc7z010clg400-1",
+ "vivado": "2025.2",
+ "memory_primitives": {
+    "regs/ram0": {"site": "SLICE_X16Y30", "bel": "D6LUT", "leaf": "regs/ram0/SP", "primitive": "RAMS64E"},
+    "regs/ram1": {"site": "SLICE_X16Y30", "bel": "A6LUT", "leaf": "regs/ram1/SP", "primitive": "RAMS64E"},
+    "regs/ram2": {"site": "SLICE_X16Y30", "bel": "B6LUT", "leaf": "regs/ram2/SP", "primitive": "RAMS64E"},
+    "regs/ram3": {"site": "SLICE_X16Y30", "bel": "C6LUT", "leaf": "regs/ram3/SP", "primitive": "RAMS64E"},
+    "regs/srl0": {"site": "SLICE_X34Y70", "bel": "A6LUT", "leaf": "regs/srl0", "primitive": "SRLC32E"},
+    "regs/srl1": {"site": "SLICE_X34Y70", "bel": "B6LUT", "leaf": "regs/srl1", "primitive": "SRLC32E"},
+    "regs/srl2": {"site": "SLICE_X34Y70", "bel": "C6LUT", "leaf": "regs/srl2", "primitive": "SRLC32E"},
+    "regs/srl3": {"site": "SLICE_X34Y70", "bel": "D6LUT", "leaf": "regs/srl3", "primitive": "SRLC32E"}
+ },
+ "setup_slack_ns": 3.115,
+ "hold_slack_ns": 0.175,
+ "clock_period_ns": 10.000,
+ "bitstream": {"file": "s2a.bit", "sha256": "09782815b7420fb3c4aecd7397946295ed735fea2ae8b8060d8d912aecf9df64", "bytes": 2083859},
+ "sources": {
+    "pl/s2a/s2a_top.v": "a8a897edafd8b1980c7e63b8ff1d3e6da7b43c2f3c6aa52699804330051ebdfe",
+    "pl/s2a/s2a_regs.v": "28dfdf3ff3b883f1b18fbaf4918b7576cd21f04ef890301b44022f69bfe7c471",
+    "imported/fabricmap/carrier_axi3_lite.v": "4a6c3bb8a13693ed3d6a1d5382aff83aa3b74ebedeae99df262343ce32448fdf",
+    "pl/s2a/s2a.xdc": "3c940f7b9c1650b19e402f9d61189a55d24ff0d7f59047381f55584f1ea17539",
+    "pl/s2a/build_s2a.tcl": "4272c8c2565fef517f2b40b40a9f394e2843b4f6af23313d987ff78e8c2e742c"
+ }
+}

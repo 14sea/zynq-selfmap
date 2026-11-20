@@ -1,0 +1,25 @@
+{
+ "schema": "import_record",
+ "schema_version": 1,
+ "why": "docs/s2_plan.md, section 12, point 4 (owner, 2026-11-20): the AXI3 front of the probe design s2a is copied, with its bench, and nothing else of that project is. Both files are used unchanged; neither names a site or a frame address.",
+ "files": {
+  "carrier_axi3_lite.v": {
+   "from_repo": "zynq-fabricmap (github.com/14sea/zynq-fabricmap)",
+   "from_path": "vivado/carrier/carrier_axi3_lite.v",
+   "from_commit": "9bd902ebc3bf164741e24639fbd340ae6d4f33dd",
+   "sha256": "4a6c3bb8a13693ed3d6a1d5382aff83aa3b74ebedeae99df262343ce32448fdf",
+   "copied": "2026-11-20",
+   "modified": false,
+   "licence": "Apache-2.0"
+  },
+  "tb_carrier_axi3.v": {
+   "from_repo": "zynq-fabricmap (github.com/14sea/zynq-fabricmap)",
+   "from_path": "vivado/carrier/tb_carrier_axi3.v",
+   "from_commit": "9bd902ebc3bf164741e24639fbd340ae6d4f33dd",
+   "sha256": "51bc389725bec9f0b86c80082792d1ca2c918fb038117933bc346478f473ca77",
+   "copied": "2026-11-20",
+   "modified": false,
+   "licence": "Apache-2.0"
+  }
+ }
+}

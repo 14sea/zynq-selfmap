@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import ast
 import copy
+import hashlib
+import zlib
 import json
 import re
 import shutil
@@ -28,7 +30,11 @@ import test_s1b6a as b6  # noqa: E402
 from test_s1b2 import KNOWN, once  # noqa: E402
 
 SCHEMA = json.loads((ROOT / "schemas" / "frame_census_v1.schema.json").read_text())
-NOT_SHOWN = "its record does not show the declared image \\(crc32 84f107a1\\) in RAM just before the prober was started and again after it returned"
+# the chains made up here are run with the prober image as it is built now; its size and checksums are taken from it
+subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "image"], check=True)   # a tree fresh from the repository has no image yet
+IMAGE = (ROOT / "build" / "prober" / "prober.bin").read_bytes()
+IMAGE_CRC, IMAGE_SHA = f"{zlib.crc32(IMAGE) & 0xFFFFFFFF:08x}", hashlib.sha256(IMAGE).hexdigest()
+NOT_SHOWN = f"its record does not show the declared image \\(crc32 {IMAGE_CRC}\\) in RAM just before the prober was started and again after it returned"
 
 
 def h(a: int) -> str:
@@ -73,7 +79,7 @@ class TheEntries(unittest.TestCase):
         chains = c["binding"]["chains"]
         self.assertEqual([(x["set"], x["state"], x["addresses"], x["first"], x["named_after_the_last_frame"]) for x in chains],
                          [("s1b4", "complete", b4.FRAMES, h(b4.B), h(b4.ABOVE)), ("s1b5", "complete", b5.FRAMES, h(b5.B), h(b5.ABOVE))])
-        self.assertEqual((c["binding"]["prober_image_sha256"], c["binding"]["prober_image_crc32"]), ("fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452", "84f107a1"))
+        self.assertEqual((c["binding"]["prober_image_sha256"], c["binding"]["prober_image_crc32"]), (IMAGE_SHA, IMAGE_CRC))
         self.assertEqual((c["totals"]["stretches"], c["stretches"]),
                          (1, [{"first": h(b4.B), "last": c["entries"][-1]["far"], "addresses": b4.FRAMES + b5.FRAMES, "named_after_the_last": h(b5.ABOVE)}]),
                          "the first chain named, after its last frame, the address the second began at: one stretch")
@@ -248,14 +254,14 @@ class WhatWasLoaded(unittest.TestCase):
         self.assertTrue(before < at("go ")[0] < after)
         del rec["steps"][after]; rec["steps"].insert(before, dict(rec["steps"][before]))
         f.write_text(json.dumps(rec))
-        with self.assertRaisesRegex(census.Refused, "chain/run01: " + NOT_SHOWN + r": before \['84f107a1', '84f107a1'\], after \[\]"):
+        with self.assertRaisesRegex(census.Refused, "chain/run01: " + NOT_SHOWN + rf": before \['{IMAGE_CRC}', '{IMAGE_CRC}'\], after \[\]"):
             census.chain_part("s1b5", root, KNOWN)
         root = self.copy_of()                                # the other way: none before the start, two after the return
         f, rec, at = self.steps_of(root, "run01")
         before, after = at("crc32 02000000 ")
         rec["steps"].append(rec["steps"].pop(before))
         f.write_text(json.dumps(rec))
-        with self.assertRaisesRegex(census.Refused, "chain/run01: " + NOT_SHOWN + r": before \[\], after \['84f107a1', '84f107a1'\]"):
+        with self.assertRaisesRegex(census.Refused, "chain/run01: " + NOT_SHOWN + rf": before \[\], after \['{IMAGE_CRC}', '{IMAGE_CRC}'\]"):
             census.chain_part("s1b5", root, KNOWN)
         root = self.copy_of()                                # before the start, but not the step just before it: something came between
         f, rec, at = self.steps_of(root, "run01")
@@ -267,7 +273,7 @@ class WhatWasLoaded(unittest.TestCase):
         root = self.copy_of()                                # a reply that is not whole, asked for again: the second counts, as on the board
         f, rec, at = self.steps_of(root, "run01")
         before = at("crc32 02000000 ")[0]
-        rec["steps"].insert(before, dict(rec["steps"][before], reply="crc32 02000000 2ec2\r\ncrc32 for 02000000 ... 020"))
+        rec["steps"].insert(before, dict(rec["steps"][before], reply=f"crc32 02000000 {len(IMAGE):x}\r\ncrc32 for 02000000 ... 020"))
         f.write_text(json.dumps(rec))
         self.assertEqual(census.chain_part("s1b5", root, KNOWN)["loaded"], part("s1b5")["loaded"])
 

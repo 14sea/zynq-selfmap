@@ -6,6 +6,7 @@
  *
  *   twin gen <far-hex>                      print the readback stream and the cleanup stream
  *   twin genframes <far-hex> <n>            print the stream reading n frames (0: the pad alone; 15: no read), and the FAR-register read stream
+ *   twin genreg <n>                         print the stream that reads one word of register n (0 FAR, 1 IDCODE, 2 CTL0, 3 STAT)
  *   twin guard <lo> <hi> <max> <w0> <w1>..  run the guard on a stream; print its return value
  *   twin run <frames.txt> <params.txt> <result.bin>   run S1a; SM_FAULT selects injected faults
  *
@@ -28,6 +29,21 @@
  * no frame has, put it into the chain of successors, and say here what the register shows there. A frame may be
  * given for it like for any other. How many such places there are, and what a read delivers there, is what S1b.2b
  * is to find out; the tests give the model several answers.
+ *
+ * S2.0 and S2.1 (docs/s2_plan.md). The engine answers a one-word read of IDCODE, CTL0 and STAT as well; what they
+ * hold is SM_CREG=idcode:V,ctl0:V,stat:V (hex), each with a default. The four SLCR words stage 7 looks at can be
+ * read, and the eight registers of the probe design s2a: a scratch register, a counter, a LUT RAM of 64 x 4 bits
+ * written through an address and a data register, four shift registers of 32 bits whose outputs can be read, and
+ * the design's count of writes and shifts. This is the design as its source describes it, not the board.
+ * More faults:
+ *   seu                              SEU_EN is set in devcfg.CTRL
+ *   lvl fpgarst fclk pll             one of the four SLCR words is not what the board has
+ *   statmoves                        the STAT register reads differently every time
+ *   regdisturbs                      after a read of a register other than FAR, every frame delivered has a bit changed
+ *   plid scratchstuck countstuck     the identification register reads another word / one bit of the scratch
+ *                                    register never sets / the counter stands still
+ *   ramstuck ramwild                 one bit of the RAM never sets / a write also changes the address above
+ *   srlmoves plcount                 the shift registers' outputs change between reads / the count of writes is one off
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,6 +80,16 @@ static uint32_t shows(uint32_t position)
 }
 static uint32_t queue[4096]; static unsigned q_n, q_at;
 
+/* configuration registers a read-only stage may read one word of, beside FAR (S2.0) */
+static uint32_t creg_idcode = 0x13722093u, creg_ctl0 = 0x00000501u, creg_stat = 0x401079FCu;
+static unsigned n_stat_reads; static int disturbed;
+
+/* the PS side of the PL, and the probe design s2a */
+static uint32_t slcr_word[N_SLCR] = { 0x0000000Fu, 0x00000000u, 0x00400800u, 0x0000003Fu };
+static uint32_t pl_scratch, pl_count = 0x00010000u, pl_ram_addr, pl_srl_addr, pl_ram[RAM_DEPTH], pl_srl[SRL_DEPTH];
+static uint32_t pl_ram_writes, pl_srl_shifts; static unsigned n_srl_reads;
+#define PL_ID_WORD 0x53324131u                         /* "S2A1": what pl/s2a answers with */
+
 /* faults */
 static const char *fault;
 static int fault_at(const char *name, unsigned index)
@@ -85,9 +111,13 @@ static int fault_on(const char *name)
 static const uint32_t *frame(uint32_t far)
 {
     static const uint32_t zero[FRAME_WORDS];
+    static uint32_t changed[FRAME_WORDS];
+    const uint32_t *f = zero;
     unsigned i;
-    for (i = 0; i < n_frames; i++) if (f_far[i] == far) return f_words[i];
-    return zero;
+    for (i = 0; i < n_frames; i++) if (f_far[i] == far) f = f_words[i];
+    if (!disturbed) return f;
+    memcpy(changed, f, sizeof changed); changed[3] ^= 0x00010000u;
+    return changed;
 }
 
 static void engine_feed(const uint32_t *w, uint32_t n)
@@ -114,6 +144,12 @@ static void engine_feed(const uint32_t *w, uint32_t n)
                 }
             } else if (op == 1u) {                       /* read header */
                 if (reg == 1u && count == 1u) { q_n = q_at = 0; queue[q_n++] = shows(far_reg); }      /* the FAR register */
+                else if ((reg == 12u || reg == 5u || reg == 7u) && count == 1u) {                      /* IDCODE, CTL0, STAT */
+                    q_n = q_at = 0;
+                    queue[q_n++] = reg == 12u ? creg_idcode : reg == 5u ? creg_ctl0
+                                 : creg_stat ^ (fault_on("statmoves") ? n_stat_reads++ << 4 : 0u);
+                    if (fault_on("regdisturbs")) disturbed = 1;
+                }
                 else if (reg != 3u || count != 0u) printf("VIOLATION read of register %u count %u\n", reg, count);
             } else printf("VIOLATION type-1 op %u\n", op);
         } else if (type == 2u) {
@@ -199,6 +235,18 @@ uint32_t hal_rd(uint32_t a)
                          if (polling && watch) printf("WATCH %u %u\n", n_dma, *watch);
                          break;
     case DEVCFG_STATUS:  v = reg_status; break;
+    case SLCR_LVL_SHFTR_EN:  v = slcr_word[0]; break;
+    case SLCR_FPGA_RST_CTRL: v = slcr_word[1]; break;
+    case SLCR_FPGA0_CLK:     v = slcr_word[2]; break;
+    case SLCR_PLL_STATUS:    v = slcr_word[3]; break;
+    case PL_BASE + PL_ID:       v = fault_on("plid") ? 0x53324132u : PL_ID_WORD; break;
+    case PL_BASE + PL_SCRATCH:  v = pl_scratch; break;
+    case PL_BASE + PL_COUNT:    v = pl_count; if (!fault_on("countstuck")) pl_count += 37u; break;
+    case PL_BASE + PL_RAM_ADDR: v = pl_ram_addr; break;
+    case PL_BASE + PL_RAM_DATA: v = pl_ram[pl_ram_addr]; break;
+    case PL_BASE + PL_SRL_ADDR: v = pl_srl_addr; break;
+    case PL_BASE + PL_SRL_DATA: v = pl_srl[pl_srl_addr] ^ ((fault_on("srlmoves") && n_srl_reads++ >= SRL_DEPTH + 3u) ? 0x2u : 0u); break;
+    case PL_BASE + PL_WRITES:   v = (pl_ram_writes + (fault_on("plcount") ? 1u : 0u)) | pl_srl_shifts << 16; break;
     default:             v = 0; printf("VIOLATION read %08x\n", a); break;
     }
     if (a != DEVCFG_INT_STS) wait_over();
@@ -218,6 +266,18 @@ void hal_wr(uint32_t a, uint32_t v)
     case DEVCFG_DMA_DST:  dma_dst = v; break;
     case DEVCFG_DMA_SLEN: dma_slen = v; break;
     case DEVCFG_DMA_DLEN: dma_execute(v); polling = 1; break;
+    case PL_BASE + PL_SCRATCH:  pl_scratch = fault_on("scratchstuck") ? v & ~0x00000080u : v; break;
+    case PL_BASE + PL_RAM_ADDR: pl_ram_addr = v & (RAM_DEPTH - 1u); break;
+    case PL_BASE + PL_RAM_DATA: pl_ram[pl_ram_addr] = (fault_on("ramstuck") && pl_ram_addr == 5u) ? v & 0xBu : v & 0xFu;
+                                if (fault_on("ramwild")) pl_ram[(pl_ram_addr + 1u) & (RAM_DEPTH - 1u)] = v & 0xFu;
+                                pl_ram_writes = (pl_ram_writes + 1u) & 0xFFFFu; break;
+    case PL_BASE + PL_SRL_ADDR: pl_srl_addr = v & (SRL_DEPTH - 1u); break;
+    case PL_BASE + PL_SRL_DATA: {                       /* a write shifts: the design does it, this prober must never ask for it */
+                                    unsigned k;
+                                    for (k = SRL_DEPTH - 1u; k > 0u; k--) pl_srl[k] = pl_srl[k - 1u];
+                                    pl_srl[0] = v & 0xFu; pl_srl_shifts = (pl_srl_shifts + 1u) & 0xFFFFu;
+                                    printf("VIOLATION shift %08x\n", v);
+                                } break;
     default: printf("VIOLATION write %08x\n", a); break;
     }
 }
@@ -266,6 +326,12 @@ int main(int argc, char **argv)
         for (i = 0; i < FARRD_WORDS; i++) printf("%08x%c", f[i], i + 1 < FARRD_WORDS ? ' ' : '\n');
         return 0;
     }
+    if (argc >= 3 && !strcmp(argv[1], "genreg")) {      /* the stream that reads one word of register <n> of the prober's list */
+        uint32_t f[FARRD_WORDS];
+        sm_reg_read_stream((uint32_t)strtoul(argv[2], 0, 10), f);
+        for (i = 0; i < FARRD_WORDS; i++) printf("%08x%c", f[i], i + 1 < FARRD_WORDS ? ' ' : '\n');
+        return 0;
+    }
     if (argc >= 5 && !strcmp(argv[1], "guard")) {
         for (i = 0; i + 5 < (unsigned)argc + 0u && i < 4096; i++) w[i] = (uint32_t)strtoul(argv[5 + i], 0, 16);
         printf("%08x\n", sm_guard(w, i, (uint32_t)strtoul(argv[2], 0, 16), (uint32_t)strtoul(argv[3], 0, 16), (uint32_t)strtoul(argv[4], 0, 16)));
@@ -307,6 +373,23 @@ int main(int argc, char **argv)
         if (fault_on("lpbk"))   reg_mctrl |= MCTRL_PCAP_LPBK;
         if (fault_on("nodone")) reg_sts &= ~STS_PCFG_DONE;
         if (fault_on("dcache")) sctlr |= 0x4u;
+        if (fault_on("seu"))    reg_ctrl |= CTRL_SEU_EN;
+        if (fault_on("lvl"))     slcr_word[0] = 0x0000000Au;
+        if (fault_on("fpgarst")) slcr_word[1] = 0x00000001u;
+        if (fault_on("fclk"))    slcr_word[2] = 0x00200A00u;
+        if (fault_on("pll"))     slcr_word[3] = 0x0000003Bu;
+        for (i = 0; i < SRL_DEPTH; i++)                 /* what the design loads into its four shift registers (pl/s2a) */
+            pl_srl[i] = (0xA5C30F69u >> i & 1u) | (0x0F1E2D3Cu >> i & 1u) << 1 | (0x13579BDFu >> i & 1u) << 2 | (0xFEDCBA98u >> i & 1u) << 3;
+        if (getenv("SM_CREG")) {
+            const char *s = getenv("SM_CREG"); char *e;
+            while (*s) {
+                uint32_t *which = !strncmp(s, "idcode:", 7) ? &creg_idcode : !strncmp(s, "ctl0:", 5) ? &creg_ctl0 : !strncmp(s, "stat:", 5) ? &creg_stat : 0;
+                if (!which) return 2;
+                *which = (uint32_t)strtoul(strchr(s, ':') + 1, &e, 16);
+                s = *e == ',' ? e + 1 : e;
+                if (*e && *e != ',') return 2;
+            }
+        }
         rc = sm_run();
         uart[uart_n] = 0;
         printf("UART");

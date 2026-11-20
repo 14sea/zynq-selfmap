@@ -144,6 +144,8 @@ class FakeUBoot:
         if self.fault:
             env["SM_FAULT"] = self.fault
         env["SM_FAR_RULE"] = self.q.get("far_rule", "next")
+        env.pop("SM_CREG", None)
+        env.update(self.q.get("env", {}))                                          # anything else the twin is to be told (S2: SM_CREG)
         # the twin reads 96 successors and 32 such positions and drops the rest without a word (prober/twin_hal.c): a
         # device made up with more would be walked as another device (found 2026-11-19, section 63 of the plan)
         assert len(self.q.get("succ", {})) <= 96 and len(self.q.get("shows", {})) <= 32, "more than the twin's tables hold"
@@ -322,7 +324,8 @@ class AfterGo(unittest.TestCase):
 HEADER, STATUS = "md.l 10000000 40", "md.l f800700c 1"
 # what a clean run sends more than once: the checksum of the image (before go and after the run), the status word
 # (before the load, after the clear, after the load, afterwards), `version` (first and last)
-TWICE_ANYWAY = ["crc32 02000000 2ec2", STATUS, "version"]
+subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "image"], check=True)   # a tree fresh from the repository has no image yet
+TWICE_ANYWAY = [f"crc32 02000000 {s1a_run.IMAGE.stat().st_size:x}", STATUS, "version"]   # the image's size as it is built now
 
 
 def sent(u: FakeUBoot, word: str) -> list[str]:

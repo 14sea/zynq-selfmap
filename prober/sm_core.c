@@ -43,6 +43,19 @@ void sm_far_read_stream(uint32_t out[FARRD_WORDS])
     out[3] = W_NOOP;
 }
 
+/* the same for one of the four registers a stage may read (S2.0): only the header differs. An unknown choice is the
+ * FAR register, the one read there has always been. */
+void sm_reg_read_stream(uint32_t reg, uint32_t out[FARRD_WORDS])
+{
+    sm_far_read_stream(out);
+    if (reg == REG_IDCODE)
+        out[1] = W_RD_IDCODE_1;
+    else if (reg == REG_CTL0)
+        out[1] = W_RD_CTL0_1;
+    else if (reg == REG_STAT)
+        out[1] = W_RD_STAT_1;
+}
+
 void sm_cleanup_stream(uint32_t out[CLEANUP_WORDS])
 {
     out[0] = W_NOOP;
@@ -116,8 +129,8 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
             i += 2u;
         } else if (x == W_RD_FDRO_0) {
             hdr = 1; i++;
-        } else if (x == W_RD_FAR_1) {                   /* one word of the FAR register: a read, of a readable register */
-            i++;
+        } else if (x == W_RD_FAR_1 || x == W_RD_IDCODE_1 || x == W_RD_CTL0_1 || x == W_RD_STAT_1) {
+            i++;                                        /* one word of a readable register: these four headers and no other */
         } else {
             return REFUSE(i, 8u);
         }
@@ -144,11 +157,11 @@ static uint32_t par(uint32_t i)                     { return hal_mem_rd(PARAM_AD
  * D_P_DONE. PCFG_DONE is a precondition of every command (UG585: no readback without it) and is
  * checked before the command is queued and on every poll: if it is ever seen clear, nothing more
  * is sent. Returns a record code; *sts and *polls are what was seen. */
-/* which loop waits for a transfer: stages 4 and 5 choose (diagnostics), every other stage has the one it always had */
+/* which loop waits for a transfer: stages 4 to 7 choose (word 15), stages 1 to 3 have the one they always had */
 static uint32_t poll_mode(void)
 {
     uint32_t stage = par(P_STAGE);
-    return (stage == 4u || stage == 5u) ? par(P_DIAG_STACK) >> DIAG_POLL_SHIFT : POLL_AS_BEFORE;
+    return (stage >= 4u && stage <= 7u) ? par(P_DIAG_STACK) >> DIAG_POLL_SHIFT : POLL_AS_BEFORE;
 }
 
 /* The wait that stores nothing (diagnostics): the write that queues the command, then the same polls and the same
@@ -342,8 +355,20 @@ static uint32_t finish(uint32_t status, uint32_t n_records, uint32_t n_anomalies
  * The record layout differs from stage 1 (REC2_WORDS); the header is the same.
  * Stage 3 differs from stage 2 only in which operations its parameters may ask for: also the pad alone
  * (a count of 0) and no FDRO read at all (N_NONE), to see what the FAR register holds after each. */
-static void r2_wr(uint32_t rec, uint32_t field, uint32_t v) { res_wr(HDR_WORDS + rec * REC2_WORDS + field, v); }
-static uint32_t r2_rd(uint32_t rec, uint32_t field)         { return res_rd(HDR_WORDS + rec * REC2_WORDS + field); }
+/* where the records begin: after the header — and in stage 7 after the PL block, which is counted with the header */
+static uint32_t rbase(void) { return par(P_STAGE) == 7u ? HDR_WORDS + PLB_WORDS : HDR_WORDS; }
+static void r2_wr(uint32_t rec, uint32_t field, uint32_t v) { res_wr(rbase() + rec * REC2_WORDS + field, v); }
+static uint32_t r2_rd(uint32_t rec, uint32_t field)         { return res_rd(rbase() + rec * REC2_WORDS + field); }
+
+/* which register an operation reads after its frame read: in stages 6 and 7 the one the host's table names for a
+ * target operation; in every other stage, and for every reference read, the FAR register */
+static uint32_t reg_of(uint32_t op)
+{
+    uint32_t stage = par(P_STAGE);
+    if ((stage != 6u && stage != 7u) || op >= MAX_REG_OPS)
+        return REG_FAR;
+    return (par(P_REGS) >> (4u * op)) & 0xFu;
+}
 
 static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, uint32_t repeat, uint32_t op,
                         uint32_t far_lo, uint32_t far_hi, uint32_t poll_limit)
@@ -363,7 +388,7 @@ static uint32_t read_op(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, u
     hal_watch(&polls);
 
     sm_frames_stream(far, n, stream);
-    sm_far_read_stream(farrd);
+    sm_reg_read_stream(reg_of(op), farrd);
     sm_cleanup_stream(clean);
     g = sm_guard(stream, STREAM_WORDS, far_lo, far_hi, words);
     if (g == 0u)
@@ -480,11 +505,11 @@ static uint32_t ref_healthy(uint32_t rec, uint32_t code)
             && r2_rd(rec, REC2_FARBLK + F_VALUE) == r2_rd(0u, REC2_FARBLK + F_VALUE)) ? 1u : 0u;
 }
 
-/* "SM2", "SM3" or "SM4": the stage is read from the parameter block each time, there is no static to keep it in */
+/* "SM2" to "SM7": the stage is read from the parameter block each time, there is no static to keep it in */
 static void tag(void)
 {
     put("SM");
-    hal_putc(par(P_STAGE) == 5u ? '5' : par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
+    hal_putc(par(P_STAGE) == 7u ? '7' : par(P_STAGE) == 6u ? '6' : par(P_STAGE) == 5u ? '5' : par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
 }
 
 static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalies, uint32_t stop_record)
@@ -492,21 +517,133 @@ static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalie
     res_wr(H_STATUS, status);
     if (status == S_BAD_PARAMS) {
         tag(); put(" end status="); puthex(status); put("\r\n");
-        res_wr(H_TOTAL_WORDS, HDR_WORDS);
+        res_wr(H_TOTAL_WORDS, rbase());
         return status;
     }
     res_wr(H_N_RECORDS, n_records);
     res_wr(H_N_ANOMALIES, n_anomalies);
-    res_wr(H_TOTAL_WORDS, HDR_WORDS + n_records * REC2_WORDS);
+    res_wr(H_TOTAL_WORDS, rbase() + n_records * REC2_WORDS);
     res_wr(H_STOP_RECORD, stop_record);
     res_wr(H_INT_STS1, hal_rd(DEVCFG_INT_STS));
     res_wr(H_STATUS1, hal_rd(DEVCFG_STATUS));
     tag(); put(" end status="); puthex(status);
     put(" records="); puthex(n_records);
     put(" anomalies="); puthex(n_anomalies);
-    put(" words="); puthex(HDR_WORDS + n_records * REC2_WORDS);
+    put(" words="); puthex(rbase() + n_records * REC2_WORDS);
     put("\r\n");
     return status == S_DONE ? 0u : status;
+}
+
+/* ================================================================== stage 7 (S2.1): user logic
+ * Every access to the PL goes through pl_rd and pl_wr, and through nothing else. They refuse an address that is not
+ * a register of the design, lies outside the envelope the host gave, or — for a write — is not one of the four this
+ * prober may write; a refused access is not made. Every access made is logged in the PL block of the result, in
+ * order: the address (bit 0 set for a write) and the value read or written. After the first thing that is not as
+ * the design must answer, nothing more is accessed. */
+static void plb_wr(uint32_t i, uint32_t v) { res_wr(HDR_WORDS + i, v); }
+static uint32_t plb_rd(uint32_t i)         { return res_rd(HDR_WORDS + i); }
+
+static uint32_t pl_fail(uint32_t code)
+{
+    if (plb_rd(PLB_CODE) == PLC_OK) {                   /* the first failure is the one that is kept */
+        plb_wr(PLB_CODE, code);
+        plb_wr(PLB_AT, plb_rd(PLB_N));
+    }
+    return code;
+}
+
+static int pl_allowed(uint32_t off, int write)
+{
+    uint32_t a = PL_BASE + off;
+    if (off >= PL_SPAN || (off & 3u) || a < par(P_PL_LO) || a > par(P_PL_HI))
+        return 0;
+    return !write || ((PL_WRITABLE >> off) & 1u);
+}
+
+static uint32_t pl_access(uint32_t off, int write, uint32_t value)
+{
+    uint32_t n = plb_rd(PLB_N);
+    if (plb_rd(PLB_CODE) != PLC_OK)
+        return 0u;                                      /* stopped: nothing more is accessed */
+    if (!pl_allowed(off, write)) {
+        pl_fail(PLC_REFUSED);
+        return 0u;
+    }
+    if (n >= PL_LOG_MAX) {
+        pl_fail(PLC_FULL);
+        return 0u;
+    }
+    if (write)
+        hal_wr(PL_BASE + off, value);
+    else
+        value = hal_rd(PL_BASE + off);
+    plb_wr(PLB_LOG + 2u * n, (PL_BASE + off) | (write ? 1u : 0u));
+    plb_wr(PLB_LOG + 2u * n + 1u, value);
+    plb_wr(PLB_N, n + 1u);
+    return value;
+}
+static uint32_t pl_rd(uint32_t off)             { return pl_access(off, 0, 0u); }
+static void     pl_wr(uint32_t off, uint32_t v) { (void)pl_access(off, 1, v); }
+
+/* what a state puts at an address of the LUT RAM: four bits, one for each of the four memories */
+static uint32_t ram_pattern(uint32_t state, uint32_t a)
+{
+    return state == 0u ? 0u : state == 1u ? 0xFu : state == 2u ? (a & 0xFu) : (~a & 0xFu);
+}
+
+static uint32_t pl_sequence(void)
+{
+    uint32_t i, s, a, v, first;
+
+    /* 1. the identification register */
+    v = pl_rd(PL_ID);
+    if (plb_rd(PLB_CODE) == PLC_OK && v != par(P_PL_ID))
+        return pl_fail(PLC_ID);
+    /* 2. the scratch register: four words written and read back */
+    for (i = 0; i < 4u; i++) {
+        s = i == 0u ? 0u : i == 1u ? 0xFFFFFFFFu : i == 2u ? SENTINEL : ~SENTINEL;
+        pl_wr(PL_SCRATCH, s);
+        v = pl_rd(PL_SCRATCH);
+        if (plb_rd(PLB_CODE) == PLC_OK && v != s)
+            return pl_fail(PLC_SCRATCH);
+    }
+    /* 3. the counter: two reads differ if the clock runs */
+    v = pl_rd(PL_COUNT);
+    a = pl_rd(PL_COUNT);
+    if (plb_rd(PLB_CODE) == PLC_OK && v == a)
+        return pl_fail(PLC_COUNT);
+    /* 4. the LUT RAM from the design's side: each state written to all addresses, then all read back */
+    for (s = 0; s < RAM_STATES; s++) {
+        for (a = 0; a < RAM_DEPTH; a++) {
+            pl_wr(PL_RAM_ADDR, a);
+            pl_wr(PL_RAM_DATA, ram_pattern(s, a));
+        }
+        for (a = 0; a < RAM_DEPTH; a++) {
+            pl_wr(PL_RAM_ADDR, a);
+            v = pl_rd(PL_RAM_DATA);
+            if (plb_rd(PLB_CODE) == PLC_OK && v != ram_pattern(s, a))
+                return pl_fail(PLC_RAM);
+        }
+    }
+    /* 5. the shift registers, which nothing here shifts: their outputs at every address, twice, alike */
+    first = plb_rd(PLB_N);
+    for (s = 0; s < 2u; s++)
+        for (a = 0; a < SRL_DEPTH; a++) {
+            pl_wr(PL_SRL_ADDR, a);
+            v = pl_rd(PL_SRL_DATA);
+            if (plb_rd(PLB_CODE) == PLC_OK && s == 1u && v != plb_rd(PLB_LOG + 2u * (first + 2u * a + 1u) + 1u))
+                return pl_fail(PLC_SRL);
+        }
+    /* 6. the design's own count: as many RAM writes as were made above, and no shift */
+    v = pl_rd(PL_WRITES);
+    if (plb_rd(PLB_CODE) == PLC_OK && v != RAM_STATES * RAM_DEPTH)
+        return pl_fail(PLC_WRITES);
+    return plb_rd(PLB_CODE);
+}
+
+static uint32_t slcr_addr(uint32_t k)
+{
+    return k == 0u ? SLCR_LVL_SHFTR_EN : k == 1u ? SLCR_FPGA_RST_CTRL : k == 2u ? SLCR_FPGA0_CLK : SLCR_PLL_STATUS;
 }
 
 static uint32_t op_frames(uint32_t k)
@@ -522,7 +659,8 @@ static uint32_t run_s2(void)
 {
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v, n, far, first;
     uint32_t far_lo, far_hi, ref_far, n_ops, repeats, budget, poll_limit, seq = 0u, extra = 0u;
-    int stage5 = par(P_STAGE) == 5u, stage3 = stage5 || par(P_STAGE) == 3u;
+    int stage5 = par(P_STAGE) == 5u, stage7 = par(P_STAGE) == 7u, regs = stage7 || par(P_STAGE) == 6u;
+    int stage3 = stage5 || regs || par(P_STAGE) == 3u; /* stages 6 and 7 may ask for what stage 3 may */
 
     tag(); put(" start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
@@ -530,7 +668,7 @@ static uint32_t run_s2(void)
     res_wr(H_MAGIC, RESULT_MAGIC);
     res_wr(H_VERSION, 1u);
     res_wr(H_REC_WORDS, REC2_WORDS);
-    res_wr(H_HDR_WORDS, HDR_WORDS);
+    res_wr(H_HDR_WORDS, rbase());
     res_wr(H_STOP_RECORD, 0xFFFFFFFFu);
     for (i = 0; i < PARAM_WORDS; i++)
         res_wr(H_PARAMS + i, par(i));
@@ -538,6 +676,12 @@ static uint32_t run_s2(void)
     res_wr(H_CPSR, hal_cpu(CPU_CPSR));
     res_wr(H_SP, hal_cpu(CPU_SP));
     res_wr(H_R9, hal_cpu(CPU_R9));
+    if (stage7) {                                       /* the PL block: empty, and saying so */
+        for (i = 0; i < PLB_WORDS; i++)
+            plb_wr(i, 0u);
+        plb_wr(PLB_MAGIC, PLB_MAGIC_VALUE);
+        plb_wr(PLB_AT, 0xFFFFFFFFu);
+    }
 
     far_lo = par(P_FAR_LO); far_hi = par(P_FAR_HI); ref_far = par(P_REF_FAR);
     n_ops = par(P_N_FARS); repeats = par(P_REPEATS); budget = par(P_ANOMALY_BUDGET); poll_limit = par(P_POLL_LIMIT);
@@ -545,6 +689,26 @@ static uint32_t run_s2(void)
         || n_ops == 0u || n_ops > MAX_FARS || repeats == 0u || repeats > MAX_REPEATS
         || budget > 64u || poll_limit == 0u || poll_limit > 0x10000000u)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+    if (regs) {
+        /* at most eight operations, each with a register from the list; no word of the table beyond them; no
+         * diagnostic option but the choice of the wait; and every word these stages have no use for is zero */
+        if (n_ops > MAX_REG_OPS || poll_mode() > POLL_NO_STACK || (par(P_DIAG_STACK) & 0xFFu) || par(P_DIAG_SEQ)
+            || par(P_HEALTH_EVERY) || par(P_NFRAMES_HI) || par(P_PL_ID + 1u))
+            return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+        for (k = 0; k < MAX_REG_OPS; k++) {
+            v = (par(P_REGS) >> (4u * k)) & 0xFu;
+            if (k < n_ops ? v >= N_REGS : (v != 0u || op_frames(k) != 0u || par(P_FARS + k) != 0u))
+                return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+        }
+        if (stage7) {
+            if (par(P_PL_LO) < PL_BASE || par(P_PL_LO) > par(P_PL_HI) || par(P_PL_HI) >= PL_BASE + PL_SPAN)
+                return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+        } else {
+            for (k = P_PL_LO; k < PARAM_WORDS; k++)
+                if (par(k))
+                    return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+        }
+    }
     if (stage5) {
         seq = par(P_DIAG_SEQ); extra = par(P_DIAG_STACK) & 0xFFu;
         if (seq > MAX_DIAG_SEQ || extra > MAX_DIAG_STACK || poll_mode() > POLL_NO_STACK || (seq != 0u && (n_ops != 1u || repeats > 2u)))
@@ -571,6 +735,8 @@ static uint32_t run_s2(void)
     v = hal_rd(DEVCFG_CTRL);   res_wr(H_CTRL, v);
     if ((v & CTRL_PCAP_MASK) != CTRL_PCAP_MASK)
         return finish2(S_GATE_CTRL, 0u, 0u, 0xFFFFFFFFu);
+    if (regs && (v & CTRL_SEU_EN))                      /* with it set, a status bit these stages may raise locks the PS */
+        return finish2(S_GATE_SEU, 0u, 0u, 0xFFFFFFFFu);
     v = hal_rd(DEVCFG_MCTRL);  res_wr(H_MCTRL, v);
     if (v & MCTRL_PCAP_LPBK)
         return finish2(S_GATE_LPBK, 0u, 0u, 0xFFFFFFFFu);
@@ -580,11 +746,26 @@ static uint32_t run_s2(void)
         return finish2(S_GATE_NOT_DONE, 0u, 0u, 0xFFFFFFFFu);
     if (hal_cpu(CPU_SCTLR) & 0x4u)
         return finish2(S_GATE_DCACHE, 0u, 0u, 0xFFFFFFFFu);
+    if (stage7) {
+        /* the PS side of the PL: level shifters, resets, the clock and the PLLs, each as the host says this board
+         * has them. All four are read and recorded; the first that differs stops the run before the PL is touched. */
+        for (k = 0; k < N_SLCR; k++)
+            plb_wr(PLB_SLCR + k, hal_rd(slcr_addr(k)));
+        for (k = 0; k < N_SLCR; k++)
+            if (plb_rd(PLB_SLCR + k) != par(P_SLCR + k))
+                return finish2(S_GATE_SLCR | k, 0u, 0u, 0xFFFFFFFFu);
+    }
 
     code = read_op(rec, ref_far, 1u, KIND_BASELINE, 0u, 0xFFFFFFFFu, far_lo, far_hi, poll_limit);
     rec++;
     if (code != C_OK)
         return finish2(S_STOP_BASELINE | code, rec, 0u, 0u);
+
+    if (stage7) {                                       /* user logic, between the reference frame's first reading and the rest */
+        v = pl_sequence();
+        if (v != PLC_OK)
+            return finish2(S_STOP_PL | v, rec, 0u, 0xFFFFFFFFu);
+    }
 
     for (r = 0; r < repeats; r++) {
         for (k = 0; k < n_ops; k++) {
@@ -640,7 +821,7 @@ uint32_t sm_run(void)
     uint32_t i, r, k, rec = 0u, anomalies = 0u, code, v;
     uint32_t far_lo, far_hi, ref_far, n_fars, repeats, budget, poll_limit, far, first;
 
-    if (par(P_MAGIC) == PARAM_MAGIC && (par(P_STAGE) == 2u || par(P_STAGE) == 3u || par(P_STAGE) == 5u))
+    if (par(P_MAGIC) == PARAM_MAGIC && (par(P_STAGE) == 2u || par(P_STAGE) == 3u || (par(P_STAGE) >= 5u && par(P_STAGE) <= 7u)))
         return run_s2();
     if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 4u)
         return run_s4();

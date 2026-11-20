@@ -1,0 +1,107 @@
+{
+ "schema": "probe_design",
+ "schema_version": 1,
+ "name": "s2a",
+ "what": "the probe design of S2.1 to S2.4 (docs/s2_plan.md, section 5): one slice of LUT RAM and one slice of shift registers behind eight registers on M_AXI_GP0",
+ "base": "0x40000000",
+ "id": "0x53324131",
+ "registers": {
+  "ID": {
+   "offset": "0x00",
+   "read": "the fixed word",
+   "write": "ignored"
+  },
+  "SCRATCH": {
+   "offset": "0x04",
+   "read": "what was last written",
+   "write": "stored"
+  },
+  "COUNT": {
+   "offset": "0x08",
+   "read": "a counter of FCLK0, free running",
+   "write": "ignored"
+  },
+  "RAM_ADDR": {
+   "offset": "0x0c",
+   "read": "the address, six bits",
+   "write": "the address of the four LUT RAMs, for reading and for writing"
+  },
+  "RAM_DATA": {
+   "offset": "0x10",
+   "read": "the four outputs at that address, bit k from RAM k",
+   "write": "one write of bit k into RAM k at that address"
+  },
+  "SRL_ADDR": {
+   "offset": "0x14",
+   "read": "the address, five bits",
+   "write": "the address of the four shift registers' outputs"
+  },
+  "SRL_DATA": {
+   "offset": "0x18",
+   "read": "the four outputs at that address, bit k from shift register k (address a: the bit shifted in a+1 shifts ago; before any shift, bit a of what was loaded)",
+   "write": "one shift of bit k into shift register k"
+  },
+  "WRITES": {
+   "offset": "0x1c",
+   "read": "RAM writes since the design was loaded (bits 15..0) and shifts (bits 31..16)",
+   "write": "ignored"
+  }
+ },
+ "ram": {
+  "primitive": "RAM64X1S",
+  "depth": 64,
+  "init": "0x0000000000000000",
+  "site": "SLICE_X16Y30",
+  "cells": {
+   "0": {
+    "cell": "regs/ram0",
+    "leaf": "regs/ram0/SP"
+   },
+   "1": {
+    "cell": "regs/ram1",
+    "leaf": "regs/ram1/SP"
+   },
+   "2": {
+    "cell": "regs/ram2",
+    "leaf": "regs/ram2/SP"
+   },
+   "3": {
+    "cell": "regs/ram3",
+    "leaf": "regs/ram3/SP"
+   }
+  },
+  "positions": "not constrained: Vivado puts the four on the site's four LUT positions in an order of its own and keeps no position given to them (pl/s2a/s2a.xdc). Which memory is on which position is in the build's record (pl/s2a/build.json), and is taken from there."
+ },
+ "srl": {
+  "primitive": "SRLC32E",
+  "depth": 32,
+  "site": "SLICE_X34Y70",
+  "cells": {
+   "0": {
+    "cell": "regs/srl0",
+    "bel": "A6LUT",
+    "init": "0xA5C30F69"
+   },
+   "1": {
+    "cell": "regs/srl1",
+    "bel": "B6LUT",
+    "init": "0x0F1E2D3C"
+   },
+   "2": {
+    "cell": "regs/srl2",
+    "bel": "C6LUT",
+    "init": "0x13579BDF"
+   },
+   "3": {
+    "cell": "regs/srl3",
+    "bel": "D6LUT",
+    "init": "0xFEDCBA98"
+   }
+  }
+ },
+ "sites_chosen": "by hand, from pl/s2a/slicem_sites.txt, under one rule: no site of a column of sites numbered below 10 (those are the columns zynq-fabricmap's carrier constrained or measured; section 12, point 5). Which of the others, and which row, is arbitrary.",
+ "clock": {
+  "source": "FCLK0 as the boot loader leaves it (50 MHz on 17A6), through a BUFG",
+  "constrained_period_ns": 10.0
+ }
+}

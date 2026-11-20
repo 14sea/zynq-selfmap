@@ -11,6 +11,10 @@ when the step before it has answered. The points for the owner are in section 11
 the owner decided in section 12. **No board run happens without the owner's word for that
 step.**
 
+**Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13) and
+waits for the owner's review. Nothing of S2 has been on a board. S2.2 to S2.5 are not
+proposed in full yet.
+
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
 commit `a6dac1d`. Where something rests on general knowledge of the device family it is marked
@@ -458,3 +462,211 @@ this section is what holds.
 
 The host side of S2.0 and S2.1 is built next. Its account follows here as a section "as
 built" before anything is put to the owner for review.
+
+## 13. S2.0 and S2.1 as built (2026-11-20; host side, nothing on a board yet)
+
+For the owner's review. Sections 6 and 7 say what the two steps are; this says what was built
+for them, where it differs from those sections, and what it cannot show. Every statement
+about the prober here was checked against the source as committed with this section.
+
+### The prober: one new image, two new stages
+
+The image is new, the first since S1b.3a: 13,964 bytes, sha256 `480bbdd4…aa46`, crc32
+`cf189e46` (it was 11,970 bytes, `fdc4f07f…9452`). It still has no data section, reads r9
+once and writes it never, and makes the one coprocessor read it always made; the two
+functions that wait for a transfer are instruction for instruction what the tests of the
+machine code held before.
+
+- **The generator** has `sm_reg_read_stream(reg, …)`: the address-register read with the
+  header of one of four registers — FAR `28002001`, IDCODE `28018001`, CTL0 `2800a001`, STAT
+  `2800e001`. An unknown choice gives the FAR read.
+- **The guard** accepts those four headers and no other read of a register. This holds in
+  every stage: the guard is one function and says what a read-only stage may send. Which
+  register a stage does read is decided where the stream is made, and each judge still holds
+  every recorded stream to the one pinned for its stage. Nothing that writes is accepted but
+  `CMD` (RCFG, DESYNC) and `FAR`, as before. The host's packet reader has the same list.
+- **Stage 6 (S2.0)** is the table-driven stage with one word more in its parameters: word 12,
+  four bits an operation, names the register read after it. At most eight operations. Every
+  word of the block the stage has no use for must be zero, or the block is refused before any
+  register is read.
+- **Stage 7 (S2.1)** is stage 6 with user logic in it: after the gates the four SLCR words
+  are read, recorded and held to the four words the host gave; the reference frame is read;
+  then the sequence of section 7 is made through `pl_rd` and `pl_wr`; then the register
+  operations; then the reference frame again.
+- **The two helpers** are the only code that forms an address in the PL (one instruction in
+  the image, and a test of the machine code holds that it is in the function both go through).
+  They refuse an address that is not one of the design's eight registers, one outside the
+  envelope the host gave, and a write to any register but four: the scratch register, the two
+  address registers, the RAM's data register. The shift registers' data register is not
+  among them — a write there shifts. After the first refusal or the first answer that is not
+  right, nothing more is accessed.
+- **The PL block** of a stage-7 result lies between the header and the records and is counted
+  with the header: the four SLCR words as read, and every access made, in order — the address
+  (bit 0 set for a write) and the value. 1,164 accesses in a clean run.
+- **New ways to stop**: `0x105`, `SEU_EN` is set; `0x110` to `0x113`, one of the four SLCR
+  words is not the host's; `0xa00` with a code, user logic did not answer as the design must
+  (the identification word, the scratch register, the counter, the RAM, the shift registers,
+  the design's count of writes — or the prober's own helper refused an address).
+
+### The two sets
+
+| | `s2_0` | `s2_1` |
+|---|---|---|
+| stage | 6 | 7 |
+| design loaded | the carrier | `s2a`, sha256 `09782815…df64`, 2,083,859 bytes |
+| envelope | `0xb98..0xb9a`, reference `0xb99` | the same |
+| operations, each three times | the reference frame and FAR; then, with no frame read, IDCODE, CTL0, STAT | with no frame read: IDCODE, CTL0, STAT |
+| the wait | the one that touches no memory | the same |
+| anomalies budgeted | none | none |
+| PL envelope | — | `0x40000000..0x4000001f` |
+| SLCR words wanted | — | `0000000f`, `00000000`, `00400800`, `0000003f` |
+| records, result | 14 records, 6,784 words | 11 records, 7,920 words |
+
+The three registers are read in the session form S1b.0b used on the board for an operation
+that reads no frame: synchronisation, RCFG, the frame address written, no read, then the
+register's header and one word, then the cleanup.
+
+### The probe design `s2a`
+
+`pl/s2a/`: the top level and the register file (written here), the constraints, the build
+script, a bench, the description (`design.json`), the list of SLICEM sites and the record of
+the build. The AXI3 front and its bench are in `imported/fabricmap/`, unchanged, with an
+import record.
+
+- Eight registers at `0x40000000`: the identification word `0x53324131`, a scratch register,
+  a counter of FCLK0, the RAM's address and data, the shift registers' address and data, and
+  — more than section 5 listed — the design's own count of RAM writes and of shifts since it
+  was loaded. The last lets the design say for itself that nothing shifted it.
+- The LUT RAM is four `RAM64X1S` on `SLICE_X16Y30`; the shift registers are four `SRLC32E`
+  on `SLICE_X34Y70`, loaded with four different words. Both sites are in columns of sites
+  numbered above 9 (section 12, point 5); which of those, and which row, was picked by hand
+  and means nothing.
+- The slave answers every transfer. An address that is no register reads zero.
+- Built by Vivado 2025.2: setup slack 3.115 ns against the 10 ns the design is held to, hold
+  slack 0.175 ns. The bitstream is `build/pl/s2a.bit`; its hash is in `pl/s2a/build.json` and
+  from there in the set.
+
+### Where what was built differs from sections 5 to 7
+
+1. **The `SEU_EN` gate is in stages 6 and 7 only.** Section 11, point 7, says "the prober
+   refuses to start if `SEU_EN` is set". The older stages were left exactly as they ran on
+   the board, and their judges with them: a gate there would be a change to five stages and
+   four judges whose 185 stored runs are judged again by the suite. S2 uses only the new
+   stages. If the owner wants the gate in every stage, it is a small change with a large
+   re-check.
+2. **The four memories of the LUT RAM are not constrained to LUT positions.** Section 5 says
+   "constrained to one named SLICEM site and to its four LUT positions". Vivado keeps its own
+   order for them: given positions A, B, C, D for memories 0 to 3, it placed them D, A, B, C —
+   with the position before the site and after it, on the cell and on its leaf. The build's
+   own check is what showed it. The site is constrained; the build requires four different
+   positions and writes down which memory is on which (`build.json`: memory 0 on D, 1 on A,
+   2 on B, 3 on C). The shift registers do keep the positions given (0 to 3 on A to D).
+3. **The shift registers' last-stage outputs are not connected**, and a read of their data
+   register gives four bits, not eight. Connected, Vivado allowed such a cell on position A
+   only. The last stage is read like any other, at address 31.
+4. **The host reads the four SLCR words at the prompt before it reads the design**, and
+   stops if one is not the set's. Section 7 has the prober do this; the host now does it
+   first as well, so that the first access to the PL is not made with the PS side unchecked.
+5. **The judge of S2.1 holds the shift registers to what the design's source loads into
+   them**, not only to reading alike twice. A known answer from our own design; it rests on
+   the simulation model's statement that address a reads bit a of the loaded word.
+6. **Nothing puts `s2a.bit` on the card.** The run script takes the design from the card if
+   it is there and sends it by YMODEM if not, as it always did. Section 5's "written to the
+   card and read back" is a session at the prompt, as on 2026-11-13, and is to be part of
+   what is proposed for the board; without it each run sends 2 MB over the console.
+
+### Three builds that failed, and what each showed
+
+The build script stops unless its conditions hold, and three times it or Vivado did:
+a cell given its site before its position takes the site's first free position, and the next
+cell is refused; a shift register whose last-stage output is used can sit on one position
+only (3 above); and the four memories were not where the constraints put them (2 above).
+To find these I read Vivado's console output of the failed builds — its messages, no
+report. No logic location file, mask file, readback file, checkpoint or report was written.
+
+### Tests that changed their statement
+
+- `test_prober_packets`: "only the FAR register and only one word of it" held that a read of
+  STAT or of IDCODE is refused by the guard and by the reader. It now holds the list of four,
+  every other register of UG470's table 5-23 refused, every other count refused, and a write
+  to any of the three new ones refused.
+- Five tests held the image of the sets `s1b4a` to `s1b6a` to the hash that had been on the
+  board. The sets are made from the image as it is built, which is now another. What they
+  hold instead is what ran: the image kept beside each step's run has that hash and is the
+  one kept with the chain before it.
+- Tests that made up chains and runs with the current image had its checksum and size
+  written out as numbers; they take them from the image now.
+- `test_prober_image`: the image now holds four addresses of the SLCR and reaches into the
+  PL. The test that said it holds neither was replaced by one that says where: one literal,
+  in the function that makes the four gate reads, and one instruction, in the function every
+  PL access goes through.
+
+No stored result or verdict was changed, and every stored run is judged as before.
+
+### What holds it
+
+- `tests/test_prober_s2.py` (37 tests): the two stages on the twin — what is sent, what is
+  touched and in which order, every gate, every form of parameter block that must be
+  refused, and each way the device or the design may fail to answer, with where the prober
+  stops and that it touches nothing afterwards.
+- `tests/test_s2_host.py` (44): the judge on clean results, on runs that went badly (it must
+  come to the prober's account from the raw words alone), and on results tampered with; the
+  run script with both sets against a pretend U-Boot, a design that answers with another
+  word and one that does not answer among them.
+- `tests/test_pl_s2a.py` (17): the bench of the design behind the front, and the front's own
+  bench; three broken register files that the bench must fail without standing still; the
+  description, the source, the constraints, the build script, the prober's header and the
+  twin saying the same; the record of the build being the record of these sources and of the
+  staged bitstream; and that the scripts ask Vivado for nothing the rule excludes.
+
+641 tests (541 before).
+
+### Mutants
+
+711 mutants, none stale (609 before: 102 new, and seven older ones whose place in the source
+had moved were set right). By section 41 of `docs/s1b_plan.md` the ones of the new code were
+run now, and **the complete set is due before this image first goes on a board; it has not
+been run.**
+
+The 98 of the new code (`s2`), first run: 93 killed, 3 survived, 2 did not build. The three
+that survived were in the judge, and each was a check with no test of its own:
+
+- a result whose sizes do not add up — the check was covered only by cases that a later check
+  also refuses. With it gone, a result one word longer than its header and records, with a
+  header saying so, was judged as if the word were not there;
+- an echoed parameter block that no prober runs with, under a status that says done, when
+  the plan given to the judge is that same block;
+- a PL block that shows an access to the design in a run whose first reading of the
+  reference frame failed. The test there was had only the gate stops, which have a message
+  of their own.
+
+Three tests were added. The two that did not build left a variable unused, which the
+prober's build refuses; they were rewritten to make the same change and build. All five were
+then run again and are killed, and the five of the packet reader with them. The record is
+`evidence/host_checks/mutants_2026-11-20_s2.txt`.
+
+### My slips
+
+- The first run of the mutants did nothing: the tool's own check of the unmutated tree
+  failed. Two test modules read the built image when they are imported, and a fresh copy of
+  the tree has no build. I had run the suite only in a tree that had one. Both modules build
+  the image first now, and the suite was run on a fresh copy.
+- While writing the record of the mutants I started the tool with no argument, which is the
+  complete set, with its output thrown away. I stopped it after two minutes and removed its
+  scratch copies. Nothing came of it and nothing is recorded from it; the complete set is
+  still to be run, whole and into a file.
+- A draft of this proposal said the prober already reads the SLCR words for the record. It
+  does not, as its own test says; the text was corrected before the proposal was committed.
+
+### What none of this can show
+
+- What the three registers hold on the board. The twin's values are made up.
+- Whether U-Boot's mapping reaches `0x40000000`, and whether the design answers there. The
+  bench drives the register file with a model of an AXI3 master; the PS7 itself is not
+  simulated.
+- Whether the SLCR words are still the ones recorded on 2026-11-13. If not, the run stops at
+  the prompt with the word it read.
+- Whether a read of the reference frame is disturbed by anything here; the run says.
+- Whether a second build of the same sources gives the same bitstream. It was not tried; the
+  set names one file by its hash.
+

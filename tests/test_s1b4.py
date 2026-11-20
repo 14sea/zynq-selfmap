@@ -124,8 +124,7 @@ class TheSet(unittest.TestCase):
         with self.assertRaises(ValueError):                 # nothing above block type 1 can be started at
             s1a_run.with_start(STAGE, json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()), ABOVE, "a test")
         both = [json.loads(s1a_run.STAGES[s]["expected"].read_text()) for s in (STAGE, "s1b4a")]
-        self.assertEqual(both[0]["image_sha256"], both[1]["image_sha256"])
-        self.assertEqual(both[0]["image_sha256"], "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
+        self.assertEqual(both[0]["image_sha256"], both[1]["image_sha256"])     # which image that is, is held where it ran: test_board_evidence
 
     def test_the_chain_begins_at_the_address_the_board_named_after_block_type_0(self) -> None:
         rows = json.loads((ROOT / "evidence" / "s1b3_17A6_2026-11-17" / "rows.json").read_text())

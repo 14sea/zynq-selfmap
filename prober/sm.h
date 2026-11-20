@@ -14,6 +14,8 @@
 #define DEVCFG_DMA_DLEN    0xF8007024u
 #define DEVCFG_MCTRL       0xF8007080u
 #define CTRL_PCAP_MASK     0x0C000000u   /* PCAP_PR | PCAP_MODE, both required set */
+#define CTRL_SEU_EN        0x00000100u   /* UG585: "enables an automatic lockdown of the PS when a PL SEU is detected".
+                                            Never set by the prober; from stage 6 on a gate: nothing is sent if it is set */
 #define MCTRL_PCAP_LPBK    0x00000010u
 #define STS_PCFG_DONE      0x00000004u
 #define STS_D_P_DONE       0x00001000u
@@ -31,6 +33,12 @@
 #define W_RD_FDRO_0        0x28006000u
 #define W_T2_READ          0x48000000u
 #define W_RD_FAR_1         0x28002001u   /* read the FAR register, one word (UG470 table 6-1 with the FAR address) */
+/* S2.0 (docs/s2_plan.md, section 6): one word of three more registers, read the same way. The addresses are UG470's
+ * table 5-23: IDCODE 01100, CTL0 00101, STAT 00111 (the last is the header table 6-1 itself prints). */
+#define W_RD_IDCODE_1      0x28018001u
+#define W_RD_CTL0_1        0x2800A001u
+#define W_RD_STAT_1        0x2800E001u
+enum { REG_FAR, REG_IDCODE, REG_CTL0, REG_STAT, N_REGS };   /* which register an operation reads after its frame read */
 #define CMD_RCFG           0x00000004u
 #define CMD_DESYNC         0x0000000Du
 #define FRAME_WORDS        101u
@@ -84,6 +92,44 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 #define POLL_NO_STORES     1u            /* nothing stored until the transfer is over; the limit still loaded from the same slot */
 #define POLL_NO_STACK      2u            /* nothing stored and nothing loaded: the loop touches no memory at all */
 #define MAX_REPEATS        8u
+/* stages 6 (S2.0) and 7 (S2.1): the table-driven stage with one thing more — the register read after each operation is
+ * chosen by the host, four bits an operation, from the list above. At most eight operations, so the upper half of the
+ * table of addresses is free; stage 7 has its second envelope there. Words these stages do not use must be zero. */
+#define P_REGS             12u
+#define MAX_REG_OPS        8u
+#define P_PL_LO            24u           /* stage 7: the envelope of PL addresses, both ends included */
+#define P_PL_HI            25u
+#define P_PL_ID            26u           /*          what the design's identification register must read */
+#define P_SLCR             28u           /*          four words: what the four SLCR registers below must read */
+
+/* ---- stage 7 (S2.1): the first access to user logic (docs/s2_plan.md, section 7) ---- */
+#define SLCR_LVL_SHFTR_EN  0xF8000900u   /* read, never written; the SLCR is locked and stays so */
+#define SLCR_FPGA_RST_CTRL 0xF8000240u
+#define SLCR_FPGA0_CLK     0xF8000170u
+#define SLCR_PLL_STATUS    0xF800010Cu
+#define N_SLCR             4u
+/* the probe design s2a (pl/s2a): eight registers on M_AXI_GP0 */
+#define PL_BASE            0x40000000u
+#define PL_ID              0x00u         /* read: a fixed word */
+#define PL_SCRATCH         0x04u         /* read, write */
+#define PL_COUNT           0x08u         /* read: counts FCLK0 */
+#define PL_RAM_ADDR        0x0Cu         /* read, write: the address of the LUT RAM, six bits */
+#define PL_RAM_DATA        0x10u         /* write: one write of four bits at that address; read: the four outputs there */
+#define PL_SRL_ADDR        0x14u         /* read, write: the address of the shift registers' outputs, five bits */
+#define PL_SRL_DATA        0x18u         /* read: the four outputs there. A write shifts — and is not on this prober's list */
+#define PL_WRITES          0x1Cu         /* read: RAM writes (low half) and shifts (high half) since the design was loaded */
+#define PL_SPAN            0x20u
+/* the registers this prober may write, one bit for each offset: the scratch register, the two addresses, the RAM's data */
+#define PL_WRITABLE        ((1u << PL_SCRATCH) | (1u << PL_RAM_ADDR) | (1u << PL_RAM_DATA) | (1u << PL_SRL_ADDR))   /* 0x00111010 */
+#define RAM_DEPTH          64u
+#define SRL_DEPTH          32u
+#define RAM_STATES         4u            /* all zero, all one, the address's low four bits, their complement */
+/* the PL block of a stage-7 result: between the header and the records, counted with the header (H_HDR_WORDS) */
+#define PLB_MAGIC_VALUE    0x4C504D53u   /* "SMPL" */
+enum { PLB_MAGIC, PLB_N, PLB_CODE, PLB_AT, PLB_SLCR, PLB_LOG = 16 };
+#define PL_LOG_MAX         1280u         /* accesses; each two words: the address (bit 0 set: a write), the value */
+#define PLB_WORDS          (PLB_LOG + 2u * PL_LOG_MAX)                                    /* 2576 */
+enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PLC_WRITES, PLC_FULL };
 
 /* ---- result ---- */
 #define RESULT_MAGIC       0x31524D53u   /* "SMR1" */
@@ -129,6 +175,8 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define S_GATE_LPBK        0x102u
 #define S_GATE_NOT_DONE    0x103u
 #define S_GATE_DCACHE      0x104u
+#define S_GATE_SEU         0x105u        /* stages 6 and 7: SEU_EN is set in devcfg.CTRL */
+#define S_GATE_SLCR        0x110u        /* | which of the four words; stage 7: the PS side of the PL is not as recorded */
 #define S_STOP_INTERFACE   0x200u        /* | record code */
 #define S_STOP_HEALTH      0x300u
 #define S_STOP_BUDGET      0x400u
@@ -137,6 +185,7 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define S_STOP_WALK        0x700u        /* | record code; stage 4: any anomaly ends the walk, there is nothing to skip to */
 #define S_STOP_STUCK       0x800u        /* stage 4: the address the device named is not above the one it was asked about */
 #define S_STOP_STANDSTILLS 0x900u        /* stage 4: the register stood still at one address more than a pass may cross */
+#define S_STOP_PL          0xA00u        /* | PLC_*; stage 7: user logic did not answer as the design must */
 
 /* ---- hardware access: the only doors (board: sm_board.c, host twin: twin_hal.c) ---- */
 uint32_t hal_rd(uint32_t addr);                 /* device register read */
@@ -154,6 +203,7 @@ void     sm_readback_stream(uint32_t far, uint32_t out[STREAM_WORDS]);
 void     sm_cleanup_stream(uint32_t out[CLEANUP_WORDS]);
 void     sm_frames_stream(uint32_t far, uint32_t n_frames, uint32_t out[STREAM_WORDS]);
 void     sm_far_read_stream(uint32_t out[FARRD_WORDS]);
+void     sm_reg_read_stream(uint32_t reg, uint32_t out[FARRD_WORDS]);
 uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_hi, uint32_t max_read);
 uint32_t sm_run(void);
 

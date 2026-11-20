@@ -101,11 +101,18 @@ class TheSet(unittest.TestCase):
         self.assertEqual(the_set()["params"][16], rows["end"]["named_after_the_last_frame"][2:])
         self.assertNotIn(rows["end"]["named_after_the_last_frame"], {s["far"] for s in rows["addresses"]}, "named there, and not read")
 
-    def test_the_image_is_the_one_that_has_been_on_the_board(self) -> None:
-        exp = the_set()
-        self.assertEqual(exp["image_sha256"], "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
-        kept = ROOT / "evidence" / "s1b5_17A6_2026-11-19" / "prober.bin"
-        self.assertEqual((exp["image_bytes"], exp["image_crc32"]), (len(kept.read_bytes()), f"{zlib.crc32(kept.read_bytes()) & 0xFFFFFFFF:08x}"))
+    def test_the_image_that_ran_is_the_one_that_had_been_on_the_board(self) -> None:
+        """Until 2026-11-20 this held the set's own image to that hash: the step was made with the image as it was. S2.0
+        brought a new image (docs/s2_plan.md, section 13), so the set as it is built today names another. What stays
+        true, and is held here, is what ran: the image kept beside this step's run is the one kept with the chain
+        before it, and the run's record shows that image in RAM."""
+        import hashlib
+        ran = (ROOT / "evidence" / "s1b6a_17A6_2026-11-19" / "prober.bin").read_bytes()
+        kept = (ROOT / "evidence" / "s1b5_17A6_2026-11-19" / "prober.bin").read_bytes()
+        self.assertEqual(hashlib.sha256(ran).hexdigest(), "fdc4f07fa71db7ff23d6e64f8a3168bc055ca7ee402c37709d34fd69270e9452")
+        self.assertEqual(ran, kept)
+        self.assertEqual((the_set()["image_bytes"], the_set()["image_crc32"]),
+                         (len(s1a_run.IMAGE.read_bytes()), f"{zlib.crc32(s1a_run.IMAGE.read_bytes()) & 0xFFFFFFFF:08x}"), "the set names the image as it is built now")
 
     def test_nothing_of_it_is_given_at_run_time(self) -> None:
         with self.assertRaises(ValueError):

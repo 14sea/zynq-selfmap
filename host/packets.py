@@ -14,6 +14,10 @@ REG = {0: "CRC", 1: "FAR", 2: "FDRI", 3: "FDRO", 4: "CMD", 5: "CTL0", 6: "MASK",
 CMD = {0: "NULL", 1: "WCFG", 2: "MFW", 3: "DGHIGH", 4: "RCFG", 5: "START", 6: "RCAP", 7: "RCRC", 8: "AGHIGH",
        9: "SWITCH", 10: "GRESTORE", 11: "SHUTDOWN", 12: "GCAPTURE", 13: "DESYNC", 15: "IPROG", 16: "CRCC", 17: "LTIMER"}
 OPS = {0: "nop", 1: "read", 2: "write", 3: "reserved"}
+# The registers a read-only stage may read one word of. FAR since S1b.0; IDCODE, CTL0 and STAT since S2.0 (owner,
+# 2026-11-20: docs/s2_plan.md, section 12, point 2). UG470's table 5-23 calls all four readable. No other is on the
+# list, MASK and the option registers among those that are not.
+READABLE = ("FAR", "IDCODE", "CTL0", "STAT")
 
 
 def decode(words: list[int]) -> list[dict]:
@@ -92,10 +96,10 @@ def readonly_problems(words: list[int], far_lo: int, far_hi: int, max_read: int)
             else:
                 problems.append(f"{where}: a write to {reg}")
         elif op == "read":
-            if reg == "FAR" and k == "type1" and count == 1:
-                pass                                 # one word of the FAR register: a read, of a readable register
+            if reg in READABLE and k == "type1" and count == 1:
+                pass                                 # one word of a register on the list: a read, of a readable register
             elif reg != "FDRO":
-                problems.append(f"{where}: a read of {reg}" + (f" ({count} words)" if reg == "FAR" else ""))
+                problems.append(f"{where}: a read of {reg}" + (f" ({count} words)" if reg in READABLE else ""))
             elif k == "type1":
                 if count != 0:
                     problems.append(f"{where}: a type-1 FDRO read of {count} words")

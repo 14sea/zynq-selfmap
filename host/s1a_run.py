@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*] --dry-run                    print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*] --go --out DIR               run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*|s2_0|s2_1] --dry-run          print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*|s2_0|s2_1] --go --out DIR     run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -50,6 +50,8 @@ import s1b1_judge  # noqa: E402
 import dx_judge  # noqa: E402
 import s1b2_judge  # noqa: E402
 import s1b2e_judge  # noqa: E402
+import s2_0_judge  # noqa: E402
+import s2_1_judge  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
 STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
@@ -93,6 +95,14 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # with the start fixed there and the envelope's upper end at the last address whose block type field is 3.
           # Judged as a run of a chain: it begins beyond the known frames.
           "s1b6a": {"judge": s1b2_judge, "expected": ROOT / "build" / "prober" / "expected_s1b6a.json"},
+          # S2.0 (docs/s2_plan.md, section 6): one word of IDCODE, CTL0 and STAT read through PCAP, the carrier loaded
+          # as in every run before it; the address register and the known frames as controls.
+          "s2_0": {"judge": s2_0_judge, "expected": ROOT / "build" / "prober" / "expected_s2_0.json"},
+          # S2.1 (section 7): the first access to user logic. The design loaded is s2a, not the carrier — its file, its
+          # name on the card and its hash come from the set (which takes them from the record of the design's build) —
+          # and what the judge holds the run to is the design's own facts, not the known frames. Before `go` the host
+          # reads the four SLCR words and the design's identification register at the prompt (before_go).
+          "s2_1": {"judge": s2_1_judge, "expected": ROOT / "build" / "prober" / "expected_s2_1.json", "known": ROOT / "pl" / "s2a" / "design.json"},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -128,6 +138,22 @@ MAX_READS = 5                                        # attempts at one short rea
 
 STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5")  # the sets whose starting address is not fixed by the tests
 P_FAR_LO, P_FAR_HI, P_START = 3, 4, 16               # words of the parameter block
+P_STAGE, P_PL_LO, P_PL_ID, P_SLCR = 2, 24, 26, 28    # stage 7: the PL envelope's lower end, the identification word, four SLCR words
+SLCR_GATES = ((0xF8000900, "LVL_SHFTR_EN"), (0xF8000240, "FPGA_RST_CTRL"), (0xF8000170, "FPGA0_CLK_CTRL"), (0xF800010C, "PLL_STATUS"))
+
+
+def pl_file(exp: dict) -> Path:
+    """The PL design a set is run with: the carrier, unless the set names another (S2.1 names s2a)."""
+    return ROOT / exp["pl_design"]["file"] if "file" in exp["pl_design"] else PL
+
+
+def pl_card_name(exp: dict) -> str:
+    return exp["pl_design"].get("card_name", PL_CARD_NAME)
+
+
+def known_for(stage: str) -> dict:
+    """What the judge of a set holds its result to: the known frames, unless the set has facts of its own."""
+    return json.loads(STAGES[stage].get("known", KNOWN).read_text())
 
 
 class Stop(Exception):
@@ -167,10 +193,20 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     add("clear the sticky PCFG_DONE bit so that the load is seen as an edge (as the verified run did)", "mw.l f800700c 00000004 1", "prompt")
     add("status after the clear", "md.l f800700c 1", "bit 2 clear", bit=(2, False))
     add(f"the PL design ({pl_bytes} bytes, sha256 {exp['pl_design']['sha256'][:8]}…) from the card; by YMODEM if the card does not have it",
-        f"fatload mmc 0:1 {PL_ADDR:08x} {PL_CARD_NAME}", "U-Boot reports the same size", card_or_ymodem=str(PL), size=pl_bytes, timeout=60)
+        f"fatload mmc 0:1 {PL_ADDR:08x} {pl_card_name(exp)}", "U-Boot reports the same size", card_or_ymodem=str(pl_file(exp)), size=pl_bytes, timeout=60)
     add("the design in RAM is the file, whichever way it came", f"crc32 {PL_ADDR:08x} {pl_bytes:x}", f"crc32 {pl_crc}", crc=pl_crc)
     add("configure the PL", f"fpga loadb 0 {PL_ADDR:08x} {pl_bytes:x}", "no error", timeout=60)
     add("status after the load", "md.l f800700c 1", "bit 2 (PCFG_DONE) set", bit=(2, True))
+    if int(exp["params"][P_STAGE], 16) == 7:
+        # S2.1: the first access to user logic is made here, at the prompt, where a design that does not answer costs
+        # a power cycle and nothing else. Before it, the PS side of the PL as the prober itself will want it: the four
+        # words the set carries. The prober runs in U-Boot's context and mapping, so this read is the read it will make.
+        for k, (addr, name) in enumerate(SLCR_GATES):
+            want = int(exp["params"][P_SLCR + k], 16)
+            add(f"{name} is as recorded on this board", f"md.l {addr:08x} 1", f"reads {want:08x}", word=want)
+        ident = int(exp["params"][P_PL_ID], 16)
+        add("THE FIRST ACCESS TO USER LOGIC: the design's identification register. If no prompt comes back, the design does not answer: power cycle",
+            f"md.l {int(exp['params'][P_PL_LO], 16):08x} 1", f"reads {ident:08x}", word=ident)
     add("zero the parameter block", f"mw.l {PAR_ADDR:08x} 0 {PAR_WORDS:x}", "prompt")
     for i, w in enumerate(exp["params"]):
         if int(w, 16):
@@ -286,9 +322,11 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
                 if not ok or not m or int(m.group(1), 16) != s["size"]:
                     raise Stop(f"the transfer for {s['cmd']!r} did not report {s['size']} bytes")
                 continue
-            if "bit" in s or "crc" in s:              # a status word, a checksum: asked again if the reply is not whole
+            if "bit" in s or "crc" in s or "word" in s:   # a status word, a checksum, a word with a known value: asked again if the reply is not whole
                 got = read(s["cmd"], s["what"], s.get("timeout", 10))
                 if "bit" in s and (got is None or bool(got[0] >> s["bit"][0] & 1) != s["bit"][1]):
+                    raise Stop(f"{s['cmd']!r}: {s['check']}" + (f" (read {got[0]:08x})" if got else " (nothing read)"))
+                if "word" in s and (got is None or got[0] != s["word"]):
                     raise Stop(f"{s['cmd']!r}: {s['check']}" + (f" (read {got[0]:08x})" if got else " (nothing read)"))
                 if "crc" in s and got != s["crc"]:
                     raise Stop(f"{s['cmd']!r}: crc32 {got}, expected {s['crc']}")
@@ -450,11 +488,13 @@ def main() -> int:
             exp = with_start(a.stage, exp, a.start, a.start_from)
         except ValueError as e:
             print(f"REFUSED: {e}"); return 2
-    img, pl = IMAGE.read_bytes(), PL.read_bytes()
+    if not pl_file(exp).is_file():
+        print(f"REFUSED: the PL design of this set is not staged ({pl_file(exp)})"); return 2
+    img, pl = IMAGE.read_bytes(), pl_file(exp).read_bytes()
     if hashlib.sha256(img).hexdigest() != exp["image_sha256"]:
         print("REFUSED: the image on disk is not the one the tests fixed in expected.json"); return 2
     if hashlib.sha256(pl).hexdigest() != exp["pl_design"]["sha256"] or len(pl) != exp["pl_design"]["bytes"]:
-        print("REFUSED: the staged PL design is not the one the known frames were read with"); return 2
+        print("REFUSED: the staged PL design is not the one this set was fixed with"); return 2
     pl_crc = f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}"
     if a.dry_run or not a.go:
         print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else ""))
@@ -485,7 +525,7 @@ def main() -> int:
     os.environ["SELFMAP_CONSOLE_LOG"] = str(a.out / "console.log")
     from uboot_console import UB
     card_name = "s%07x.bin" % (int(time.time()) & 0xFFFFFFF)
-    record = execute(UB(), exp, a.out, ymodem_send, json.loads(KNOWN.read_text()), len(pl), pl_crc, card_name, a.stage)
+    record = execute(UB(), exp, a.out, ymodem_send, known_for(a.stage), len(pl), pl_crc, card_name, a.stage)
     print("stop:", record.get("stop")); print("problems:", record["problems"]); print("verdict:", record["verdict"])
     return 0 if record["verdict"] == "PASS" else 1
 

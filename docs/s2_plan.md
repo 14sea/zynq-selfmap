@@ -16,8 +16,9 @@ review of it found one fault in the run script, and a review of the mending two 
 three are mended (sections 14 and 15). The complete set of mutants has been run, and the
 mutants of the run script on the script as it is now (section 16). **S2.0 has been on the
 board: PASS, and control register 0 has bit 8 set — LUT RAM is not masked in readback, by the
-register's word (section 17).** S2.1 has not been run and waits for the owner's word. S2.2 to S2.5 are not
-proposed in full yet.
+register's word (section 17).** **S2.1 has been on the
+board: PASS — the first access to our own design returned, and the design is a RAM from its
+own side (section 18).** S2.2 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -900,3 +901,52 @@ the content, and the step has to show that it is.
 fail until the numbers are raised. They were raised in the commit that stored the run (186
 runs, 141 PASS; the audit re-judged the new run and agreed with its stored verdict). Every
 board run from here on does the same, and the raw result's commit is where it belongs.
+
+## 18. The design on the card, and S2.1 on the board (2026-11-20): PASS
+
+Asked what was left to check before S2.1 and what speaks against the card, I answered (the
+top level compared port by port with zynq-fabricmap's carrier, read and not copied: the same
+hookup, and a BUFG written out; the constraint 10 ns against the board's 20; the YMODEM
+branch for a PL design has never run on this board, 184 runs took theirs from the card). The
+owner: as recommended, it is what the plan fixed, no need to ask.
+
+**The card** (`evidence/card_2026-11-20/`, `411da7e`): `s2a.bit` by YMODEM into RAM, crc32
+`6a1efe06`, `fatwrite`, read back the same; `carrier.bit` read back as it was; nothing loaded.
+This U-Boot's word for a file that is not on the card is now on record (`Failed to load`
+and the name); the run script's rule, that the size wanted was not reported as read, covers
+it.
+
+**S2.1** (`evidence/s2_1_17A6_2026-11-20/RESULT.md`; stored as it came in `8dbe27d`): outcome 1
+of section 7.
+
+- **The first access to user logic returned**: `md.l 40000000 1` at the prompt read
+  `53324131`. The four SLCR words were the ones wanted, at the prompt and again from the
+  prober.
+- **The design from its own side**: 1,164 accesses, nothing wrong; the counter runs; the RAM
+  read back each of its four states at all 64 addresses (256 writes counted by the design);
+  the shift registers read the four words they are loaded with, twice, and were not shifted.
+- **The configuration registers under our own design** are what they were under the carrier:
+  IDCODE `0x13722093`, **CTL0 `0x00000501`**, STAT `0x46107ffc`. Outcome 7 did not come about;
+  bit 8 is set for this design too.
+- **The reference frame** the same first and last, and not the carrier's frame — as expected
+  of another design.
+
+**A fault this run showed, in a test and not in the run.** The audit of the stored runs
+handed every judge the carrier's known frames. The judge of `s2_1` is handed the design's
+facts by the run script (`known_for`), and with the carrier's frames it says of this result
+that the shift registers' words were not given, and fails it. The run script's verdict was
+right; the audit asked the wrong question. It now takes what the run script takes, and its
+re-judging of this run is the stored verdict word for word. **My slip:** `363ad58` gave the
+set facts of its own and did not carry that to the audit; no test could show it while no run
+of the set was stored.
+
+**Where S2 stands after this.** Answered so far: a register read through PCAP works (S2.0);
+CTL0 says the mask is off, for both designs; the PS reaches our design, and the design holds
+content we chose and content we write. Not yet asked of the device: where that content lies
+in configuration memory and whether a read of those frames shows it. That is S2.2, whose
+read stage is the second image of point 10 and is to be proposed next, for the case that the
+mask is off. One thing that proposal has to deal with — from general knowledge of the
+family, to be checked against UG470's text before anything rests on it: the mask exists
+because reading back a LUT RAM or a shift register that is in use can disturb it. `s2a` is
+idle unless the PS accesses it, and the proposal has to say what idle must mean during a
+read.

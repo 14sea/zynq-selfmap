@@ -14,8 +14,9 @@ step.**
 **Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13). A
 review of it found one fault in the run script, and a review of the mending two more; all
 three are mended (sections 14 and 15). The complete set of mutants has been run, and the
-mutants of the run script on the script as it is now (section 16). Nothing of S2 has been on a
-board. S2.2 to S2.5 are not
+mutants of the run script on the script as it is now (section 16). **S2.0 has been on the
+board: PASS, and control register 0 has bit 8 set — LUT RAM is not masked in readback, by the
+register's word (section 17).** S2.1 has not been run and waits for the owner's word. S2.2 to S2.5 are not
 proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
@@ -868,3 +869,34 @@ that is a statement about the tests, on a pretend board and a twin. It says noth
 the board. By section 41 of `docs/s1b_plan.md` the condition "the complete set before a new
 image first goes on a board" is met for this image (`480bbdd4…aa46`); the other conditions
 of section 13 — the owner's word for each step, `s2a.bit` on the card — are as they were.
+
+## 17. S2.0 on the board (2026-11-20): PASS; control register 0 is `0x00000501`
+
+The owner released it after section 16. One run of the set `s2_0` on `17A6`, the carrier
+loaded, the new image's first time on a board; the account is
+`evidence/s2_0_17A6_2026-11-20/RESULT.md`. The result was committed as stored (`4e73959`)
+before it was read.
+
+- **A register read through PCAP works in the form section 6 gave.** IDCODE `0x13722093`
+  three times (the low 28 bits as known); the address register `0xb9b` after every read of
+  the reference frame; the reference frame the known frame all five times; no error bit, no
+  status bit that is not usual.
+- **CTL0 is `0x00000501`**: bits 10 (ConfigFallback), 8 (GLUTMASK_B) and 0 (GTS_USR_B), the
+  same three times. **Bit 8 set: outcome 1 of section 6.** By the register's word the carrier
+  as loaded reads back LUT RAM and shift registers unmasked. The first half of question 4 is
+  answered so; the second half — do the frames bear it out — is S2.2's.
+- **STAT is `0x46107ffc`**, the same three times; read off UG470's table in the result note,
+  held by no program.
+- **The write of MASK and CTL0** that point 3 of section 12 kept in reserve is not needed for
+  the question as it stands, and nothing of it is designed.
+
+**What it changes for the steps to come.** S2.1 is as built; its outcome 7 now has a value to
+compare with (`0x00000501` under the carrier). S2.2's read stage — the second image of
+point 10 — can be proposed for the case "the mask is off": what is read is expected to be
+the content, and the step has to show that it is.
+
+**One thing the run met that the tests had not.** The audit of the stored runs
+(`tests/test_evidence_audit.py`) has the number of runs written into it; a new run makes it
+fail until the numbers are raised. They were raised in the commit that stored the run (186
+runs, 141 PASS; the audit re-judged the new run and agreed with its stored verdict). Every
+board run from here on does the same, and the raw result's commit is where it belongs.

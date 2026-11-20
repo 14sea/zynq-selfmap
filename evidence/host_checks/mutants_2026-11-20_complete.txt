@@ -1,0 +1,715 @@
+# python3 tests/mutants.py      (the complete set, 711 mutants; 2026-11-20 08:56 to 15:50 GMT, on the tree of 363ad58 — the review fixes 914eaa9, 7830797 and 98709d7 were made beside it and are not in it; their mutants and the run script's are in mutants_2026-11-20_run_script.txt)
+unmutated: Ran 641 OK; 0 test(s): 
+KILLED   the generator sends WCFG                                       Ran 641 FAILED (failures=774, errors=217); 371 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the guard accepts any CMD value                                Ran 641 FAILED (failures=2); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard ignores the envelope                                 Ran 641 FAILED (failures=8); 5 test(s): both_readers_accept_what_the_generator_make, one_fdro_read_per_frame_address
+KILLED   the guard allows any read length                               Ran 641 FAILED (failures=3); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_pad_alone_and_no_read_at_all
+KILLED   no clear before a command                                      Ran 641 FAILED (failures=76, errors=442); 284 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the clear is not verified                                      Ran 641 FAILED (failures=5); 3 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+KILLED   the clear also clears PCFG_DONE                                Ran 641 FAILED (failures=229, errors=545); 369 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   PCFG_DONE not checked before queuing                           Ran 641 FAILED (failures=7); 3 test(s): any_interface_failure_stops_at_that_command, pcfg_done_found_clear_before_a_command_mean
+KILLED   PCFG_DONE not checked while polling                            Ran 641 FAILED (failures=17); 4 test(s): for_every_fault_and_shape_the_judge_rederiv, for_every_fault_the_judge_rederives_exactly
+KILLED   SRC and DST written in the wrong order                         Ran 641 FAILED (failures=20); 3 test(s): every_dma_command_is_clear_verify_program_i, five_commands_per_operation_each_cleared_ve
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 641 FAILED (failures=358, errors=2); 81 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_that_halted_is_summarized_as_far_as
+KILLED   error bits are not checked                                     Ran 641 FAILED (failures=93); 15 test(s): a_failure_on_the_very_first_read_is_reporte, a_result_that_still_says_the_reference_fram
+KILLED   the poll limit is ignored below 5000                           Ran 641 FAILED (failures=29, errors=442); 267 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   no data-cache gate                                             Ran 641 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_must_show_that_gate_failing
+KILLED   stage 2: no data-cache gate                                    Ran 641 FAILED (failures=9); 5 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no loopback gate                                               Ran 641 FAILED (failures=3); 3 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
+KILLED   stage 2: no loopback gate                                      Ran 641 FAILED (failures=9); 5 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: no PCFG_DONE gate                                     Ran 641 FAILED (failures=10); 6 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no PCFG_DONE gate                                              Ran 641 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   no CTRL gate                                                   Ran 641 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing_and_writes_no_r, for_every_fault_the_judge_rederives_exactly
+KILLED   stage 2: no CTRL gate                                          Ran 641 FAILED (failures=10); 6 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no sentinel prefill                                            Ran 641 FAILED (failures=5); 5 test(s): a_run_with_an_anomaly_is_saved_whole_then_j, a_short_read_is_recorded_and_the_run_goes_o
+KILLED   stage 2: no sentinel prefill of the data                       Ran 641 FAILED (failures=22); 14 test(s): a_changed_reference_frame_or_an_exhausted_b, a_failure_in_the_baseline_is_reported_as_su
+KILLED   stage 2: no sentinel before the FAR read                       Ran 641 FAILED (failures=13); 9 test(s): a_failure_in_the_baseline_is_reported_as_su, a_far_read_that_failed_measures_nothing
+KILLED   the health check always passes                                 Ran 641 FAILED (failures=4); 3 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   no anomaly budget                                              Ran 641 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_anomaly_budget_stops_the_run
+KILLED   stage 2: no anomaly budget                                     Ran 641 FAILED (failures=17); 9 test(s): a_changed_reference_frame_or_an_exhausted_b, a_register_read_that_delivers_nothing
+KILLED   a repeat that differs is not noticed                           Ran 641 FAILED (failures=2); 2 test(s): a_repeat_that_differs_is_recorded_and_the_r, for_every_fault_the_judge_rederives_exactly
+KILLED   the pad is not checked                                         Ran 641 FAILED (failures=4); 2 test(s): a_nonzero_pad_is_recorded_and_the_run_goes_, for_every_fault_the_judge_rederives_exactly
+KILLED   a frame outside the envelope is accepted in the parameters     Ran 641 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register_at_all
+KILLED   a PL read is added                                             Ran 641 FAILED (failures=27, errors=442); 264 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   an SLCR write is added                                         Ran 641 FAILED (failures=27, errors=442); 264 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the cleanup stream is skipped                                  Ran 641 FAILED (failures=19); 10 test(s): a_command_that_never_completes_times_out_at, an_error_bit_stops_the_run_and_nothing_foll
+KILLED   stage 2: the cleanup stream is skipped                         Ran 641 FAILED (failures=117); 46 test(s): a_column_that_does_not_end_inside_the_limit, a_failure_of_the_interface_during_a_registe
+KILLED   the final reference read is not compared                       Ran 641 FAILED (failures=2); 2 test(s): for_every_fault_the_judge_rederives_exactly, the_final_reference_read_must_match
+KILLED   the guard accepts a read that is not a pad plus whole frames   Ran 641 FAILED (failures=3); 1 test(s): a_read_that_is_not_a_pad_plus_whole_frames_
+KILLED   the guard lets a read run past the envelope                    Ran 641 FAILED (failures=7); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_range_check_cannot_be_wrapped
+KILLED   the guard accepts a one-word read of any register              Ran 641 FAILED (failures=15); 1 test(s): only_four_registers_and_only_one_word_of_ea
+KILLED   the guard allows a second read on an address that has moved on Ran 641 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   reader: a second read on an address that has moved on is accepted Ran 641 FAILED (failures=3); 1 test(s): one_fdro_read_per_frame_address
+KILLED   run: a result of another stage's layout is not saved whole     Ran 641 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 641 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 641 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   the guard's range check adds to the address and can wrap       Ran 641 FAILED (failures=4); 1 test(s): the_range_check_cannot_be_wrapped
+KILLED   stage 2: the parameter range check adds to the address and can wrap Ran 641 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   run: the dry run does not list the YMODEM branch               Ran 641 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_plan_and_cannot_open
+KILLED   stage 2: the FAR register is not read                          Ran 641 FAILED (failures=416, errors=195); 306 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   stage 2: a repeat's data is not compared                       Ran 641 FAILED (failures=14); 6 test(s): a_difference_in_a_later_frame_of_a_multi_fr, data_anomalies_are_recorded_and_skipped_whi
+KILLED   stage 2: a repeat's FAR value is not compared                  Ran 641 FAILED (failures=23); 11 test(s): a_far_value_that_differs_in_an_anomalous_re, a_register_that_reads_differently_a_second_
+KILLED   stage 2: an unread FAR is not noticed                          Ran 641 FAILED (failures=29); 11 test(s): a_failure_in_the_baseline_is_reported_as_su, a_far_read_that_failed_measures_nothing
+KILLED   stage 2: the reference's FAR value is not part of its health   Ran 641 FAILED (failures=13); 4 test(s): a_changed_reference_frame_stops_the_run, a_far_value_that_differs_on_the_reference_r
+KILLED   stage 2: an operation running past the envelope is accepted    Ran 641 FAILED (failures=6); 2 test(s): a_block_that_is_not_of_this_form_is_refused, bad_parameters_touch_no_register
+KILLED   stage 2: more frames per read than the buffer holds            Ran 641 FAILED (failures=3); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 2: only the first frame of a repeat is compared          Ran 641 FAILED (failures=5); 2 test(s): a_difference_in_a_later_frame_of_a_multi_fr, for_every_fault_the_judge_rederives_what_th
+KILLED   stage 2: the pad is not checked                                Ran 641 FAILED (failures=29, errors=1); 22 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge2: the FAR values need not follow one rule                Ran 641 FAILED (failures=2); 2 test(s): the_far_register_must_follow_one_rule, the_rule_is_drawn_from_every_far_value_that
+KILLED   judge2: only the first frame of a read is compared with the known frames Ran 641 FAILED (failures=35, errors=1); 20 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   judge2: the echoed parameters are not compared with the planned ones Ran 641 FAILED (failures=11); 1 test(s): a_run_that_was_not_the_planned_one_fails
+KILLED   judge2: a repeat's FAR value is not derived                    Ran 641 FAILED (failures=8); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: a repeat's data is not derived                         Ran 641 FAILED (failures=11, errors=1); 2 test(s): for_every_fault_the_judge_rederives_what_th, the_two_runs_at_the_end_of_the_row
+KILLED   judge2: the unused tail is not checked                         Ran 641 FAILED (failures=5); 2 test(s): a_stored_result_with_one_word_changed_does_, tampered_buffers_fail
+KILLED   judge2: the FAR read stream is not compared with the pinned one Ran 641 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the reference's health ignores the FAR value           Ran 641 FAILED (failures=10); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   judge2: the FAR value and its unread flag are not held together Ran 641 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the order of records is not checked                    Ran 641 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge2: the code is not compared with the derivation           Ran 641 FAILED (failures=4, errors=1); 2 test(s): tampered_buffers_fail, the_two_runs_at_the_end_of_the_row
+KILLED   judge2: an unread FAR is not derived                           Ran 641 FAILED (failures=13); 1 test(s): for_every_fault_the_judge_rederives_what_th
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 641 FAILED (failures=117, errors=161); 165 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   judge: a nonzero pad is not derived                            Ran 641 FAILED (failures=5); 3 test(s): a_nonzero_pad_under_a_clean_code_fails, a_stored_result_with_one_word_changed_does_
+KILLED   judge: sentinel survivors are not derived                      Ran 641 FAILED (failures=6); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: a differing repeat is not derived                       Ran 641 FAILED (failures=1); 1 test(s): for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the code is not compared with the derivation            Ran 641 FAILED (failures=2); 2 test(s): a_nonzero_pad_under_a_clean_code_fails, a_stored_result_with_one_word_changed_does_
+KILLED   judge: the order of records is not checked                     Ran 641 FAILED (failures=4); 2 test(s): eleven_copies_of_the_baseline_fail, tampered_buffers_fail
+KILLED   judge: missing records are not noticed                         Ran 641 FAILED (failures=3); 1 test(s): a_run_cut_short_before_its_last_reads_fails
+KILLED   judge: the anomaly count is not cross-checked                  Ran 641 FAILED (failures=1); 1 test(s): a_header_that_counts_an_anomaly_no_record_s
+KILLED   judge: the status is not cross-checked                         Ran 641 FAILED (failures=3); 1 test(s): a_stopped_run_relabelled_as_done_fails
+KILLED   judge: the stop record is not cross-checked                    Ran 641 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a frame differing from the known one passes             Ran 641 FAILED (failures=1); 1 test(s): a_frame_that_differs_from_the_known_one_fai
+KILLED   judge: recorded streams are not compared with the pinned words Ran 641 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: the survivor count is not recounted                     Ran 641 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: trailing words are accepted                             Ran 641 FAILED (failures=3); 2 test(s): a_clean_file_passes_and_any_extra_byte_make, truncated_padded_or_foreign_data_is_invalid
+KILLED   judge: an incomplete run can pass                              Ran 641 FAILED (failures=7); 2 test(s): an_interface_stop_is_saved_whole_then_judge, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: the echoed parameters are not compared with the planned ones Ran 641 FAILED (failures=7); 3 test(s): a_run_that_did_less_than_was_planned_fails_, a_run_that_did_not_do_what_was_planned_fail
+KILLED   judge: gate readings that fail a gate are accepted on a run that went on Ran 641 FAILED (failures=5); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: a gate stop is not held to its own readings             Ran 641 FAILED (failures=1); 1 test(s): a_gate_stop_must_show_that_gate_failing
+KILLED   judge: the final INT_STS is not judged                         Ran 641 FAILED (failures=2); 1 test(s): gate_readings_that_contradict_a_run_that_we
+KILLED   judge: the data-cache reading is not a gate                    Ran 641 FAILED (failures=3); 3 test(s): a_gate_stop_must_show_that_gate_failing, for_every_fault_the_judge_rederives_exactly
+KILLED   judge: reserved header words are not checked                   Ran 641 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: reserved record words are not checked                   Ran 641 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge: a file length that is not a multiple of four is rounded down Ran 641 FAILED (errors=7); 1 test(s): a_clean_file_passes_and_any_extra_byte_make
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 641 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 641 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 641 FAILED (failures=2); 2 test(s): a_run_that_did_not_do_what_was_planned_fail, the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the live status afterwards is only recorded               Ran 641 FAILED (failures=4); 3 test(s): a_short_reply_that_never_comes_whole_after_, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the card copy is not read back                            Ran 641 FAILED (failures=4); 4 test(s): a_command_that_does_something_is_sent_once_, a_short_reply_that_never_comes_whole_after_
+KILLED   run: the card read-back checksum is not compared               Ran 641 FAILED (failures=3); 3 test(s): a_run_that_does_not_pass_halts_the_chain_an, a_whole_reply_with_another_value_is_never_a
+KILLED   run: an unconfirmed card write is ignored                      Ran 641 FAILED (failures=3); 2 test(s): a_command_that_does_something_is_sent_once_, an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 641 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the return code is not compared with the result           Ran 641 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 641 FAILED (failures=2, errors=1); 3 test(s): a_damaged_card_copy_stops_the_run_before_th, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 641 FAILED (failures=1, errors=1); 2 test(s): a_whole_reply_with_another_value_is_never_a, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 641 FAILED (failures=2); 2 test(s): a_command_that_does_something_is_sent_once_, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 641 FAILED (failures=148, errors=162); 181 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: PASS without the judge                                    Ran 641 FAILED (failures=83); 30 test(s): a_failure_at_the_very_first_read_there, a_frame_that_has_a_known_answer_is_still_he
+KILLED   stage 3: asked to read nothing, the generator still reads      Ran 641 FAILED (failures=147, errors=14); 62 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: an operation that reads nothing still queues a read command Ran 641 FAILED (failures=83); 22 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   stage 3: the pad of a pad-only read is not checked             Ran 641 FAILED (failures=23, errors=1); 19 test(s): a_changed_reference_frame_stops_the_run, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   stage 3: stage 2 accepts the new operations too                Ran 641 FAILED (failures=4); 3 test(s): bad_parameters_touch_no_register, bad_parameters_touch_no_register_at_all
+KILLED   stage 3: the pad alone or no read may be asked for outside the envelope Ran 641 FAILED (failures=6); 4 test(s): a_block_that_is_not_of_this_form_is_refused, a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 3: repeats of an operation that reads nothing are compared over words that were never read Ran 641 FAILED (failures=90, errors=3); 42 test(s): a_clean_run_passes_under_every_rule_and_eve, a_clean_run_passes_whatever_the_register_di
+KILLED   judge3: a read status in an operation that reads nothing goes unnoticed Ran 641 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge3: the same read at the same address may leave different values Ran 641 FAILED (failures=2); 2 test(s): a_far_value_that_differs_in_an_anomalous_re, the_same_read_at_the_same_address_must_alwa
+KILLED   judge3: the stage is taken from the result instead of from what was run Ran 641 FAILED (failures=4); 4 test(s): a_result_of_the_other_stage_is_not_this_sta, a_stage_two_result_under_stage_three_is_sav
+KILLED   judge3: the length rule is reported as holding whatever was seen Ran 641 FAILED (failures=9, errors=1); 7 test(s): a_clean_run_passes_whatever_the_register_di, a_far_value_is_a_measurement_even_in_a_reco
+KILLED   judge3: undetermined is reported as holding                    Ran 641 FAILED (failures=2); 2 test(s): the_length_rule_has_three_answers, the_stored_verdict_is_the_judges_word_as_it
+KILLED   judge2/3: FAR values from records with another anomaly are left out of the finding Ran 641 FAILED (failures=2, errors=2); 4 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   judge2/3: a FAR value counts although its read failed          Ran 641 FAILED (failures=5); 5 test(s): a_far_read_that_failed_measures_nothing, stage_two_and_three
+KILLED   judge3: an anomalous record counts as clean evidence for the length rule Ran 641 FAILED (failures=1); 1 test(s): the_length_rule_has_three_answers
+KILLED   judge3: the table does not say which of its records were anomalous Ran 641 FAILED (failures=2); 2 test(s): a_far_value_is_a_measurement_even_in_a_reco, a_far_value_that_differs_in_an_anomalous_re
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 641 FAILED (failures=6); 4 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 641 FAILED (failures=113, errors=51); 115 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   stage 4: no data-cache gate                                    Ran 641 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no loopback gate                                      Ran 641 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no PCFG_DONE gate                                     Ran 641 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: no CTRL gate                                          Ran 641 FAILED (failures=2); 2 test(s): a_failed_gate_sends_nothing, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the walk reads at an address the device named outside the envelope Ran 641 FAILED (failures=146, errors=39); 109 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   stage 4: an address below the envelope is not taken as a stop  Ran 641 FAILED (failures=7); 3 test(s): an_address_below_the_envelope_is_not_a_norm, an_address_that_is_not_above_the_one_asked_
+KILLED   stage 4: the stop record of a walk that does not advance is counted back from the end Ran 641 FAILED (failures=2); 2 test(s): an_address_that_is_not_above_the_one_asked_, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the walk follows an address that does not advance     Ran 641 FAILED (failures=72); 36 test(s): a_name_that_leads_back_below_block_type_2_s, a_name_that_leads_back_into_block_type_0_st
+KILLED   stage 4: a step backwards is followed                          Ran 641 FAILED (failures=30); 14 test(s): a_name_that_leads_back_below_block_type_2_s, a_name_that_leads_back_into_block_type_0_st
+KILLED   stage 4: the limit of frames is not applied                    Ran 641 FAILED (failures=84, errors=74); 119 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   stage 4: the next address is computed instead of taken from the device Ran 641 FAILED (failures=88, errors=42); 104 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: the successor read reads the frame as well            Ran 641 FAILED (failures=267, errors=97); 190 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   stage 4: a later pass is not compared with the first           Ran 641 FAILED (failures=7); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may be told another address              Ran 641 FAILED (failures=4); 2 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a later pass may deliver another frame                Ran 641 FAILED (failures=3); 3 test(s): any_anomaly_ends_the_walk_after_one_referen, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the three-frame read is not compared with the single reads Ran 641 FAILED (failures=5); 3 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: only the first of the three frames is compared        Ran 641 FAILED (failures=3); 3 test(s): a_difference_in_the_last_frame_of_an_overla, any_anomaly_ends_the_walk_after_one_referen
+KILLED   stage 4: the walk goes on after an anomaly                     Ran 641 FAILED (failures=38); 10 test(s): a_difference_in_the_last_frame_of_an_overla, a_read_that_did_not_succeed_gives_neither_a
+KILLED   stage 4: the reference is not read during the run              Ran 641 FAILED (failures=207, errors=46); 160 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: a changed reference frame during the run is ignored   Ran 641 FAILED (failures=5); 3 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: the frames delivered since the reference are not counted Ran 641 FAILED (failures=207, errors=46); 160 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: the count since the reference starts again with each pass Ran 641 FAILED (failures=154, errors=42); 136 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: the reads of several frames are not counted towards the reference Ran 641 FAILED (failures=151, errors=44); 137 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: a reference read does not start the count again       Ran 641 FAILED (failures=206, errors=44); 157 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: one or two frames left over are not read again        Ran 641 FAILED (failures=117, errors=42); 116 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   stage 4: a walk of two frames gets no second path              Ran 641 FAILED (failures=23, errors=4); 26 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_difference_in_the_last_frame_of_an_overla
+KILLED   stage 4: a reference interval too short for a read of three frames is taken Ran 641 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: the final reference read is ignored                   Ran 641 FAILED (failures=4); 3 test(s): a_changed_reference_frame_stops_the_run, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: more passes than the header has room for              Ran 641 FAILED (failures=2); 2 test(s): bad_parameters_touch_no_register, for_every_fault_and_shape_the_judge_rederiv
+KILLED   stage 4: a start outside the envelope is taken                 Ran 641 FAILED (failures=2); 1 test(s): bad_parameters_touch_no_register
+KILLED   stage 4: a limit above what the result area holds              Ran 641 FAILED (failures=1); 1 test(s): bad_parameters_touch_no_register
+KILLED   judge4: a later pass may name another address                  Ran 641 FAILED (failures=4); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, the_second_pass_has_to_stand_still_where_th
+KILLED   judge4: a later pass may deliver another frame                 Ran 641 FAILED (failures=3); 3 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: the three-frame read is not compared                   Ran 641 FAILED (failures=6); 4 test(s): a_known_frame_delivered_in_a_read_of_severa, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: only two of the three frames are compared              Ran 641 FAILED (failures=5); 4 test(s): a_known_frame_delivered_in_a_read_of_severa, for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: the register after a frame is not checked against the next address named Ran 641 FAILED (failures=12); 11 test(s): one_standstill_more_than_allowed_stops_the_, rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   judge4: the known frames are not compared                      Ran 641 FAILED (failures=3); 3 test(s): a_known_frame_delivered_in_a_read_of_severa, a_known_frame_that_differs_is_named
+KILLED   judge4: the reference frame is not held to its known value     Ran 641 FAILED (failures=1); 1 test(s): the_reference_frame_is_held_to_its_known_va
+KILLED   judge4: the baseline is not held to the known value            Ran 641 FAILED (failures=1); 1 test(s): the_reference_frame_is_held_to_its_known_va
+KILLED   judge4: the frames of the walk are not held to their known values Ran 641 FAILED (failures=1); 1 test(s): a_known_frame_delivered_in_a_read_of_severa
+KILLED   judge4: frames delivered in a read of several are not held to their known values Ran 641 FAILED (failures=1); 1 test(s): a_known_frame_delivered_in_a_read_of_severa
+KILLED   judge4: a record of another shape than the schedule has is followed Ran 641 FAILED (errors=2); 2 test(s): no_record_however_malformed_makes_the_judge, tampered_buffers_fail
+KILLED   judge4: the register after a read of several frames is not checked Ran 641 FAILED (failures=2); 2 test(s): for_every_fault_and_shape_the_judge_rederiv, tampered_buffers_fail
+KILLED   judge4: an address below the envelope is not taken as a stop   Ran 641 FAILED (failures=2); 1 test(s): for_every_fault_and_shape_the_judge_rederiv
+KILLED   judge4: one or two frames left over need not be read again     Ran 641 FAILED (failures=115, errors=46); 126 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   judge4: a reference interval too short for a read of three frames is a valid parameter Ran 641 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: the reference reads count frames per pass, not over the run Ran 641 FAILED (failures=200, errors=48); 167 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   grade: a walk that did not finish is compared as if it were the column Ran 641 FAILED (failures=3); 1 test(s): a_walk_that_did_not_finish_is_not_taken_for
+KILLED   grade: a walk at its limit is compared as if it were the column Ran 641 FAILED (failures=4); 2 test(s): a_walk_that_did_not_finish_is_not_taken_for, a_walk_that_stopped_at_its_limit_or_left_th
+KILLED   grade: the judge's verdict is not carried over                 Ran 641 FAILED (failures=3); 1 test(s): a_walk_that_did_not_finish_is_not_taken_for
+KILLED   judge4: a known frame the walk went past is fine if the pass ended at the limit Ran 641 FAILED (failures=2); 2 test(s): a_row_whose_known_frames_are_passed_over_is, a_run_of_the_chain_is_not_failed_for_known_
+KILLED   judge4: known frames above the last address read count as gone past Ran 641 FAILED (failures=41, errors=17); 49 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_taken_up_again_is_the_same_chain
+KILLED   judge4: known frames below the first address read count as gone past Ran 641 FAILED (failures=104, errors=34); 108 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   s1b2 chain: a row left with its known frames not walked is complete Ran 641 FAILED (failures=2, errors=5); 3 test(s): a_chain_that_begins_at_the_bottom_of_its_en, from_its_first_address_on
+KILLED   s1b2 chain: a known frame outside the envelope is asked of the chain Ran 641 FAILED (failures=28, errors=22); 41 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2 chain: only the last run's frames count as walked         Ran 641 FAILED (failures=17, errors=6); 21 test(s): a_chain_that_begins_at_the_bottom_of_its_en, a_row_is_walked_from_its_first_address_to_t
+KILLED   judge4: leaving the envelope without the known frames is fine  Ran 641 FAILED (failures=8); 4 test(s): a_column_end_inside_the_envelope_is_reporte, a_run_of_the_chain_is_not_failed_for_known_
+KILLED   judge4: the header's account of the walk is not checked        Ran 641 FAILED (failures=4); 2 test(s): one_word_changed_anywhere_in_the_walk_does_, tampered_buffers_fail
+KILLED   judge4: the stage is taken from the result                     Ran 641 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: a reference flag need not fit the data                 Ran 641 FAILED (failures=1); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a record's code need not be what its words say         Ran 641 FAILED (failures=8); 5 test(s): a_known_frame_delivered_in_a_read_of_severa, one_word_changed_anywhere_in_the_walk_does_
+KILLED   judge4: an address that does not advance is followed           Ran 641 FAILED (failures=34); 19 test(s): a_result_relabelled_as_one_without_the_allo, a_row_whose_chain_halted_at_such_an_end_is_
+KILLED   judge4: the limit is not applied                               Ran 641 FAILED (failures=104, errors=45); 119 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   judge4: an address outside the envelope is followed            Ran 641 FAILED (failures=115, errors=29); 103 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   judge4: the reference reads during the walk are not expected   Ran 641 FAILED (failures=206, errors=48); 169 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   judge4: the echoed parameters need not be the planned ones     Ran 641 FAILED (failures=11); 7 test(s): a_result_relabelled_as_one_without_the_allo, a_run_that_was_not_the_planned_one_fails
+KILLED   judge4: words after the data are not checked                   Ran 641 FAILED (failures=3); 3 test(s): tampered_buffers_fail, the_run_across_the_end_of_the_row
+KILLED   judge4: the streams are not compared with the pinned ones      Ran 641 FAILED (failures=2); 1 test(s): tampered_buffers_fail
+KILLED   judge4: a PASS for a run that did not complete                 Ran 641 FAILED (failures=44); 28 test(s): a_name_that_leads_back_below_block_type_2_s, a_name_that_leads_back_into_block_type_0_st
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 641 FAILED (failures=5, errors=1); 6 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   run: a piece is taken whatever its crc32                       Ran 641 FAILED (failures=3); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is taken whatever its length                      Ran 641 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a damaged piece is not pulled again                       Ran 641 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is pulled again without end in sight              Ran 641 FAILED (failures=2); 1 test(s): a_piece_that_cannot_be_pulled_whole_stops_t
+KILLED   run: the repeats of a piece are not recorded                   Ran 641 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: pieces that match are enough, the whole is not checked    Ran 641 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the whole is checked for length only                      Ran 641 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: a copy that is not the board's is not kept                Ran 641 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the pieces are not the pieces asked for                   Ran 641 FAILED (failures=115, errors=207); 197 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the console says stage 2 for stage 3                           Ran 641 FAILED (failures=24); 8 test(s): a_clean_run_passes_under_every_rule_and_eve, a_result_of_another_stage_is_saved_whole_an
+KILLED   the console says stage 2 for stage 4                           Ran 641 FAILED (failures=113, errors=43); 103 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   the console says stage 3 for stage 5                           Ran 641 FAILED (failures=24); 8 test(s): bad_diagnostic_parameters_touch_no_register, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   judge3: stage 2 may ask for the new counts as well             Ran 641 FAILED (failures=1); 1 test(s): a_result_of_the_other_stage_is_not_this_sta
+KILLED   stage 4: no reference read after an anomaly                    Ran 641 FAILED (failures=30); 9 test(s): a_changed_reference_frame_stops_the_run, any_anomaly_ends_the_walk_after_one_referen
+KILLED   judge4: unused parameter words may hold anything               Ran 641 FAILED (failures=4); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   judge4: any amount of extra stack is a valid parameter         Ran 641 FAILED (failures=2); 2 test(s): diagnostic_parameters_the_prober_would_refu, the_judges_say_which_loop_and_refuse_one_th
+KILLED   a reference read that failed on the interface is reported as a changed reference frame Ran 641 FAILED (failures=4); 2 test(s): stage_two_and_three, the_walk
+KILLED   a changed reference frame is reported as an interface failure  Ran 641 FAILED (failures=33); 10 test(s): a_changed_reference_frame_or_an_exhausted_b, a_changed_reference_frame_stops_the_run
+KILLED   judge2/3/5: a reference read that failed on the interface may be called a changed frame Ran 641 FAILED (failures=1); 1 test(s): stage_two_and_three
+KILLED   judge4: a reference read that failed on the interface may be called a changed frame Ran 641 FAILED (failures=5); 3 test(s): a_result_that_still_says_the_reference_fram, the_stored_verdict_is_the_judges_word_as_it
+KILLED   stage 5: the extra stack is not put beneath the target reads   Ran 641 FAILED (failures=3); 1 test(s): more_stack_moves_the_polling_variable_under
+KILLED   stage 4: the extra stack is not put beneath the walk's reads   Ran 641 FAILED (failures=1); 1 test(s): the_same_in_the_walk
+KILLED   the deeper read reads something else                           Ran 641 FAILED (failures=12); 6 test(s): more_stack_moves_the_polling_variable_under, the_first_pass_s_reads_made_by_the_stage_th
+KILLED   stage 5: a sequence longer than the result area allows         Ran 641 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 5: any amount of extra stack                             Ran 641 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 4: any amount of extra stack                             Ran 641 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 5: a sequence may be repeated any number of times        Ran 641 FAILED (failures=1); 1 test(s): bad_diagnostic_parameters_touch_no_register
+KILLED   stage 5: the sequence reads the frame twice instead of the pad and the frame Ran 641 FAILED (failures=14); 6 test(s): a_sequence_that_would_run_past_the_top_of_t, tampered_stage_five_buffers_fail
+KILLED   stage 5: the sequence stays at its first address               Ran 641 FAILED (failures=14); 6 test(s): a_sequence_that_would_run_past_the_top_of_t, tampered_stage_five_buffers_fail
+KILLED   stages 2 and 3 take the diagnostic options too                 Ran 641 FAILED (failures=3); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 5: a sequence may wrap past the top of the address space Ran 641 FAILED (failures=4); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 5: a sequence may run one address past the top           Ran 641 FAILED (failures=2); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   stage 5: a sequence that ends exactly at the top is refused    Ran 641 FAILED (failures=9, errors=9); 9 test(s): a_sequence_that_would_run_past_the_top_of_t, more_stack_moves_the_polling_variable_under
+KILLED   judge5: an operation without a read is counted as a read of the pad alone Ran 641 FAILED (failures=1); 1 test(s): the_judge_follows_stage_five_and_reports_wh
+KILLED   judge5: the pad alone is counted as an operation without a read Ran 641 FAILED (failures=7, errors=1); 5 test(s): the_diagnostic_series_of_2026_11_15_is_what, the_judge_follows_stage_five_and_reports_wh
+KILLED   s1b2: the block planned for a run does not carry its start     Ran 641 FAILED (failures=63, errors=35); 82 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2: a run record of another stage is taken                   Ran 641 FAILED (failures=5); 4 test(s): the_chain_is_complete_although_no_known_fra, the_driver_says_where_a_stored_chain_stands
+KILLED   s1b2: a run in which the prober was not started is taken       Ran 641 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run the run script stopped is taken                    Ran 641 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run the run script failed is taken                     Ran 641 FAILED (failures=4); 4 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2: a run without a verified card copy is taken              Ran 641 FAILED (failures=2); 2 test(s): a_run_that_does_not_pass_halts_the_chain_an, the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run started elsewhere than the chain plans is taken    Ran 641 FAILED (failures=3); 3 test(s): a_chain_is_asked_for_the_known_frames_from_, the_chain_is_complete_although_no_known_fra
+KILLED   s1b2: a stored result is not held against the board's checksum Ran 641 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: the judge's verdict of a stored run is not asked for     Ran 641 FAILED (failures=13); 12 test(s): a_register_that_stands_still_for_good_after, a_row_shorter_than_a_pass_halts_the_chain
+KILLED   s1b2: a run is judged against the set's block, not the one planned for it Ran 641 FAILED (failures=63, errors=34); 81 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2: run directories with a gap are taken                     Ran 641 FAILED (failures=1); 1 test(s): the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: one pass is enough                                       Ran 641 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the passes need not end alike                            Ran 641 FAILED (failures=3); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the walk need not be as long as its passes say           Ran 641 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: seam: the address is not compared                        Ran 641 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: seam: the content is not compared                        Ran 641 FAILED (failures=1); 1 test(s): a_seam_that_does_not_match_halts_the_chain
+KILLED   s1b2: seam: the address named is not compared                  Ran 641 FAILED (failures=1); 1 test(s): a_seam_that_does_not_match_halts_the_chain
+KILLED   s1b2: runs after the row was left are overlooked               Ran 641 FAILED (failures=1, errors=1); 2 test(s): the_decisions_on_runs_that_the_twin_cannot_, the_stored_runs_are_what_the_chain_stands_o
+KILLED   s1b2: a run that ended neither way is gone on from             Ran 641 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: a run of one frame at the limit is gone on from          Ran 641 FAILED (failures=1); 1 test(s): the_decisions_on_runs_that_the_twin_cannot_
+KILLED   s1b2: the next run begins at the address named, without a seam Ran 641 FAILED (failures=66, errors=33); 83 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b2: the bound allows one run more                            Ran 641 FAILED (failures=3, errors=1); 3 test(s): the_bound_on_runs, the_bound_on_the_number_of_runs
+KILLED   s1b2: the two endings are taken for each other                 Ran 641 FAILED (failures=65, errors=28); 77 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2: a run is judged by the judge of S1b.1                    Ran 641 FAILED (failures=36, errors=27); 57 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2: a chain that is not to go on is gone on with             Ran 641 FAILED (errors=34); 24 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_chain_that_halted_is_summarized_as_far_as
+KILLED   s1b2 row: the seam frames are listed twice                     Ran 641 FAILED (failures=6); 6 test(s): a_shape_that_was_not_expected_is_listed_not, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2 row: the frames of a run that did not pass are listed     Ran 641 FAILED (failures=3); 3 test(s): a_chain_that_halted_is_summarized_as_far_as, the_chain_along_the_row_as_it_was_stored
+KILLED   s1b2 row: the last column of a chain that halted counts as whole Ran 641 FAILED (failures=18); 15 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_chain_that_halted_is_summarized_as_far_as
+KILLED   s1b2 row: the minors are not looked at                         Ran 641 FAILED (failures=2); 2 test(s): a_shape_that_was_not_expected_is_listed_not, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 row: any minor of the next column will do                 Ran 641 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: any column will do as the next                       Ran 641 FAILED (failures=2); 2 test(s): a_shape_that_was_not_expected_is_listed_not, the_run_at_the_address_named_after_block_ty
+KILLED   s1b2 row: a column of another row is not remarked              Ran 641 FAILED (failures=2); 2 test(s): a_row_that_ends_without_a_standstill_is_not, a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: addresses out of order are not remarked              Ran 641 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: a broken chain of addresses is not remarked          Ran 641 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 row: the frames of S1b.1 are not compared                 Ran 641 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: the addresses S1b.1 was told are not compared        Ran 641 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: a longer column here passes for S1b.1's              Ran 641 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: a walk of S1b.1 that lists nothing passes for the same column Ran 641 FAILED (failures=1); 1 test(s): held_against_another_walk_of_the_column
+KILLED   s1b2 row: every known frame counts as walked                   Ran 641 FAILED (failures=3); 3 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_that_halted_is_summarized_as_far_as
+KILLED   s1b2 row: the column field is taken a bit short                Ran 641 FAILED (failures=2); 2 test(s): nothing_but_the_graders_names_the_database, the_fields_of_the_address_word
+KILLED   s1b2 row: the row field begins a bit lower                     Ran 641 FAILED (failures=17); 16 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b2 row: an unexpected last column of a complete row is not remarked when its minors are off Ran 641 FAILED (failures=1); 1 test(s): a_shape_that_was_not_expected_is_listed_not
+KILLED   s1b2 grade2: a different frame count is not a difference       Ran 641 FAILED (failures=5); 4 test(s): it_says_where_the_database_differs, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: a column cut short may hold more than the database gives it Ran 641 FAILED (failures=1); 1 test(s): the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: the list of columns is not compared               Ran 641 FAILED (failures=3); 3 test(s): it_says_where_the_database_differs, the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: a complete row is compared with a beginning of the database's Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: the frames of the row are not added up            Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: the row after is the same row                     Ran 641 FAILED (failures=9); 8 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b2 grade2: after the top half comes the top half             Ran 641 FAILED (failures=10); 9 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b2 grade2: the address named after the row is not compared   Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, the_grader_says_where_the_database_differs
+KILLED   s1b2 grade2: what the summary lists as unexpected is passed over in silence Ran 641 FAILED (errors=1); 1 test(s): the_grader_compares_only_what_was_walked_wh
+KILLED   s1b2 grade2: a chain that halted is graded as a whole row      Ran 641 FAILED (errors=4); 3 test(s): a_chain_that_halted_is_graded_only_as_far_a, the_chains_own_summary_is_graded_as_before
+KILLED   s1b2 grade2: columns of another row among them are not remarked Ran 641 FAILED (failures=1); 1 test(s): the_grader_says_where_the_database_differs
+KILLED   s1b2 run: any set may be given a start                         Ran 641 FAILED (failures=7); 5 test(s): it_is_the_walks_set_with_the_three_differen, nothing_of_it_is_given_at_run_time
+KILLED   s1b2 run: a start outside the envelope is sent                 Ran 641 FAILED (failures=6); 5 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_command_line
+KILLED   s1b2 run: the start given is not put into the block            Ran 641 FAILED (failures=95, errors=32); 98 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2 run: where the start came from is not recorded            Ran 641 FAILED (failures=61, errors=43); 84 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2 run: a run of the chain is judged by the judge of S1b.1   Ran 641 FAILED (failures=8, errors=2); 10 test(s): a_chain_is_asked_for_the_known_frames_from_, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2 judge4: S1b.1 no longer fails a walk that began beyond the known frames Ran 641 FAILED (failures=2); 2 test(s): a_run_of_the_chain_is_not_failed_for_known_, a_walk_that_leaves_the_envelope_without_pas
+KILLED   s1b2 judge4: a run of a chain is never failed for a known frame Ran 641 FAILED (failures=1); 1 test(s): a_run_of_the_chain_is_not_failed_for_known_
+KILLED   s1b2 judge of a run: it is S1b.1's judge after all             Ran 641 FAILED (failures=54, errors=27); 70 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: the quiet walk is judged as a stage-5 result              Ran 641 FAILED (failures=3); 3 test(s): no_run_is_judged_otherwise_now_than_it_was, the_stored_verdict_is_the_judges_word_as_it
+KILLED   run: the quiet walk is given the walk's old parameters         Ran 641 FAILED (failures=3); 3 test(s): the_dry_run_of_the_quiet_walk_differs_from_, the_set_is_the_quiet_walk_with_the_row_as_i
+KILLED   quiet wait: the count is stored on every poll after all        Ran 641 FAILED (failures=3, errors=442); 260 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   quiet wait: one poll more than the limit                       Ran 641 FAILED (failures=6); 2 test(s): the_count_on_the_stack_while_a_transfer_is_, the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: an error bit is not a way out                      Ran 641 FAILED (failures=4); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: PCFG_DONE gone is not a way out                    Ran 641 FAILED (failures=3, errors=442); 260 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   quiet wait: the count is not handed back                       Ran 641 FAILED (failures=55, errors=442); 275 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   quiet wait: the last status is not recorded                    Ran 641 FAILED (failures=53, errors=442); 274 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   quiet wait: PCFG_DONE gone is reported as something else       Ran 641 FAILED (failures=10); 7 test(s): a_failure_at_the_very_first_read_there, a_failure_of_the_interface_during_a_registe
+KILLED   quiet wait: an error bit is reported as something else         Ran 641 FAILED (failures=18); 12 test(s): a_failure_at_the_very_first_read_there, a_failure_of_the_interface_during_a_registe
+KILLED   quiet wait: the stale status is not looked for                 Ran 641 FAILED (failures=3); 2 test(s): stage_six, the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: PCFG_DONE is not looked for before the command     Ran 641 FAILED (failures=2); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: no clear before the command                        Ran 641 FAILED (failures=28, errors=442); 265 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   quiet wait: SRC and DST written in the wrong order             Ran 641 FAILED (failures=18); 1 test(s): the_three_loops_bring_back_the_same_result_
+KILLED   quiet wait: the command is queued with another length          Ran 641 FAILED (failures=263, errors=110); 216 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   quiet wait: the variant that loads the limit is given no place to load it from Ran 641 FAILED (failures=1, errors=442); 259 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   quiet wait: the variant that touches no memory loads the limit from the stack Ran 641 FAILED (failures=1, errors=442); 259 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   the choice of the wait is ignored: always as before            Ran 641 FAILED (failures=5, errors=443); 263 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   stage 3 takes the choice of the wait too                       Ran 641 FAILED (failures=1); 1 test(s): the_other_stages_wait_as_they_always_did
+KILLED   the walk does not take the choice of the wait                  Ran 641 FAILED (failures=3); 3 test(s): a_loop_that_does_not_exist_is_refused_befor, the_count_on_the_stack_while_a_transfer_is_
+KILLED   stage 5: a wait that does not exist is run                     Ran 641 FAILED (failures=1); 1 test(s): a_loop_that_does_not_exist_is_refused_befor
+KILLED   the walk: a wait that does not exist is run                    Ran 641 FAILED (failures=1); 1 test(s): a_loop_that_does_not_exist_is_refused_befor
+KILLED   stage 5: the choice of the wait is taken for extra stack       Ran 641 FAILED (failures=50, errors=7); 26 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   the walk: the choice of the wait is taken for extra stack      Ran 641 FAILED (failures=100, errors=158); 155 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   the twin is not shown the count of polls                       Ran 641 FAILED (failures=2, errors=2); 3 test(s): the_count_on_the_stack_while_a_transfer_is_, the_other_stages_wait_as_they_always_did
+KILLED   judges: a wait that does not exist is a valid plan (stage 5)   Ran 641 FAILED (errors=1); 1 test(s): the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: a wait that does not exist is a valid plan (the walk)  Ran 641 FAILED (failures=1); 1 test(s): the_judges_say_which_loop_and_refuse_one_th
+KILLED   judges: the choice of the wait is taken for extra stack        Ran 641 FAILED (failures=117, errors=165); 177 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   judges: the extra stack is taken for the choice of the wait    Ran 641 FAILED (failures=117, errors=165); 177 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   the address of the polling variable is not recorded            Ran 641 FAILED (failures=4); 2 test(s): more_stack_moves_the_polling_variable_under, the_same_in_the_walk
+KILLED   judge5: the stage is taken from the result                     Ran 641 FAILED (failures=1); 1 test(s): stage_three_and_stage_five_results_are_not_
+KILLED   judge2/3: the diagnostic words may be set for stages that do not have them Ran 641 FAILED (failures=3); 1 test(s): a_sequence_that_would_run_past_the_top_of_t
+KILLED   judge5: a sequence of any length is a valid parameter          Ran 641 FAILED (failures=1); 1 test(s): diagnostic_parameters_the_prober_would_refu
+KILLED   judge5: the reserved word beside the polling variable is not checked Ran 641 FAILED (failures=2); 2 test(s): tampered_buffers_fail, tampered_stage_five_buffers_fail
+KILLED   s1b2 end: the reference reads are laid out as reads of the end Ran 641 FAILED (failures=31, errors=2); 19 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 end: a repeat that differs is not noticed                 Ran 641 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: the starting addresses are taken to be one step apart Ran 641 FAILED (failures=1); 1 test(s): starting_addresses_that_are_not_one_step_ap
+KILLED   s1b2 end: one step apart is judged by a read of two steps      Ran 641 FAILED (failures=22, errors=2); 13 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: a position is counted from where a read starts, not where it ends Ran 641 FAILED (failures=25); 14 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: two values of the register at one position are not a disagreement Ran 641 FAILED (failures=2); 2 test(s): rule_2_the_last_address_is_where_the_pad_al, two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: arriving at an address written with another value is not noticed Ran 641 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: the frames of a read are placed one position late    Ran 641 FAILED (failures=11); 6 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: frames that differ at one position are not a disagreement Ran 641 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: a frame is called all zero whatever it holds         Ran 641 FAILED (failures=8); 3 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: the note on content is left out                      Ran 641 FAILED (failures=1, errors=1); 2 test(s): the_two_runs_at_the_end_of_the_row, where_every_frame_is_the_same_the_content_s
+KILLED   s1b2 end: the note on content is given whatever was delivered  Ran 641 FAILED (failures=5); 2 test(s): each_end_of_a_row_is_laid_out_as_it_is, where_every_frame_is_the_same_the_content_s
+KILLED   s1b2 end: every step beyond counts as one at which the register did not change Ran 641 FAILED (failures=12); 7 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2 end: a step with two values of the register is taken at its first Ran 641 FAILED (failures=1); 1 test(s): two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: a run the judge did not pass is laid out as a finding Ran 641 FAILED (errors=3); 1 test(s): what_stops_such_a_run
+KILLED   s1b2 end: the exit code is 0 whatever was found                Ran 641 FAILED (failures=5); 3 test(s): the_three_verdicts_through_the_command_line, two_ways_to_a_place_that_do_not_agree_are_l
+KILLED   s1b2 end: a run that did not pass does not change the exit code Ran 641 FAILED (failures=1); 1 test(s): what_stops_such_a_run
+KILLED   s1b2 column: a frame that is not the walk's is not noticed     Ran 641 FAILED (failures=4); 4 test(s): a_frame_or_a_register_that_is_not_the_walks, rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 column: the frames of a read are all held against its first address Ran 641 FAILED (failures=24); 14 test(s): a_frame_or_a_register_that_is_not_the_walks, a_row_whose_chain_halted_at_such_an_end_is_
+KILLED   s1b2 column: the register after a read is not held against the walk Ran 641 FAILED (failures=2); 2 test(s): a_frame_or_a_register_that_is_not_the_walks, rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 column: the walk's successors are followed one step too few Ran 641 FAILED (failures=25); 15 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 column: an address that names itself is followed          Ran 641 FAILED (failures=24); 15 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 column: the register of a read made in both runs may differ Ran 641 FAILED (failures=2); 2 test(s): a_frame_or_a_register_that_is_not_the_walks, rule_3_the_address_named_after_the_row
+KILLED   s1b2 column: addresses of the walk not read again are not listed Ran 641 FAILED (failures=1); 1 test(s): a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 column: the note on content is left out                   Ran 641 FAILED (failures=1, errors=1); 2 test(s): a_column_of_frames_that_are_all_the_same, the_two_runs_at_the_end_of_the_row
+KILLED   s1b2 column: a repeat that differs is not noticed              Ran 641 FAILED (failures=1); 1 test(s): a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2e judge2: frames without a known answer are allowed in every stage Ran 641 FAILED (failures=11); 7 test(s): frames_without_a_known_answer_are_counted_h, no_run_is_judged_otherwise_now_than_it_was
+KILLED   s1b2e judge2: the option does not allow them                   Ran 641 FAILED (failures=37, errors=1); 20 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e judge2: the count of such frames is not reported         Ran 641 FAILED (failures=3, errors=2); 3 test(s): frames_without_a_known_answer_are_counted_h, the_stored_verdict_is_the_judges_word_as_it
+KILLED   s1b2e judge: the option is not asked for                       Ran 641 FAILED (failures=36, errors=2); 20 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e judge: judged as stage 3                                 Ran 641 FAILED (failures=42, errors=4); 25 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2e run: the end is judged by the judge of the diagnostic series Ran 641 FAILED (failures=29); 18 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e run: the column again is given the table of the end      Ran 641 FAILED (failures=26); 15 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b2 closed: a chain that completed is closed all the same     Ran 641 FAILED (failures=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: a row that was left is closed all the same        Ran 641 FAILED (failures=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: a summary without an address is taken             Ran 641 FAILED (errors=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: a walk of nothing is taken                        Ran 641 FAILED (failures=1); 1 test(s): a_summary_with_nothing_to_close_is_refused
+KILLED   s1b2 closed: any status of the walk will do                    Ran 641 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: a walk with an anomaly will do                    Ran 641 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: the last address need not name itself             Ran 641 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: the walk need not be a chain of names             Ran 641 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: any problem of the walk is taken for the stop     Ran 641 FAILED (failures=3); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: a failed cross-check anywhere counts as the stop  Ran 641 FAILED (failures=1); 1 test(s): rule_1a_the_walk_was_stopped_at_an_address_
+KILLED   s1b2 closed: the seam is not held (rule 1b)                    Ran 641 FAILED (failures=3); 1 test(s): rule_1b_the_walk_begins_with_the_last_frame
+KILLED   s1b2 closed: the seam frame may differ                         Ran 641 FAILED (failures=1); 1 test(s): rule_1b_the_walk_begins_with_the_last_frame
+KILLED   s1b2 closed: the address named at the seam may differ          Ran 641 FAILED (failures=1); 1 test(s): rule_1b_the_walk_begins_with_the_last_frame
+KILLED   s1b2 closed: the second path need not have passed              Ran 641 FAILED (failures=1); 1 test(s): rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 closed: disagreements of the second path are passed over  Ran 641 FAILED (failures=2); 2 test(s): rule_1c_every_frame_of_the_walk_was_read_ag, rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: addresses not read again are passed over          Ran 641 FAILED (failures=1); 1 test(s): rule_1c_every_frame_of_the_walk_was_read_ag
+KILLED   s1b2 closed: the run at the end need not have passed           Ran 641 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: disagreements at the end are passed over          Ran 641 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: the pad alone need not leave the register standing Ran 641 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: the walk and the run at the end may name different successors Ran 641 FAILED (failures=1); 1 test(s): rule_2_the_last_address_is_where_the_pad_al
+KILLED   s1b2 closed: an address of the same row counts as the next row Ran 641 FAILED (failures=1); 1 test(s): rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: only the half is looked at                        Ran 641 FAILED (failures=1); 1 test(s): rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: the steps standing still are counted one short    Ran 641 FAILED (failures=16); 9 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the register need not have left                   Ran 641 FAILED (failures=1); 1 test(s): rule_3_the_address_named_after_the_row
+KILLED   s1b2 closed: a row whose rule 4 failed is written all the same Ran 641 FAILED (failures=4); 1 test(s): rule_4_the_columns_the_chain_walked_whole_c
+KILLED   s1b2 closed: the seam frame is listed twice                    Ran 641 FAILED (failures=7); 5 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the chain's columns are not held (rule 4)         Ran 641 FAILED (failures=1); 1 test(s): rule_4_the_columns_the_chain_walked_whole_c
+KILLED   s1b2 closed: the column cut short may be another               Ran 641 FAILED (failures=2); 1 test(s): rule_4_the_columns_the_chain_walked_whole_c
+KILLED   s1b2 closed: the chain is said to have completed               Ran 641 FAILED (failures=5); 3 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the summary does not say it was closed            Ran 641 FAILED (errors=5); 3 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: the standstill is not recorded                    Ran 641 FAILED (failures=6, errors=4); 7 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: frames from beyond are not recorded               Ran 641 FAILED (failures=6); 4 test(s): a_row_whose_chain_halted_at_such_an_end_is_, it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 closed: a refusal exits 0                                 Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b2 grade2: a closed summary is not said to be one            Ran 641 FAILED (errors=1); 1 test(s): it_is_graded_like_any_row_and_the_grade_say
+KILLED   s1b2 grade2: the standstill is passed over in silence          Ran 641 FAILED (failures=2); 2 test(s): it_is_graded_like_any_row_and_the_grade_say, it_says_where_the_database_differs
+KILLED   s1b2 grade2: frames from beyond the row are passed over in silence Ran 641 FAILED (failures=2); 2 test(s): it_is_graded_like_any_row_and_the_grade_say, it_says_where_the_database_differs
+KILLED   s1b3a core: a standstill is crossed without the allowance      Ran 641 FAILED (failures=28); 16 test(s): a_row_whose_chain_halted_at_such_an_end_is_, an_address_that_is_not_above_the_one_asked_
+KILLED   s1b3a core: one standstill more than allowed is crossed        Ran 641 FAILED (failures=7); 7 test(s): a_row_shorter_than_a_pass_halts_the_chain, a_run_that_begins_on_the_last_frame_of_a_ro
+KILLED   s1b3a core: too many standstills are reported as the old stop  Ran 641 FAILED (failures=6); 6 test(s): a_row_shorter_than_a_pass_halts_the_chain, a_run_that_begins_on_the_last_frame_of_a_ro
+KILLED   s1b3a core: the list is cut one frame late                     Ran 641 FAILED (failures=62, errors=27); 73 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a core: the list is not cut                                Ran 641 FAILED (failures=43, errors=24); 55 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3a core: the header keeps the address that named itself     Ran 641 FAILED (failures=39, errors=20); 52 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a core: left over in a piece, the last three of the whole list Ran 641 FAILED (failures=29, errors=22); 43 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   s1b3a core: any number of standstills is accepted as a parameter Ran 641 FAILED (failures=1); 1 test(s): more_standstills_than_the_prober_takes_is_r
+KILLED   s1b3a core: the register after the pad alone is taken for the one after the frame Ran 641 FAILED (failures=68, errors=31); 83 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a core: standstills are counted over the run, not a pass   Ran 641 FAILED (failures=62, errors=29); 75 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a core: the second pass cuts the list again                Ran 641 FAILED (failures=62, errors=27); 73 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a judge: a standstill is crossed without the allowance     Ran 641 FAILED (failures=28); 18 test(s): a_result_relabelled_as_one_without_the_allo, a_row_whose_chain_halted_at_such_an_end_is_
+KILLED   s1b3a judge: a register not above after the frame counts as an end of a row Ran 641 FAILED (failures=1); 1 test(s): an_end_where_the_register_stands_still_for_
+KILLED   s1b3a judge: one standstill more than allowed is crossed       Ran 641 FAILED (failures=4); 4 test(s): one_standstill_more_than_allowed_stops_the_, several_ends_and_the_pieces_the_list_falls_
+KILLED   s1b3a judge: too many standstills imply the old stop           Ran 641 FAILED (failures=3); 3 test(s): one_standstill_more_than_allowed_stops_the_, the_run_at_the_address_named_after_block_ty
+KILLED   s1b3a judge: the list is cut one frame late                    Ran 641 FAILED (failures=57, errors=31); 73 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3a judge: the list is not cut                               Ran 641 FAILED (failures=51, errors=27); 65 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3a judge: a standstill at the last frame leaves an empty piece Ran 641 FAILED (failures=3); 3 test(s): a_standstill_at_the_limit, a_standstill_that_leaves_the_envelope_ends_
+KILLED   s1b3a judge: left over in a piece, the last three of the whole list Ran 641 FAILED (failures=32, errors=25); 49 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   s1b3a judge: the step of the standstill is held to the old cross-check Ran 641 FAILED (failures=57, errors=31); 73 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3a judge: a read that ends at the standstill is held to the old cross-check Ran 641 FAILED (failures=55, errors=31); 72 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3a judge: the register after a read that ends at the standstill is not held Ran 641 FAILED (failures=1); 1 test(s): the_register_after_a_read_that_ends_at_the_
+KILLED   s1b3a judge: named means the next address followed, not what the pad alone left Ran 641 FAILED (failures=67, errors=31); 83 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a judge: more standstills than the prober takes is a valid block Ran 641 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   s1b3a judge: word 11 may be set in a walk's block              Ran 641 FAILED (failures=1); 1 test(s): a_relabelled_result_is_invalid_even_when_th
+KILLED   s1b3a judge: the allowance is reported of every run            Ran 641 FAILED (failures=3); 3 test(s): the_stored_verdict_is_the_judges_word_as_it, the_walk_of_the_column_with_the_quiet_wait
+KILLED   s1b3a judge: every step is said to have stood still            Ran 641 FAILED (failures=73, errors=20); 77 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a judge: no step is said to have stood still               Ran 641 FAILED (failures=60, errors=20); 68 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b3a judge: the standstills are not listed                    Ran 641 FAILED (failures=17); 15 test(s): a_block_type_of_a_few_frames_is_an_answer, a_few_frames_and_then_an_address_above_is_a
+KILLED   s1b3a run: judged as a walk of its own, not a run of a chain   Ran 641 FAILED (failures=2); 2 test(s): a_standstill_that_leaves_the_envelope_ends_, it_is_the_walks_set_with_the_three_differen
+KILLED   s1b3a seam: a frame that differs is not noticed                Ran 641 FAILED (failures=2); 2 test(s): through_the_command_line, what_does_not_agree_is_listed
+KILLED   s1b3a seam: the run need not have stood still at the end of the stored row Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: the address gone on to is not held                 Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: another address named along the row is not noticed Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: a standstill inside the stored row is not noticed  Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: a run that begins elsewhere has a seam             Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: the register after the pad alone is not held       Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: the register after the frame is not held           Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: the steps stored are read one off                  Ran 641 FAILED (failures=1); 1 test(s): the_run_and_the_stored_row_agree
+KILLED   s1b3a seam: new addresses need not follow the end of the stored row Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b3a seam: a run that did not pass exits 0                    Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b3a seam: disagreements exit 0                               Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b3a seam: the new addresses are not counted                  Ran 641 FAILED (failures=3); 2 test(s): the_run_across_the_end_of_the_row, the_run_and_the_stored_row_agree
+KILLED   s1b3 chain: the bound of the row's chain                       Ran 641 FAILED (failures=1); 1 test(s): the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b3 chain: every run is read as one of the row's set          Ran 641 FAILED (failures=48, errors=37); 69 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b3 chain: a step at which the register stood still does not say so Ran 641 FAILED (failures=44, errors=18); 53 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3 chain: asked where a chain stands, the set named is not used Ran 641 FAILED (failures=3); 2 test(s): the_driver_says_where_a_stored_chain_stands, the_driver_says_where_the_stored_chain_stan
+KILLED   s1b3 chain: driven, the chain is assessed as one of the row's set Ran 641 FAILED (failures=47, errors=33); 64 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_taken_up_again_is_the_chain_run_thr
+KILLED   s1b3 run: judged as a walk of its own, not a run of a chain    Ran 641 FAILED (failures=12, errors=2); 14 test(s): a_row_that_ends_without_a_standstill_is_not, a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 run: the chain's set takes no start                       Ran 641 FAILED (failures=2, errors=24); 22 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   run: a reply that is not whole is not asked for again          Ran 641 FAILED (failures=22); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a reply is asked for again without end in sight           Ran 641 FAILED (failures=12); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the replies that were not whole are not listed            Ran 641 FAILED (failures=17); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a dump is whole whatever the addresses of its lines       Ran 641 FAILED (failures=2); 1 test(s): what_a_whole_reply_is
+KILLED   run: a dump that ends early is whole                           Ran 641 FAILED (failures=2); 2 test(s): a_dump_that_is_not_whole_is_asked_for_again, what_a_whole_reply_is
+KILLED   run: a word run together with what follows it counts as that word Ran 641 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum of any range is taken                          Ran 641 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum that lost a character is taken                 Ran 641 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: the reply of any command may be asked for twice           Ran 641 FAILED (failures=12); 1 test(s): what_a_whole_reply_is
+KILLED   run: the header is taken from a dump that is not whole         Ran 641 FAILED (failures=1, errors=1); 2 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the header is not held to the pulled result               Ran 641 FAILED (failures=1); 1 test(s): the_header_is_held_to_the_pulled_result
+KILLED   run: the status that is only recorded is asked for again       Ran 641 FAILED (failures=1); 1 test(s): the_status_that_is_only_recorded_is_read_on
+KILLED   run: a status that never came whole passes the check before go Ran 641 FAILED (failures=1); 1 test(s): before_go_a_reply_that_is_not_whole_is_aske
+KILLED   run: a status afterwards that could not be read is no problem  Ran 641 FAILED (failures=1); 1 test(s): a_short_reply_that_never_comes_whole_after_
+KILLED   s1b4a run: judged as a walk of its own, not a run of a chain   Ran 641 FAILED (failures=5); 3 test(s): an_end_is_one_only_if_both_passes_left_the_, it_is_the_set_of_the_chain_over_block_type_
+KILLED   s1b4a run: the set may be given a start                        Ran 641 FAILED (failures=3); 3 test(s): it_is_the_set_of_the_one_run_word_for_word_, nothing_of_it_is_given_at_run_time
+KILLED   s1b5a run: judged as a walk of its own, not a run of a chain   Ran 641 FAILED (failures=6); 5 test(s): a_block_type_of_a_few_frames_is_an_answer, it_is_the_set_of_the_run_into_block_type_1_
+KILLED   s1b5a run: the set may be given a start                        Ran 641 FAILED (failures=3); 3 test(s): it_is_the_set_of_the_one_run_word_for_word_, nothing_of_it_is_given_at_run_time
+KILLED   s1b5a run: it is given the set of the run into block type 1    Ran 641 FAILED (failures=36); 22 test(s): a_block_type_of_a_few_frames_is_an_answer, a_name_that_leads_back_below_block_type_2_s
+KILLED   s1b5 run: judged as a walk of its own, not a run of a chain    Ran 641 FAILED (failures=18, errors=14); 27 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   s1b5 run: the chain's set takes no start                       Ran 641 FAILED (failures=3, errors=44); 41 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_is_not_complete
+KILLED   s1b5 run: it is given the set of the chain over block type 1   Ran 641 FAILED (failures=27, errors=15); 36 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   s1b5 chain: the bound of the chain over block type 1           Ran 641 FAILED (failures=2); 2 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b6a run: judged as a walk of its own, not a run of a chain   Ran 641 FAILED (failures=6); 4 test(s): a_few_frames_and_then_an_address_above_is_a, it_is_the_set_of_the_run_into_block_type_2_
+KILLED   s1b6a run: the set may be given a start                        Ran 641 FAILED (failures=2); 2 test(s): nothing_of_it_is_given_at_run_time, the_starting_address_is_the_one_word_given_
+KILLED   s1b6a run: it is given the set of the run into block type 2    Ran 641 FAILED (failures=34); 15 test(s): a_failure_at_the_very_first_read_there, a_few_frames_and_then_an_address_above_is_a
+KILLED   census: a chain that is not complete is taken                  Ran 641 FAILED (failures=2); 2 test(s): a_chain_that_is_not_complete, through_the_command_line
+KILLED   census: a summary that lists something unexpected is taken     Ran 641 FAILED (failures=1); 1 test(s): a_summary_that_lists_something_unexpected
+KILLED   census: a set no chain is driven with is taken                 Ran 641 FAILED (failures=1, errors=1); 2 test(s): a_chain_that_is_not_complete, through_the_command_line
+KILLED   census: an address walked by two chains is taken twice         Ran 641 FAILED (failures=1); 1 test(s): two_chains_over_the_same_addresses_or_of_di
+KILLED   census: the frames of a read of several are all laid at its first address Ran 641 FAILED (failures=8); 8 test(s): a_reading_that_differs_is_shown_at_the_addr, a_status_bit_that_is_neither_an_error_nor_u
+KILLED   census: a read of several frames is laid across a standstill   Ran 641 FAILED (failures=1); 1 test(s): a_read_of_several_frames_is_not_laid_across
+KILLED   census: a frame read where the walk lists no address is passed over Ran 641 FAILED (failures=1); 1 test(s): a_read_of_several_frames_is_not_laid_across
+KILLED   census: every address is called stable                         Ran 641 FAILED (errors=1); 1 test(s): a_reading_that_differs_is_shown_at_the_addr
+KILLED   census: every frame is called all zero                         Ran 641 FAILED (failures=2); 2 test(s): every_reading_is_counted_and_laid_at_its_ad, the_frame_census
+KILLED   census: a frame at a seam is given the readings of one run only Ran 641 FAILED (failures=2); 2 test(s): every_reading_is_counted_and_laid_at_its_ad, the_frame_census
+KILLED   census: the frame of the list need not be among the readings   Ran 641 FAILED (failures=1); 1 test(s): a_list_whose_frame_no_reading_is
+KILLED   census: chains of different designs are taken together         Ran 641 FAILED (failures=1); 1 test(s): two_chains_over_the_same_addresses_or_of_di
+KILLED   census: a status bit that showed is not listed                 Ran 641 FAILED (failures=2); 2 test(s): a_status_bit_that_is_neither_an_error_nor_u, the_frame_census
+KILLED   census: a run with reads of several frames is taken as seen    Ran 641 FAILED (failures=1); 1 test(s): a_run_with_reads_of_several_frames_is_not_t
+KILLED   census: an address a chain walked is listed as seen            Ran 641 FAILED (failures=1); 1 test(s): an_address_a_chain_walked_is_not_listed_as_
+KILLED   census: an address that was read is listed as named and not read Ran 641 FAILED (failures=5); 5 test(s): a_read_that_did_not_succeed_gives_neither_a, an_address_a_chain_walked_is_not_listed_as_
+KILLED   census: a run that did not pass is used as another occasion    Ran 641 FAILED (failures=2); 2 test(s): the_frame_census, the_same_addresses_on_another_occasion
+KILLED   census: a reading of another occasion that differs is counted as alike Ran 641 FAILED (failures=2); 2 test(s): the_same_addresses_on_another_occasion, through_the_command_line
+KILLED   census: a different reading on another occasion is no problem  Ran 641 FAILED (failures=2); 2 test(s): the_same_addresses_on_another_occasion, through_the_command_line
+KILLED   census: an address not read alike is no problem                Ran 641 FAILED (failures=1); 1 test(s): a_reading_that_differs_is_shown_at_the_addr
+KILLED   census: exit 0 whatever the problems                           Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   run: a failure of the serial line goes through and no record is written Ran 641 FAILED (errors=49); 6 test(s): after_the_prober_returned_at_the_read_of_th, any_failure_of_the_port_is_one_and_a_fault_
+KILLED   run: every exception is taken for a failure of the line        Ran 641 FAILED (failures=2); 2 test(s): any_failure_of_the_port_is_one_and_a_fault_, the_devices_made_up_here_fit_the_twins_tabl
+KILLED   run: a transfer that does not end goes through                 Ran 641 FAILED (failures=1, errors=13); 4 test(s): a_serial_port_that_fails_stops_the_look_and, every_way_the_line_can_fail_at_every_place_
+KILLED   run: an error of the tty layer goes through                    Ran 641 FAILED (failures=1, errors=12); 3 test(s): a_serial_port_that_fails_stops_the_look_and, every_way_the_line_can_fail_at_every_place_
+KILLED   run: an error of the operating system goes through             Ran 641 FAILED (failures=1, errors=27); 7 test(s): a_serial_port_that_fails_stops_the_look_and, after_the_prober_returned_at_the_read_of_th
+KILLED   run: a command goes round the one place                        Ran 641 FAILED (failures=1, errors=36); 6 test(s): after_the_prober_returned_at_the_read_of_th, any_failure_of_the_port_is_one_and_a_fault_
+KILLED   run: the first prompt goes round the one place                 Ran 641 FAILED (failures=1, errors=5); 3 test(s): before_the_prober_is_started, every_way_the_line_can_fail_at_every_place_
+KILLED   run: the image's transfer goes round the one place             Ran 641 FAILED (failures=1, errors=5); 3 test(s): every_way_the_line_can_fail_at_every_place_, nothing_touches_the_line_but_through_the_on
+KILLED   run: the design's transfer goes round the one place            Ran 641 FAILED (failures=1, errors=4); 2 test(s): every_way_the_line_can_fail_at_every_place_, nothing_touches_the_line_but_through_the_on
+KILLED   look: a failure of the serial line goes through and the record is lost Ran 641 FAILED (errors=1); 1 test(s): a_serial_port_that_fails_stops_the_look_and
+KILLED   look: every exception is taken for a failure of the line       Ran 641 FAILED (failures=1); 1 test(s): a_serial_port_that_fails_stops_the_look_and
+KILLED   census: a read with a code counts as a read                    Ran 641 FAILED (failures=2); 2 test(s): a_read_that_did_not_succeed_gives_neither_a, a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: a short read counts as a read                          Ran 641 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: a read with a pad that is not zero counts as a read    Ran 641 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: a read that did not succeed is taken as seen           Ran 641 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_gives_neither_a
+KILLED   census: a read that did not succeed in a chain's run is taken  Ran 641 FAILED (failures=1); 1 test(s): a_read_that_did_not_succeed_in_a_run_of_a_c
+KILLED   census: every entry is said to follow the one before           Ran 641 FAILED (failures=2); 2 test(s): a_chain_left_out_leaves_two_stretches_and_t, the_frame_census
+KILLED   census: the kept image is not held against the declaration     Ran 641 FAILED (failures=5); 2 test(s): a_declaration_the_kept_image_does_not_bear_, the_reviewers_case
+KILLED   census: a record with two starts or two loads is taken         Ran 641 FAILED (failures=3); 1 test(s): the_designs_checksum_stands_just_before_its
+KILLED   census: the image's checksum just before the start is not asked for Ran 641 FAILED (failures=1); 1 test(s): a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   census: the image's checksum after the return is not asked for Ran 641 FAILED (failures=2); 2 test(s): a_checksum_on_the_wrong_side_of_the_start_d, a_run_whose_record_shows_another_image_or_d
+KILLED   census: the image's checksums in RAM are not held against the image Ran 641 FAILED (failures=2); 1 test(s): a_run_whose_record_shows_another_image_or_d
+KILLED   census: a checksum of the image anywhere before the start will do Ran 641 FAILED (failures=1); 1 test(s): a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   census: a checksum of the image anywhere stands for the one after the return Ran 641 FAILED (failures=2); 2 test(s): a_checksum_on_the_wrong_side_of_the_start_d, a_run_whose_record_shows_another_image_or_d
+KILLED   census: a run's record without the design's checksum is taken  Ran 641 FAILED (failures=2); 2 test(s): a_run_whose_record_shows_another_image_or_d, the_designs_checksum_stands_just_before_its
+KILLED   census: a checksum of the design anywhere will do              Ran 641 FAILED (failures=1); 1 test(s): the_designs_checksum_stands_just_before_its
+KILLED   census: runs with different designs in RAM are taken           Ran 641 FAILED (failures=1); 1 test(s): a_run_whose_record_shows_another_image_or_d
+KILLED   census: the declared design is not held against the design in RAM Ran 641 FAILED (failures=1); 1 test(s): a_run_whose_record_shows_another_image_or_d
+KILLED   s1b4a layout: a run that did not pass is laid out without a word Ran 641 FAILED (failures=3, errors=3); 4 test(s): a_run_that_did_not_pass_is_laid_out_and_cal, an_end_is_one_only_if_both_passes_left_the_
+KILLED   s1b4a layout: a run that ended at the limit is said to have reached the end Ran 641 FAILED (failures=8, errors=1); 7 test(s): a_run_that_ended_at_the_limit, an_end_is_one_only_if_both_passes_left_the_
+KILLED   s1b4a layout: one pass beyond the envelope is enough           Ran 641 FAILED (failures=2); 1 test(s): an_end_is_one_only_if_both_passes_left_the_
+KILLED   s1b4a layout: a run that did not pass is said to have reached the end Ran 641 FAILED (failures=2); 1 test(s): an_end_is_one_only_if_both_passes_left_the_
+KILLED   s1b4a layout: frames that are all zero count as content        Ran 641 FAILED (failures=6); 4 test(s): frames_that_are_all_alike_are_said_to_be, the_run_at_the_address_named_after_block_ty
+KILLED   s1b4a layout: nothing is said of frames that are all alike     Ran 641 FAILED (failures=3, errors=3); 4 test(s): frames_that_are_all_alike_are_said_to_be, the_run_at_the_address_named_after_block_ty
+KILLED   s1b4a layout: exit 0 for a run that did not pass               Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b4 chain: every known frame in the envelope is asked for, as before Ran 641 FAILED (failures=26, errors=22); 40 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b4 chain: known frames are asked for from the last run's start on Ran 641 FAILED (errors=1); 1 test(s): from_its_first_address_on
+KILLED   s1b4 chain: a known frame at the chain's first address is not asked for Ran 641 FAILED (errors=1); 1 test(s): from_its_first_address_on
+KILLED   s1b4 chain: the bound of the chain over block type 0           Ran 641 FAILED (failures=2); 2 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_set_is_the_crossing_walks_with_the_star
+KILLED   s1b4 run: judged as a walk of its own, not a run of a chain    Ran 641 FAILED (failures=10, errors=16); 25 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b4 run: the chain's set takes no start                       Ran 641 FAILED (failures=2, errors=34); 35 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b4 rows: the set named is not the set read                   Ran 641 FAILED (failures=2); 2 test(s): the_program_is_told_which_sets_chain_it_rea, the_summary_through_the_command_line
+KILLED   s1b4 rows: any word is taken for a set                         Ran 641 FAILED (failures=2); 2 test(s): the_program_is_told_which_sets_chain_it_rea, the_summary_through_the_command_line
+KILLED   s1b4 rows: a word is taken for a set if the directory is called the same Ran 641 FAILED (failures=1); 1 test(s): the_program_is_told_which_sets_chain_it_rea
+KILLED   s1b4 first: the frames are not compared                        Ran 641 FAILED (failures=2); 2 test(s): through_the_command_line, what_does_not_agree_is_listed
+KILLED   s1b4 first: the addresses named are not compared               Ran 641 FAILED (failures=2); 2 test(s): the_first_run_against_the_stored_run, what_does_not_agree_is_listed
+KILLED   s1b4 first: the standstills are not compared                   Ran 641 FAILED (failures=2); 2 test(s): the_first_run_against_the_stored_run, what_does_not_agree_is_listed
+KILLED   s1b4 first: an address the chain does not have is not listed   Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b4 first: the order of the addresses is not looked at        Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b4 first: only the addresses both have are counted between   Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b4 first: a stored run that did not pass is taken            Ran 641 FAILED (failures=1); 1 test(s): what_does_not_agree_is_listed
+KILLED   s1b4 first: frames that are all zero count as content          Ran 641 FAILED (failures=4); 4 test(s): frames_that_are_all_alike_are_said_to_be, frames_that_are_all_zero_are_said_to_say_no
+KILLED   s1b4 first: nothing is said of frames that are all alike       Ran 641 FAILED (failures=2, errors=2); 4 test(s): frames_that_are_all_alike_are_said_to_be, frames_that_are_all_zero_are_said_to_say_no
+KILLED   s1b4 first: exit 0 whatever was found                          Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b4a layout: exit 0 with something unexpected in the list     Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b3 rows: the list is not cut where the register stood still  Ran 641 FAILED (failures=42, errors=18); 52 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3 rows: a row is whole only if the register stood still after it Ran 641 FAILED (failures=2); 2 test(s): an_end_is_one_only_if_both_passes_left_the_, the_end_of_the_block_type_without_a_standst
+KILLED   s1b3 rows: every row is said to have been walked whole         Ran 641 FAILED (failures=12); 11 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_row_shorter_than_a_pass_halts_the_chain
+KILLED   s1b3 rows: an address is given as named after a row that was not ended Ran 641 FAILED (failures=5); 5 test(s): an_end_where_the_register_stands_still_for_, the_chain_over_block_type_0_as_it_was_store
+KILLED   s1b3 rows: a standstill inside a row is passed over            Ran 641 FAILED (failures=1); 1 test(s): a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: a row met twice is passed over                      Ran 641 FAILED (failures=1); 1 test(s): a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: what is unexpected in a row is not carried to the summary Ran 641 FAILED (failures=2); 2 test(s): a_row_that_ends_without_a_standstill_is_not, a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: a list that is not a chain of names is passed over  Ran 641 FAILED (failures=2); 2 test(s): a_standstill_inside_a_row_and_a_row_met_twi, what_is_not_in_order_is_listed
+KILLED   s1b3 rows: addresses that do not rise are passed over          Ran 641 FAILED (failures=1); 1 test(s): a_standstill_inside_a_row_and_a_row_met_twi
+KILLED   s1b3 rows: the seam frame is listed twice                      Ran 641 FAILED (failures=45, errors=19); 54 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3 rows: a run that did not pass adds its frames             Ran 641 FAILED (failures=8, errors=1); 8 test(s): a_row_shorter_than_a_pass_halts_the_chain, a_run_that_begins_on_the_last_frame_of_a_ro
+KILLED   s1b3 rows: the end is never said to follow a standstill        Ran 641 FAILED (failures=9); 9 test(s): an_end_is_one_only_if_both_passes_left_the_, the_chain_over_block_type_0_as_it_stands
+KILLED   s1b3 rows: every row is listed among the standstills           Ran 641 FAILED (failures=9); 9 test(s): a_run_that_ended_at_the_limit, columns_and_rows_as_the_device_named_them
+KILLED   s1b3 rows: the known frames are not looked for                 Ran 641 FAILED (failures=4); 4 test(s): the_chain_over_block_type_0_as_it_stands, the_chain_over_block_type_0_as_it_was_store
+KILLED   s1b3 rows: the chain is assessed as one of the row's set       Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b3 rows: a chain that halted is said to have reached the end Ran 641 FAILED (failures=2, errors=29); 24 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_register_that_stands_still_for_good_after
+KILLED   s1b3 top: a frame that differs is not noticed                  Ran 641 FAILED (failures=2); 2 test(s): through_the_command_line, what_differs_is_listed
+KILLED   s1b3 top: the chain need not have stood still at the end of the stored row Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: the address gone on to is not held                   Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: another address named along the row is not noticed   Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: a standstill inside the stored row is not noticed    Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: lists of addresses that differ are not noticed       Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: a first row not walked whole is not noticed          Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: columns of other lengths are not noticed             Ran 641 FAILED (failures=1); 1 test(s): what_differs_is_listed
+KILLED   s1b3 top: all-zero frames are counted as the ones that say something Ran 641 FAILED (failures=4); 4 test(s): how_much_the_frames_say, the_chain_over_block_type_0_as_it_stands
+KILLED   s1b3 top: more of the chain's list than its first row is taken Ran 641 FAILED (failures=6); 6 test(s): how_much_the_frames_say, the_chain_over_block_type_0_as_it_stands
+KILLED   s1b3 top: disagreements exit 0                                 Ran 641 FAILED (failures=1); 1 test(s): through_the_command_line
+KILLED   s1b3 grade: what differs within a row is not carried up        Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, what_differs_is_listed
+KILLED   s1b3 grade: nothing is ever said to differ within a row        Ran 641 FAILED (failures=1); 1 test(s): it_says_where_the_database_differs
+KILLED   s1b3 grade: the rows are not compared                          Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, what_differs_is_listed
+KILLED   s1b3 grade: a complete chain is compared with a beginning of the database's rows Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, what_differs_is_listed
+KILLED   s1b3 grade: the frames in all are not compared                 Ran 641 FAILED (failures=2); 2 test(s): it_says_where_the_database_differs, what_differs_is_listed
+KILLED   s1b3 grade: the address after the block type is not compared   Ran 641 FAILED (failures=1); 1 test(s): it_says_where_the_database_differs
+KILLED   s1b3 grade: the block type after is this one                   Ran 641 FAILED (failures=2); 2 test(s): a_made_up_database_that_has_what_the_chain_, it_says_where_the_database_differs
+KILLED   s1b3 grade: the standstills are passed over in silence         Ran 641 FAILED (failures=2); 2 test(s): a_made_up_database_that_has_what_the_chain_, it_agrees_where_the_database_says_the_same
+KILLED   s1b3 grade: a chain that halted is graded as the whole block type Ran 641 FAILED (errors=2); 1 test(s): a_chain_that_halted_is_graded_only_as_far_a
+KILLED   s1b3 grade: the database's rows by their text, not their number Ran 641 FAILED (failures=8); 7 test(s): a_chain_that_halted_is_graded_only_as_far_a, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b3 grade: a difference exits 0                               Ran 641 FAILED (failures=2); 2 test(s): through_the_command_line, through_the_command_line_with_a_made_up_dat
+KILLED   s1b3 chain: a seam at which only one run stood still is taken  Ran 641 FAILED (failures=2); 1 test(s): a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 chain: a seam is refused only where the later run stood still and the earlier did not Ran 641 FAILED (failures=1); 1 test(s): a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 chain: a seam is refused only where the earlier run stood still and the later did not Ran 641 FAILED (failures=1); 1 test(s): a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   seen: a bit the judges take for an error is listed too         Ran 641 FAILED (failures=2); 2 test(s): a_bit_that_is_an_error_is_the_judges_busine, no_other_stored_run_has_such_a_bit
+KILLED   seen: bit 5 is taken for usual                                 Ran 641 FAILED (failures=6, errors=3); 9 test(s): a_verdict_with_little_in_it_is_still_answer, bit_5_of_the_status_cleared_after_a_run
+KILLED   seen: the header's readings are passed over                    Ran 641 FAILED (failures=8, errors=1); 8 test(s): a_run_within_the_usual_lists_nothing, bit_5_of_the_status_cleared_after_a_run
+KILLED   seen: the header's last reading is passed over                 Ran 641 FAILED (failures=8, errors=1); 8 test(s): a_run_within_the_usual_lists_nothing, bit_5_of_the_status_cleared_after_a_run
+KILLED   seen: only the last status word of a record is looked at       Ran 641 FAILED (failures=9); 8 test(s): a_run_within_the_usual_lists_nothing, bit_5_of_the_status_cleared_after_a_run
+KILLED   seen: a bit that went away again is said to have stayed        Ran 641 FAILED (failures=2); 2 test(s): the_headers_readings_count_too, where_it_first_showed_and_whether_it_stayed
+KILLED   seen: the bit is said to be there at the end whenever it showed Ran 641 FAILED (failures=1); 1 test(s): where_it_first_showed_and_whether_it_stayed
+KILLED   seen: every directory inside a directory is taken for a run    Ran 641 FAILED (failures=1); 1 test(s): files_and_directories
+KILLED   seen: nothing to read exits 0                                  Ran 641 FAILED (failures=1); 1 test(s): files_and_directories
+KILLED   look: the write is sent whatever the status says               Ran 641 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write is sent without PCFG_DONE                      Ran 641 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write is sent without the bit                        Ran 641 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write clears another bit                             Ran 641 FAILED (failures=9); 9 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: the write clears every bit                               Ran 641 FAILED (failures=9); 9 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: the write goes to another register                       Ran 641 FAILED (failures=9); 9 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: a dump that is not whole is taken as it is               Ran 641 FAILED (failures=2); 2 test(s): a_dump_that_is_not_whole_is_asked_for_again, five_times_and_no_more_and_then_it_stops
+KILLED   look: a dump is asked for without end                          Ran 641 FAILED (failures=1); 1 test(s): five_times_and_no_more_and_then_it_stops
+KILLED   look: the look goes on after a dump that could not be read     Ran 641 FAILED (failures=2); 2 test(s): five_times_and_no_more_and_then_it_stops, no_prompt_after_a_dump_stops_the_look
+KILLED   look: the write goes out although the status could not be read Ran 641 FAILED (failures=1); 1 test(s): five_times_and_no_more_and_then_it_stops
+KILLED   look: the look goes on without a prompt after the write        Ran 641 FAILED (failures=1); 1 test(s): the_write_is_sent_once_whatever_comes_back
+KILLED   look: no pause before the reads after the write                Ran 641 FAILED (failures=1); 1 test(s): the_commands_are_the_ones_written_here_and_
+KILLED   look: one read after the write                                 Ran 641 FAILED (failures=8, errors=1); 9 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: no prompt at the start and it goes on                    Ran 641 FAILED (failures=1); 1 test(s): no_prompt_at_the_start_and_nothing_is_sent
+KILLED   look: a missing prompt after a dump is not noticed             Ran 641 FAILED (failures=1); 1 test(s): no_prompt_after_a_dump_stops_the_look
+KILLED   look: without --go it sends                                    Ran 641 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_commands_and_needs_n
+KILLED   look: an existing directory is written into                    Ran 641 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_commands_and_needs_n
+KILLED   s2: the IDCODE read sends the CTL0 header                      Ran 641 FAILED (failures=29); 20 test(s): a_ctl0_that_fits_no_description_is_recorded, each_operation_reads_the_register_its_table
+KILLED   s2: the CTL0 read sends the STAT header                        Ran 641 FAILED (failures=25); 21 test(s): a_ctl0_that_fits_no_description_is_recorded, a_register_that_moves_is_named
+KILLED   s2: the STAT read is the FAR read                              Ran 641 FAILED (failures=25); 21 test(s): a_ctl0_that_fits_no_description_is_recorded, a_register_that_moves_is_named
+KILLED   s2: the guard accepts a read of COR0 too                       Ran 641 FAILED (failures=1); 1 test(s): only_four_registers_and_only_one_word_of_ea
+KILLED   s2: the guard refuses the CTL0 read                            Ran 641 FAILED (failures=33, errors=4); 28 test(s): a_ctl0_that_fits_no_description_is_recorded, a_register_that_moves_is_named
+KILLED   s2: no SEU_EN gate                                             Ran 641 FAILED (failures=6); 6 test(s): a_gate_stop_names_the_gate, seu_en_set_stops_the_run_before_anything_is
+KILLED   s2: the SEU_EN gate in the older stages too                    Ran 641 FAILED (failures=1); 1 test(s): the_older_stages_have_no_such_gate
+KILLED   s2: the SEU_EN gate looks at another bit                       Ran 641 FAILED (failures=6); 6 test(s): a_gate_stop_names_the_gate, seu_en_set_stops_the_run_before_anything_is
+KILLED   s2: a register that is not on the list is taken                Ran 641 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: a register named beyond the last operation is taken        Ran 641 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: an address beyond the last operation is taken              Ran 641 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: nine operations are taken                                  Ran 641 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: a wait that does not exist is run                          Ran 641 FAILED (failures=1); 1 test(s): the_wait_is_the_one_asked_for_and_another_i
+KILLED   s2: word 13 is not looked at                                   Ran 641 FAILED (failures=2); 2 test(s): a_block_that_is_not_of_this_form_is_refused, bad_parameters
+KILLED   s2: word 27 is not looked at                                   Ran 641 FAILED (failures=1); 1 test(s): an_envelope_that_is_not_inside_the_design_i
+KILLED   s2: stage 6 takes a word of the second envelope                Ran 641 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: stage 6 takes an SLCR word                                 Ran 641 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s2: stage 6 does not take the choice of the wait               Ran 641 FAILED (failures=1); 1 test(s): the_wait_is_the_one_asked_for_and_another_i
+KILLED   s2: the console says stage 6 for stage 7                       Ran 641 FAILED (failures=11); 5 test(s): an_envelope_that_is_not_inside_the_design_i, it_completes_and_says_so
+KILLED   s2: stage 7's records begin where the PL block does            Ran 641 FAILED (failures=61, errors=13); 31 test(s): a_gate_stop_names_the_gate, an_access_to_the_design_in_a_run_that_never
+KILLED   s2: stage 6 looks at the SLCR too                              Ran 641 FAILED (failures=39, errors=8); 29 test(s): a_ctl0_that_fits_no_description_is_recorded, a_failure_of_the_interface_during_a_registe
+KILLED   s2: an SLCR word that differs is let pass                      Ran 641 FAILED (failures=13); 7 test(s): a_gate_stop_names_the_gate, an_access_to_the_design_in_a_run_that_never
+KILLED   s2: the last SLCR word is not compared                         Ran 641 FAILED (failures=2); 2 test(s): an_slcr_word_that_is_not_the_board_s_stops_, stage_seven
+KILLED   s2: an envelope beyond the design is taken                     Ran 641 FAILED (failures=1); 1 test(s): an_envelope_that_is_not_inside_the_design_i
+KILLED   s2: an envelope below the PL is taken                          Ran 641 FAILED (failures=2); 1 test(s): an_envelope_that_is_not_inside_the_design_i
+KILLED   s2: the helper ignores the envelope                            Ran 641 FAILED (failures=3, errors=442); 261 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s2: after a refusal the helper goes on accessing               Ran 641 FAILED (failures=2); 2 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: a refused access is made all the same                      Ran 641 FAILED (failures=3, errors=442); 261 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s2: an access is made and not counted                          Ran 641 FAILED (failures=41, errors=2); 24 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: the log says a write was a read                            Ran 641 FAILED (failures=30); 16 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: the log holds another value than was written               Ran 641 FAILED (failures=35, errors=1); 21 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: the place it stopped at is not said                        Ran 641 FAILED (failures=15); 9 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: a wrong identification word is let pass                    Ran 641 FAILED (failures=2); 2 test(s): stage_seven, the_identification_register
+KILLED   s2: a scratch register that does not read back is let pass     Ran 641 FAILED (failures=2); 2 test(s): stage_seven, the_scratch_register
+KILLED   s2: a counter that stands still is let pass                    Ran 641 FAILED (failures=2); 2 test(s): stage_seven, the_counter
+KILLED   s2: a RAM that does not read back is let pass                  Ran 641 FAILED (failures=5); 4 test(s): s2_1_user_logic_failing_under_the_prober_is, stage_seven
+KILLED   s2: shift registers that move are let pass                     Ran 641 FAILED (failures=3); 3 test(s): s2_1_user_logic_failing_under_the_prober_is, stage_seven
+KILLED   s2: the second reading of the shift registers is held to the wrong entry Ran 641 FAILED (failures=3); 3 test(s): s2_1_user_logic_failing_under_the_prober_is, stage_seven
+KILLED   s2: a wrong count of writes is let pass                        Ran 641 FAILED (failures=2); 2 test(s): stage_seven, the_design_s_count_of_writes
+KILLED   s2: the RAM's third state is all ones again                    Ran 641 FAILED (failures=15); 9 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2: the RAM is read back at one address only                   Ran 641 FAILED (failures=27); 16 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2: the shift registers are read once                          Ran 641 FAILED (failures=18); 12 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2: after user logic failed the registers are read all the same Ran 641 FAILED (failures=18); 11 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_the_design_does_not_fit_in
+KILLED   s2: user logic is used in stage 6 too                          Ran 641 FAILED (failures=33, errors=6); 27 test(s): a_ctl0_that_fits_no_description_is_recorded, a_failure_of_the_interface_during_a_registe
+KILLED   s2: the prober may write the shift registers' data register    Ran 641 FAILED (failures=1, errors=442); 259 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   reader: COR0 may be read                                       Ran 641 FAILED (failures=2); 2 test(s): a_header_that_reads_another_register, only_four_registers_and_only_one_word_of_ea
+KILLED   reader: MASK may be read                                       Ran 641 FAILED (failures=1); 1 test(s): only_four_registers_and_only_one_word_of_ea
+KILLED   reader: CTL0 may not be read                                   Ran 641 FAILED (failures=13); 13 test(s): a_ctl0_that_fits_no_description_is_recorded, everything_sent_is_read_only_and_nothing_is
+KILLED   reader: two words of a register may be read                    Ran 641 FAILED (failures=4); 1 test(s): only_four_registers_and_only_one_word_of_ea
+KILLED   s2 judge: IDCODE is not held to the known word                 Ran 641 FAILED (failures=2); 2 test(s): idcode, s2_0_with_a_wrong_idcode_is_saved_whole_and
+KILLED   s2 judge: IDCODE is held to one revision                       Ran 641 FAILED (failures=1); 1 test(s): the_revision_of_the_die_is_its_own
+KILLED   s2 judge: the address register is not held to the rule         Ran 641 FAILED (failures=1); 1 test(s): the_address_register_must_follow_the_rule_t
+KILLED   s2 judge: a register that reads two ways is not named          Ran 641 FAILED (failures=2); 2 test(s): a_register_that_moves_is_named, a_value_changed_under_a_clean_code
+KILLED   s2 judge: a register that read two ways still gets its bit said Ran 641 FAILED (failures=1); 1 test(s): a_register_that_moves_is_named
+KILLED   s2 judge: GLUTMASK_B is taken from bit 9                       Ran 641 FAILED (failures=2); 2 test(s): s2_0_clean, stage_six_passes_and_says_what_the_register
+KILLED   s2 judge: the words say the opposite of the bit                Ran 641 FAILED (failures=2); 2 test(s): stage_six_passes_and_says_what_the_register, the_mask_on_is_a_finding_and_not_a_failure
+KILLED   s2 judge: a bit the table does not name is not listed          Ran 641 FAILED (failures=1); 1 test(s): a_ctl0_that_fits_no_description_is_recorded
+KILLED   s2 judge: SEU_EN in the header is not judged                   Ran 641 FAILED (failures=3); 3 test(s): stage_seven, stage_six
+KILLED   s2 judge: the SLCR words are not judged                        Ran 641 FAILED (failures=5); 2 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: SLCR words recorded behind a failing gate are let pass Ran 641 FAILED (failures=1); 1 test(s): an_access_to_the_design_in_a_run_that_never
+KILLED   s2 judge: the echoed parameters are not held to the planned ones Ran 641 FAILED (failures=1); 1 test(s): a_run_that_did_not_do_what_was_planned
+KILLED   s2 judge: a stream is not held to the pinned one               Ran 641 FAILED (failures=1); 1 test(s): a_header_that_reads_another_register
+KILLED   s2 judge: the streams are not read for writes                  Ran 641 FAILED (failures=2); 2 test(s): a_header_that_reads_another_register, a_write_among_the_streams
+KILLED   s2 judge: a record's code is not derived again                 Ran 641 FAILED (failures=1); 1 test(s): a_value_changed_under_a_clean_code
+KILLED   s2 judge: a value that differs from the first is not a code    Ran 641 FAILED (failures=5); 3 test(s): a_value_changed_under_a_clean_code, stage_seven
+KILLED   s2 judge: stage 6 does not compare frames with the known ones  Ran 641 FAILED (failures=1); 1 test(s): a_frame_that_is_not_the_known_one
+KILLED   s2 judge: the header's status is not held to the records       Ran 641 FAILED (failures=1); 1 test(s): the_headers_claims
+KILLED   s2 judge: the header's count of anomalies is not held to the records Ran 641 FAILED (failures=1); 1 test(s): the_headers_claims
+KILLED   s2 judge: the stop record is not held to the records           Ran 641 FAILED (failures=1); 1 test(s): the_headers_claims
+KILLED   s2 judge: records after the schedule's end are let pass        Ran 641 FAILED (failures=2); 2 test(s): a_record_missing_or_one_too_many, user_logic_failed_and_yet_records_follow
+KILLED   s2 judge: a value written to the design is not compared        Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the design's answers are not judged                  Ran 641 FAILED (failures=13); 3 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: accesses after a wrong answer are let pass           Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: an access that is not the one due is let pass        Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: an access outside the envelope is let pass           Ran 641 FAILED (failures=2); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a write that shifts is let pass                      Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the PL block's code is not held to its log           Ran 641 FAILED (failures=5); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: where the PL block says it stopped is not checked    Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a log that ends for no reason is let pass            Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a refusal is not derived from the envelope           Ran 641 FAILED (failures=1); 1 test(s): an_envelope_the_design_does_not_fit_in
+KILLED   s2 judge: words after the last counted access are let pass     Ran 641 FAILED (failures=1); 1 test(s): the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the shift registers are not held to what the design loads Ran 641 FAILED (failures=2); 2 test(s): shift_registers_changed_alike_in_both_readi, the_shift_registers_must_hold_what_the_desi
+KILLED   s2 judge: missing design facts are let pass                    Ran 641 FAILED (errors=1); 1 test(s): the_shift_registers_must_hold_what_the_desi
+KILLED   s2 judge: user logic failing does not end the schedule         Ran 641 FAILED (failures=9); 3 test(s): an_envelope_the_design_does_not_fit_in, stage_seven
+KILLED   s2 judge: an access in a run that never came to user logic is let pass Ran 641 FAILED (failures=3); 1 test(s): an_access_to_the_design_in_a_run_that_never
+KILLED   s2 judge: a gate stop with an access to the design is let pass Ran 641 FAILED (failures=1); 1 test(s): an_access_to_the_design_in_a_run_that_never
+KILLED   s2 judge: the sequence's third RAM state is the second         Ran 641 FAILED (failures=13); 7 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   s2 judge: the design's count may be anything                   Ran 641 FAILED (failures=2); 2 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: the counter need not go on                           Ran 641 FAILED (failures=2); 2 test(s): stage_seven, the_log_is_walked_against_the_sequence
+KILLED   s2 judge: a stage-6 result is taken for a stage-7 one          Ran 641 FAILED (failures=52, errors=2); 18 test(s): a_gate_stop_names_the_gate, a_result_of_the_other_stage_or_of_the_wrong
+KILLED   s2 judge: the sizes need not add up                            Ran 641 FAILED (failures=9); 1 test(s): sizes_that_do_not_add_up
+KILLED   s2 judge: an invalid parameter block is judged                 Ran 641 FAILED (failures=12, errors=2); 1 test(s): parameters_no_prober_would_have_run_with
+KILLED   s2 judge: a run that did not complete passes                   Ran 641 FAILED (failures=15); 5 test(s): an_envelope_the_design_does_not_fit_in, s2_1_user_logic_failing_under_the_prober_is
+KILLED   run s2: S2.1 does not look at the SLCR or the design before go Ran 641 FAILED (failures=4, errors=2); 5 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_a_design_that_does_not_answer_stops_th
+KILLED   run s2: a word at the prompt that is not the wanted one is let pass Ran 641 FAILED (failures=3); 2 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_an_slcr_word_that_is_not_the_board_s_s
+KILLED   run s2: the design's identification is read before the SLCR    Ran 641 FAILED (failures=2, errors=1); 2 test(s): s2_1_an_slcr_word_that_is_not_the_board_s_s, s2_1_clean
+KILLED   run s2: the first access is somewhere else in the PL           Ran 641 FAILED (failures=3, errors=5); 6 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_a_design_that_does_not_answer_stops_th
+KILLED   run s2: every set loads the carrier's file                     Ran 641 FAILED (failures=3); 3 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   run s2: every set asks the card for the carrier                Ran 641 FAILED (failures=2); 2 test(s): s2_1_clean, the_plan_of_s2_1_shows_the_first_access_and
+KILLED   run s2: every set is judged against the known frames           Ran 641 FAILED (failures=2, errors=1); 3 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   run s2: a design that is not staged is not refused             Ran 641 FAILED (errors=1); 1 test(s): a_staged_design_that_is_not_the_set_s_is_re
+KILLED   run s2: S2.0 is judged as S2.1                                 Ran 641 FAILED (failures=3); 3 test(s): s2_0_clean, s2_0_with_a_wrong_idcode_is_saved_whole_and
+restored: Ran 641 OK; 0 test(s):  (8 copies)
+711 mutants, 0 survived

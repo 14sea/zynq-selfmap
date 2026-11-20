@@ -567,9 +567,7 @@ MUTANTS = [
     (RUN, "run: an error of the operating system goes through", "TRANSPORT = (OSError, termios.error, subprocess.SubprocessError)", "TRANSPORT = (termios.error, subprocess.SubprocessError)"),
     (RUN, "run: a command goes round the one place", "        reply, ok = link(lambda: con.cmd(cmd, timeout))", "        reply, ok = con.cmd(cmd, timeout)"),
     (RUN, "run: the first prompt goes round the one place", "        _, ok = link(con.interrupt)", "        _, ok = con.interrupt()"),
-    (RUN, "run: the image's transfer goes round the one place", 'reply, ok = link(lambda: send_file(con, s["cmd"], s["ymodem"]))', 'reply, ok = send_file(con, s["cmd"], s["ymodem"])'),
-    (RUN, "run: the design's transfer goes round the one place", 'reply, ok = link(lambda: send_file(con, f"loady {PL_ADDR:08x}", s["card_or_ymodem"]))',
-     'reply, ok = send_file(con, f"loady {PL_ADDR:08x}", s["card_or_ymodem"])'),
+    (RUN, "run: a transfer goes round the one place", "        reply, ok = link(lambda: send_file(con, loady, path))", "        reply, ok = send_file(con, loady, path)"),  # both transfers, since 98709d7
     (LOOK, "look: a failure of the serial line goes through and the record is lost", "    except TRANSPORT as e:", "    except ZeroDivisionError as e:"),
     (LOOK, "look: every exception is taken for a failure of the line", "    except TRANSPORT as e:", "    except Exception as e:"),
     # ---- 2026-11-19: two reviews of the census (section 69): failed reads as seen, the stretches, what was loaded

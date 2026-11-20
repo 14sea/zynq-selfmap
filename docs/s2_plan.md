@@ -13,7 +13,9 @@ step.**
 
 **Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13). A
 review of it found one fault in the run script, and a review of the mending two more; all
-three are mended (sections 14 and 15). Nothing of S2 has been on a board. S2.2 to S2.5 are not
+three are mended (sections 14 and 15). The complete set of mutants has been run, and the
+mutants of the run script on the script as it is now (section 16). Nothing of S2 has been on a
+board. S2.2 to S2.5 are not
 proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
@@ -627,7 +629,7 @@ No stored result or verdict was changed, and every stored run is judged as befor
 711 mutants, none stale (609 before: 102 new, and seven older ones whose place in the source
 had moved were set right). By section 41 of `docs/s1b_plan.md` the ones of the new code were
 run now, and **the complete set is due before this image first goes on a board; it has not
-been run.**
+been run.** (It has since: section 16.)
 
 The 98 of the new code (`s2`), first run: 93 killed, 3 survived, 2 did not build. The three
 that survived were in the judge, and each was a check with no test of its own:
@@ -747,7 +749,7 @@ for a line changed, and three on what is recorded. The first 16 were run and are
 owner's decision put the restart into the record. **The three on the record have not been
 run, and the 16 not on the script as it is now**: the complete set is running, and two runs
 of the mutants beside each other take several times as long. All 19 are due, with every
-other mutant of the run script and of `ps_look.py`, when it has ended.
+other mutant of the run script and of `ps_look.py`, when it has ended. (Run since: section 16.)
 
 **The rest of the review** found nothing to change: the six differences of section 13 were
 compared with the source; the image rebuilt from source is the image; the hashes of the
@@ -812,7 +814,8 @@ exception, and then the record shows the line.
 on the script as it is now** — neither these six nor the 19 of section 14: the complete set
 is still running (on `363ad58`; it is far slower than I said — most of a day, not hours), and a
 second run beside it makes both several times slower. All mutants of the run script and of
-`ps_look.py` are due when it has ended, and nothing of S2 goes on a board before.
+`ps_look.py` are due when it has ended, and nothing of S2 goes on a board before. (Run since:
+section 16 — where two of the 736 turned out to be stale.)
 
 **My slips.** Both findings are things I had looked at and decided wrongly. The first I wrote
 down as a limit instead of closing it. The second I judged by what results have held so far,
@@ -820,3 +823,48 @@ in the very stage that changes what they hold. And the pretend board's text colu
 constant, so my own tests could not have shown it.
 
 **Not changed.** The prober, its image (`480bbdd4…aa46`), the judges, the sets, the design.
+
+## 16. The mutants, run (2026-11-20)
+
+**The complete set**, on the tree of `363ad58` (the tree the image was built from; the three
+commits of sections 14 and 15 change the run script, `ps_look.py` and tests, and nothing the
+image is made of): 711 mutants, **711 killed**, none survived, none failed to build, none
+stale; each run of the suite ran 641 tests. 08:56 to 15:50 GMT, eight copies. The record is
+`evidence/host_checks/mutants_2026-11-20_complete.txt`.
+
+**The run script and `ps_look.py` as they are now** (`98709d7`, 652 tests): every mutant of
+the two files, in five runs one after another — 133 mutants, **131 killed, 2 stale**, none
+survived:
+
+| run | mutants | killed |
+|---|---|---|
+| `run: ` | 80 | 78 (2 stale) |
+| `run s2: ` | 9 | 9 |
+| `look: ` | 19 | 19 |
+| `restart:` | 20 | 20 |
+| `dump:` | 5 | 5 |
+
+These are all 132 of the two files and one of a judge whose name has `run: ` in it. The 19 of
+section 14 and the six of section 15 are among them, so each has now been run on the script
+it is about.
+
+**The two that were stale** were the two older mutants that let a transfer go round `link()`,
+one for the image and one for the design. `98709d7` put both transfers into `transfer()`, and
+the two lines they named were gone. They are one mutant now, on the one line there is; it
+was run by itself and is killed (three tests fail, among them the one of every way the line
+can fail and the one that counts the uses of the line). **735 mutants.** The record of the five runs and of this
+one is `evidence/host_checks/mutants_2026-11-20_run_script.txt`.
+
+**My slip.** Sections 14 and 15 say "none stale". For `98709d7` that was not so: I counted
+the anchors before the change that moved the transfers and did not count again after it, and
+my own count was a script of mine, not the tool's rule. This time every one of the 735 was
+held against the tree with the rule `tests/mutants.py` itself uses (the anchor occurs once,
+or as often as the occurrence asked for): none is stale. A test of this in the suite would
+be worth nothing — under a mutant it would fail for that mutant's own anchor and kill every
+mutant there is — so it stays a thing the tool says when it is run.
+
+**What this does and does not show.** Every check the mutants take out is held by a test:
+that is a statement about the tests, on a pretend board and a twin. It says nothing about
+the board. By section 41 of `docs/s1b_plan.md` the condition "the complete set before a new
+image first goes on a board" is met for this image (`480bbdd4…aa46`); the other conditions
+of section 13 — the owner's word for each step, `s2a.bit` on the card — are as they were.

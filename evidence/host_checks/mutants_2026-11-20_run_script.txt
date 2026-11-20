@@ -1,0 +1,161 @@
+# the mutants of the run script and of ps_look.py, on the tree of 98709d7 (2026-11-20 15:51 to 19:23 GMT; the machine slept 16:59 to 18:14): five runs, one after another, 133 mutants: 131 killed, 2 stale
+# the two stale ones were the two transfers going round link(): 98709d7 put both transfers into one place and their lines were gone. They are one mutant now, run at the end of this file.
+# python3 tests/mutants.py 'run: '
+unmutated: Ran 652 OK; 0 test(s): 
+KILLED   run: a result of another stage's layout is not saved whole     Ran 652 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: another stage's result is not called a problem            Ran 652 FAILED (failures=2); 1 test(s): a_valid_result_of_the_other_stage_is_saved_
+KILLED   run: a missing result header is taken at its word for the size Ran 652 FAILED (failures=1); 1 test(s): sizes_are_believed_only_under_a_valid_magic
+KILLED   run: the dry run does not list the YMODEM branch               Ran 652 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_plan_and_cannot_open
+KILLED   run: stage 2 is judged by the judge of stage 1                 Ran 652 FAILED (failures=118, errors=161); 166 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: a card copy of the PL design of the wrong size is used    Ran 652 FAILED (failures=1); 1 test(s): a_card_copy_of_the_wrong_size_is_not_used
+KILLED   run: the image is not re-checked after the run                 Ran 652 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, an_image_that_changed_in_ram_during_the_run
+KILLED   run: the judge is given the echoed parameters as the plan      Ran 652 FAILED (failures=2); 2 test(s): a_run_that_did_not_do_what_was_planned_fail, the_walk_with_the_quiet_wait_is_the_same_wa
+KILLED   run: the live status afterwards is only recorded               Ran 652 FAILED (failures=4); 3 test(s): a_short_reply_that_never_comes_whole_after_, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the card copy is not read back                            Ran 652 FAILED (failures=4); 4 test(s): a_command_that_does_something_is_sent_once_, a_short_reply_that_never_comes_whole_after_
+KILLED   run: the card read-back checksum is not compared               Ran 652 FAILED (failures=3); 3 test(s): a_run_that_does_not_pass_halts_the_chain_an, a_whole_reply_with_another_value_is_never_a
+KILLED   run: an unconfirmed card write is ignored                      Ran 652 FAILED (failures=3); 2 test(s): a_command_that_does_something_is_sent_once_, an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: a short card write is accepted                            Ran 652 FAILED (failures=1); 1 test(s): an_unconfirmed_card_write_fails_the_run_but
+KILLED   run: the return code is not compared with the result           Ran 652 FAILED (failures=1); 1 test(s): a_return_code_or_console_that_contradicts_t
+KILLED   run: a wrong crc32 before go is accepted                       Ran 652 FAILED (failures=2, errors=1); 3 test(s): a_damaged_card_copy_stops_the_run_before_th, a_whole_reply_with_another_value_is_never_a
+KILLED   run: the PCFG_DONE bit is not checked before go                Ran 652 FAILED (failures=1, errors=1); 2 test(s): a_whole_reply_with_another_value_is_never_a, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the cache state is not checked before go                  Ran 652 FAILED (failures=2); 2 test(s): a_command_that_does_something_is_sent_once_, any_failed_check_before_go_means_go_is_neve
+KILLED   run: the result size is taken as the clean size                Ran 652 FAILED (failures=149, errors=162); 182 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: PASS without the judge                                    Ran 652 FAILED (failures=83); 30 test(s): a_failure_at_the_very_first_read_there, a_frame_that_has_a_known_answer_is_still_he
+KILLED   run: stage 3 is judged by the judge of stage 2                 Ran 652 FAILED (failures=6); 4 test(s): a_clean_run_passes_under_every_rule_and_eve, a_stage_two_result_under_stage_three_is_sav
+KILLED   run: only the console lines of the stage asked for are kept    Ran 652 FAILED (failures=114, errors=51); 116 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: stage 4 is judged by the judge of stage 3                 Ran 652 FAILED (failures=5, errors=1); 6 test(s): a_clean_run_passes_and_everything_is_saved, a_longer_walk_is_saved_whole_whatever_its_s
+KILLED   run: a piece is taken whatever its crc32                       Ran 652 FAILED (failures=3); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is taken whatever its length                      Ran 652 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a damaged piece is not pulled again                       Ran 652 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: a piece is pulled again without end in sight              Ran 652 FAILED (failures=2); 1 test(s): a_piece_that_cannot_be_pulled_whole_stops_t
+KILLED   run: the repeats of a piece are not recorded                   Ran 652 FAILED (failures=6); 2 test(s): a_piece_that_cannot_be_pulled_whole_stops_t, the_result_is_pulled_in_pieces_and_a_damage
+KILLED   run: pieces that match are enough, the whole is not checked    Ran 652 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the whole is checked for length only                      Ran 652 FAILED (failures=2); 2 test(s): a_whole_reply_with_another_value_is_never_a, pieces_that_each_match_do_not_make_the_whol
+KILLED   run: a copy that is not the board's is not kept                Ran 652 FAILED (failures=1); 1 test(s): pieces_that_each_match_do_not_make_the_whol
+KILLED   run: the pieces are not the pieces asked for                   Ran 652 FAILED (failures=116, errors=207); 198 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s1b2 run: any set may be given a start                         Ran 652 FAILED (failures=7); 5 test(s): it_is_the_walks_set_with_the_three_differen, nothing_of_it_is_given_at_run_time
+KILLED   s1b2 run: a start outside the envelope is sent                 Ran 652 FAILED (failures=6); 5 test(s): it_is_the_set_of_the_one_run_word_for_word_, the_command_line
+KILLED   s1b2 run: the start given is not put into the block            Ran 652 FAILED (failures=95, errors=32); 98 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2 run: where the start came from is not recorded            Ran 652 FAILED (failures=61, errors=43); 84 test(s): a_chain_is_asked_for_the_known_frames_from_, a_chain_left_out_leaves_two_stretches_and_t
+KILLED   s1b2 run: a run of the chain is judged by the judge of S1b.1   Ran 652 FAILED (failures=8, errors=2); 10 test(s): a_chain_is_asked_for_the_known_frames_from_, a_row_is_walked_from_its_first_address_to_t
+KILLED   s1b2 judge of a run: it is S1b.1's judge after all             Ran 652 FAILED (failures=54, errors=27); 70 test(s): a_block_type_of_a_few_frames_is_an_answer, a_chain_is_asked_for_the_known_frames_from_
+KILLED   run: the quiet walk is judged as a stage-5 result              Ran 652 FAILED (failures=3); 3 test(s): no_run_is_judged_otherwise_now_than_it_was, the_stored_verdict_is_the_judges_word_as_it
+KILLED   run: the quiet walk is given the walk's old parameters         Ran 652 FAILED (failures=3); 3 test(s): the_dry_run_of_the_quiet_walk_differs_from_, the_set_is_the_quiet_walk_with_the_row_as_i
+KILLED   s1b2e run: the end is judged by the judge of the diagnostic series Ran 652 FAILED (failures=29); 18 test(s): a_row_whose_chain_halted_at_such_an_end_is_, each_end_of_a_row_is_laid_out_as_it_is
+KILLED   s1b2e run: the column again is given the table of the end      Ran 652 FAILED (failures=26); 15 test(s): a_column_of_frames_that_are_all_the_same, a_frame_or_a_register_that_is_not_the_walks
+KILLED   s1b3a run: judged as a walk of its own, not a run of a chain   Ran 652 FAILED (failures=2); 2 test(s): a_standstill_that_leaves_the_envelope_ends_, it_is_the_walks_set_with_the_three_differen
+KILLED   s1b3 run: judged as a walk of its own, not a run of a chain    Ran 652 FAILED (failures=12, errors=2); 14 test(s): a_row_that_ends_without_a_standstill_is_not, a_seam_at_which_only_one_of_the_two_runs_st
+KILLED   s1b3 run: the chain's set takes no start                       Ran 652 FAILED (failures=2, errors=24); 22 test(s): a_chain_taken_up_again_is_the_chain_run_thr, a_chain_that_halted_is_graded_only_as_far_a
+KILLED   run: a reply that is not whole is not asked for again          Ran 652 FAILED (failures=22); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a reply is asked for again without end in sight           Ran 652 FAILED (failures=12); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the replies that were not whole are not listed            Ran 652 FAILED (failures=17); 5 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: a dump is whole whatever the addresses of its lines       Ran 652 FAILED (failures=2); 1 test(s): what_a_whole_reply_is
+KILLED   run: a dump that ends early is whole                           Ran 652 FAILED (failures=2); 2 test(s): a_dump_that_is_not_whole_is_asked_for_again, what_a_whole_reply_is
+KILLED   run: a word run together with what follows it counts as that word Ran 652 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum of any range is taken                          Ran 652 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: a checksum that lost a character is taken                 Ran 652 FAILED (failures=1); 1 test(s): what_a_whole_reply_is
+KILLED   run: the reply of any command may be asked for twice           Ran 652 FAILED (failures=12); 1 test(s): what_a_whole_reply_is
+KILLED   run: the header is taken from a dump that is not whole         Ran 652 FAILED (failures=1, errors=1); 2 test(s): a_header_dump_that_lost_a_stretch_is_asked_, a_header_that_never_comes_whole_stops_the_r
+KILLED   run: the header is not held to the pulled result               Ran 652 FAILED (failures=1); 1 test(s): the_header_is_held_to_the_pulled_result
+KILLED   run: the status that is only recorded is asked for again       Ran 652 FAILED (failures=1); 1 test(s): the_status_that_is_only_recorded_is_read_on
+KILLED   run: a status that never came whole passes the check before go Ran 652 FAILED (failures=1); 1 test(s): before_go_a_reply_that_is_not_whole_is_aske
+KILLED   run: a status afterwards that could not be read is no problem  Ran 652 FAILED (failures=1); 1 test(s): a_short_reply_that_never_comes_whole_after_
+KILLED   s1b4a run: judged as a walk of its own, not a run of a chain   Ran 652 FAILED (failures=5); 3 test(s): an_end_is_one_only_if_both_passes_left_the_, it_is_the_set_of_the_chain_over_block_type_
+KILLED   s1b4a run: the set may be given a start                        Ran 652 FAILED (failures=3); 3 test(s): it_is_the_set_of_the_one_run_word_for_word_, nothing_of_it_is_given_at_run_time
+KILLED   s1b5a run: judged as a walk of its own, not a run of a chain   Ran 652 FAILED (failures=6); 5 test(s): a_block_type_of_a_few_frames_is_an_answer, it_is_the_set_of_the_run_into_block_type_1_
+KILLED   s1b5a run: the set may be given a start                        Ran 652 FAILED (failures=3); 3 test(s): it_is_the_set_of_the_one_run_word_for_word_, nothing_of_it_is_given_at_run_time
+KILLED   s1b5a run: it is given the set of the run into block type 1    Ran 652 FAILED (failures=36); 22 test(s): a_block_type_of_a_few_frames_is_an_answer, a_name_that_leads_back_below_block_type_2_s
+KILLED   s1b5 run: judged as a walk of its own, not a run of a chain    Ran 652 FAILED (failures=18, errors=14); 27 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   s1b5 run: the chain's set takes no start                       Ran 652 FAILED (failures=3, errors=44); 41 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_is_not_complete
+KILLED   s1b5 run: it is given the set of the chain over block type 1   Ran 652 FAILED (failures=27, errors=15); 36 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_checksum_on_the_wrong_side_of_the_start_d
+KILLED   s1b6a run: judged as a walk of its own, not a run of a chain   Ran 652 FAILED (failures=6); 4 test(s): a_few_frames_and_then_an_address_above_is_a, it_is_the_set_of_the_run_into_block_type_2_
+KILLED   s1b6a run: the set may be given a start                        Ran 652 FAILED (failures=2); 2 test(s): nothing_of_it_is_given_at_run_time, the_starting_address_is_the_one_word_given_
+KILLED   s1b6a run: it is given the set of the run into block type 2    Ran 652 FAILED (failures=34); 15 test(s): a_failure_at_the_very_first_read_there, a_few_frames_and_then_an_address_above_is_a
+KILLED   run: a failure of the serial line goes through and no record is written Ran 652 FAILED (errors=49); 6 test(s): after_the_prober_returned_at_the_read_of_th, any_failure_of_the_port_is_one_and_a_fault_
+KILLED   run: every exception is taken for a failure of the line        Ran 652 FAILED (failures=2); 2 test(s): any_failure_of_the_port_is_one_and_a_fault_, the_devices_made_up_here_fit_the_twins_tabl
+KILLED   run: a transfer that does not end goes through                 Ran 652 FAILED (failures=1, errors=13); 4 test(s): a_serial_port_that_fails_stops_the_look_and, every_way_the_line_can_fail_at_every_place_
+KILLED   run: an error of the tty layer goes through                    Ran 652 FAILED (failures=1, errors=12); 3 test(s): a_serial_port_that_fails_stops_the_look_and, every_way_the_line_can_fail_at_every_place_
+KILLED   run: an error of the operating system goes through             Ran 652 FAILED (failures=1, errors=27); 7 test(s): a_serial_port_that_fails_stops_the_look_and, after_the_prober_returned_at_the_read_of_th
+KILLED   run: a command goes round the one place                        Ran 652 FAILED (failures=1, errors=36); 6 test(s): after_the_prober_returned_at_the_read_of_th, any_failure_of_the_port_is_one_and_a_fault_
+KILLED   run: the first prompt goes round the one place                 Ran 652 FAILED (failures=1, errors=5); 3 test(s): before_the_prober_is_started, every_way_the_line_can_fail_at_every_place_
+STALE    run: the image's transfer goes round the one place: its anchor occurs 0 times in host/s1a_run.py
+STALE    run: the design's transfer goes round the one place: its anchor occurs 0 times in host/s1a_run.py
+KILLED   s1b4 run: judged as a walk of its own, not a run of a chain    Ran 652 FAILED (failures=10, errors=16); 25 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_made_up_database_that_has_what_the_chain_
+KILLED   s1b4 run: the chain's set takes no start                       Ran 652 FAILED (failures=2, errors=34); 35 test(s): a_chain_left_out_leaves_two_stretches_and_t, a_chain_that_halted_is_graded_only_as_far_a
+restored: Ran 652 OK; 0 test(s):  (8 copies)
+80 mutants, 2 survived
+# python3 tests/mutants.py 'run s2: '
+unmutated: Ran 652 OK; 0 test(s): 
+KILLED   run s2: S2.1 does not look at the SLCR or the design before go Ran 652 FAILED (failures=4, errors=5); 6 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_a_design_that_does_not_answer_stops_th
+KILLED   run s2: a word at the prompt that is not the wanted one is let pass Ran 652 FAILED (failures=3); 2 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_an_slcr_word_that_is_not_the_board_s_s
+KILLED   run s2: the design's identification is read before the SLCR    Ran 652 FAILED (failures=2, errors=3); 3 test(s): s2_1_an_abort_at_the_first_access_and_the_p, s2_1_an_slcr_word_that_is_not_the_board_s_s
+KILLED   run s2: the first access is somewhere else in the PL           Ran 652 FAILED (failures=4, errors=6); 8 test(s): a_frame_whose_bytes_spell_an_exception_is_p, s2_1_a_design_that_answers_with_another_wor
+KILLED   run s2: every set loads the carrier's file                     Ran 652 FAILED (failures=3); 3 test(s): s2_1_clean, s2_1_sends_the_design_when_the_card_does_no
+KILLED   run s2: every set asks the card for the carrier                Ran 652 FAILED (failures=2); 2 test(s): s2_1_clean, the_plan_of_s2_1_shows_the_first_access_and
+KILLED   run s2: every set is judged against the known frames           Ran 652 FAILED (failures=3, errors=1); 4 test(s): a_frame_whose_bytes_spell_an_exception_is_p, s2_1_clean
+KILLED   run s2: a design that is not staged is not refused             Ran 652 FAILED (errors=1); 1 test(s): a_staged_design_that_is_not_the_set_s_is_re
+KILLED   run s2: S2.0 is judged as S2.1                                 Ran 652 FAILED (failures=3); 3 test(s): s2_0_clean, s2_0_with_a_wrong_idcode_is_saved_whole_and
+restored: Ran 652 OK; 0 test(s):  (8 copies)
+9 mutants, 0 survived
+# python3 tests/mutants.py 'look: '
+unmutated: Ran 652 OK; 0 test(s): 
+KILLED   look: a failure of the serial line goes through and the record is lost Ran 652 FAILED (errors=1); 1 test(s): a_serial_port_that_fails_stops_the_look_and
+KILLED   look: every exception is taken for a failure of the line       Ran 652 FAILED (failures=1); 1 test(s): a_serial_port_that_fails_stops_the_look_and
+KILLED   look: the write is sent whatever the status says               Ran 652 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write is sent without PCFG_DONE                      Ran 652 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write is sent without the bit                        Ran 652 FAILED (failures=1); 1 test(s): the_write_is_not_sent_unless_the_status_has
+KILLED   look: the write clears another bit                             Ran 652 FAILED (failures=10); 10 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: the write clears every bit                               Ran 652 FAILED (failures=10); 10 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: the write goes to another register                       Ran 652 FAILED (failures=10); 10 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: a dump that is not whole is taken as it is               Ran 652 FAILED (failures=2); 2 test(s): a_dump_that_is_not_whole_is_asked_for_again, five_times_and_no_more_and_then_it_stops
+KILLED   look: a dump is asked for without end                          Ran 652 FAILED (failures=1); 1 test(s): five_times_and_no_more_and_then_it_stops
+KILLED   look: the look goes on after a dump that could not be read     Ran 652 FAILED (failures=3); 3 test(s): a_reply_that_shows_an_exception_or_a_restar, five_times_and_no_more_and_then_it_stops
+KILLED   look: the write goes out although the status could not be read Ran 652 FAILED (failures=2); 2 test(s): a_reply_that_shows_an_exception_or_a_restar, five_times_and_no_more_and_then_it_stops
+KILLED   look: the look goes on without a prompt after the write        Ran 652 FAILED (failures=1); 1 test(s): the_write_is_sent_once_whatever_comes_back
+KILLED   look: no pause before the reads after the write                Ran 652 FAILED (failures=1); 1 test(s): the_commands_are_the_ones_written_here_and_
+KILLED   look: one read after the write                                 Ran 652 FAILED (failures=9, errors=1); 10 test(s): a_bit_that_comes_back_is_seen_coming_back, a_dump_that_is_not_whole_is_asked_for_again
+KILLED   look: no prompt at the start and it goes on                    Ran 652 FAILED (failures=1); 1 test(s): no_prompt_at_the_start_and_nothing_is_sent
+KILLED   look: a missing prompt after a dump is not noticed             Ran 652 FAILED (failures=1); 1 test(s): no_prompt_after_a_dump_stops_the_look
+KILLED   look: without --go it sends                                    Ran 652 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_commands_and_needs_n
+KILLED   look: an existing directory is written into                    Ran 652 FAILED (failures=1); 1 test(s): the_dry_run_prints_the_commands_and_needs_n
+restored: Ran 652 OK; 0 test(s):  (8 copies)
+19 mutants, 0 survived
+# python3 tests/mutants.py 'restart:'
+unmutated: Ran 652 OK; 0 test(s): 
+KILLED   restart: the run script takes such a reply like any other      Ran 652 FAILED (failures=41); 5 test(s): a_reply_that_shows_an_exception_or_a_restar, a_transfer_that_reports_its_size_and_then_s
+KILLED   restart: a data abort is not looked for                        Ran 652 FAILED (failures=45); 7 test(s): a_reply_that_shows_an_exception_or_a_restar, a_reply_that_shows_an_exception_or_a_restar
+KILLED   restart: a prefetch abort is not looked for                    Ran 652 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: an undefined instruction is not looked for            Ran 652 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: a software interrupt is not looked for                Ran 652 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: U-Boot's word that it resets the processor is not looked for Ran 652 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: the line of the reset itself is not looked for        Ran 652 FAILED (failures=3); 2 test(s): a_transfer_that_reports_its_size_and_then_s, each_line_that_says_so_is_enough
+KILLED   restart: the loader's line is not looked for                   Ran 652 FAILED (failures=6); 5 test(s): a_transfer_that_reports_its_size_and_then_s, a_whole_line_of_a_dump_is_data_whatever_its
+KILLED   restart: the countdown's line is not looked for                Ran 652 FAILED (failures=1); 1 test(s): each_line_that_says_so_is_enough
+KILLED   restart: U-Boot's own line is no sign in any reply             Ran 652 FAILED (failures=2); 2 test(s): each_line_that_says_so_is_enough, what_is_not_such_a_line
+KILLED   restart: U-Boot's own line is a sign in the reply to version too Ran 652 FAILED (failures=134, errors=281); 232 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   restart: an exception is seen only at a line's beginning       Ran 652 FAILED (failures=15); 2 test(s): a_whole_line_of_a_dump_is_data_whatever_its, each_line_that_says_so_is_enough
+KILLED   restart: the board's lines are looked for anywhere in a line   Ran 652 FAILED (failures=1); 1 test(s): what_is_not_such_a_line
+KILLED   restart: U-Boot's own line is looked for anywhere in a line    Ran 652 FAILED (failures=1); 1 test(s): what_is_not_such_a_line
+KILLED   restart: the record does not name it                           Ran 652 FAILED (errors=29); 3 test(s): a_reply_that_shows_an_exception_or_a_restar, a_transfer_that_reports_its_size_and_then_s
+KILLED   restart: its reply is cut like any long reply                  Ran 652 FAILED (failures=3); 2 test(s): a_transfer_that_reports_its_size_and_then_s, the_reply_is_recorded_whole_however_long_it
+KILLED   restart: the record names the step before it                   Ran 652 FAILED (failures=28); 2 test(s): a_reply_that_shows_an_exception_or_a_restar, a_transfer_that_reports_its_size_and_then_s
+KILLED   restart: the look asks again for a dump whose reply shows one  Ran 652 FAILED (failures=1); 1 test(s): a_reply_that_shows_an_exception_or_a_restar
+KILLED   restart: a transfer's reply is recorded and not looked at      Ran 652 FAILED (failures=7); 2 test(s): a_transfer_that_reports_its_size_and_then_s, nothing_touches_the_line_but_through_the_on
+KILLED   restart: the look goes on reading after a write whose reply shows one Ran 652 FAILED (failures=1); 1 test(s): a_reply_that_shows_an_exception_or_a_restar
+restored: Ran 652 OK; 0 test(s):  (8 copies)
+20 mutants, 0 survived
+# python3 tests/mutants.py 'dump:'
+unmutated: Ran 652 OK; 0 test(s): 
+KILLED   dump: a whole line of a dump is looked at like any line        Ran 652 FAILED (failures=3, errors=1); 2 test(s): a_frame_whose_bytes_spell_an_exception_is_p, a_whole_line_of_a_dump_is_data_whatever_its
+KILLED   dump: whatever begins as a dump's line is data                 Ran 652 FAILED (failures=10); 1 test(s): a_whole_line_of_a_dump_is_data_whatever_its
+KILLED   dump: a dump's line is not held to its length                  Ran 652 FAILED (failures=4); 1 test(s): a_whole_line_of_a_dump_is_data_whatever_its
+KILLED   dump: a dump's line is not held to its blanks                  Ran 652 FAILED (failures=1); 1 test(s): a_whole_line_of_a_dump_is_data_whatever_its
+KILLED   dump: such a line is data in the reply to any command          Ran 652 FAILED (failures=2); 1 test(s): a_whole_line_of_a_dump_is_data_whatever_its
+restored: Ran 652 OK; 0 test(s):  (5 copies)
+5 mutants, 0 survived
+# after the two were made one (735 mutants, every anchor checked against the tree by the tool's own rule):
+# python3 tests/mutants.py 'a transfer goes round the one place'
+unmutated: Ran 652 OK; 0 test(s): 
+KILLED   run: a transfer goes round the one place                       Ran 652 FAILED (failures=1, errors=9); 3 test(s): every_way_the_line_can_fail_at_every_place_, nothing_touches_the_line_but_through_the_on
+restored: Ran 652 OK; 0 test(s):  (1 copies)
+1 mutants, 0 survived

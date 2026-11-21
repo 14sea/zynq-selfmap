@@ -1129,13 +1129,25 @@ def suite(tree: Path) -> tuple[bool, str]:
         r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True, env={**os.environ, "TMPDIR": str(tmp)})
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    out = r.stdout + r.stderr
+    return read(r.stdout + r.stderr)
+
+
+def read(out: str) -> tuple[bool, str]:
+    """What a run of the suite said: whether it ran and failed, and a line of it. unittest's last line is "OK",
+    "OK (skipped=1)" and the like, or "FAILED (...)". (2026-11-21: a test that is skipped where there is no git — as
+    in the scratch copies here — made the line "OK (skipped=1)", which was read as no result at all: a mutant that
+    survived was still called SURVIVED, but the unmutated tree and the restored copies were not seen to pass.)"""
     ran = re.search(r"^Ran (\d+) tests", out, re.M)
-    res = re.findall(r"^(OK|FAILED.*)$", out, re.M)
+    res = re.findall(r"^(OK(?: \(.*\))?|FAILED.*)$", out, re.M)
     failed = sorted(set(re.findall(r"^(?:FAIL|ERROR): (\w+)", out, re.M)))
     n = int(ran.group(1)) if ran else 0
     summary = f"Ran {n} {res[-1] if res else 'no result'}; {len(failed)} test(s): {', '.join(f[5:48] for f in failed[:2])}"
     return n > 0 and bool(res) and res[-1].startswith("FAILED"), summary
+
+
+def passed(summary: str) -> bool:
+    """Whether a summary is of a suite that ran and passed: not failed is not enough, a run with no result is neither."""
+    return re.match(r"Ran [1-9]\d* OK", summary) is not None
 
 
 def scratch() -> Path:
@@ -1156,9 +1168,9 @@ def main() -> int:
     first = scratch()
     killed, summary = suite(first)
     print(f"unmutated: {summary}")
-    if killed:
+    if killed or not passed(summary):
         shutil.rmtree(first.parent, ignore_errors=True)  # the one copy made so far is not left behind
-        print("the unmutated tree fails; nothing below would mean anything"); return 2
+        print("the unmutated tree does not pass; nothing below would mean anything"); return 2
     baseline = int(re.search(r"Ran (\d+)", summary).group(1))
     trees: queue.Queue = queue.Queue()                    # one scratch copy per worker; a mutant has a tree to itself while it runs
     all_trees = [first] + [scratch() for _ in range(jobs - 1)]
@@ -1194,7 +1206,7 @@ def main() -> int:
             survivors += not ok
             print(line, flush=True)
         after = list(pool.map(suite, all_trees))          # every scratch copy, restored, passes again
-    dirty = [s for k, s in after if k or not s.startswith(f"Ran {baseline} OK")]
+    dirty = [s for k, s in after if k or not passed(s) or not s.startswith(f"Ran {baseline} ")]
     print(f"restored: {after[0][1]}" + (f" ({len(all_trees)} copies)" if not dirty else f" BUT {len(dirty)} cop(ies) differ: {dirty[0]}"))
     print(f"{len(chosen)} mutants, {survivors} survived")
     for tree in all_trees:

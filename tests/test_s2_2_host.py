@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import struct
 import subprocess
@@ -757,6 +758,15 @@ class WithAShare(unittest.TestCase):
                 self.assertEqual(len(re.findall(re.escape(size), text)), 2, "the checksum's length and the pull's")
         self.assertEqual((s2_2_judge.HDR, s2_2_judge.REC), (2960, 480))
 
+    def test_a_dry_run_given_a_directory_says_what_the_run_would_say_of_it(self) -> None:
+        tmp = Path(scratch_dirs.mkdtemp(prefix="smdry_"))
+        dry = lambda out: subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", "s2_2", "--share", "0", "--dry-run", "--out", str(out)],  # noqa: E731
+                                         capture_output=True, text=True)
+        p = dry(tmp / "new")
+        self.assertEqual((p.returncode, p.stdout.strip().splitlines()[-1], (tmp / "new").exists()), (0, "Dry run: nothing was sent.", False))
+        p = dry(tmp)
+        self.assertEqual((p.returncode, p.stdout.strip()), (2, "REFUSED: --out must name a directory that does not exist yet"))
+
     def test_the_dry_run_lists_the_list_s_transfer_and_its_checksum_and_sends_nothing(self) -> None:
         p = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", "s2_2", "--share", "7", "--dry-run"], capture_output=True, text=True)
         self.assertEqual(p.returncode, 0)
@@ -880,6 +890,7 @@ class Chain(unittest.TestCase):
         a = self.drive(committed=s2_2_chain.committed)   # the real question, of a directory that is in no repository
         self.assertEqual((a["state"], self.calls, len(a["runs"])), ("go on", [0], 1))
         self.assertIn("no second run before the first is committed: run00", a["held"])
+        self.assertNotIn("blocked", a, "a run is waited for; none failed to start")
         self.assertEqual(json.loads((self.root / "chain.json").read_text())["held"], a["held"])
         asked: list[Path] = []
         a = self.drive(committed=lambda path: asked.append(path) or "run00 has files that are not committed as they stand")
@@ -921,6 +932,27 @@ class Chain(unittest.TestCase):
         (repo / ".gitignore").write_text("*.log\n"); git("add", ".gitignore"); git("commit", "-q", "-m", "ignore")
         (run / "console.log").write_text("x")
         self.assertIn("['console.log']", s2_2_chain.committed(run), "a file git ignores is a file that is not committed")
+        (run / "console.log").unlink()
+        self.assertEqual(s2_2_chain.committed(run), "")
+        # review of c1e932b: links. One that leads nowhere was passed by; a file replaced by a link to the same bytes passed
+        os.symlink("nowhere", run / "dangling")
+        self.assertIn("holds something that is not a plain file: ['dangling']", s2_2_chain.committed(run))
+        (run / "dangling").unlink()
+        (repo / "copy.bin").write_bytes((run / "result.bin").read_bytes())
+        (run / "result.bin").unlink(); os.symlink("../../copy.bin", run / "result.bin")
+        self.assertEqual((run / "result.bin").read_bytes(), b"\x01\x02", "the same bytes are read through it")
+        self.assertIn("holds something that is not a plain file: ['result.bin']", s2_2_chain.committed(run))
+        git("add", "-A"); git("commit", "-q", "-m", "the link itself committed")
+        self.assertIn("holds something that is not a plain file: ['result.bin']", s2_2_chain.committed(run), "committed or not, a link is not the result")
+        (run / "result.bin").unlink(); (run / "result.bin").write_bytes(b"\x01\x02")
+        self.assertIn("holds something that is not a plain file: ['result.bin']", s2_2_chain.committed(run), "the commit has a link where the file is")
+        git("add", "-A"); git("commit", "-q", "-m", "the file again")
+        self.assertEqual(s2_2_chain.committed(run), "")
+        (run / "sub").mkdir(); os.symlink(".", run / "sub" / "loop")
+        self.assertIn("['sub/loop']", s2_2_chain.committed(run), "a link to a directory, under a directory")
+        (run / "sub" / "loop").unlink(); (run / "sub").rmdir()
+        os.symlink("run00", run.parent / "run00link")
+        self.assertIn("run00link is not there as a directory", s2_2_chain.committed(run.parent / "run00link"), "the run's directory itself")
 
     def test_nothing_is_sent_for_a_run_the_run_script_would_refuse(self) -> None:
         """Review of 334df53: the chain looked at the image kept with the runs, the run script loads the build's. With
@@ -935,8 +967,9 @@ class Chain(unittest.TestCase):
         self.assertEqual(self.assess()["state"], "go on", "what is stored stands: the image kept with the runs is the set's")
         a = self.drive()
         self.assertEqual((a["state"], self.calls, (self.root / "run01").exists()), ("go on", [0], False), "no run was started and no directory left")
-        self.assertEqual(a["held"], "nothing was sent: the image of the build, which the run script would load, is not the image the set declares")
-        self.assertEqual(json.loads((self.root / "chain.json").read_text())["held"], a["held"])
+        self.assertEqual((a["held"], a["blocked"]), ("nothing was sent: the image of the build, which the run script would load, is not the image the set declares", True))
+        stored = json.loads((self.root / "chain.json").read_text())
+        self.assertEqual((stored["held"], stored["blocked"]), (a["held"], True))
         # a set that declares the build's image, while another is kept with the runs
         moved = dict(self.base, image_sha256=hashlib.sha256(other.read_bytes()).hexdigest(), image_crc32=f"{zlib.crc32(other.read_bytes()) & 0xFFFFFFFF:08x}")
         self.assertEqual(s2_2_chain.ready(self.root, moved), "the image of the build, which the run script would load, is not the image kept with the runs")
@@ -945,12 +978,87 @@ class Chain(unittest.TestCase):
         s1a_run.IMAGE = build
         self.assertEqual(self.drive()["state"], "complete")
 
-    def test_the_run_script_s_own_dry_run_is_asked_before_the_board_is_reset(self) -> None:
-        self.assertEqual(s2_2_chain.refusal(0), "")
-        self.assertTrue(s2_2_chain.refusal(8).startswith("REFUSED: "), s2_2_chain.refusal(8))
-        src = (ROOT / "host" / "s2_2_chain.py").read_text().split("def board_runner")[1]
-        self.assertLess(src.index("refusal(share)"), src.index('u.cmd("reset"'), "asked before anything is sent")
-        self.assertLess(src.index("raise RuntimeError"), src.index("u = UB()"), "and a refusal ends it before the console is opened")
+    def test_the_run_script_s_own_dry_run_says_what_the_run_would_be_refused_for(self) -> None:
+        tmp = Path(scratch_dirs.mkdtemp(prefix="smref_"))
+        self.assertEqual(s2_2_chain.refusal(0, tmp / "run00"), "")
+        self.assertFalse((tmp / "run00").exists(), "and it makes nothing")
+        self.assertTrue(s2_2_chain.refusal(8, tmp / "run00").startswith("REFUSED: "), s2_2_chain.refusal(8, tmp / "run00"))
+        # review of c1e932b: the directory the run is to write into is part of what is asked
+        (tmp / "a_file").write_text("x"); (tmp / "a_dir").mkdir(); os.symlink("nowhere", tmp / "a_link")
+        for name in ("a_file", "a_dir", "a_link"):
+            self.assertEqual(s2_2_chain.refusal(0, tmp / name), "REFUSED: --out must name a directory that does not exist yet", name)
+
+    def test_what_the_run_script_would_refuse_is_asked_before_the_runner_and_stands_in_the_chain_s_file(self) -> None:
+        """Review of c1e932b: the refusal was raised inside the runner; the command said HALT while chain.json said
+        "go on" and gave no reason. The asking is the driver's now, before the runner — which on the board resets it."""
+        asked: list = []
+
+        def refuses(share: int, out: Path) -> str:
+            asked.append((share, out)); return "the run script refuses the run (REFUSED: for the test)"
+        a = self.drive(refuses=refuses, runner=lambda *_: self.fail("the runner was called"))
+        self.assertEqual((a["state"], a["held"], a["blocked"]), ("go on", "nothing was sent: the run script refuses the run (REFUSED: for the test)", True))
+        self.assertEqual(asked, [(0, self.root / "run00")])
+        stored = json.loads((self.root / "chain.json").read_text())
+        self.assertEqual((stored["state"], stored["held"], stored["blocked"]), ("go on", a["held"], True))
+        self.assertEqual(sorted(p.name for p in self.root.iterdir()), ["chain.json"], "no directory for the run, and no image kept for a run that was not made")
+        a = self.drive(max_new=1)
+        self.assertEqual((self.calls, "held" in a, "blocked" in a), ([0], False, False))
+        self.assertNotIn("held", json.loads((self.root / "chain.json").read_text()), "what held it is gone once it goes on")
+        a = self.drive(refuses=refuses, runner=lambda *_: self.fail("the runner was called"))
+        self.assertEqual((asked[-1], a["blocked"], (self.root / "run01").exists()), ((1, self.root / "run01"), True, False))
+
+    def test_a_runner_that_could_not_begin_holds_the_chain_and_says_so_in_its_file(self) -> None:
+        def runner(share: int, out: Path) -> None:
+            raise RuntimeError(f"before {out.name}: reset did not give the usual fresh prompt; nothing was run")
+        a = self.drive(runner=runner)
+        self.assertEqual((a["state"], a["held"], a["blocked"]), ("go on", "before run00: reset did not give the usual fresh prompt; nothing was run", True))
+        stored = json.loads((self.root / "chain.json").read_text())
+        self.assertEqual((stored["held"], stored["blocked"], (self.root / "run00").exists()), (a["held"], True, False))
+
+    def test_the_command_ends_with_a_code_when_a_run_could_not_be_started(self) -> None:
+        import contextlib, io
+        build = s1a_run.IMAGE
+        other = Path(scratch_dirs.mkdtemp(prefix="smimg_")) / "prober.bin"
+        other.write_bytes(build.read_bytes()[:-1] + bytes([build.read_bytes()[-1] ^ 1]))
+        root = Path(scratch_dirs.mkdtemp(prefix="smcmd_")) / "chain"
+        root.mkdir()
+        (root / "prober.bin").write_bytes(build.read_bytes())   # the image kept with the runs is the set's: what is stored stands
+        keep_argv, keep_log = sys.argv, os.environ.get("SELFMAP_CONSOLE_LOG")
+        self.addCleanup(setattr, s1a_run, "IMAGE", build)
+        self.addCleanup(setattr, sys, "argv", keep_argv)
+        self.addCleanup(lambda: os.environ.pop("SELFMAP_CONSOLE_LOG", None) if keep_log is None else os.environ.__setitem__("SELFMAP_CONSOLE_LOG", keep_log))
+        s1a_run.IMAGE = other                            # the image the run script would load is not the set's: nothing is opened, nothing sent
+        sys.argv = ["s2_2_chain.py", "--dir", str(root), "--go"]
+        said = io.StringIO()
+        with contextlib.redirect_stdout(said):
+            rc = s2_2_chain.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("HELD: nothing was sent: the image of the build", said.getvalue())
+        self.assertIn("0 run(s) stored of 8; the chain: go on", said.getvalue())
+        stored = json.loads((root / "chain.json").read_text())
+        self.assertEqual((stored["state"], stored["blocked"], stored["held"].startswith("nothing was sent: ")), ("go on", True, True))
+        self.assertEqual(sorted(p.name for p in root.iterdir()), ["chain.json", "prober.bin"])
+
+    def test_a_run_s_name_taken_by_something_that_is_not_a_directory_halts_the_chain_before_anything_is_asked(self) -> None:
+        """Review of c1e932b: only directories were looked at. With a file called run00 the chain took run00 for the
+        next run, the board was reset, and the run script then refused the directory."""
+        self.root.mkdir(parents=True)
+        (self.root / "run00").write_text("not a directory")
+        self.assertEqual(self.why(), ["what has the name of a run and is not a directory: ['run00']"])
+        a = self.drive(runner=lambda *_: self.fail("the runner was called"), refuses=lambda *_: self.fail("the run script was asked"))
+        self.assertEqual((a["state"], json.loads((self.root / "chain.json").read_text())["state"]), ("halted", "halted"))
+        (self.root / "run00").unlink()
+        self.drive(max_new=1)
+        os.symlink("nowhere", self.root / "run01")       # a link that leads nowhere, where the next run is to be
+        self.assertEqual(self.why(), ["what has the name of a run and is not a directory: ['run01']"])
+        (self.root / "run01").unlink()
+        os.symlink("run00", self.root / "run01")         # a link to a run's directory is not a second run
+        self.assertEqual(self.why(), ["what has the name of a run and is not a directory: ['run01']"])
+        (self.root / "run01").unlink()
+        (self.root / "run07").write_text("")             # nor further on
+        self.assertEqual(self.why(), ["what has the name of a run and is not a directory: ['run07']"])
+        (self.root / "run07").unlink()
+        self.assertEqual(self.drive()["state"], "complete")
 
     def test_the_driver_keeps_the_image_with_the_runs_and_the_chain_says_what_it_was_made_with(self) -> None:
         a = self.drive(max_new=1)

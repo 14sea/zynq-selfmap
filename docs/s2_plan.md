@@ -24,7 +24,9 @@ points as recommended (section 20); its host side is built and waits for the own
 (section 22): the status read after a read of the list was judged for bit 5 alone. A second
 found six; five are mended (section 23), and the sixth on the owner's decision (section 24):
 a clean copy of the repository now runs every test. A third found four, all mended
-(section 25): stage 8 no longer clears an error bit at any time.** S2.3 to S2.5 are not proposed in full yet.
+(section 25): stage 8 no longer clears an error bit at any time. A fourth found three in the
+chain's driver, mended without a new image (section 26). No mutant of S2.2 has been run by
+the tool yet.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1752,3 +1754,73 @@ board.
 
 As before: the mutants of S2.2 by the tool, then the complete set (1,002), then the owner's
 word. On the board the first step is one run; it is committed; then the rest.
+
+## 26. Review of `c1e932b` (2026-11-21): three findings, all in the chain's driver, all mended
+
+A fourth review. It confirms the four of section 25 and finds three more, one medium and two
+low, all in `host/s2_2_chain.py`. Findings 1 and 2 were reproduced here before anything was
+changed; 3 is plain from the code as it was. **The prober and the judge are not touched:
+the image is the one of section 25.**
+
+### 1. (medium) The name of a run taken by something that is not a directory
+
+The chain looked at directories only. With a plain file called `run00` it took `run00` for
+the next run; the run script's dry run was not told where the run would write; the board was
+reset; and only then did the run script refuse the directory, after which the driver ended
+in an exception. Reproduced: the chain said "go on", the runner was called, `FileExistsError`.
+
+- A name of a run that is not a directory — a file, a link, also a link to a run's directory
+  — **halts the chain when it is looked at**, before anything is asked or sent.
+- The run script's dry run takes `--out` and says of it what the run would say
+  (`host/s1a_run.py`: the check stood after the dry run's return); the driver passes the
+  directory when it asks.
+
+### 2. (low) Links in the commit check
+
+A link that leads nowhere was passed by (it is no file), and a committed file replaced by a
+link to the same bytes passed (the bytes were read through it). Reproduced, both.
+
+`committed` now walks the directory without following links and **refuses anything that is
+not a plain file or a directory**, under the run and in the last commit's tree alike (a
+link committed as a link is refused too); the run's directory itself may not be a link.
+
+### 3. (low) What the command said and what `chain.json` said
+
+A refusal by the dry run was raised inside the board's runner: the command printed HALT and
+ended with a code, while `chain.json` — written before — said "go on" and gave no reason.
+
+The asking is the driver's now (`refuses`), before the runner is called, with the image
+check of section 25. Whatever keeps a run from being started — the image, the run script's
+refusal, a board that did not come up fresh after its reset — leaves the chain **held, with
+the reason, and marked `blocked`**, in `chain.json` as in what the command prints; the
+command ends with a code then. A chain held because the first run is not committed yet is
+not blocked, and the command ends without a code as before: a run is waited for, none
+failed to start.
+
+### Tests, mutants
+
+811 tests (806 before): a name of a run taken by a file, by a link that leads nowhere and by
+a link to a run's directory; links under a run, in the commit, and as the run's directory; a
+refusal and a runner that could not begin, each in what is returned and in `chain.json`; the
+command's code, through the command itself; the dry run with a directory.
+
+1,015 mutants, none stale (1,002 before): three set right, 13 new. All 16 were tried by
+hand against the tests of the chain and of the run script, one at a time; all fail them,
+with the count of tests run unchanged. None has been run by the tool.
+
+### Whether more is to be mended
+
+Asked by the owner with this review. The four reviews, in order: a status word judged for
+one bit only (the prober and the judge); a gap between transfers, and a chain not bound to
+its image; the moment between a read and a write, and reads the check did not reach; and
+now three ways the chain's driver can be led astray by what lies in its directory. The first
+three changed what a run on the board would have said. This one does not: every case of it
+ends, on the code as it was, in a run that is not made or a chain that stops — a board reset
+for nothing at worst, never a result judged wrongly. It was worth mending because it was
+cheap and because the driver is what is trusted to stop.
+
+What I know to be open is said where it belongs: the moment between the last look at the
+register and the next act (section 25); a single flip in the all-one state that reads as a
+cell (section 21); and that **no mutant has been run by the tool since 2026-11-21's run was
+stopped**. That last is the largest: 1,015 mutants, of which every one of S2.2 has only
+been tried by hand or not at all. It is due before the board, and it is the next thing.

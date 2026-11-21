@@ -605,6 +605,8 @@ def main() -> int:
     if hashlib.sha256(pl).hexdigest() != exp["pl_design"]["sha256"] or len(pl) != exp["pl_design"]["bytes"]:
         print("REFUSED: the staged PL design is not the one this set was fixed with"); return 2
     pl_crc = f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}"
+    if a.out and (a.out.exists() or a.out.is_symlink()):   # asked before the dry run as well: a dry run with --out says what the run itself would say of it
+        print("REFUSED: --out must name a directory that does not exist yet"); return 2
     if a.dry_run or not a.go:
         print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else "")
               + (f", share {exp['share']['index']} of {exp['share']['of']}: {exp['share']['reads']} reads, {exp['share']['frames']} frames, "
@@ -630,7 +632,7 @@ def main() -> int:
         print("       every attempt recorded; a whole reply with another value than the one wanted stops or fails the run as before; nothing else is ever sent twice")
         print("\nDry run: nothing was sent.")
         return 0
-    if not a.out or a.out.exists():
+    if not a.out:
         print("REFUSED: --out must name a directory that does not exist yet"); return 2
     a.out.mkdir(parents=True)
     if "list" in exp:                                # the list as it is sent, kept beside the run's record

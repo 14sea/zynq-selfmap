@@ -42,7 +42,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import stat
 import struct
 import subprocess
 import sys
@@ -136,18 +138,32 @@ def bound(rec: dict, d: Path, exp: dict, held: dict) -> list[str]:
 
 def committed(path: Path) -> str:
     """Why `path` is not in git as it stands: "" if the last commit holds exactly the files that are under it now,
-    each with the bytes it has now. The files are hashed here and held to the commit's own tree: what git's index
-    says of them, or was told to assume of them, is not asked (review of 334df53)."""
+    each with the bytes it has now, and all of them plain files — nothing under it or in the commit is a symbolic
+    link or anything else. The files are hashed here and held to the commit's own tree: what git's index says of
+    them, or was told to assume of them, is not asked (reviews of 334df53 and c1e932b)."""
     def git(*args: str, **kw) -> subprocess.CompletedProcess:
         return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, **kw)
     try:
-        if not path.is_dir():
-            return f"{path.name} is not there"
+        if path.is_symlink() or not path.is_dir():
+            return f"{path.name} is not there as a directory"
         if git("rev-parse", "--show-toplevel").returncode:
             return f"{path.name} is not in a git repository"
+        names, odd = [], []
+        for here, dirs, files in os.walk(path, followlinks=False):
+            for n in dirs + files:
+                p = Path(here) / n
+                kind = p.lstat().st_mode
+                if stat.S_ISREG(kind):
+                    names.append(str(p.relative_to(path)))
+                elif not stat.S_ISDIR(kind):
+                    odd.append(str(p.relative_to(path)))
         tree = git("ls-tree", "-r", "-z", "HEAD", "--", ".")
-        in_commit = {entry.split("\t", 1)[1]: entry.split("\t", 1)[0].split()[2] for entry in tree.stdout.split("\0") if entry} if not tree.returncode else {}
-        names = sorted(str(f.relative_to(path)) for f in path.rglob("*") if f.is_file())
+        entries = [entry.split("\t", 1) for entry in tree.stdout.split("\0") if entry] if not tree.returncode else []
+        in_commit = {name: meta.split()[2] for meta, name in entries}
+        odd += [name for meta, name in entries if meta.split()[0] not in ("100644", "100755")]
+        if odd:
+            return f"{path.name} holds something that is not a plain file: {sorted(set(odd))[:4]}"
+        names.sort()
         hashed = git("hash-object", "--no-filters", "--stdin-paths", input="".join(f"{path.resolve() / n}\n" for n in names)) if names else None   # whole paths: git does not take these from where it was started
         if hashed is None or hashed.returncode or len(hashed.stdout.split()) != len(names):
             return f"{path.name} is not committed whole"
@@ -177,9 +193,11 @@ def ready(root: Path, base: dict) -> str:
     return ""
 
 
-def refusal(share: int) -> str:
-    """What the run script says if it would refuse the run of this share, from its own dry run, which sends nothing."""
-    r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", STAGE, "--share", str(share), "--dry-run"], capture_output=True, text=True)
+def refusal(share: int, out: Path) -> str:
+    """What the run script says if it would refuse the run of this share into this directory, from its own dry run,
+    which sends nothing and makes nothing."""
+    r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", STAGE, "--share", str(share), "--out", str(out), "--dry-run"],
+                       capture_output=True, text=True)
     return "" if r.returncode == 0 else ((r.stdout + r.stderr).strip().splitlines() or ["it ended with a code and said nothing"])[-1]
 
 
@@ -279,15 +297,19 @@ def assess(root: Path, base: dict, known: dict, limit: int = s2_2_shares.LIST_MA
     reasons). `base`: the set as the tests wrote it, without a share."""
     census = known["census"]
     every = s2_2_shares.shares(census, limit)
-    names = sorted(p.name for p in root.iterdir() if p.is_dir() and RUN_DIR.match(p.name)) if root.is_dir() else []
+    there = sorted(root.iterdir()) if root.is_dir() else []
+    names = sorted(p.name for p in there if p.is_dir() and not p.is_symlink() and RUN_DIR.match(p.name))
     out: dict = {"stage": STAGE, "shares": len(every), "runs": [],
-                 "set_aside": sorted(p.name for p in root.iterdir() if p.is_dir() and not RUN_DIR.match(p.name)) if root.is_dir() else []}
+                 "set_aside": sorted(p.name for p in there if p.is_dir() and not RUN_DIR.match(p.name))}
 
     def halted(*why: str) -> dict:
         out.update(state="halted", why=list(why)); return out
 
     if root.is_dir() and (root / "candidates.json").exists():
         out["candidates_file"] = "there"                 # the driver writes it when the chain is complete and takes it away when it is not
+    taken = [p.name for p in there if RUN_DIR.match(p.name) and p.name not in names]
+    if taken:                                            # a file or a link where a run's directory is, or is to be (review of c1e932b)
+        return halted(f"what has the name of a run and is not a directory: {taken}")
     if names != [f"run{k:02d}" for k in range(len(names))]:
         return halted(f"the run directories are not run00, run01, ... without a gap: {names}")
     if len(names) > len(every):
@@ -338,12 +360,14 @@ def candidates_file(a: dict, known: dict) -> dict:
 
 
 def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = None, say=lambda *_: None, limit: int = s2_2_shares.LIST_MAX,
-          committed=committed) -> dict:
+          committed=committed, refuses=lambda share, out: "") -> dict:
     """Go on with the chain until it is complete or halts (or `max_new` runs have been added). `runner(share, out)`
     makes the run of that share and leaves its files in the directory `out`. After every run the whole chain is
     assessed again from what is stored. The first run is made alone: a second is started only when `committed` finds
     nothing wanting in the first run's directory, and no run at all unless the image the run script will load is the
-    one the chain is made with (`ready`); until then the chain is "held", which is not a halt."""
+    one the chain is made with (`ready`) and `refuses(share, out)` — on the board the run script's own dry run — has
+    nothing to say against it. Until then the chain is "held", which is not a halt; "blocked" beside it says that a
+    run could not be started, and that is in chain.json as it is in what is returned (review of c1e932b)."""
     root.mkdir(parents=True, exist_ok=True)
     added = 0
     while True:
@@ -360,21 +384,27 @@ def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = Non
             say(f"{last['dir']}: share {last['share']}, {last.get('frames', '?')} addresses, {len(last.get('candidates', []))} candidate(s) — {last['decision']}")
         if a["state"] != "go on" or (max_new is not None and added >= max_new):
             return a
-        why = ready(root, base)
+        out = root / f"run{a['next_run']:02d}"
+        why, blocked = ready(root, base) or refuses(a["next_share"], out), True
         if why:
             why = f"nothing was sent: {why}"
         elif a["runs"]:
-            why = committed(root / "run00")
+            why, blocked = committed(root / "run00"), False
             if why:
                 why = f"no second run before the first is committed: {why}"
+        if not why:
+            if not a["runs"] and not (root / KEPT_IMAGE).exists():   # the image every run of this chain is to be made with, kept with them
+                (root / KEPT_IMAGE).write_bytes(s1a_run.IMAGE.read_bytes())
+            try:
+                runner(a["next_share"], out)
+            except RuntimeError as e:                    # the runner could not begin (the board did not come up fresh): nothing was run
+                why, blocked = str(e), True
         if why:
             a["held"] = why
+            if blocked:
+                a["blocked"] = True                      # held because a run could not be started, not because one is waited for
             (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\n")
             return a
-        if not a["runs"] and not (root / KEPT_IMAGE).exists():           # the image every run of this chain is to be made with, kept with them
-            (root / KEPT_IMAGE).write_bytes(s1a_run.IMAGE.read_bytes())
-        out = root / f"run{a['next_run']:02d}"
-        runner(a["next_share"], out)
         out.mkdir(exist_ok=True)                         # a run that left nothing behind is a run directory without a record: a halt
         added += 1
 
@@ -386,9 +416,6 @@ def board_runner(root: Path):
     from uboot_console import UB
 
     def run(share: int, out: Path) -> None:
-        why = refusal(share)                             # before the reset: the board is not touched for a run the script would refuse
-        if why:
-            raise RuntimeError(f"before {out.name}: the run script refuses the run ({why}); nothing was sent")
         u = UB()
         _, ok = u.interrupt()
         reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
@@ -413,17 +440,15 @@ def main() -> int:
     if not a.go:
         state = assess(a.dir, base, known)
     else:
-        try:
-            state = drive(a.dir, base, known, board_runner(a.dir), max_new=a.max_new, say=lambda line: print(line, flush=True))
-        except RuntimeError as e:
-            print(f"HALT {e}"); return 1
+        state = drive(a.dir, base, known, board_runner(a.dir), max_new=a.max_new, say=lambda line: print(line, flush=True),
+                      refuses=lambda share, out: (lambda why: f"the run script refuses the run ({why})" if why else "")(refusal(share, out)))
     print(json.dumps({k: v for k, v in brief(state).items() if k != "runs"}, indent=1))
     if state["state"] != "complete" and state.get("candidates_file"):
         print("NOTE: a candidates.json lies beside these runs, and the chain is not complete as it is stored now: it does not stand")
     if state.get("held"):
         print(f"HELD: {state['held']}")
     print(f"{len(state['runs'])} run(s) stored of {state['shares']}; the chain: {state['state']}")
-    return 0 if state["state"] in ("complete", "go on") else 1
+    return 0 if state["state"] in ("complete", "go on") and not state.get("blocked") else 1
 
 
 if __name__ == "__main__":

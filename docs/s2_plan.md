@@ -11,7 +11,7 @@ when the step before it has answered. The points for the owner are in section 11
 the owner decided in section 12. **No board run happens without the owner's word for that
 step.**
 
-**Where S2 stands (2026-11-20).** The host side of S2.0 and S2.1 is built (section 13). A
+**Where S2 stands (2026-11-21).** The host side of S2.0 and S2.1 is built (section 13). A
 review of it found one fault in the run script, and a review of the mending two more; all
 three are mended (sections 14 and 15). The complete set of mutants has been run, and the
 mutants of the run script on the script as it is now (section 16). **S2.0 has been on the
@@ -1311,7 +1311,7 @@ that the tool could not judge.
   other was written again without a new constant (where bit 5 shows, the transfers' bits
   are cleared instead of it) and, tried by hand, fails two tests.
 
-Not run at all so far: 13 of stage 8's, the two just changed, and every mutant of the judge,
+Not run at all so far: 11 of stage 8's, the two just changed, and every mutant of the judge,
 of the shares, of the chain and of the run script, with the eleven that were set right. They
 are due before this section can be called reviewed, and the complete set after that. A run
 of the suite alone takes about 1 GB at its peak; eight at once fitted this machine on
@@ -1330,6 +1330,12 @@ of the suite alone takes about 1 GB at its peak; eight at once fitted this machi
   addresses the census can have (a read across a column's end is already an address the census does not
   have). I kept it — it guards the one place where an address is added to — and gave it a
   test with a census in which two columns are neighbours by number.
+
+- I wrote that 79 mutants of stage 8 were chosen for the run that was stopped, and that 13
+  of them had not run. It was 77 and 11: counted again on 2026-11-21 from the record and the
+  list (66 ran; three of those are gone or renamed; 12 of the 75 there are now have no line
+  in the record, one of them the one written again). The record's first line said 79 too
+  and is set right; nothing the tool printed is changed.
 
 ### For the board, when the owner has reviewed this
 

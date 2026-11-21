@@ -11,7 +11,17 @@ before it is relied on. The chain goes on after a run only if
 
   1. the run script reports no stop and a passing run of that share, and the stored result is the one whose checksum
      the board gave;
-  2. the judge passes it, and the verdict stored beside it is what the judge says of the stored result.
+  2. the judge passes it, and the verdict stored beside it is what the judge says of the stored result;
+  3. its record shows it was made with what the set in force declares: the prober image in RAM just before it was
+     started and again after it returned, the design in RAM just before it was loaded, the list in RAM before the
+     start — and the list kept beside the run is the list planned for its share (review of 9fa606e).
+
+The set in force is the one the tests wrote for the image of the build; the image is held to it from a file — the
+copy the driver keeps with the runs when it makes the first (DIR/prober.bin), the build's where none is kept — and so
+is the design. A chain whose runs were made with another image or another design does not go on.
+
+**The first run is made alone.** No second run is started before everything in DIR/run00 is committed to git as it
+stands (docs/s2_plan.md, section 21: the first run's result is committed before the second starts).
 
 Anything else halts it. Nothing is run again: a run directory that does not hold a passing run stays where it is and
 the chain stands there until someone has looked and moved it. (A reply that showed a restart, a result that could not
@@ -45,21 +55,123 @@ import s2_2_shares  # noqa: E402
 
 STAGE = "s2_2"
 RUN_DIR = re.compile(r"^run(\d\d)$")
+KEPT_IMAGE = "prober.bin"                                # the image the runs were made with, kept with them by the driver
 
 
-def read_run(d: Path, exp: dict, share: int, known: dict) -> dict:
+def crc(data: bytes) -> str:
+    return f"{zlib.crc32(data) & 0xFFFFFFFF:08x}"
+
+
+def declared(root: Path, base: dict) -> dict:
+    """What the set in force declares, held against files: the prober image — the copy kept with the runs, the build's
+    if none is kept — and the PL design. Gives the checksums a run's record must show, or why they cannot be had."""
+    out: dict = {"problems": []}
+    bad = out["problems"].append
+    kept = root / KEPT_IMAGE
+    where = "kept with the runs" if kept.is_file() else "of the build"
+    try:
+        image = (kept if kept.is_file() else s1a_run.IMAGE).read_bytes()
+    except OSError:
+        bad("there is no prober image to hold the set to"); image = None
+    if image is not None:
+        if (hashlib.sha256(image).hexdigest(), len(image), crc(image)) != (base.get("image_sha256"), base.get("image_bytes"), base.get("image_crc32")):
+            bad(f"the image {where} is not the image the set declares")
+        else:
+            out.update(image_bytes=len(image), image_crc32=crc(image), image_sha256=base["image_sha256"], image_from=where)
+    design = base.get("pl_design")
+    if not isinstance(design, dict) or not isinstance(design.get("bytes"), int) or not isinstance(design.get("sha256"), str):
+        bad("the set declares no design")
+    else:
+        try:
+            pl = s1a_run.pl_file(base).read_bytes()
+        except OSError:
+            bad(f"the design the set declares is not staged ({design.get('file')})"); pl = None
+        if pl is not None:
+            if (hashlib.sha256(pl).hexdigest(), len(pl)) != (design["sha256"], design["bytes"]):
+                bad("the staged design is not the design the set declares")
+            else:
+                out.update(design_bytes=len(pl), design_crc32=crc(pl), design_sha256=design["sha256"])
+    return out
+
+
+def bound(rec: dict, d: Path, exp: dict, held: dict) -> list[str]:
+    """Why a run's record does not show the run to have been made with what the set declares. The start of the prober
+    and the load of the design are the marks: a checksum on the wrong side of one does not stand for one on the other."""
+    steps = rec.get("steps")
+    if not isinstance(steps, list) or not all(isinstance(s, dict) for s in steps):
+        return ["the run record has no list of steps"]
+    cmds = [s.get("cmd") if isinstance(s.get("cmd"), str) else "" for s in steps]
+
+    def said(cmd: str, part: list[dict]) -> list[str]:
+        """The checksums in the whole replies to `cmd` among these steps."""
+        return [x for x in (s1a_run.whole(cmd, s.get("reply") if isinstance(s.get("reply"), str) else "") for s in part if s.get("cmd") == cmd) if x is not None]
+
+    start, load = f"go {s1a_run.IMG_ADDR:08x}", f"fpga loadb 0 {s1a_run.PL_ADDR:08x} {held['design_bytes']:x}"
+    if cmds.count(start) != 1 or cmds.count(load) != 1 or cmds.index(load) > cmds.index(start):
+        return ["the run record does not show one load of the declared design and, after it, one start of the prober"]
+    at_start, at_load = cmds.index(start), cmds.index(load)
+    problems: list[str] = []
+    image_cmd = f"crc32 {s1a_run.IMG_ADDR:08x} {held['image_bytes']:x}"
+    before, after = said(image_cmd, steps[at_start - 1:at_start]), said(image_cmd, steps[at_start + 1:])
+    if not before or not after or set(said(image_cmd, steps)) != {held["image_crc32"]}:
+        problems.append(f"the run record does not show the declared image (crc32 {held['image_crc32']}) in RAM just before the prober was started and again "
+                        f"after it returned: before {said(image_cmd, steps[:at_start])}, after {after}")
+    design_cmd = f"crc32 {s1a_run.PL_ADDR:08x} {held['design_bytes']:x}"
+    if said(design_cmd, steps[at_load - 1:at_load]) != [held["design_crc32"]] or set(said(design_cmd, steps)) != {held["design_crc32"]}:
+        problems.append(f"the run record does not show the declared design (crc32 {held['design_crc32']}) in RAM just before it was loaded: {said(design_cmd, steps)}")
+    planned = s1a_run.list_bytes(exp)
+    list_cmd = f"crc32 {s1a_run.LIST_ADDR:08x} {len(planned):x}"
+    if not said(list_cmd, steps[:at_start]) or set(said(list_cmd, steps)) != {crc(planned)}:
+        problems.append(f"the run record does not show the list planned for the share (crc32 {crc(planned)}) in RAM before the start: {said(list_cmd, steps)}")
+    try:
+        kept = (d / "list.bin").read_bytes()
+    except OSError:
+        kept = None
+    if kept != planned:
+        problems.append("the list kept beside the run is not the list planned for its share" if kept is not None else "no list is kept beside the run")
+    return problems
+
+
+def committed(path: Path) -> str:
+    """Why `path` is not in git as it stands: "" if every file under it is tracked and unchanged."""
+    def git(*args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True)
+    try:
+        if not path.is_dir():
+            return f"{path.name} is not there"
+        status = git("status", "--porcelain", "--untracked-files=all", "--ignored", "--", ".")
+        if status.returncode:
+            return f"{path.name} is not in a git repository"
+        if status.stdout.strip():
+            return f"{path.name} has files that are not committed as they stand: {[ln[3:] for ln in status.stdout.splitlines()][:4]}"
+        tracked = git("ls-files", "--", ".").stdout.split("\n")
+        on_disk = sorted(str(f.relative_to(path)) for f in path.rglob("*") if f.is_file())
+        if sorted(x for x in tracked if x) != on_disk or not on_disk:
+            return f"{path.name} is not committed whole"
+        return ""
+    except OSError as e:
+        return f"git could not be asked about {path.name}: {e}"
+
+
+def read_run(d: Path, exp: dict, share: int, known: dict, held: dict) -> dict:
     """One stored run: what the run script recorded, and the result judged again from its raw words against what is
-    planned for that share (`exp`: the set with the share's list). Everything found wanting is listed in "problems"."""
+    planned for that share (`exp`: the set with the share's list); `held`: what the set declares, from `declared`.
+    Everything found wanting is listed in "problems"."""
     out: dict = {"dir": d.name, "share": share, "problems": []}
     bad = out["problems"].append
     try:
         rec = json.loads((d / "run.json").read_text())
     except (OSError, ValueError):
         bad("there is no run record"); return out
+    if not isinstance(rec, dict):
+        bad("the run record is not a record"); return out
     if rec.get("stage") != STAGE:
         bad(f"the run record is of stage {rec.get('stage')}, not {STAGE}")
-    if (rec.get("share") or {}).get("index") != share:
-        bad(f"the run is of share {(rec.get('share') or {}).get('index')}; the chain plans share {share} for it")
+    of = rec.get("share").get("index") if isinstance(rec.get("share"), dict) else None
+    if of != share:
+        bad(f"the run is of share {of}; the chain plans share {share} for it")
+    for p in bound(rec, d, exp, held):
+        bad(p)
     if rec.get("restart"):
         bad(f"a reply showed an exception or a restart: {rec['restart']}")
     if not rec.get("went"):
@@ -74,7 +186,7 @@ def read_run(d: Path, exp: dict, share: int, known: dict) -> dict:
         raw = (d / "result.bin").read_bytes()
     except OSError:
         bad("there is no stored result"); return out
-    if len(raw) % 4 or f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}" != rec.get("board_crc32"):
+    if len(raw) % 4 or crc(raw) != rec.get("board_crc32"):
         bad("the stored result is not the one whose checksum the board gave"); return out
     out["result_sha256"] = hashlib.sha256(raw).hexdigest()
     v = json.loads(json.dumps(s2_2_judge.judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), known, s1a_run.planned_words(exp))))
@@ -144,12 +256,18 @@ def assess(root: Path, base: dict, known: dict, limit: int = s2_2_shares.LIST_MA
     def halted(*why: str) -> dict:
         out.update(state="halted", why=list(why)); return out
 
+    if root.is_dir() and (root / "candidates.json").exists():
+        out["candidates_file"] = "there"                 # the driver writes it when the chain is complete and takes it away when it is not
     if names != [f"run{k:02d}" for k in range(len(names))]:
         return halted(f"the run directories are not run00, run01, ... without a gap: {names}")
     if len(names) > len(every):
         return halted(f"{len(names)} run directories for {len(every)} shares")
+    held = declared(root, base)
+    if held["problems"]:
+        return halted(*held["problems"])
+    out["made_with"] = {k: v for k, v in held.items() if k != "problems"}
     for k, name in enumerate(names):
-        r = read_run(root / name, s1a_run.with_share(STAGE, base, k, census, limit), k, known)
+        r = read_run(root / name, s1a_run.with_share(STAGE, base, k, census, limit), k, known, held)
         out["runs"].append(r)
         if r["problems"]:
             r["decision"] = "halt"
@@ -189,22 +307,36 @@ def candidates_file(a: dict, known: dict) -> dict:
             "frames_with_candidates": c["frames_with_candidates"], "places": c["found"]}
 
 
-def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = None, say=lambda *_: None, limit: int = s2_2_shares.LIST_MAX) -> dict:
+def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = None, say=lambda *_: None, limit: int = s2_2_shares.LIST_MAX,
+          committed=committed) -> dict:
     """Go on with the chain until it is complete or halts (or `max_new` runs have been added). `runner(share, out)`
     makes the run of that share and leaves its files in the directory `out`. After every run the whole chain is
-    assessed again from what is stored."""
+    assessed again from what is stored. The first run is made alone: a second is started only when `committed` finds
+    nothing wanting in the first run's directory; until then the chain is "held", which is not a halt."""
     root.mkdir(parents=True, exist_ok=True)
     added = 0
     while True:
         a = assess(root, base, known, limit)
+        if a["state"] == "complete":
+            (root / "candidates.json").write_text(json.dumps(candidates_file(a, known), indent=1) + "\n")
+            a["candidates_file"] = "there"
+        elif a.pop("candidates_file", None):              # of an earlier look at these runs, which no longer stands
+            (root / "candidates.json").unlink()
+            say("candidates.json taken away: the chain is not complete as it is stored now")
         (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\n")
         if a["runs"]:
             last = a["runs"][-1]
             say(f"{last['dir']}: share {last['share']}, {last.get('frames', '?')} addresses, {len(last.get('candidates', []))} candidate(s) — {last['decision']}")
-        if a["state"] == "complete":
-            (root / "candidates.json").write_text(json.dumps(candidates_file(a, known), indent=1) + "\n")
         if a["state"] != "go on" or (max_new is not None and added >= max_new):
             return a
+        if a["runs"]:
+            why = committed(root / "run00")
+            if why:
+                a["held"] = f"no second run before the first is committed: {why}"
+                (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\n")
+                return a
+        elif not (root / KEPT_IMAGE).exists():           # the image every run of this chain is to be made with, kept with them
+            (root / KEPT_IMAGE).write_bytes(s1a_run.IMAGE.read_bytes())
         out = root / f"run{a['next_run']:02d}"
         runner(a["next_share"], out)
         out.mkdir(exist_ok=True)                         # a run that left nothing behind is a run directory without a record: a halt
@@ -247,6 +379,10 @@ def main() -> int:
         except RuntimeError as e:
             print(f"HALT {e}"); return 1
     print(json.dumps({k: v for k, v in brief(state).items() if k != "runs"}, indent=1))
+    if state["state"] != "complete" and state.get("candidates_file"):
+        print("NOTE: a candidates.json lies beside these runs, and the chain is not complete as it is stored now: it does not stand")
+    if state.get("held"):
+        print(f"HELD: {state['held']}")
     print(f"{len(state['runs'])} run(s) stored of {state['shares']}; the chain: {state['state']}")
     return 0 if state["state"] in ("complete", "go on") else 1
 

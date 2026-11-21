@@ -215,6 +215,17 @@ static uint32_t dma(uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, ui
 {
     uint32_t s, n;
 
+    /* Stage 8 (review of 9fa606e): every transfer begins by clearing the register, so an error bit that appeared
+     * after the transfer before this one was seen done was cleared without ever having been read. In stage 8 the
+     * register is read first, and an error bit in it ends the transfer before anything is cleared or queued. The
+     * other stages make the accesses they always made. */
+    if (par(P_STAGE) == 8u) {
+        s = hal_rd(DEVCFG_INT_STS);
+        if (s & STS_ERR_MASK) {
+            *sts = s; *polls = 0u;
+            return C_LATE;
+        }
+    }
     n = poll_mode();                                    /* read before anything is sent */
     if (n != POLL_AS_BEFORE)                            /* diagnostics; from here on this function is as it always was */
         return dma_quiet(n, src, dst, slen, dlen, poll_limit, &poll_limit, sts, polls);

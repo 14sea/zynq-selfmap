@@ -544,14 +544,73 @@ class TheStatusBetweenTransfers(unittest.TestCase):
             r = Run(fault)
             self.assertEqual((r.status, [r.rec(i)["code"] for i in range(N)]), (1, [0] * N), fault)
 
-    def test_not_seen_an_error_bit_that_appears_between_two_transfers_of_one_read(self) -> None:
-        """Known, and not changed here (section 22, for the owner): every transfer begins by clearing the register,
-        in this stage as in every stage since S1a, so an error bit that appears after a transfer was seen done and
-        before the next one begins is cleared without having been read. Only after the last transfer of a read is
-        there a status read with nothing after it."""
-        r = Run("lateerr@11")                         # the frame read of the list's first read; the register commands follow
-        self.assertEqual((r.status, r.n_records, r.violations), (1, N, []))
-        self.assertFalse([i for i in range(N) for s in (r.raw(i)[3], r.raw(i)[5], r.raw(i)[7], *r.raw(i)[FARBLK:FARBLK + 3:2], r.rec(i)["after"]) if s & 0x00F4C840])
+
+
+class BeforeEveryTransfer(unittest.TestCase):
+    """Review of 9fa606e (docs/s2_plan.md, section 23). Every transfer begins by clearing the status register; an error
+    bit that appeared after the transfer before it was seen done was cleared without having been read — in every stage,
+    and in this one until now (section 22 said so and pinned it as known). Stage 8 reads the register before each
+    clearing: an error bit there ends the transfer with code 0x24, and nothing is cleared, queued or written after.
+
+    Commands: 1 to 5 the reference frame, 6 to 9 CTL0, 10 to 14 the list's first read; a clean run makes 318."""
+
+    def stopped(self, r: Run, status: int, i: int, after_command: int, transfer: int) -> None:
+        self.assertEqual((r.status, r.rc, r.n_records, r.stop_record if status >> 8 == 2 else i, r.violations), (status, status, i + 1, i, []))
+        raw = r.raw(i)
+        own = [(raw[3], raw[4]), (raw[5], raw[6]), (raw[FARBLK], raw[FARBLK + 1]), (raw[FARBLK + 2], raw[FARBLK + 3]), (raw[7], raw[8])]
+        self.assertEqual(raw[2], 0x24)
+        self.assertEqual((own[transfer][0] & 0x00040004, own[transfer][1]), (0x00040004, 0), "the transfer that was to begin has the word, and no poll")
+        self.assertTrue(all(pair == (0, 0) for pair in own[transfer + 1:]), "and none after it has anything")
+        self.assertEqual(len(r.dmas), after_command, "no command follows")
+        clears = [n for n, (k, a, v) in enumerate(r.accesses) if k == "W" and a == INT_STS]
+        self.assertEqual(len(clears), after_command, "the register was not written again: a clearing for every transfer made, none for this one")
+        self.assertEqual(r.words[16] & 0x00040000, 0x00040000, "so the bit is still there at the end")
+
+    def test_an_error_bit_that_appears_between_two_transfers_of_a_read_ends_the_run_before_the_next_begins(self) -> None:
+        for d in (10, 11, 12, 13):                    # after each transfer of the list's first read but the last
+            with self.subTest(after_command=d):
+                r = Run(f"lateerr@{d}")
+                self.stopped(r, 0x224, 2, d, d - 9 if d > 10 else 1)
+                self.assertEqual((r.n_anomalies, r.rec(2)["cleared"]), (1, 0xFFFFFFFF))
+                self.assertFalse(r.pl_accesses()[1 + 64 + 257:], "and the RAM is not read again")
+
+    def test_in_a_later_state(self) -> None:
+        d = 10 + 5 * (2 * N_LIST + 7) + 1             # the frame read of read 7 in the third state
+        r = Run(f"lateerr@{d}")
+        self.stopped(r, 0x224, 2 + 2 * N_LIST + 7, d, 2)
+
+    def test_in_the_reads_that_are_not_of_the_list(self) -> None:
+        self.stopped(Run("lateerr@2"), 0x624, 0, 2, 2)              # the reference frame at first: a baseline stop
+        self.stopped(Run("lateerr@7"), 0x224, 1, 7, 3)              # CTL0 before the first state (it has no frame read)
+        self.stopped(Run("lateerr@311"), 0x224, N - 2, 311, 3)      # CTL0 after the last
+        r = Run("lateerr@315")                                      # the reference frame at the end
+        self.assertEqual((r.status, r.n_records, r.stop_record, r.raw(N - 1)[2], len(r.dmas)), (0x224, N, N - 1, 0x24, 315))
+
+    def test_after_the_last_transfer_of_a_read_it_is_the_status_after_the_read_that_shows_it(self) -> None:
+        r = Run("lateerr@14")
+        self.assertEqual((r.status, r.rec(2)["code"], len(r.dmas)), (0x221, 0x21, 14))
+
+    def test_in_a_clean_run_the_register_is_read_before_every_clearing_and_after_it(self) -> None:
+        r = Run()
+        clears = [n for n, (k, a, v) in enumerate(r.accesses) if k == "W" and a == INT_STS]
+        self.assertEqual((r.status, len(r.dmas), len(clears)), (1, 318, 318))
+        for n in clears:
+            self.assertEqual((r.accesses[n - 1][:2], r.accesses[n + 1][:2]), (("R", INT_STS), ("R", INT_STS)))
+            self.assertEqual(r.accesses[n - 1][2] & 0x00F4C840, 0)
+
+    def test_how_often_the_register_is_read_between_a_transfer_and_the_next_clearing(self) -> None:
+        """One read more than in the other stages (tests/test_prober_s2.py has theirs: 2 and 3): the transfer's two
+        polls and the read before the clearing; where a read ends, its look at PCFG_DONE as well; and after a read
+        of the list the status after the read."""
+        r = Run()
+        queued = [i for i, (k, a, v) in enumerate(r.accesses) if k == "W" and a == 0xF8007024]
+        cleared = [i for i, (k, a, v) in enumerate(r.accesses) if k == "W" and a == INT_STS]
+        reads = [sum(1 for k, a, v in r.accesses[i + 1:j] if k == "R" and a == INT_STS) for i, j in zip(queued, cleared[1:])]
+        self.assertEqual({n: reads.count(n) for n in set(reads)}, {3: 317 - 3 - 3 * N_LIST, 4: 3, 5: 3 * N_LIST})
+
+    def test_pcfg_done_lost_between_two_transfers_is_met_by_the_next_as_before(self) -> None:
+        r = Run("latedrop@11")
+        self.assertEqual((r.status, r.n_records, r.rec(2)["code"], len(r.dmas)), (0x223, 3, 0x23, 11))
 
 
 class WhenAReadFails(unittest.TestCase):

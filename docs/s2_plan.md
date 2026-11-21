@@ -21,7 +21,8 @@ board: PASS — the first access to our own design returned, and the design is a
 own side (section 18).** **S2.2 is proposed in full in section 19 and agreed, all eight
 points as recommended (section 20); its host side is built and waits for the owner's review
 (section 21) — its mutants have not all been run. A first review found one fault, mended
-(section 22): the status read after a read of the list was judged for bit 5 alone.** S2.3 to S2.5 are not proposed in full yet.
+(section 22): the status read after a read of the list was judged for bit 5 alone. A second
+found six; five are mended and one is the owner's to decide (section 23).** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1410,8 +1411,8 @@ written after it; `latedrop@14` `0x223` at record 2; `bit5@2,clearerr` `0x221`, 
 after the clearing in the record; the two changed results are refused (`record 5: code 0x0,
 but its raw words say 0x23`, `… 0x21`).
 
-**The image**: `prober.bin`, 16,472 bytes, sha256 `452b16c5…9098`, crc32 `3f67013b`. The one
-of section 21 (`73d7bbf8…a01f`) was never on a board.
+**The image**: `prober.bin`, 16,472 bytes, sha256 `452b16c5…9098`, crc32 `3f67013b` (replaced
+in section 23). The one of section 21 (`73d7bbf8…a01f`) was never on a board.
 
 ### Tests
 
@@ -1466,3 +1467,129 @@ S1b, and I did not hold the new word to it.
 As in section 21, with the numbers of today: the mutants of S2.2 that have not been run by
 the tool, then the complete set (961), then the owner's word. The decision above first, if
 it is to be built.
+
+## 23. Review of `9fa606e` (2026-11-21): six findings; five mended, one for the owner
+
+A second review, of the whole repository as it stood at `9fa606e`. Six findings. Each was
+reproduced here before anything was changed; all six are as the review says. **Nothing has
+been on a board; the image is a new one again.**
+
+| | finding | here |
+|---|---|---|
+| 1 | high — an error bit between two transfers of one read is cleared unseen | mended (the owner's word: before the board) |
+| 2 | high — a chain that is gone on with does not hold its stored runs to the prober image and the design | mended |
+| 3 | medium — the chain's driver runs on without the first run committed | mended |
+| 4 | medium — a clean copy of the repository cannot run the tests | reproduced; **for the owner** |
+| 5 | low — the dry run states the wrong length of the result | mended |
+| 6 | low — a stored record that is not a record ends in an exception; a list of candidates outlives its chain | mended |
+
+### 1. The status register before every clearing
+
+Section 22 left this to the owner, who said: before the board. Every transfer begins by
+writing the clear mask; what stood in the register before that write was never read.
+
+**In stage 8 the register is now read first** (`dma()`), and an error bit in it ends the
+transfer there — code `0x24`, nothing cleared, nothing queued, the word kept in the record
+as that transfer's status with no poll. The run ends at that read: status `0x224`, or
+`0x624` at the first reading of the reference frame. The other stages make the accesses
+they always made; a test counts the reads of the register between a transfer and the next
+clearing for stages 6 and 7 (two, and three where a read ends) and for stage 8 (one more).
+
+On the twin, `lateerr@D` for every transfer of a read but the last now stops the run before
+transfer D + 1 begins, in the list (any state), at CTL0 and at the reference frame; after
+the last transfer it is the status after the read that shows it, as section 22 has it. The
+test that pinned the gap as known is replaced by these.
+
+**What the judge cannot tell.** A transfer that was never queued records one status word.
+With an error bit in it, the word does not say whether it was read before the clearing
+(`0x24`) or after it (`0x20`, a bit that would not clear): the judge takes either code there
+and neither anywhere else. Both are stops.
+
+The first transfer of a run meets what U-Boot left: in all 197 stored results the status at
+the gates is `50021004`, no error bit.
+
+A test of the image that named a register of the compiler's choosing (`cmp r4, #1` in
+`dma()`) now asks for the comparison in whichever register it is; the routine that waits
+without touching memory is unchanged, and its test with it.
+
+### 2. Stored runs held to the image, the design and the list
+
+Reproduced: with the set's two declared hashes changed, stored runs still passed and the
+chain went on; a damaged `list.bin` likewise. The census had this check since its own review
+(`docs/s1b_plan.md`, section 69); the chain of S2.2 was written without it.
+
+`s2_2_chain.py` now holds the set in force to files — the prober image (the copy kept with
+the runs; the build's where none is kept) and the staged design — and every stored run's
+record to the set: the image's checksum in the step just before the prober was started and
+again after it returned; the design's in the step just before its load; the list's before
+the start; and the list kept beside the run must be the list planned for its share. **The
+driver keeps the image with the runs** when it makes the first (`prober.bin` beside
+`run00`). A chain begun with one image does not go on with another: the kept copy is then
+not the image the set declares, or the records do not show the declared one.
+
+### 3. The first run alone
+
+Section 21 has the first run's result committed before the second starts; the driver ran
+all runs through. Now **no second run is started until everything in `run00` is in git as
+it stands** — tracked, unchanged, nothing untracked or ignored beside it. Until then the
+chain is "held", which is not a halt, and `--max-new` does not get past it.
+
+### 4. A clean copy cannot run the tests — for the owner
+
+Reproduced on an archive of `9fa606e`: 774 tests, 12 failures and 450 errors — 408 for
+`build/pl/carrier.bit` and 37 for `build/pl/s2a.bit`, neither of which is in git (`build/`
+is ignored). With the two files put there, all 774 pass.
+
+`s2a.bit` has a tracked copy (`evidence/s2_1_17A6_2026-11-20/`, the same bytes). The carrier
+has none here: it is zynq-fabricmap's (`gate_runs/claimb_round1_carrier_2026_08_13_erratum006/`,
+tracked there, sha256 `8c3369e8…0b8a`). To mend it the carrier would have to come into this
+repository as an imported file, with a record like the two Verilog files have — and that
+record says, by the owner's decision of section 12, point 4, that nothing else of that
+project is copied. **So this is the owner's to say.** What I would do: import `carrier.bit`
+with its record (2 MB), and have the tests put both designs into `build/pl/` from their
+tracked copies, each held to its recorded hash, where they are missing. It does not stand
+in the way of the board.
+
+### 5. The dry run's length of the result
+
+It said `64+480*N` words for every stage; for S2.1 and S2.2 the records begin after the PL
+block (`2640+480*N`, `2960+480*N`). The run itself always took the length from the result's
+header. The dry run now says the header of the stage's own layout.
+
+### 6. Two cases of a stored chain that is not as it should be
+
+A `run.json` that parses but is no record (`[]`) ended in an exception: now a halt that says
+so, and the same for steps that are no list. A `candidates.json` written for a complete
+chain stayed when a later look found the chain halted: looking (without `--go`) still writes
+nothing but says the file is there and does not stand; the driver takes it away.
+
+### The image, the tests, the mutants
+
+`prober.bin`: 16,532 bytes, sha256 `e44c5d7b…bda4`, crc32 `ad72adb3`. Neither image before
+it of this step was on a board.
+
+791 tests (774 before).
+
+990 mutants, none stale by the tool's own rule (961 before): four set right, 29 new — five
+of the prober, three of the judge, twenty of the chain, one of the run script. **None has
+been run by the tool**; the run stopped on 2026-11-21 (section 21) has not been started
+again. All 33 were tried by hand, one at a time, against the test files they concern: 32
+failed them at once. **One survived**: "every stage reads the register before it clears it"
+— no test of the older stages noticed one read more before each clearing, so what section 22
+and this section say of them ("the accesses they always made") was said and not held. The
+test that counts those reads was written for it, and the mutant fails it. As in section 22:
+this is not the tool's run and does not stand for it.
+
+### My slips
+
+- The chain's driver was written from S1b's and not from the census, where the check on
+  images had been asked for by a review two days before. A check a review once asked for in
+  one tool belongs in the next tool of its kind.
+- I wrote "the other stages make the accesses they always made" before any test said so.
+
+### For the board
+
+The mutants of S2.2 that the tool has not run, then the complete set (990), then the owner's
+word; the board's serial adapter has not been attached to this host since 2026-11-20. With
+the driver as it is now the first step on the board is one run, a commit of it, and then
+the rest.

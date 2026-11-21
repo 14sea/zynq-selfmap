@@ -157,6 +157,24 @@ class StageSix(unittest.TestCase):
         self.assertEqual(Run(6, w15=3 << 8).status, 0x500)
 
 
+class TheStatusRegisterBetweenTransfers(unittest.TestCase):
+    def test_stages_6_and_7_read_it_as_often_as_they_always_did(self) -> None:
+        """Stage 8 reads the status register once more, before every clearing (docs/s2_plan.md, section 23). No other
+        stage does: between the write that queues a transfer and the next clearing of the register there are that
+        transfer's polls — two on the twin — and, after the last transfer of a read, the one look at PCFG_DONE."""
+        int_sts, dlen, clear = 0xF800700C, 0xF8007024, 0x00F4F840
+        for stage in (6, 7):
+            with self.subTest(stage=stage):
+                r = Run(stage)
+                queued = [i for i, (k, a, v) in enumerate(r.accesses) if k == "W" and a == dlen]
+                cleared = [i for i, (k, a, v) in enumerate(r.accesses) if k == "W" and a == int_sts]
+                self.assertTrue(all(r.accesses[i][2] == clear for i in cleared))
+                self.assertEqual(len(queued), len(cleared))
+                reads = [sum(1 for k, a, v in r.accesses[i + 1:j] if k == "R" and a == int_sts) for i, j in zip(queued, cleared[1:])]
+                self.assertEqual(sorted(set(reads)), [2, 3])
+                self.assertEqual(reads.count(3), r.n_records - 1, "once more where a read ends and another begins")
+
+
 class StageSixGates(unittest.TestCase):
     def test_seu_en_set_stops_the_run_before_anything_is_sent(self) -> None:
         r = Run(6, "seu")

@@ -249,7 +249,7 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
             for p in packets.readonly_problems(got, lo, hi, DATA_WORDS):
                 bad(f"record {i}: the {name} is not read-only: {p}")
         derived = 0
-        attempted = done = False
+        attempted = done = late = False
         for name, sts, polls in (("frame command", r[3], r[4]), ("frame read", r[5], r[6]), ("register command", fb[0], fb[1]),
                                  ("register read", fb[2], fb[3]), ("cleanup", r[7], r[8])):
             if derived:
@@ -264,6 +264,11 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
             if derived < 0:
                 bad(f"record {i}: the {name} transfer's status {sts:08x} after {polls} poll(s) is neither done, failed nor timed out")
                 derived = 0xFF
+            # Stage 8 reads the register before a transfer clears it, and an error bit standing there ends the
+            # transfer with code 0x24, nothing cleared, nothing queued (review of 9fa606e). The one word a transfer
+            # that was never queued records does not say whether it was read before the clearing or after it: with
+            # an error bit in it, 0x24 and 0x20 (a bit that would not clear) are both what the words can mean.
+            late = derived == 0x20 and bool(sts & ERR_MASK)
             if polls > poll_limit:
                 bad(f"record {i}: {polls} polls, above the limit {poll_limit}")
             if name == "register command" and derived == 0:
@@ -295,7 +300,8 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
             bad(f"record {i}: a status after the read is recorded in a read that is not of the list")
         # the prober also looks at PCFG_DONE in one status read that it does not record, between the last transfer and
         # the status after the read; a code of 0x23 that nothing recorded shows cannot be refuted. It writes nothing then
-        if code != derived and not (code == 0x23 and own in (0, 0x10, 0x11, 0x14) and (not of_list or cleared == 0xFFFFFFFF)):
+        if code != derived and not (code == 0x23 and own in (0, 0x10, 0x11, 0x14) and (not of_list or cleared == 0xFFFFFFFF)) \
+                and not (code == 0x24 and late):
             bad(f"record {i}: code {code:#x}, but its raw words say {derived:#x}")
         rec["measured"] = done and not unread
         if rec["measured"] and reg == REG_CTL0:

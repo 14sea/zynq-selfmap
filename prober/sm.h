@@ -188,6 +188,7 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define C_DEVERR           0x21u
 #define C_TIMEOUT          0x22u
 #define C_DONE_DROPPED     0x23u
+#define C_LATE             0x24u         /* stage 8: an error bit stood in INT_STS when a transfer was to begin, before anything was cleared */
 #define C_GUARD            0x30u         /* the generator produced something the guard refuses: a bug */
 #define IS_INTERFACE(c)    ((c) >= 0x20u)
 

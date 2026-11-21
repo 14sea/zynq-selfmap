@@ -6,7 +6,9 @@ the RAM show in it is made up there too, differently for every seed. The shares 
 register are held against the real census and against everything the board has said so far."""
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import struct
 import subprocess
 import sys
@@ -289,6 +291,16 @@ class Judge(unittest.TestCase):
         self.assertEqual((v["verdict"], v["bit_5"]), ("FAIL", {"shown_after_records": [2], "cleared_after_records": [], "still_set_after_clearing": []}))
         self.assertFalse([p for p in v["problems"] if "clearing" in p or "raw words" in p], v["problems"])
 
+    def test_an_error_bit_met_before_a_transfer_begins_is_a_stop_the_record_itself_shows(self) -> None:
+        """Review of 9fa606e (section 23): stage 8 reads the register before it clears it; code 0x24."""
+        for d, status in ((2, 0x624), (7, 0x224), (10, 0x224), (11, 0x224), (12, 0x224), (13, 0x224), (311, 0x224), (315, 0x224)):
+            with self.subTest(after_command=d):
+                r = Run(f"lateerr@{d}")
+                v = judged(r)
+                self.assertEqual((r.status, v["verdict"], v["problems"][0]), (status, "FAIL", f"the run did not complete: status {status:#x}"))
+                self.assertFalse([p for p in v["problems"] if "raw words" in p or "implies" in p or "imply" in p], v["problems"])
+                self.assertEqual(v["records"][-1]["code"], "0x24")
+
     def test_gates_and_refused_parameters(self) -> None:
         for fault, says in (("seu", "SEU_EN gate"), ("ctrl", "CTRL gate"), ("lpbk", "loopback gate"), ("nodone", "PCFG_DONE gate"), ("dcache", "data-cache gate"),
                             ("lvl", "LVL_SHFTR_EN gate"), ("fpgarst", "FPGA_RST_CTRL gate"), ("fclk", "FPGA0_CLK_CTRL gate"), ("pll", "PLL_STATUS gate")):
@@ -546,6 +558,22 @@ class Tampered(unittest.TestCase):
         r = Run("bit5@2,clearerr")
         self.assertIn("record 2: code 0x21, but its raw words say 0x0", problems({at(cleared): r.words[at(cleared)] & ~0x00040000}, r))
 
+    def test_the_code_of_an_error_bit_met_before_a_transfer_with_one_thing_changed(self) -> None:
+        """Code 0x24 is what the words can mean only where a transfer that was never queued recorded an error bit.
+        Whether that word was read before the clearing (0x24) or after it (0x20, a bit that would not clear) the one
+        word does not say: either code is taken there, and neither anywhere else."""
+        r = Run("lateerr@11")                            # record 2: the frames were read, then the register command met the bit
+        at = lambda field: HB + 2 * REC + field         # noqa: E731
+        problems = lambda edits: judged(r, words=[edits.get(k, x) for k, x in enumerate(r.words)])["problems"]   # noqa: E731
+        self.assertEqual(r.words[at(FARBLK)] & 0x00040000, 0x00040000)
+        self.assertFalse([p for p in problems({at(2): 0x20}) if "raw words" in p], "0x20 there cannot be refuted")
+        self.assertIn("record 2: code 0x21, but its raw words say 0x20", problems({at(2): 0x21}))
+        self.assertIn("record 2: code 0x0, but its raw words say 0x20", problems({at(2): 0}))
+        self.assertIn("record 2: code 0x24, but its raw words say 0x20", problems({at(FARBLK): r.words[at(FARBLK)] & ~0x00040000}),
+                      "without an error bit in the word it is done bits that did not clear, and that is 0x20 alone")
+        self.assertIn("record 2: code 0x24, but its raw words say 0x21", problems({at(FARBLK + 1): 2}), "with polls it is a transfer that failed while it ran")
+        self.says(self.changed({self.rec_at(7, 2): 0x24}), "record 7: code 0x24, but its raw words say 0x0")
+
     def test_ctl0_read_differently_before_and_after(self) -> None:
         self.says(self.changed({self.rec_at(N - 2, FARBLK + 4): 0x00000401}), "CTL0 does not read the same before and after: 0x00000401 in record(s) [62], 0x00000501 in record(s) [1]")
 
@@ -695,6 +723,16 @@ class WithAShare(unittest.TestCase):
             self.assertEqual(p.returncode, 2)
             self.assertIn(says, p.stdout)
 
+    def test_the_dry_run_says_how_long_the_result_is_for_the_layout_of_the_stage(self) -> None:
+        """Review of 9fa606e: it said 64 + 480 N words for every stage; with the PL block the records begin later."""
+        for args, size in ((("--stage", "s2_2", "--share", "0"), "2960+480*N"), (("--stage", "s2_1"), "2640+480*N"), (("--stage", "s1b4"), "64+480*N"),
+                           (("--stage", "s1a"), "64+266*N")):
+            with self.subTest(args):
+                text = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), *args, "--dry-run"], capture_output=True, text=True).stdout
+                self.assertEqual(sorted(set(re.findall(r"<(?:4\*\()?(\d+\+\d+\*N)\)?>", text))), [size])
+                self.assertEqual(len(re.findall(re.escape(size), text)), 2, "the checksum's length and the pull's")
+        self.assertEqual((s2_2_judge.HDR, s2_2_judge.REC), (2960, 480))
+
     def test_the_dry_run_lists_the_list_s_transfer_and_its_checksum_and_sends_nothing(self) -> None:
         p = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", "s2_2", "--share", "7", "--dry-run"], capture_output=True, text=True)
         self.assertEqual(p.returncode, 0)
@@ -801,7 +839,153 @@ class Chain(unittest.TestCase):
         return run
 
     def drive(self, **kw) -> dict:
+        kw.setdefault("committed", lambda path: "")     # the run directories here are in no repository: said to be committed, unless a test asks
         return s2_2_chain.drive(self.root, self.base, self.known, kw.pop("runner", self.runner()), limit=LIMIT, **kw)
+
+    def edit_record(self, run: str, fn) -> None:
+        f = self.root / run / "run.json"
+        rec = json.loads(f.read_text()); fn(rec); f.write_text(json.dumps(rec))
+
+    def why(self) -> list[str]:
+        a = self.assess()
+        self.assertEqual(a["state"], "halted")
+        return a["why"]
+
+    # ---- review of 9fa606e (docs/s2_plan.md, section 23)
+    def test_no_second_run_is_started_before_the_first_is_committed(self) -> None:
+        a = self.drive(committed=s2_2_chain.committed)   # the real question, of a directory that is in no repository
+        self.assertEqual((a["state"], self.calls, len(a["runs"])), ("go on", [0], 1))
+        self.assertIn("no second run before the first is committed: run00", a["held"])
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["held"], a["held"])
+        asked: list[Path] = []
+        a = self.drive(committed=lambda path: asked.append(path) or "run00 has files that are not committed as they stand")
+        self.assertEqual((self.calls, asked, "held" in a), ([0], [self.root / "run00"], True), "nothing more is run, however often it is started")
+        a = self.drive(max_new=5, committed=s2_2_chain.committed)
+        self.assertEqual(self.calls, [0], "and --max-new does not get past it")
+        a = self.drive()
+        self.assertEqual((a["state"], self.calls, "held" in a), ("complete", [0, 1, 2], False))
+
+    def test_what_committed_means(self) -> None:
+        repo = Path(scratch_dirs.mkdtemp(prefix="smgit_"))
+        git = lambda *args: subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args], check=True, capture_output=True)  # noqa: E731
+        run = repo / "evidence" / "run00"
+        self.assertIn("is not there", s2_2_chain.committed(run))
+        run.mkdir(parents=True)
+        self.assertIn("is not in a git repository", s2_2_chain.committed(run))
+        git("init", "-q")
+        self.assertIn("is not committed whole", s2_2_chain.committed(run), "an empty directory holds no run")
+        (run / "result.bin").write_bytes(b"\x01\x02"); (run / "run.json").write_text("{}")
+        self.assertIn("not committed as they stand", s2_2_chain.committed(run))
+        git("add", "evidence/run00/run.json"); git("commit", "-q", "-m", "one of two")
+        self.assertIn("result.bin", s2_2_chain.committed(run), "one file committed is not the run committed")
+        git("add", "-A"); git("commit", "-q", "-m", "the run")
+        self.assertEqual(s2_2_chain.committed(run), "")
+        (run / "result.bin").write_bytes(b"\x01\x03")
+        self.assertIn("result.bin", s2_2_chain.committed(run), "a file changed since")
+        git("checkout", "-q", "--", "."); self.assertEqual(s2_2_chain.committed(run), "")
+        (repo / ".gitignore").write_text("*.log\n"); git("add", ".gitignore"); git("commit", "-q", "-m", "ignore")
+        (run / "console.log").write_text("x")
+        self.assertIn("console.log", s2_2_chain.committed(run), "a file git ignores is a file that is not committed")
+
+    def test_the_driver_keeps_the_image_with_the_runs_and_the_chain_says_what_it_was_made_with(self) -> None:
+        a = self.drive(max_new=1)
+        self.assertEqual((self.root / "prober.bin").read_bytes(), s1a_run.IMAGE.read_bytes())
+        pl = s1a_run.pl_file(self.base).read_bytes()
+        self.assertEqual(a["made_with"], {"image_bytes": self.base["image_bytes"], "image_crc32": self.base["image_crc32"], "image_sha256": self.base["image_sha256"],
+                                          "image_from": "kept with the runs", "design_bytes": len(pl), "design_crc32": f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}",
+                                          "design_sha256": self.base["pl_design"]["sha256"]})
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["made_with"], a["made_with"])
+
+    def test_stored_runs_are_held_to_the_image_and_the_design_the_set_declares(self) -> None:
+        """The review's case: with the two declared hashes changed, the stored runs still passed and the chain went on."""
+        self.drive(max_new=2)
+        good = self.base
+        self.base = dict(good, image_sha256="0" * 64)
+        self.assertEqual(self.why(), ["the image kept with the runs is not the image the set declares"])
+        self.base = dict(good, pl_design=dict(good["pl_design"], sha256="0" * 64))
+        self.assertEqual(self.why(), ["the staged design is not the design the set declares"])
+        self.base = dict(good, pl_design=dict(good["pl_design"], file="build/pl/nothing.bit"))
+        self.assertEqual(self.why(), ["the design the set declares is not staged (build/pl/nothing.bit)"])
+        self.base = {k: v for k, v in good.items() if k != "pl_design"}
+        self.assertEqual(self.why(), ["the set declares no design"])
+        self.base = good
+        self.assertEqual(self.assess()["state"], "go on")
+        self.assertEqual(self.drive(runner=lambda *_: self.fail("a run was started"), max_new=0)["state"], "go on")
+        # the image kept with the runs is not the build's any more: another image was built since the chain began
+        kept = (self.root / "prober.bin").read_bytes()
+        (self.root / "prober.bin").write_bytes(kept[:-1] + bytes([kept[-1] ^ 1]))
+        self.assertEqual(self.why(), ["the image kept with the runs is not the image the set declares"])
+        self.base = dict(good, image_sha256=hashlib.sha256((self.root / "prober.bin").read_bytes()).hexdigest(),
+                         image_crc32=f"{zlib.crc32((self.root / 'prober.bin').read_bytes()) & 0xFFFFFFFF:08x}")
+        why = self.why()                                 # and a set that declares the other image: the runs were not made with it
+        self.assertTrue(why[0].startswith(f"run00: the run record does not show the declared image (crc32 {self.base['image_crc32']}) in RAM just before"), why)
+        self.assertEqual(self.calls, [0, 1])
+
+    def test_what_a_run_s_record_must_show_of_the_image_the_design_and_the_list(self) -> None:
+        self.drive()
+        self.assertEqual(self.assess()["state"], "complete")
+        keep = (self.root / "run01" / "run.json").read_text()
+        image = f"crc32 {s1a_run.IMG_ADDR:08x} {self.base['image_bytes']:x}"
+        design = f"crc32 {s1a_run.PL_ADDR:08x} {self.base['pl_design']['bytes']:x}"
+        listc = f"crc32 {s1a_run.LIST_ADDR:08x}"
+
+        def steps_of(rec: dict, cmd: str) -> list[int]:
+            return [n for n, s in enumerate(rec["steps"]) if s["cmd"].startswith(cmd)]
+
+        def other(reply: str) -> str:                    # the same reply with another checksum in it
+            return re.sub(r"==> ([0-9a-f]{8})", lambda m: "==> %08x" % (int(m.group(1), 16) ^ 1), reply)
+
+        cases = {
+            "the image's checksum before the start is another": (lambda r: r["steps"][steps_of(r, image)[0]].update(reply=other(r["steps"][steps_of(r, image)[0]]["reply"])), "does not show the declared image"),
+            "the image's checksum after the return is another": (lambda r: r["steps"][steps_of(r, image)[-1]].update(reply=other(r["steps"][steps_of(r, image)[-1]]["reply"])), "does not show the declared image"),
+            "the image was not looked at after the return": (lambda r: r["steps"].pop(steps_of(r, image)[-1]), "does not show the declared image"),
+            "the image's checksum is not the step before the start": (lambda r: r["steps"].insert(steps_of(r, "go ")[0], {"n": 0, "cmd": "version", "reply": ""}), "does not show the declared image"),
+            "the design's checksum is another": (lambda r: r["steps"][steps_of(r, design)[0]].update(reply=other(r["steps"][steps_of(r, design)[0]]["reply"])), "does not show the declared design"),
+            "the design's checksum comes after its load": (lambda r: r["steps"].insert(steps_of(r, "fpga loadb")[0] + 1, r["steps"].pop(steps_of(r, design)[0])), "does not show the declared design"),
+            "the design was loaded twice": (lambda r: r["steps"].append(dict(r["steps"][steps_of(r, "fpga loadb")[0]])), "does not show one load of the declared design"),
+            "the prober was not started": (lambda r: r["steps"].pop(steps_of(r, "go ")[0]), "does not show one load of the declared design"),
+            "the list's checksum is another": (lambda r: r["steps"][steps_of(r, listc)[0]].update(reply=other(r["steps"][steps_of(r, listc)[0]]["reply"])), "does not show the list planned for the share"),
+            "the list was not looked at": (lambda r: r["steps"].pop(steps_of(r, listc)[0]), "does not show the list planned for the share"),
+            "the steps are no list": (lambda r: r.update(steps="none"), "the run record has no list of steps"),
+            "a step is no step": (lambda r: r["steps"].append(7), "the run record has no list of steps"),
+        }
+        for name, (change, says) in cases.items():
+            with self.subTest(name):
+                (self.root / "run01" / "run.json").write_text(keep)
+                self.edit_record("run01", change)
+                why = self.why()
+                self.assertTrue(any(w.startswith("run01: ") and says in w for w in why), why)
+        (self.root / "run01" / "run.json").write_text(keep)
+        self.assertEqual(self.assess()["state"], "complete")
+        blob = (self.root / "run01" / "list.bin").read_bytes()
+        (self.root / "run01" / "list.bin").write_bytes(blob[:8] + bytes([blob[8] ^ 1]) + blob[9:])
+        self.assertIn("run01: the list kept beside the run is not the list planned for its share", self.why())
+        (self.root / "run01" / "list.bin").unlink()
+        self.assertIn("run01: no list is kept beside the run", self.why())
+
+    def test_a_record_that_is_not_a_record_halts_the_chain_and_does_no_more(self) -> None:
+        self.drive(max_new=2)
+        for text, says in (("[]", "the run record is not a record"), ('"x"', "the run record is not a record"), ("{", "there is no run record"),
+                           ('{"stage": "s2_2", "share": "first", "steps": []}', "the run is of share None")):
+            with self.subTest(text):
+                (self.root / "run01" / "run.json").write_text(text)
+                self.assertTrue(any(says in w for w in self.why()), self.why())
+                a = self.drive(runner=lambda *_: self.fail("a run was started"))
+                self.assertEqual(a["state"], "halted")
+
+    def test_a_list_of_candidates_does_not_outlive_the_chain_it_was_written_for(self) -> None:
+        said: list[str] = []
+        a = self.drive(say=said.append)
+        self.assertEqual((a["state"], a["candidates_file"], (self.root / "candidates.json").is_file()), ("complete", "there", True))
+        self.assertEqual(self.assess()["candidates_file"], "there")
+        (self.root / "run02" / "list.bin").unlink()      # something of a stored run is not as it was
+        a = self.assess()
+        self.assertEqual((a["state"], a["candidates_file"]), ("halted", "there"), "looking takes nothing away, and says the file is there")
+        self.assertTrue((self.root / "candidates.json").is_file())
+        a = self.drive(say=said.append, runner=lambda *_: self.fail("a run was started"))
+        self.assertEqual((a["state"], "candidates_file" in a, (self.root / "candidates.json").exists()), ("halted", False, False))
+        self.assertIn("candidates.json taken away: the chain is not complete as it is stored now", said)
+        self.assertNotIn("candidates_file", json.loads((self.root / "chain.json").read_text()))
 
     def assess(self) -> dict:
         return s2_2_chain.assess(self.root, self.base, self.known, LIMIT)
@@ -825,7 +1009,9 @@ class Chain(unittest.TestCase):
         self.assertEqual(self.assess()["state"], "complete", "and it stands so when looked at again")
 
     def test_looking_at_a_chain_writes_nothing_and_runs_nothing(self) -> None:
-        self.assertEqual(self.assess(), {"stage": "s2_2", "shares": 3, "runs": [], "set_aside": [], "state": "go on", "next_run": 0, "next_share": 0})
+        a = self.assess()
+        self.assertEqual(a.pop("made_with")["image_from"], "of the build", "no run yet, so no image kept with the runs")
+        self.assertEqual(a, {"stage": "s2_2", "shares": 3, "runs": [], "set_aside": [], "state": "go on", "next_run": 0, "next_share": 0})
         self.assertFalse(self.root.exists())
         self.drive(max_new=1)
         before = sorted(p.name for p in self.root.iterdir())

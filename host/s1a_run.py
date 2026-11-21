@@ -618,7 +618,7 @@ def main() -> int:
                 branch = f"loady {PL_ADDR:08x}"
                 print(f"{i:3d}a. {branch:43s} # ONLY IF step {i} did not report {s['size']} bytes read: send the PL design by YMODEM  ->  U-Boot reports the same size")
         print("     --- after go, whatever it reported: save first, judge afterwards ---")
-        size = f"64+{STAGES[a.stage]['judge'].REC}*N"
+        size = f"{STAGES[a.stage]['judge'].HDR}+{STAGES[a.stage]['judge'].REC}*N"   # the header — with the PL block, where the stage has one — and N records
         for i, (cmd, what, check) in enumerate(AFTER_GO, len(steps) + 1):
             cmd = cmd.replace("64+266*N", size)
             print(f"{i:3d}. {cmd:44s} # {what}  ->  {check}")

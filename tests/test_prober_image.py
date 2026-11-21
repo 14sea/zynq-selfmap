@@ -112,7 +112,7 @@ class Image(unittest.TestCase):
         prev = max(i for i, x in enumerate(b[:call[0]]) if x.startswith("bl "))
         self.assertIn("<hal_wr>", b[prev], "the register write before it (the source length; the wait itself queues the command)")
         before = b[prev + 1: call[0]]
-        self.assertIn("cmp r4, #1", before)
+        self.assertTrue([x for x in before if re.match(r"^cmp r\d, #1$", x)], "the choice of the wait, in whichever register the compiler keeps it")
         self.assertIn(f"addeq r1, sp, #{4 * pushed}", before, "the variant that still loads the limit is given the slot dma()'s own loop reads")
         self.assertTrue([x for x in before if re.match(r"^movne r1, r\d$", x)], "the other is given none")
 

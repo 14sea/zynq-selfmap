@@ -54,6 +54,10 @@
  *   masked                           no place follows its cell: every frame reads as the file of frames has it
  *   ramdisturb@R                     frame read R changes a cell of the RAM
  *   bit5@R bit5stays                 frame read R leaves bit 5 of INT_STS set / a write that clears it does not
+ *   lateerr@D latedrop@D             command D completes, and once a status read has shown it done an error bit
+ *                                    appears in INT_STS / PCFG_DONE goes one status read after that. Nothing of
+ *                                    either shows in any status the transfer itself was judged by
+ *   clearerr                         a write that clears bit 5 raises an error bit
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,7 +69,7 @@
 static uint32_t ddr[DDR_WORDS];
 static uint32_t reg_ctrl = 0x4E00E07Fu, reg_mctrl = 0x30800100u, reg_sts = 0x50021004u, reg_status = 0x40000A30u;
 static uint32_t dma_src, dma_dst, dma_slen, sctlr = 0x08C51879u;   /* data cache off, as after U-Boot's `dcache off` */
-static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_next_clear, far_skips, far_skips_data_only;
+static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_next_clear, late_err, late_drop, far_skips, far_skips_data_only;
 static char uart[4096]; static unsigned uart_n;
 
 /* frames */
@@ -226,6 +230,8 @@ static void dma_execute(uint32_t dlen)
     done_pending = 1;                                                         /* D_P_DONE appears on the next status read */
     if (fault_at("drop", n_dma)) reg_sts &= ~STS_PCFG_DONE;             /* during this command */
     if (fault_at("dropafter", n_dma)) drop_on_next_clear = 1;             /* between this command and the next */
+    late_err = fault_at("lateerr", n_dma);                                    /* after the command was seen done */
+    late_drop = fault_at("latedrop", n_dma);
 }
 
 /* What the prober's own count of polls holds each time a queued transfer is polled: the loop that stores on every
@@ -254,6 +260,11 @@ uint32_t hal_rd(uint32_t a)
     case DEVCFG_CTRL:    v = reg_ctrl; break;
     case DEVCFG_MCTRL:   v = reg_mctrl; break;
     case DEVCFG_INT_STS: v = reg_sts; if (done_pending) { done_pending = 0; reg_sts |= 0x00001000u; }
+                         if (late_drop == 2) { late_drop = 0; reg_sts &= ~STS_PCFG_DONE; }
+                         if (v & 0x00001000u) {                               /* this read shows the command done */
+                             if (late_err) { late_err = 0; reg_sts |= 0x00040000u; }
+                             if (late_drop == 1) late_drop = 2;
+                         }
                          if (polling && watch) printf("WATCH %u %u\n", n_dma, *watch);
                          break;
     case DEVCFG_STATUS:  v = reg_status; break;
@@ -283,6 +294,7 @@ void hal_wr(uint32_t a, uint32_t v)
     switch (a) {
     case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
                           if (v == STS_SEU_ERR && fault_on("bit5stays")) reg_sts |= STS_SEU_ERR;
+                          if (v == STS_SEU_ERR && fault_on("clearerr")) reg_sts |= 0x00040000u;
                           if (v != STS_CLEAR_MASK && v != STS_SEU_ERR) printf("VIOLATION INT_STS write %08x\n", v);
                           if (drop_on_next_clear) { drop_on_next_clear = 0; reg_sts &= ~STS_PCFG_DONE; }
                           break;

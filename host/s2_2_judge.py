@@ -92,6 +92,12 @@ def pl_schedule(pl_id: int, states: list[int]) -> tuple[list[dict], list[tuple[i
     return s, cuts
 
 
+def idle_status(sts: int) -> int:
+    """The code a status word read between transfers implies, as the prober's `s8_sts` has it: an error bit is a
+    device error, a lost PCFG_DONE is that; 0 where neither."""
+    return 0x21 if sts & ERR_MASK else 0x23 if not sts & PCFG_DONE else 0
+
+
 def console_line(status: int, records: int, anomalies: int) -> str:
     if status == 0x500:
         return "SM%d end status=%08x" % (STAGE, status)
@@ -272,7 +278,24 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
             bad(f"record {i}: the value {fb[4]:08x} / unread flag {fb[5]} do not fit a register read that was {'queued' if attempted else 'never queued'}")
         if derived == 0:
             derived = 0x10 if survivors else 0x11 if any(data[:FRAME]) else 0x14 if unread else 0
-        if code != derived and not (code == 0x23 and derived in (0, 0x10, 0x11, 0x14)):
+        # the status after a read of the list, and what was done about bit 5. Both words are read when no transfer
+        # is running and are held to what a transfer's own status is held to: an error bit or a lost PCFG_DONE in
+        # either is a failure of the interface, and the read's code must say so (review of 0417966). Bit 5 is
+        # cleared only after a read with nothing amiss: after anything else the prober writes nothing more.
+        after, cleared = fb[7], r[10]
+        own = derived                                    # what the read's own transfers and data say
+        if of_list:
+            if cleared != 0xFFFFFFFF:
+                if not after & SEU_ERR:
+                    bad(f"record {i}: a clearing of bit 5 is recorded ({cleared:08x}) although the status after the read ({after:08x}) does not show it")
+                elif own or idle_status(after):
+                    bad(f"record {i}: bit 5 was cleared ({cleared:08x}) after a read that was not clean (status after it {after:08x})")
+            derived = own or idle_status(after) or (idle_status(cleared) if cleared != 0xFFFFFFFF else 0)
+        elif after:
+            bad(f"record {i}: a status after the read is recorded in a read that is not of the list")
+        # the prober also looks at PCFG_DONE in one status read that it does not record, between the last transfer and
+        # the status after the read; a code of 0x23 that nothing recorded shows cannot be refuted. It writes nothing then
+        if code != derived and not (code == 0x23 and own in (0, 0x10, 0x11, 0x14) and (not of_list or cleared == 0xFFFFFFFF)):
             bad(f"record {i}: code {code:#x}, but its raw words say {derived:#x}")
         rec["measured"] = done and not unread
         if rec["measured"] and reg == REG_CTL0:
@@ -283,23 +306,14 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
                 bad(f"record {i}: the census does not say what the address register reads after {describe(m)} at {far:#010x}")
             elif fb[4] != want_far:
                 bad(f"record {i}: the address register reads {fb[4]:#010x} after {describe(m)} at {far:#010x}; by the census it is {want_far:#010x}")
-        # the status after a read of the list, and what was done about bit 5
-        after, cleared = fb[7], r[10]
-        if of_list:
-            if after & SEU_ERR:
-                bit5["shown_after_records"].append(i)
-                if cleared == 0xFFFFFFFF:
-                    bad(f"record {i}: bit 5 shows in the status after the read ({after:08x}), and nothing is recorded of its clearing")
-                else:
-                    bit5["cleared_after_records"].append(i)
-                    if cleared & SEU_ERR:
-                        bit5["still_set_after_clearing"].append(i)
-                    if (cleared ^ after) & ~SEU_ERR & PCFG_DONE:
-                        bad(f"record {i}: PCFG_DONE is not the same before ({after:08x}) and after ({cleared:08x}) bit 5 was cleared")
-            elif cleared != 0xFFFFFFFF:
-                bad(f"record {i}: a clearing of bit 5 is recorded ({cleared:08x}) although the status after the read ({after:08x}) does not show it")
-        elif after:
-            bad(f"record {i}: a status after the read is recorded in a read that is not of the list")
+        if of_list and after & SEU_ERR:
+            bit5["shown_after_records"].append(i)
+            if cleared != 0xFFFFFFFF:
+                bit5["cleared_after_records"].append(i)
+                if cleared & SEU_ERR:
+                    bit5["still_set_after_clearing"].append(i)
+            elif code == 0:
+                bad(f"record {i}: bit 5 shows in the status after the read ({after:08x}), and nothing is recorded of its clearing")
         digests = [hashlib.sha256(b"".join(struct.pack(">I", w) for w in frame)).hexdigest() for frame in rec["frames"]]
         entry = {"index": i, "far": f"{far:#010x}", "frames": delivered, "words": nwords, "kind": KIND.get(kind, kind),
                  "op": None if op == NO_OP else "CTL0" if op == OP_CTL0 else op, "register": REG_NAME[reg], "code": f"{code:#x}",

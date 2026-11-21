@@ -481,6 +481,79 @@ class Parameters(unittest.TestCase):
         self.assertEqual((r.status, r.n_records), (1, N))
 
 
+class TheStatusBetweenTransfers(unittest.TestCase):
+    """Review of 0417966 (docs/s2_plan.md, section 22). Stage 8 reads the status register when no transfer is running:
+    after every read of the list, and after it has cleared bit 5. Both words were recorded and looked at for bit 5
+    alone. They are held to what a transfer's own status is held to — no error bit, PCFG_DONE set — and the run ends at
+    the read whose status is not so, with that read's record saying why; nothing is written after it.
+
+    Commands: 1 to 5 the reference frame, 6 to 9 CTL0, then five to a read of the list, the cleanup last."""
+
+    @staticmethod
+    def last(k: int, s: int = 0) -> int:
+        return 14 + 5 * (s * N_LIST + k)
+
+    def stopped(self, r: Run, i: int, code: int, commands: int, cleared: int = 0) -> dict:
+        self.assertEqual((r.status, r.rc, r.n_records, r.n_anomalies, r.stop_record, r.violations), (0x200 | code, 0x200 | code, i + 1, 1, i, []))
+        self.assertEqual(r.rec(i)["code"], code, "the record says what ended the run")
+        self.assertEqual(len(r.dmas), commands, "no command follows")
+        self.assertEqual(len([1 for k, a, v in r.accesses if k == "W" and a == INT_STS and v != CLEAR_MASK]), cleared)
+        raw = r.raw(i)
+        own = [raw[3], raw[5], raw[FARBLK], raw[FARBLK + 2], raw[7]]
+        self.assertTrue(all(s & 0x4 and not s & 0x00F4C840 for s in own), "none of the read's own transfers shows it")
+        return r.rec(i)
+
+    def test_an_error_bit_that_appears_once_the_last_transfer_was_seen_done_ends_the_run_at_that_read(self) -> None:
+        for k, s in ((0, 0), (3, 1)):
+            with self.subTest(read=k, state=s):
+                r = Run(f"lateerr@{self.last(k, s)}")
+                rec = self.stopped(r, 2 + s * N_LIST + k, 0x21, self.last(k, s))
+                self.assertEqual(rec["after"] & 0x00040004, 0x00040004)
+                self.assertEqual(rec["cleared"], 0xFFFFFFFF)
+                self.assertEqual(r.words[16] & 0x00040000, 0x00040000, "the register is left as it was found")
+        self.assertFalse(Run(f"lateerr@{self.last(0)}").pl_accesses()[1 + 64 + 257:], "and the RAM is not read again")
+
+    def test_pcfg_done_lost_between_the_last_transfer_and_the_status_after_the_read(self) -> None:
+        r = Run(f"latedrop@{self.last(4)}")
+        rec = self.stopped(r, 6, 0x23, self.last(4))
+        self.assertEqual(rec["after"] & 0x00F4C844, 0, "PCFG_DONE is gone and no error bit says so")
+
+    def test_what_the_register_reads_after_bit_5_was_cleared_is_held_to_the_same(self) -> None:
+        r = Run("bit5@2,clearerr")                    # frame read 2 is the list's first read
+        rec = self.stopped(r, 2, 0x21, self.last(0), cleared=1)
+        self.assertEqual((rec["after"] & 0x00040024, rec["cleared"] & 0x00040024), (0x24, 0x00040004))
+        r = Run(f"bit5@2,dropafter@{self.last(0)}")   # PCFG_DONE goes at the next write to the register: the clearing
+        rec = self.stopped(r, 2, 0x23, self.last(0), cleared=1)
+        self.assertEqual((rec["after"] & 0x24, rec["cleared"] & 0x24), (0x24, 0))
+
+    def test_nothing_is_written_after_a_read_that_was_not_clean_bit_5_or_not(self) -> None:
+        r = Run(f"bit5@2,lateerr@{self.last(0)}")
+        rec = self.stopped(r, 2, 0x21, self.last(0), cleared=0)
+        self.assertEqual((rec["after"] & 0x00040024, rec["cleared"]), (0x00040024, 0xFFFFFFFF))
+        self.assertEqual(r.words[16] & 0x00040024, 0x00040024, "both bits are still there at the end")
+        r = Run("bit5@2,short@2")                     # the read itself is short, and bit 5 shows after it
+        self.assertEqual((r.status, r.n_records, r.rec(2)["code"], r.rec(2)["after"] & 0x24, r.rec(2)["cleared"]), (0x400, 3, 0x10, 0x24, 0xFFFFFFFF))
+        self.assertFalse([1 for k, a, v in r.accesses if k == "W" and a == INT_STS and v != CLEAR_MASK])
+
+    def test_a_read_that_failed_by_itself_keeps_its_own_code(self) -> None:
+        r = Run(f"short@2,lateerr@{self.last(0)}")
+        self.assertEqual((r.status, r.n_records, r.rec(2)["code"], r.rec(2)["after"] & 0x00040000), (0x400, 3, 0x10, 0x00040000))
+
+    def test_a_clean_run_has_a_clean_status_after_every_read_and_every_code_is_zero(self) -> None:
+        for fault in ("", "bit5@6", "bit5@6,bit5stays"):
+            r = Run(fault)
+            self.assertEqual((r.status, [r.rec(i)["code"] for i in range(N)]), (1, [0] * N), fault)
+
+    def test_not_seen_an_error_bit_that_appears_between_two_transfers_of_one_read(self) -> None:
+        """Known, and not changed here (section 22, for the owner): every transfer begins by clearing the register,
+        in this stage as in every stage since S1a, so an error bit that appears after a transfer was seen done and
+        before the next one begins is cleared without having been read. Only after the last transfer of a read is
+        there a status read with nothing after it."""
+        r = Run("lateerr@11")                         # the frame read of the list's first read; the register commands follow
+        self.assertEqual((r.status, r.n_records, r.violations), (1, N, []))
+        self.assertFalse([i for i in range(N) for s in (r.raw(i)[3], r.raw(i)[5], r.raw(i)[7], *r.raw(i)[FARBLK:FARBLK + 3:2], r.rec(i)["after"]) if s & 0x00F4C840])
+
+
 class WhenAReadFails(unittest.TestCase):
     def test_a_failure_of_the_interface_stops_at_once(self) -> None:
         # commands 1 to 5 are the reference frame's first reading, 6 to 9 the read of CTL0; 10 opens the session of

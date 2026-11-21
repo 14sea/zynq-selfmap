@@ -20,7 +20,8 @@ register's word (section 17).** **S2.1 has been on the
 board: PASS — the first access to our own design returned, and the design is a RAM from its
 own side (section 18).** **S2.2 is proposed in full in section 19 and agreed, all eight
 points as recommended (section 20); its host side is built and waits for the owner's review
-(section 21) — its mutants have not all been run.** S2.3 to S2.5 are not proposed in full yet.
+(section 21) — its mutants have not all been run. A first review found one fault, mended
+(section 22): the status read after a read of the list was judged for bit 5 alone.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1157,7 +1158,8 @@ this says what was built, where it differs from them, and what is and is not tes
 | tests | `tests/test_prober_s2_2.py` (38), `tests/test_s2_2_host.py` (74) |
 
 **A new image** — the second of point 10: `prober.bin`, 16,360 bytes, sha256
-`73d7bbf8…a01f`, crc32 `57c6ef68`. Every set is written for it. The image of S2.0 and S2.1
+`73d7bbf8…a01f`, crc32 `57c6ef68` (replaced by the review of section 22, before any board).
+Every set is written for it. The image of S2.0 and S2.1
 (`480bbdd4…aa46`) stays beside their evidence.
 
 ### The stage
@@ -1346,3 +1348,121 @@ of the suite alone takes about 1 GB at its peak; eight at once fitted this machi
   committed before the second starts.
 - If the first access to the design at the prompt does not return, the board has to be
   switched off and on, as in S2.1.
+
+## 22. Review of `0417966` (2026-11-21): one finding, accepted and mended
+
+A review of the host side of S2.2 as it stood at `0417966`, by a reviewer outside this work.
+It found one fault, to be mended before the board. I reproduced it before changing anything;
+it is as the review says, with one point to add. **Nothing has been on a board; the image is
+a new one again.**
+
+### The finding
+
+Stage 8 reads the status register (`INT_STS`) when no transfer is running: after every read
+of the list, and once more where it has cleared bit 5. Both words went into the record and
+were looked at **for bit 5 alone**. An error bit in either, or a lost `PCFG_DONE`, changed
+nothing: the run went on, and the judge, which looked at the same two words for the same one
+bit, passed it.
+
+### Reproduced, on the prober and the judge as they were
+
+The twin got three faults for it (`prober/twin_hal.c`): `lateerr@D` — command D completes,
+and once a status read has shown it done an error bit (`0x00040000`) appears; `latedrop@D` —
+`PCFG_DONE` goes one status read after that; `clearerr` — the write that clears bit 5 raises
+an error bit. Command 14 is the last of the list's first read.
+
+| case | at `0417966` |
+|---|---|
+| `lateerr@14` | status after the read `50063004`; the run completes, 64 records; **PASS** |
+| `bit5@2,clearerr` | after the clearing `50063004`; the run completes; **PASS** |
+| a clean result with `PCFG_DONE` cleared in one record's status after the read | **PASS** |
+| the same with an error bit set there | **PASS** |
+| `latedrop@14` | the run stops one record later, `0x223`, at the next read's first transfer |
+
+**The point to add.** For `PCFG_DONE` the prober was not blind: the read's own routine looks
+at it in a status read just before this one, and every transfer looks at it before it
+begins. A loss that lasted ended the run — one record late, and by a word other than the one
+that showed it. For error bits there was nothing: every transfer begins by clearing them.
+The judge had neither.
+
+### What was changed
+
+- **The prober** (`run_s8`, `s8_sts`): the status after a read of the list is held to what a
+  transfer's own status is held to — no error bit, `PCFG_DONE` set — and so is the word read
+  after bit 5 was cleared. The first that is not so ends the run at that read: the read's
+  record gets the code (`0x21` an error bit, `0x23` `PCFG_DONE` lost), the run the status
+  `0x221` or `0x223`, as for a transfer that fails.
+- **Bit 5 is cleared only after a read with nothing amiss.** Before, it was cleared wherever
+  it showed, also after a read that had failed. After a fault the prober now writes nothing:
+  the register is left as it was found, and the header's last status shows it.
+- **The judge** derives the read's code from the two words as well and holds the record's
+  code to it; a clearing recorded after a read that was not clean is refused. Its rule that
+  `PCFG_DONE` be the same before and after the clearing is gone: that case is now a stop the
+  prober reports and the judge can follow. A stop of this kind is said as any other stop of
+  the interface; nothing in the result is called inconsistent.
+- One thing the judge cannot refute stays as it was in every stage: the read's own routine
+  looks at `PCFG_DONE` in a status read it does not record, so a code of `0x23` with nothing
+  recorded that shows it is taken — but not in a record that also shows bit 5 cleared, since
+  the prober clears nothing after such a code.
+
+The same cases now: `lateerr@14` stops with `0x221` at record 2 after 14 commands, nothing
+written after it; `latedrop@14` `0x223` at record 2; `bit5@2,clearerr` `0x221`, the word
+after the clearing in the record; the two changed results are refused (`record 5: code 0x0,
+but its raw words say 0x23`, `… 0x21`).
+
+**The image**: `prober.bin`, 16,472 bytes, sha256 `452b16c5…9098`, crc32 `3f67013b`. The one
+of section 21 (`73d7bbf8…a01f`) was never on a board.
+
+### Tests
+
+774 (764 before). On the twin, `TheStatusBetweenTransfers` (7): an error bit after the last
+transfer, in the first state and in the second; `PCFG_DONE` lost; both after the clearing;
+nothing written after a read that was not clean, bit 5 or not; a read that failed by itself
+keeps its own code; clean runs have every code zero. For the judge (3): each such run is a
+stop it follows and says nothing else about; a clean result with any one bit of the error
+mask set, or `PCFG_DONE` cleared, in either word is refused; a stopped run with its code, its
+words or a clearing changed is refused.
+
+### Mutants
+
+961, none stale by the tool's own rule (949 before). Nine were anchored on the lines changed
+and were set right, one of them taken out with the rule it stood for; 13 are new, six of the
+prober and seven of the judge. **None of them has been run by the tool** — the run that was
+stopped (section 21) has not been started again, and that is still the owner's to say. The
+22 that are new or changed, and the one of section 21 that was written again, were tried by
+hand, one at a time, against the two test files of S2.2: all 22 fail them. That is not the
+tool's run of the whole suite and does not stand for it.
+
+### Not mended, and the owner's to decide
+
+**An error bit that appears between two transfers of one read is still not seen.** Found
+while reproducing: `lateerr@11` (after the frame read, before the register is read) passes,
+before this change and after it. Every transfer begins by writing the clear mask and then
+checks that the bits are gone; what stood in the register before that write is never read.
+This is the sequence of every stage since S1a, taken from zynq-psmap, and all 197 stored
+results were made with it. A test pins it as known
+(`test_not_seen_an_error_bit_that_appears_between_two_transfers_of_one_read`).
+
+What stands against such an error today is the data: no word of a read may keep the value
+put there before it, the pad must be zero, the address register must read what the census
+says, and every frame is read in three states.
+
+It could be closed for stage 8 alone: one read of the register before each clear, and a stop
+if it shows an error bit. Other stages would make the accesses they always made. The first
+transfer of a run would then meet whatever U-Boot left; in all 197 stored results the status
+at the gates is `50021004`, no error bit. It costs another image and the tests of stage 8
+that count accesses. **I would do it before the board** — after the board it costs the
+chain again — but it changes the transfer routine every stage shares, so I have not.
+
+### My slip
+
+Section 12, point 7, has the status recorded after every read and bit 5 cleared alone, and
+I built exactly that: the word recorded, and judged for the one bit the point was about. A
+word the prober reads and nobody judges is not a check — a rule this project has had since
+S1b, and I did not hold the new word to it.
+
+### For the board
+
+As in section 21, with the numbers of today: the mutants of S2.2 that have not been run by
+the tool, then the complete set (961), then the owner's word. The decision above first, if
+it is to be built.

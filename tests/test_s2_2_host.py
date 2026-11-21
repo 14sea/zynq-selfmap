@@ -274,6 +274,21 @@ class Judge(unittest.TestCase):
         self.assertEqual(v["verdict"], "PASS")
         self.assertEqual(v["bit_5"]["still_set_after_clearing"], list(range(6, 2 + 3 * N_LIST)))
 
+    def test_a_status_that_is_amiss_after_a_read_or_after_the_clearing_is_a_stop_the_record_itself_shows(self) -> None:
+        """Review of 0417966 (section 22). The prober ends the run at such a read and the record's code says why;
+        the judge derives the same code from the two status words, so the stop is one it can follow: nothing is
+        said but that the run did not complete."""
+        for fault, code in (("lateerr@14", 0x21), ("latedrop@14", 0x23), ("bit5@2,clearerr", 0x21), ("bit5@2,dropafter@14", 0x23),
+                            ("bit5@2,lateerr@14", 0x21), (f"lateerr@{14 + 5 * (N_LIST + 3)}", 0x21)):
+            with self.subTest(fault):
+                r = Run(fault)
+                v = judged(r)
+                self.assertEqual((v["verdict"], v["problems"]), ("FAIL", [f"the run did not complete: status {0x200 | code:#x}", "1 anomalous read(s)"]))
+                self.assertEqual(v["records"][-1]["code"], f"{code:#x}")
+        v = judged(Run("bit5@2,short@2"))              # a read that failed by itself, bit 5 showing after it: nothing is cleared, and nothing is missed
+        self.assertEqual((v["verdict"], v["bit_5"]), ("FAIL", {"shown_after_records": [2], "cleared_after_records": [], "still_set_after_clearing": []}))
+        self.assertFalse([p for p in v["problems"] if "clearing" in p or "raw words" in p], v["problems"])
+
     def test_gates_and_refused_parameters(self) -> None:
         for fault, says in (("seu", "SEU_EN gate"), ("ctrl", "CTRL gate"), ("lpbk", "loopback gate"), ("nodone", "PCFG_DONE gate"), ("dcache", "data-cache gate"),
                             ("lvl", "LVL_SHFTR_EN gate"), ("fpgarst", "FPGA_RST_CTRL gate"), ("fclk", "FPGA0_CLK_CTRL gate"), ("pll", "PLL_STATUS gate")):
@@ -489,11 +504,47 @@ class Tampered(unittest.TestCase):
         self.assertTrue(self.r.words[self.rec_at(6, after)] & 0x20)
         self.says(self.changed({self.rec_at(6, cleared): 0xFFFFFFFF}), "record 6: bit 5 shows in the status after the read", "nothing is recorded of its clearing")
         self.says(self.changed({self.rec_at(7, cleared): 0x50033004}), "record 7: a clearing of bit 5 is recorded (50033004) although the status after the read")
-        self.says(self.changed({self.rec_at(6, cleared): self.r.words[self.rec_at(6, cleared)] & ~4}), "record 6: PCFG_DONE is not the same before")
+        self.says(self.changed({self.rec_at(6, 2): 0x23}), "record 6: code 0x23, but its raw words say 0x0")
         self.says(self.changed({self.rec_at(1, after): 0x50033004}), "record 1: a status after the read is recorded in a read that is not of the list")
         self.says(self.changed({self.rec_at(0, after): 0x50033004}), "record 0: a status after the read is recorded in a read that is not of the list")
         v = self.changed({self.rec_at(6, cleared): self.r.words[self.rec_at(6, cleared)] | 0x20})
         self.assertEqual((v["verdict"], v["bit_5"]["still_set_after_clearing"]), ("PASS", [6]), "a bit 5 that did not clear is reported, not judged")
+
+    def test_a_status_after_a_read_that_is_amiss_in_a_run_that_went_on(self) -> None:
+        """Review of 0417966: a result in which a status read between transfers has an error bit, or has lost
+        PCFG_DONE, and the read's code is zero and the run went on, passed. Record 6 has bit 5 and its clearing,
+        record 7 neither."""
+        after, cleared = FARBLK + 7, 10
+        w = self.r.words
+        for bit in (6, 11, 14, 15, 18, 20, 21, 22, 23):                     # every bit of a transfer's error mask
+            self.says(self.changed({self.rec_at(7, after): w[self.rec_at(7, after)] | 1 << bit}), "record 7: code 0x0, but its raw words say 0x21")
+            self.says(self.changed({self.rec_at(6, cleared): w[self.rec_at(6, cleared)] | 1 << bit}), "record 6: code 0x0, but its raw words say 0x21")
+        self.says(self.changed({self.rec_at(7, after): w[self.rec_at(7, after)] & ~4}), "record 7: code 0x0, but its raw words say 0x23")
+        self.says(self.changed({self.rec_at(6, cleared): w[self.rec_at(6, cleared)] & ~4}), "record 6: code 0x0, but its raw words say 0x23")
+        self.says(self.changed({self.rec_at(7, after): (w[self.rec_at(7, after)] | 0x00040000) & ~4}), "record 7: code 0x0, but its raw words say 0x21")
+        # bit 5 cleared although the status that showed it was amiss: the prober writes nothing after such a status
+        self.says(self.changed({self.rec_at(6, after): w[self.rec_at(6, after)] | 0x00040000}),
+                  "record 6: bit 5 was cleared", "record 6: code 0x0, but its raw words say 0x21")
+        # a code that says so, and a run that went on all the same
+        self.says(self.changed({self.rec_at(7, after): w[self.rec_at(7, after)] | 0x00040000, self.rec_at(7, 2): 0x21}),
+                  "56 record(s) after the point where the schedule ends (record 8)", "the header's status is 0x1; the records and the log imply 0x221")
+
+    def test_a_run_that_stopped_at_such_a_status_with_one_thing_changed(self) -> None:
+        after, cleared, code = FARBLK + 7, 10, 2
+        r = Run("lateerr@14")
+        at = lambda field: HB + 2 * REC + field
+        problems = lambda edits, run: judged(run, words=[edits.get(k, x) for k, x in enumerate(run.words)])["problems"]
+        self.assertIn("record 2: code 0x0, but its raw words say 0x21", problems({at(code): 0}, r))
+        self.assertIn("record 2: code 0x23, but its raw words say 0x21", problems({at(code): 0x23, at(cleared): 0x50023004}, r))
+        self.assertIn("record 2: code 0x21, but its raw words say 0x0", problems({at(after): r.words[at(after)] & ~0x00040000}, r))
+        # a clearing recorded after a status that was amiss, and after a read that failed by itself
+        r = Run("bit5@2,lateerr@14")
+        self.assertTrue(any("record 2: bit 5 was cleared (50063004) after a read that was not clean" in p for p in problems({at(cleared): 0x50063004}, r)))
+        r = Run("bit5@2,short@2")
+        self.assertTrue(any("record 2: bit 5 was cleared (50023004) after a read that was not clean" in p for p in problems({at(cleared): 0x50023004}, r)))
+        # a stop after the clearing whose word is clean after all
+        r = Run("bit5@2,clearerr")
+        self.assertIn("record 2: code 0x21, but its raw words say 0x0", problems({at(cleared): r.words[at(cleared)] & ~0x00040000}, r))
 
     def test_ctl0_read_differently_before_and_after(self) -> None:
         self.says(self.changed({self.rec_at(N - 2, FARBLK + 4): 0x00000401}), "CTL0 does not read the same before and after: 0x00000401 in record(s) [62], 0x00000501 in record(s) [1]")

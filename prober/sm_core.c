@@ -824,8 +824,9 @@ static uint32_t run_s4(void);
  * docs/s2_plan.md, section 19. The gates of stage 7; the reference frame; the design's identification and the
  * outputs of its shift registers, kept for comparison; CTL0. Then, for each state the host names: the RAM written
  * to the state through the design and read back; the counter; every read of the host's list, the status recorded
- * after each and bit 5 cleared, alone, where it shows; the RAM read through the design again — it must still hold
- * the state; the counter, which must have gone on; the shift registers, which must read as before; the design's
+ * after each and held to what a transfer's status is held to, and bit 5 cleared, alone, where it shows after a read
+ * with nothing amiss (what the register reads then is held to the same); the RAM read through the design again —
+ * it must still hold the state; the counter, which must have gone on; the shift registers, which must read as before; the design's
  * count of writes. CTL0 and the reference frame again. The first thing that is not so ends the run: nothing is
  * budgeted for, and nothing is read after a RAM that did not hold. */
 static uint32_t s8_ram(uint32_t state, uint32_t code)
@@ -838,6 +839,14 @@ static uint32_t s8_ram(uint32_t state, uint32_t code)
             return pl_fail(code);
     }
     return plb_rd(PLB_CODE);
+}
+
+/* A status word read when no transfer is running — after a read of the list, and after bit 5 was cleared: held to
+ * what every transfer's own status is held to. (Review of 0417966: the words were recorded and looked at for bit 5
+ * alone; an error bit that appeared once the last transfer was seen done went into the record and the run went on.) */
+static uint32_t s8_sts(uint32_t s)
+{
+    return (s & STS_ERR_MASK) ? C_DEVERR : !(s & STS_PCFG_DONE) ? C_DONE_DROPPED : C_OK;
 }
 
 static uint32_t s8_end(uint32_t code, uint32_t rec)     /* a read that was not clean: the status the run ends with */
@@ -942,10 +951,15 @@ static uint32_t run_s8(void)
             code = read_op(rec, LIST_FAR(w), LIST_N(w), KIND_TARGET, s, k, lo, hi, limit);
             g = hal_rd(DEVCFG_INT_STS);
             r2_wr(rec, REC2_FARBLK + F_STS_AFTER, g);
-            if (g & STS_SEU_ERR) {                      /* bit 5 shows: that bit is cleared and no other, and what the register reads then is kept */
+            if (code == C_OK)
+                code = s8_sts(g);
+            if (code == C_OK && (g & STS_SEU_ERR)) {    /* bit 5 shows, and nothing else is amiss: that bit is cleared and no other, and what the register reads then is kept and judged */
                 hal_wr(DEVCFG_INT_STS, STS_SEU_ERR);
-                r2_wr(rec, R8_STS_CLEARED, hal_rd(DEVCFG_INT_STS));
+                g = hal_rd(DEVCFG_INT_STS);
+                r2_wr(rec, R8_STS_CLEARED, g);
+                code = s8_sts(g);
             }
+            r2_wr(rec, R_CODE, code);                   /* the read's own code, or what the status after it says */
             rec++;
             if (code != C_OK)
                 return s8_end(code, rec);

@@ -44,6 +44,16 @@
  *                                    register never sets / the counter stands still
  *   ramstuck ramwild                 one bit of the RAM never sets / a write also changes the address above
  *   srlmoves plcount                 the shift registers' outputs change between reads / the count of writes is one off
+ *
+ * S2.2 (docs/s2_plan.md, section 19). The list of reads stage 8 makes is SM_LIST=<file> (hex words), put where the
+ * host puts it. SM_RAMMAP=<file> says where cells of the design's RAM show in configuration memory: a line for each
+ * place — the RAM's address, which of its four memories, the frame address (hex), the word, the bit, and 1 if the
+ * place shows the cell inverted. A frame read then delivers, at each such place, what the cell holds at that moment.
+ * Where the cells lie on the device nobody here knows; the tests give the model several answers, and none.
+ * More faults:
+ *   masked                           no place follows its cell: every frame reads as the file of frames has it
+ *   ramdisturb@R                     frame read R changes a cell of the RAM
+ *   bit5@R bit5stays                 frame read R leaves bit 5 of INT_STS set / a write that clears it does not
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,6 +98,9 @@ static unsigned n_stat_reads; static int disturbed;
 static uint32_t slcr_word[N_SLCR] = { 0x0000000Fu, 0x00000000u, 0x00400800u, 0x0000003Fu };
 static uint32_t pl_scratch, pl_count = 0x00010000u, pl_ram_addr, pl_srl_addr, pl_ram[RAM_DEPTH], pl_srl[SRL_DEPTH];
 static uint32_t pl_ram_writes, pl_srl_shifts; static unsigned n_srl_reads;
+/* where cells of the RAM show in configuration memory (SM_RAMMAP) */
+#define MAX_PLACES 1024
+static struct { uint32_t addr, mem, far, word, bit, inv; } place[MAX_PLACES]; static unsigned n_places;
 #define PL_ID_WORD 0x53324131u                         /* "S2A1": what pl/s2a answers with */
 
 /* faults */
@@ -113,10 +126,17 @@ static const uint32_t *frame(uint32_t far)
     static const uint32_t zero[FRAME_WORDS];
     static uint32_t changed[FRAME_WORDS];
     const uint32_t *f = zero;
-    unsigned i;
+    unsigned i, shown = 0;
     for (i = 0; i < n_frames; i++) if (f_far[i] == far) f = f_words[i];
-    if (!disturbed) return f;
-    memcpy(changed, f, sizeof changed); changed[3] ^= 0x00010000u;
+    for (i = 0; i < n_places && !fault_on("masked"); i++)                     /* the cells of the RAM that show in this frame */
+        if (place[i].far == far) {
+            uint32_t cell = ((pl_ram[place[i].addr] >> place[i].mem) & 1u) ^ place[i].inv;
+            if (!shown++) memcpy(changed, f, sizeof changed);
+            changed[place[i].word] = (changed[place[i].word] & ~(1u << place[i].bit)) | cell << place[i].bit;
+        }
+    if (!disturbed) return shown ? changed : f;
+    if (!shown) memcpy(changed, f, sizeof changed);
+    changed[3] ^= 0x00010000u;
     return changed;
 }
 
@@ -189,6 +209,8 @@ static void dma_execute(uint32_t dlen)
             if (n && fault_at("farflip", n_far_read)) ddr[(a - DDR_BASE) / 4u] ^= 0x00000004u;
         } else {
             n_read_dma++;
+            if (fault_at("ramdisturb", n_read_dma)) pl_ram[9] ^= 0x4u;
+            if (fault_at("bit5", n_read_dma)) reg_sts |= STS_SEU_ERR;
             if (fault_at("short", n_read_dma)) n = dlen > 150u ? 150u : dlen / 2u;
             for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
             if (fault_at("padnz", n_read_dma)) ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u;
@@ -260,6 +282,8 @@ void hal_wr(uint32_t a, uint32_t v)
     printf("W %08x %08x\n", a, v);
     switch (a) {
     case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
+                          if (v == STS_SEU_ERR && fault_on("bit5stays")) reg_sts |= STS_SEU_ERR;
+                          if (v != STS_CLEAR_MASK && v != STS_SEU_ERR) printf("VIOLATION INT_STS write %08x\n", v);
                           if (drop_on_next_clear) { drop_on_next_clear = 0; reg_sts &= ~STS_PCFG_DONE; }
                           break;
     case DEVCFG_DMA_SRC:  dma_src = v; break;
@@ -285,7 +309,8 @@ void hal_wr(uint32_t a, uint32_t v)
 uint32_t hal_mem_rd(uint32_t a)
 {
     wait_over();
-    if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
+    if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)
+          || in(a, LIST_ADDR, LIST_MAX)))
         { printf("VIOLATION memory read %08x\n", a); return 0; }
     return ddr[(a - DDR_BASE) / 4u];
 }
@@ -369,6 +394,17 @@ int main(int argc, char **argv)
         }
         n_frames = (unsigned)n / (FRAME_WORDS + 1);
         if (load_words(argv[3], &ddr[(PARAM_ADDR - DDR_BASE) / 4u], PARAM_WORDS) < 0) return 2;
+        if (getenv("SM_LIST") && load_words(getenv("SM_LIST"), &ddr[(LIST_ADDR - DDR_BASE) / 4u], LIST_MAX + 8u) < 0) return 2;
+        if (getenv("SM_RAMMAP")) {
+            FILE *m = fopen(getenv("SM_RAMMAP"), "r"); unsigned long a, b, c, d, e, g;
+            if (!m) return 2;
+            while (n_places < MAX_PLACES && fscanf(m, "%lu %lu %lx %lu %lu %lu", &a, &b, &c, &d, &e, &g) == 6) {
+                if (a >= RAM_DEPTH || b >= 4u || d >= FRAME_WORDS || e >= 32u || g > 1u) return 2;
+                place[n_places].addr = (uint32_t)a; place[n_places].mem = (uint32_t)b; place[n_places].far = (uint32_t)c;
+                place[n_places].word = (uint32_t)d; place[n_places].bit = (uint32_t)e; place[n_places].inv = (uint32_t)g; n_places++;
+            }
+            fclose(m);
+        }
         if (fault_on("ctrl"))   reg_ctrl &= ~0x08000000u;
         if (fault_on("lpbk"))   reg_mctrl |= MCTRL_PCAP_LPBK;
         if (fault_on("nodone")) reg_sts &= ~STS_PCFG_DONE;

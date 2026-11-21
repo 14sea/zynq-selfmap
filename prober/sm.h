@@ -21,6 +21,7 @@
 #define STS_D_P_DONE       0x00001000u
 #define STS_ERR_MASK       0x00F4C840u
 #define STS_CLEAR_MASK     0x00F4F840u   /* errors + D_P_DONE + DMA_DONE; never PCFG_DONE */
+#define STS_SEU_ERR        0x00000020u   /* bit 5, PCFG_SEU_ERR: not a bit of a transfer. Stage 8 clears it, alone, where it shows */
 #define PCAP_ENDPOINT      0xFFFFFFFFu
 #define DMA_HOLD_TAG       0x1u
 
@@ -129,7 +130,25 @@ enum { P_MAGIC, P_VERSION, P_STAGE, P_FAR_LO, P_FAR_HI, P_REF_FAR, P_N_FARS, P_R
 enum { PLB_MAGIC, PLB_N, PLB_CODE, PLB_AT, PLB_SLCR, PLB_LOG = 16 };
 #define PL_LOG_MAX         1280u         /* accesses; each two words: the address (bit 0 set: a write), the value */
 #define PLB_WORDS          (PLB_LOG + 2u * PL_LOG_MAX)                                    /* 2576 */
-enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PLC_WRITES, PLC_FULL };
+enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PLC_WRITES, PLC_FULL,
+       PLC_DISTURBED };                  /* stage 8: after frames were read, the RAM no longer holds the state it was given */
+
+/* ---- stage 8 (S2.2): is the RAM seen in readback (docs/s2_plan.md, section 19) ----
+ * For each of the states the host names, the RAM is set through the design, every read of a list is made through
+ * PCAP, and the RAM is read through the design again. The list is the host's: one word a read, written to LIST_ADDR
+ * before the prober is started — the address in the low 28 bits, the number of frames (1 to 3) above them. The
+ * prober does no arithmetic on addresses; it holds each to the envelope, as every stage does. */
+#define LIST_ADDR          0x10180000u
+#define LIST_MAX           178u          /* with three states: 538 records, which the result area holds */
+#define LIST_FAR(w)        ((w) & 0x0FFFFFFFu)
+#define LIST_N(w)          ((w) >> 28)
+#define P_LIST_N           16u           /* how many reads the list has */
+#define P_STATES           17u           /* the states, four bits each, P_REPEATS of them: 0 all zero, 1 all one */
+#define MAX_STATES         3u
+#define P8_USED            0xF70382BFu   /* the words of the parameter block this stage has a use for; every other is zero */
+#define OP8_CTL0           0x100u        /* in R_OP: the read of CTL0, which reads no frame; a read of the list has its index there */
+#define PL8_LOG_MAX        1440u         /* 1 + 64 accesses before the states, 451 for each state: 1418 with three */
+#define PLB8_WORDS         (PLB_LOG + 2u * PL8_LOG_MAX)                                   /* 2896 */
 
 /* ---- result ---- */
 #define RESULT_MAGIC       0x31524D53u   /* "SMR1" */
@@ -141,7 +160,8 @@ enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PL
 #define REC2_DATA          (REC2_FARBLK + 8u)                                             /* 76 */
 #define REC2_WORDS         (REC2_DATA + DATA2_WORDS)                                      /* 480 */
 enum { F_STS_CMD, F_POLLS_CMD, F_STS_READ, F_POLLS_READ, F_VALUE, F_UNREAD,
-       F_POLL_VAR };   /* the FAR-read block; the last: where on the stack the status word of the polling loop lay (recorded, not judged) */
+       F_POLL_VAR,     /* the FAR-read block; this one: where on the stack the status word of the polling loop lay (recorded, not judged) */
+       F_STS_AFTER };  /* stage 8, a read of the list: INT_STS as that read left it, before anything is cleared; zero elsewhere */
 #define R_NFRAMES          14u           /* stages 2 and 3; zero in stage 1 */
 #define R_OP               15u
 enum { H_MAGIC, H_VERSION, H_STATUS, H_N_RECORDS, H_N_ANOMALIES, H_TOTAL_WORDS, H_REC_WORDS, H_HDR_WORDS,
@@ -153,6 +173,9 @@ enum { OP_SUCC, OP_CONTENT, OP_TRIPLE }; /* stage 4, in R_OP: the pad alone; the
 enum { R_FAR, R_KIND, R_CODE, R_STS_CMD, R_POLLS_CMD, R_STS_READ, R_POLLS_READ, R_STS_CLEAN, R_POLLS_CLEAN,
        R_SURVIVORS, R_REF_EQUAL, R_STATUS_AFTER, R_REPEAT, R_GUARD, R_STREAM = 16 };
 enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
+/* stage 8, a read of the list: INT_STS read again after bit 5 was cleared; 0xffffffff: bit 5 did not show, nothing
+ * was cleared. (The word is the health flag of a reference read; a read of the list has none.) */
+#define R8_STS_CLEARED     R_REF_EQUAL
 
 /* record codes */
 #define C_OK               0x00u
@@ -185,7 +208,7 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define S_STOP_WALK        0x700u        /* | record code; stage 4: any anomaly ends the walk, there is nothing to skip to */
 #define S_STOP_STUCK       0x800u        /* stage 4: the address the device named is not above the one it was asked about */
 #define S_STOP_STANDSTILLS 0x900u        /* stage 4: the register stood still at one address more than a pass may cross */
-#define S_STOP_PL          0xA00u        /* | PLC_*; stage 7: user logic did not answer as the design must */
+#define S_STOP_PL          0xA00u        /* | PLC_*; stages 7 and 8: user logic did not answer as the design must */
 
 /* ---- hardware access: the only doors (board: sm_board.c, host twin: twin_hal.c) ---- */
 uint32_t hal_rd(uint32_t addr);                 /* device register read */

@@ -24,6 +24,8 @@ CONSTANTS = {0x00F4C840, 0x00F4F840, 0x00F4D844, 0x28006000, 0x28002001, 0x30002
 # of the four words written to the design's scratch register; and the list of the design's registers the prober may
 # write, one bit an offset (0x04, 0x0c, 0x10, 0x14)
 CONSTANTS_S2 = {0x28018001, 0x2800A001, 0x2800E001, 0x4C504D53, 0x5A5AA5A5, 0x00111010}
+# S2.2: which words of the parameter block stage 8 has a use for, one bit a word (P8_USED)
+CONSTANTS_S2_2 = {0xF70382BF}
 PL_BASE = 0x40000000
 
 
@@ -121,10 +123,10 @@ class Image(unittest.TestCase):
         through one place, which the test after that holds."""
         self.assertGreater(len(self.literals), 20)
         for value in self.literals:
-            ok = (0x02000000 <= value < 0x02004000 or 0x10000000 <= value < 0x10400000
-                  or value in DEVICE_ADDRESSES or value in SLCR_READ or value in CONSTANTS or value in CONSTANTS_S2)
+            ok = (0x02000000 <= value < 0x02008000 or 0x10000000 <= value < 0x10400000
+                  or value in DEVICE_ADDRESSES or value in SLCR_READ or value in CONSTANTS or value in CONSTANTS_S2 or value in CONSTANTS_S2_2)
             self.assertTrue(ok, f"{value:#010x} is not accounted for")
-        pl = [f"{v:#010x}" for v in self.literals if 0x40000000 <= v < 0xC0000000 and v not in CONSTANTS | CONSTANTS_S2]
+        pl = [f"{v:#010x}" for v in self.literals if 0x40000000 <= v < 0xC0000000 and v not in CONSTANTS | CONSTANTS_S2 | CONSTANTS_S2_2]
         self.assertFalse(pl, "no word of a literal pool is an address in the PL: the few that lie in that range are the data constants above")
 
     def function_of(self, address: int) -> str:
@@ -141,7 +143,7 @@ class Image(unittest.TestCase):
         pl = [(int(at, 16), text) for at, text in rows if re.search(r"#1073741824|0x40000000", text) and not text.strip().startswith(".word")]
         self.assertEqual(len(pl), 1, pl)
         self.assertEqual(self.function_of(pl[0][0]), "pl_access")
-        self.assertRegex(pl[0][1].split("@")[0].strip(), r"^add\s+r\d+, r\d+, #1073741824$")
+        self.assertRegex(pl[0][1].split("@")[0].strip(), r"^add\s+(r\d+|sl|fp|ip), (r\d+|sl|fp|ip), #1073741824$")   # a register by number or by its other name
         slcr = [int(at, 16) for at, text in rows if text.strip().startswith(".word") and int(text.split()[1], 16) in SLCR_READ]
         self.assertEqual(len(slcr), 1, [f"{a:#x}" for a in slcr])
         self.assertEqual(self.function_of(slcr[0]), "sm_run")
@@ -340,7 +342,27 @@ class Image(unittest.TestCase):
                        "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"},
             records=rec21, result_words=64 + plb + rec21 * 480,
             console=["SM7 start", "SM7 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec21, 64 + plb + rec21 * 480)]), indent=1) + "\n")
-        self.assertLess(len(self.bin), 16384)
+        # S2.2 (section 19): stage 8 — the gates and the second envelope of S2.1; block type 0 whole, as the census has
+        # it, as the envelope; three states of the design's RAM: all zero, all one, all zero. The set has no list of
+        # reads: a run is of one share of the census's addresses, which the run script adds (s1a_run.with_share), and
+        # with it the number of records and what the console must show.
+        census = json.loads((ROOT / "census" / "frame_census_17A6.json").read_text())
+        block0 = [int(e["far"], 16) for e in census["entries"] if e["block_type"] == 0]
+        p22 = [0] * 32
+        p22[0:10] = [0x31504D53, 1, 8, min(block0), max(block0), 0xB99, 0, 3, 0, 0x00200000]
+        p22[15] = 2 << 8
+        p22[17] = 0x010                                             # all zero, all one, all zero
+        p22[24], p22[25], p22[26] = PL_BASE, PL_BASE + 0x1F, int(design["id"], 16)
+        p22[28:32] = [0x0000000F, 0x00000000, 0x00400800, 0x0000003F]
+        e22 = {k: v for k, v in e21.items() if k not in ("frames", "records", "result_words", "console")}
+        (BUILD / "expected_s2_2.json").write_text(json.dumps(dict(
+            e22, stage="S2.2, the RAM in readback: block type 0 in three states, a share a run", params=[f"{w:08x}" for w in p22],
+            pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
+                       "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
+        # No part of the memory map bounds the image: it is loaded at 0x02000000 and the next thing above it is the PL
+        # design at 0x04000000. The bound is a guard against an image that has grown by accident; it was 16 KiB until
+        # stage 8 (16,360 bytes) came within 24 bytes of it.
+        self.assertLess(len(self.bin), 32768)
 
 
 if __name__ == "__main__":

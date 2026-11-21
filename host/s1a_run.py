@@ -52,6 +52,8 @@ import s1b2_judge  # noqa: E402
 import s1b2e_judge  # noqa: E402
 import s2_0_judge  # noqa: E402
 import s2_1_judge  # noqa: E402
+import s2_2_judge  # noqa: E402
+import s2_2_shares  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
 STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
@@ -103,6 +105,11 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # and what the judge holds the run to is the design's own facts, not the known frames. Before `go` the host
           # reads the four SLCR words and the design's identification register at the prompt (before_go).
           "s2_1": {"judge": s2_1_judge, "expected": ROOT / "build" / "prober" / "expected_s2_1.json", "known": ROOT / "pl" / "s2a" / "design.json"},
+          # S2.2 (section 19): one run of the chain that reads block type 0 in three states of the design's RAM. The set
+          # has no list of reads of its own: a run is of one share of the census's addresses, given at run time
+          # (--share), see with_share() below. What the judge holds the run to is the design's facts and the census.
+          "s2_2": {"judge": s2_2_judge, "expected": ROOT / "build" / "prober" / "expected_s2_2.json", "known": ROOT / "pl" / "s2a" / "design.json",
+                   "census": s2_2_shares.CENSUS},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -128,6 +135,7 @@ IMAGE = ROOT / "build" / "prober" / "prober.bin"
 PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
 PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR, SCRATCH_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000, 0x11000000
+LIST_ADDR = 0x10180000                               # stage 8: where the prober looks for the list of reads (prober/sm.h)
 PAR_WORDS = 32
 MAX_RESULT_WORDS = max(m["judge"].HDR + m["judge"].MAX_RECORDS * m["judge"].REC for m in STAGES.values())
 PL_CARD_NAME = "carrier.bit"
@@ -139,6 +147,8 @@ MAX_READS = 5                                        # attempts at one short rea
 STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5")  # the sets whose starting address is not fixed by the tests
 P_FAR_LO, P_FAR_HI, P_START = 3, 4, 16               # words of the parameter block
 P_STAGE, P_PL_LO, P_PL_ID, P_SLCR = 2, 24, 26, 28    # stage 7: the PL envelope's lower end, the identification word, four SLCR words
+SHARES_AT_RUN_TIME = ("s2_2",)                       # the sets whose list of reads is a share of the census, given at run time
+P_STATES_N, P_LIST_N = 7, 16                         # stage 8: how many states, how many reads the list has
 SLCR_GATES = ((0xF8000900, "LVL_SHFTR_EN"), (0xF8000240, "FPGA_RST_CTRL"), (0xF8000170, "FPGA0_CLK_CTRL"), (0xF800010C, "PLL_STATUS"))
 
 
@@ -152,8 +162,18 @@ def pl_card_name(exp: dict) -> str:
 
 
 def known_for(stage: str) -> dict:
-    """What the judge of a set holds its result to: the known frames, unless the set has facts of its own."""
-    return json.loads(STAGES[stage].get("known", KNOWN).read_text())
+    """What the judge of a set holds its result to: the known frames, unless the set has facts of its own — and with
+    them the census, for a set whose reads are made from it."""
+    known = json.loads(STAGES[stage].get("known", KNOWN).read_text())
+    if "census" in STAGES[stage]:
+        known = dict(known, census=json.loads(STAGES[stage]["census"].read_text()))
+    return known
+
+
+def planned_words(exp: dict) -> list[int]:
+    """What a judge is given as the plan: the words of the parameter block, and after them the list of reads of a set
+    that has one."""
+    return [int(w, 16) for w in exp["params"]] + [int(w, 16) for w in exp.get("list", [])]
 
 
 class Stop(Exception):
@@ -218,6 +238,30 @@ def with_start(stage: str, exp: dict, start: int, came_from: str) -> dict:
     return dict(exp, params=params, chain={"start": f"{start:#010x}", "from": came_from})
 
 
+def with_share(stage: str, exp: dict, share: int, census: dict | None = None, limit: int = s2_2_shares.LIST_MAX) -> dict:
+    """The expected values of a set for one share of the census: the list of reads, the one word of the parameter
+    block that counts them, and what follows from their number. Only for a set made for it. The shares are made from
+    the census by s2_2_shares and by nothing else; which share a run is of goes into its record."""
+    if stage not in SHARES_AT_RUN_TIME:
+        raise ValueError(f"{stage} has no shares")
+    every = s2_2_shares.shares(census if census is not None else json.loads(STAGES[stage]["census"].read_text()), limit)
+    if not 0 <= share < len(every):
+        raise ValueError(f"there are {len(every)} shares, 0 to {len(every) - 1}; {share} is none of them")
+    reads = every[share]
+    params = list(exp["params"])
+    params[P_LIST_N] = f"{len(reads):08x}"
+    J = STAGES[stage]["judge"]
+    records = 4 + int(params[P_STATES_N], 16) * len(reads)
+    return dict(exp, params=params, list=[f"{w:08x}" for w in s2_2_shares.list_words(reads)], records=records, result_words=J.HDR + records * J.REC,
+                console=[f"SM{J.STAGE} start", f"SM{J.STAGE} end status=00000001 records={records:08x} anomalies=00000000 words={J.HDR + records * J.REC:08x}"],
+                share={"index": share, "of": len(every), "reads": len(reads), "frames": sum(n for _, n in reads),
+                       "first": f"{reads[0][0]:#010x}", "last": f"{reads[-1][0] + reads[-1][1] - 1:#010x}"})
+
+
+def list_bytes(exp: dict) -> bytes:
+    return b"".join(struct.pack("<I", int(w, 16)) for w in exp["list"])
+
+
 def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     """The fixed steps up to and including `go`."""
     p: list[dict] = []
@@ -233,8 +277,8 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     add("the design in RAM is the file, whichever way it came", f"crc32 {PL_ADDR:08x} {pl_bytes:x}", f"crc32 {pl_crc}", crc=pl_crc)
     add("configure the PL", f"fpga loadb 0 {PL_ADDR:08x} {pl_bytes:x}", "no error", timeout=60)
     add("status after the load", "md.l f800700c 1", "bit 2 (PCFG_DONE) set", bit=(2, True))
-    if int(exp["params"][P_STAGE], 16) == 7:
-        # S2.1: the first access to user logic is made here, at the prompt, where a design that does not answer costs
+    if int(exp["params"][P_STAGE], 16) in (7, 8):
+        # S2.1 and every stage after it that touches user logic: the first access to it is made here, at the prompt, where a design that does not answer costs
         # a power cycle and nothing else. Before it, the PS side of the PL as the prober itself will want it: the four
         # words the set carries. The prober runs in U-Boot's context and mapping, so this read is the read it will make.
         for k, (addr, name) in enumerate(SLCR_GATES):
@@ -249,6 +293,14 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
             add(f"parameter word {i}", f"mw.l {PAR_ADDR + 4 * i:08x} {w} 1", "prompt")
     par_crc = f"{zlib.crc32(b''.join(struct.pack('<I', int(w, 16)) for w in exp['params'])) & 0xFFFFFFFF:08x}"
     add("the parameter block is as intended", f"crc32 {PAR_ADDR:08x} {PAR_WORDS * 4:x}", f"crc32 {par_crc}", crc=par_crc)
+    if "list" in exp:
+        # S2.2: the list of reads, where the prober looks for it. It goes as a file, like the prober; what is in memory
+        # afterwards is held to the list by its checksum, whichever way it came.
+        raw = list_bytes(exp)
+        list_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
+        add(f"send the list of reads ({len(exp['list'])} reads, {len(raw)} bytes) by YMODEM", f"loady {LIST_ADDR:08x}", "U-Boot reports the same size",
+            ymodem=exp.get("list_file", "<the list, written beside the run's record>"), size=len(raw))
+        add("the list in RAM is the list", f"crc32 {LIST_ADDR:08x} {len(raw):x}", f"crc32 {list_crc}", crc=list_crc)
     add("clear the result header", f"mw.l {RES_ADDR:08x} 0 40", "prompt")
     add(f"send the prober ({exp['image_bytes']} bytes) by YMODEM", f"loady {IMG_ADDR:08x}", "U-Boot reports the same size",
         ymodem=str(IMAGE), size=exp["image_bytes"])
@@ -314,6 +366,8 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
     problems = record["problems"]
     if "chain" in exp:                               # a starting address given at run time, and where it was taken from
         record["chain"] = exp["chain"]
+    if "share" in exp:                               # which share of the census the run is of
+        record["share"] = exp["share"]
 
     def link(call):
         """Everything that goes over the serial line goes through here, and nothing else does. A failure of the line is
@@ -479,7 +533,7 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         if words[:len(hdr)] != hdr:
             problems.append("the header as it was read before the pull is not the header of the pulled result")
 
-        verdict = J.judge(words, known, [int(w, 16) for w in exp["params"]])
+        verdict = J.judge(words, known, planned_words(exp))
         (out / "verdict.json").write_text(json.dumps(verdict, indent=1) + "\n")
         record["judge"] = verdict["verdict"]
         if record["return_code"] != verdict.get("expected_return_code"):
@@ -528,8 +582,16 @@ def main() -> int:
     ap.add_argument("--stage", choices=sorted(STAGES), default="s1a")
     ap.add_argument("--start", type=lambda s: int(s, 16), help="hex; only for a set whose starting address is given at run time (s1b2, s1b3, s1b4, s1b5)")
     ap.add_argument("--start-from", default="given on the command line", help="where the starting address was taken from; recorded, not used")
+    ap.add_argument("--share", type=int, help="which share of the census's addresses; only for a set that is run a share at a time (s2_2)")
     a = ap.parse_args()
     exp = json.loads(STAGES[a.stage]["expected"].read_text())
+    if (a.share is not None) != (a.stage in SHARES_AT_RUN_TIME):
+        print(f"REFUSED: {a.stage} is run a share at a time (--share)" if a.share is None else f"REFUSED: {a.stage} has no shares"); return 2
+    if a.share is not None:
+        try:
+            exp = with_share(a.stage, exp, a.share)
+        except ValueError as e:
+            print(f"REFUSED: {e}"); return 2
     if a.start is not None:
         try:
             exp = with_start(a.stage, exp, a.start, a.start_from)
@@ -544,7 +606,9 @@ def main() -> int:
         print("REFUSED: the staged PL design is not the one this set was fixed with"); return 2
     pl_crc = f"{zlib.crc32(pl) & 0xFFFFFFFF:08x}"
     if a.dry_run or not a.go:
-        print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else ""))
+        print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else "")
+              + (f", share {exp['share']['index']} of {exp['share']['of']}: {exp['share']['reads']} reads, {exp['share']['frames']} frames, "
+                 f"{exp['share']['first']} .. {exp['share']['last']}" if "share" in exp else ""))
         print(f"image {exp['image_sha256']}  ({exp['image_bytes']} bytes)")
         print(f"PL    {exp['pl_design']['sha256']}  ({len(pl)} bytes)\n")
         steps = before_go(exp, len(pl), pl_crc)
@@ -569,6 +633,9 @@ def main() -> int:
     if not a.out or a.out.exists():
         print("REFUSED: --out must name a directory that does not exist yet"); return 2
     a.out.mkdir(parents=True)
+    if "list" in exp:                                # the list as it is sent, kept beside the run's record
+        (a.out / "list.bin").write_bytes(list_bytes(exp))
+        exp = dict(exp, list_file=str(a.out / "list.bin"))
     os.environ["SELFMAP_CONSOLE_LOG"] = str(a.out / "console.log")
     from uboot_console import UB
     card_name = "s%07x.bin" % (int(time.time()) & 0xFFFFFFF)

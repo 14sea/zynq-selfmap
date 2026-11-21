@@ -82,11 +82,14 @@ def audit() -> dict:
             raw = (home / "result.bin").read_bytes()
             stored = json.loads((home / "verdict.json").read_text())
             kept = [p for p in (d.parent / f"expected_{stage}.json", d.parent / "expected.json") if p.is_file()]
-            params = list(json.loads((kept[0] if kept else s1a_run.STAGES[stage]["expected"]).read_text())["params"])
+            exp = json.loads((kept[0] if kept else s1a_run.STAGES[stage]["expected"]).read_text())
+            if rec.get("share"):                         # a run of one share of the census: its list, and the word that counts it
+                exp = s1a_run.with_share(stage, exp, rec["share"]["index"])
+            params = list(exp["params"])
             if rec.get("chain"):
                 params[s1a_run.P_START] = f"{int(rec['chain']['start'], 16):08x}"
             known = s1a_run.known_for(stage)             # what the run script hands the judge of this set: the known frames, or the set's own facts
-            now = s1a_run.STAGES[stage]["judge"].judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), known, [int(w, 16) for w in params])
+            now = s1a_run.STAGES[stage]["judge"].judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), known, s1a_run.planned_words(dict(exp, params=params)))
             now = json.loads(json.dumps(now))
             changed, added = difference(now, stored)
             one.update(result=home / "result.bin", crc_is_the_boards=len(raw) % 4 == 0 and f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}" == rec.get("board_crc32"),

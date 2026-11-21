@@ -250,10 +250,10 @@ def with_share(stage: str, exp: dict, share: int, census: dict | None = None, li
     reads = every[share]
     params = list(exp["params"])
     params[P_LIST_N] = f"{len(reads):08x}"
-    J = STAGES[stage]["judge"]
+    form = STAGES[stage]["judge"]                    # the layout of the stage's result
     records = 4 + int(params[P_STATES_N], 16) * len(reads)
-    return dict(exp, params=params, list=[f"{w:08x}" for w in s2_2_shares.list_words(reads)], records=records, result_words=J.HDR + records * J.REC,
-                console=[f"SM{J.STAGE} start", f"SM{J.STAGE} end status=00000001 records={records:08x} anomalies=00000000 words={J.HDR + records * J.REC:08x}"],
+    return dict(exp, params=params, list=[f"{w:08x}" for w in s2_2_shares.list_words(reads)], records=records, result_words=form.HDR + records * form.REC,
+                console=[f"SM{form.STAGE} start", f"SM{form.STAGE} end status=00000001 records={records:08x} anomalies=00000000 words={form.HDR + records * form.REC:08x}"],
                 share={"index": share, "of": len(every), "reads": len(reads), "frames": sum(n for _, n in reads),
                        "first": f"{reads[0][0]:#010x}", "last": f"{reads[-1][0] + reads[-1][1] - 1:#010x}"})
 

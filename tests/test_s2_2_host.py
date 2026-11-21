@@ -99,6 +99,33 @@ class Shares(unittest.TestCase):
                 self.assertIn(says, p[0])
         self.assertEqual(s2_2_shares.list_problems(lay, [(0x27, 3)]), [], "the last three frames of the first column")
 
+    @staticmethod
+    def small(*columns: tuple[int, int], ended_by: str = "the register stood still") -> dict:
+        """A census of one row: columns given as (first address, frames)."""
+        entries = [{"far": f"{base + m:#010x}", "block_type": 0, "half": "top", "row": 0, "column": c, "minor": m}
+                   for c, (base, n) in enumerate(columns) for m in range(n)]
+        return {"entries": entries, "rows": [{"last": entries[-1]["far"], "ended_by": ended_by}]}
+
+    def test_a_read_must_lie_in_one_column_even_where_two_columns_are_neighbours_by_number(self) -> None:
+        lay = s2_2_shares.layout(self.small((0x100, 2), (0x102, 4)))
+        self.assertEqual(s2_2_shares.list_problems(lay, [(0x100, 2), (0x102, 3)]), [])
+        p = s2_2_shares.list_problems(lay, [(0x101, 2)])
+        self.assertEqual(len(p), 1)
+        self.assertIn("does not lie in one column", p[0])
+
+    def test_a_share_takes_columns_up_to_the_limit_and_not_one_read_more(self) -> None:
+        census = self.small((0x100, 9), (0x200, 6), (0x300, 3))               # 3, 2 and 1 reads
+        self.assertEqual([len(x) for x in s2_2_shares.shares(census, 5)], [5, 1])
+        self.assertEqual([len(x) for x in s2_2_shares.shares(census, 4)], [3, 3])
+        self.assertEqual([len(x) for x in s2_2_shares.shares(census, 6)], [6])
+
+    def test_only_a_row_that_ended_with_a_standstill_has_the_place_where_the_register_stands_still(self) -> None:
+        still = s2_2_shares.layout(self.small((0x100, 3)))
+        other = s2_2_shares.layout(self.small((0x100, 3), ended_by="the device named an address outside the envelope"))
+        self.assertEqual((still["shows"], other["shows"]), ([0x100, 0x101, 0x102, 0x102], [0x100, 0x101, 0x102]))
+        self.assertEqual(s2_2_shares.register_after(still, 0x102, 0), 0x102)
+        self.assertIsNone(s2_2_shares.register_after(other, 0x102, 0))
+
     def test_a_column_too_long_for_a_list_is_refused_not_cut(self) -> None:
         with self.assertRaises(ValueError):
             s2_2_shares.shares(CENSUS, limit=13)       # a column of 42 frames is 14 reads
@@ -434,6 +461,9 @@ class Tampered(unittest.TestCase):
         self.says(self.changed({self.rec_at(i, 12): 2}), "record 9: expected the target read of")
         self.says(self.changed({self.rec_at(i, 15): 3}), "record 9: expected the target read of")
         self.says(self.changed({self.rec_at(i, 14): 2}), "record 9: expected the target read of")
+        self.says(self.changed({self.rec_at(i, 14): 4}), "record 9: 4 frames per read")
+        self.says(self.changed({self.rec_at(i, 0): 0x900}), "record 9: reads 0x00000900 + 3 frame(s), outside the envelope")
+        self.says(self.changed({self.rec_at(i, 16 + 9): 0x30004001}), "record 9: the frame read stream is not read-only")
         self.says(self.changed({self.rec_at(i, 2): 0x10}), "record 9: code 0x10, but its raw words say 0x0")
         self.says(self.changed({self.rec_at(i, 13): 1}), "record 9: the prober's guard refused its own stream")
         self.says(self.changed({self.rec_at(i, 16 + 5): 0x30008001}), "record 9: the frame read stream is not the pinned one")
@@ -476,6 +506,23 @@ class Tampered(unittest.TestCase):
         self.says(v, "1 bit(s) read differently")
         self.assertEqual(v["finding"]["restless"], [{"far": "0x00000a04", "word": 7, "bit": 7, "readings": "001"}])
         self.assertEqual(v["finding"]["bits"]["candidates"], 256, "and the cells are found all the same")
+
+    def test_a_bit_that_comes_on_with_the_all_one_state_and_stays_is_restless_not_a_candidate(self) -> None:
+        second, third = 2 + N_LIST + 1, 2 + 2 * N_LIST + 1
+        at = [self.rec_at(k, DATA + 2 * FRAME + 7) for k in (second, third)]
+        v = self.changed({a: self.r.words[a] | 0x80 for a in at})
+        self.says(v, "1 bit(s) read differently")
+        self.assertEqual(v["finding"]["restless"], [{"far": "0x00000a04", "word": 7, "bit": 7, "readings": "011"}])
+        first = self.rec_at(2 + 1, DATA + 2 * FRAME + 7)
+        v = self.changed({first: self.r.words[first] | 0x80, at[0]: self.r.words[at[0]] | 0x80})
+        self.assertEqual(v["finding"]["restless"], [{"far": "0x00000a04", "word": 7, "bit": 7, "readings": "110"}])
+
+    def test_a_log_in_a_run_that_never_came_to_the_design(self) -> None:
+        r = Run("short@1")                               # the reference frame's first reading fails: nothing of the design is touched
+        self.assertEqual((r.status, r.plb[1]), (0x610, 0))
+        w = list(r.words); w[65] = 1; w[64 + 16], w[64 + 17] = PL, 0x53324131
+        v = s2_2_judge.judge(w, KNOWN, r.planned())
+        self.assertIn("the PL block shows an access to the design in a run that never came to it", v["problems"])
 
     def test_records_missing_and_records_too_many(self) -> None:
         short = lambda w: w.__setitem__(3, N - 1) or w.__setitem__(5, HB + (N - 1) * REC)   # noqa: E731

@@ -1,0 +1,70 @@
+# python3 tests/mutants.py 's8: '      (2026-11-21, on the working tree after 2cf8644; 79 mutants chosen)
+# NOT A WHOLE RUN: the host stopped it after 66 mutants because the machine was short of memory. Nothing was started again.
+# Of the 66: 62 killed, 2 survived, 2 flagged BROKEN. What became of those four is in docs/s2_plan.md, section 21.
+unmutated: Ran 764 OK; 0 test(s): 
+KILLED   s8: the version of the block is not looked at                  Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a reference frame below the envelope is taken              Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a reference frame above the envelope is taken              Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: no state is taken for a run                                Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: more states than the log has room for                      Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: an empty list is taken                                     Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+SURVIVED s8: a list longer than the result area holds is taken          Ran 764 OK; 0 test(s): 
+KILLED   s8: no poll limit is taken                                     Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: any poll limit is taken                                    Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: more stack beneath the reads is taken                      Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a wait that does not exist is taken                        Ran 764 FAILED (failures=2); 2 test(s): a_block_that_is_not_of_this_form_is_refused, the_wait_is_the_one_asked_for_and_another_i
+KILLED   s8: a state named beyond the last is taken                     Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a PL envelope that begins below the design is taken        Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a PL envelope the wrong way round is taken                 Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a PL envelope that ends above the design is taken          Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+KILLED   s8: a word the stage has no use for may hold anything          Ran 764 FAILED (failures=14); 1 test(s): every_word_the_stage_has_no_use_for_must_be
+BROKEN   s8: word 10 counts as a word the stage uses                    Ran 759 FAILED (failures=2, errors=472); 287 test(s): Class, a_block_type_of_a_few_frames_is_an_answer
+KILLED   s8: a state that is neither all zero nor all one is taken      Ran 764 FAILED (failures=1); 1 test(s): a_block_that_is_not_of_this_form_is_refused
+SURVIVED s8: a read of no frame is taken from the list                  Ran 764 OK; 0 test(s): 
+KILLED   s8: a read of more than three frames is taken from the list    Ran 764 FAILED (failures=2); 1 test(s): a_list_with_a_read_the_prober_may_not_make_
+KILLED   s8: an address below the envelope is taken from the list       Ran 764 FAILED (failures=1); 1 test(s): a_list_with_a_read_the_prober_may_not_make_
+KILLED   s8: an address above the envelope is taken from the list       Ran 764 FAILED (failures=1); 1 test(s): a_list_with_a_read_the_prober_may_not_make_
+KILLED   s8: a read that runs past the envelope is taken from the list  Ran 764 FAILED (failures=1); 1 test(s): a_list_with_a_read_the_prober_may_not_make_
+KILLED   s8: one word more than the list has is looked at               Ran 764 FAILED (failures=92, errors=32); 78 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: no CTRL gate                                               Ran 764 FAILED (failures=3); 3 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: no SEU_EN gate                                             Ran 764 FAILED (failures=4); 4 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: no loopback gate                                           Ran 764 FAILED (failures=3); 3 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: the loopback gate takes the place of the gate before it    Ran 764 FAILED (failures=1); 1 test(s): the_order_of_the_gates
+KILLED   s8: no PCFG_DONE gate                                          Ran 764 FAILED (failures=3); 3 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: the PCFG_DONE gate takes the place of the gate before it   Ran 764 FAILED (failures=1); 1 test(s): the_order_of_the_gates
+KILLED   s8: no data-cache gate                                         Ran 764 FAILED (failures=3); 3 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: the data-cache gate takes the place of the gate before it  Ran 764 FAILED (failures=1); 1 test(s): the_order_of_the_gates
+KILLED   s8: the SLCR is read although a gate before it fails           Ran 764 FAILED (failures=10); 2 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: no SLCR gate                                               Ran 764 FAILED (failures=9); 3 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: the SLCR gate names the last word whichever differs        Ran 764 FAILED (failures=7); 3 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: a failing gate does not stop the run                       Ran 764 FAILED (failures=20); 4 test(s): every_gate_stops_the_run_before_anything_is, gates_and_refused_parameters
+KILLED   s8: a reference frame that cannot be read at first does not stop the run Ran 764 FAILED (failures=3); 3 test(s): a_log_in_a_run_that_never_came_to_the_desig, a_read_that_fails_ends_the_run_and_the_verd
+KILLED   s8: the identification register is not held to its word        Ran 764 FAILED (failures=2); 2 test(s): every_other_way_the_design_may_fail_is_name, the_identification_the_counter_the_shift_re
+KILLED   s8: the shift registers' later readings are held to something else than their first Ran 764 FAILED (failures=60, errors=16); 59 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: a design that failed before the first state is not a stop  Ran 764 FAILED (failures=4); 4 test(s): an_envelope_that_leaves_a_register_out_stop, an_envelope_that_leaves_registers_out
+KILLED   s8: the first read of CTL0 reads the address register          Ran 764 FAILED (failures=50, errors=4); 33 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+KILLED   s8: the last read of CTL0 reads the address register           Ran 764 FAILED (failures=37, errors=4); 29 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+KILLED   s8: the read of CTL0 reads a frame as well                     Ran 764 FAILED (failures=54, errors=5); 37 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: a failure at the first read of CTL0 does not stop the run  Ran 764 FAILED (failures=2); 2 test(s): a_failure_at_ctl0, a_read_that_fails_ends_the_run_and_the_verd
+KILLED   s8: every state is all zero                                    Ran 764 FAILED (failures=49, errors=4); 38 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: the RAM is written all zero whatever the state             Ran 764 FAILED (failures=55, errors=16); 56 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: the RAM is not read back before the list is read           Ran 764 FAILED (failures=56, errors=4); 39 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: a design that failed before the list is read is not a stop Ran 764 FAILED (failures=2); 2 test(s): a_ram_that_never_took_the_state_is_another_, every_other_way_the_design_may_fail_is_name
+KILLED   s8: a read of the list does not say which state it was made in Ran 764 FAILED (failures=32, errors=4); 24 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+KILLED   s8: every read of the list is of one frame                     Ran 764 FAILED (failures=48, errors=5); 33 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: every read is the list's first                             Ran 764 FAILED (failures=44, errors=5); 32 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_census_in_which_the_register_goes_another
+KILLED   s8: the status after a read is not recorded                    Ran 764 FAILED (failures=7, errors=1); 8 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_short_read_ends_the_run_there_no_anomaly_
+KILLED   s8: bit 5 is never cleared                                     Ran 764 FAILED (failures=5, errors=1); 6 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, bit_5_is_reported_and_is_not_a_failure
+KILLED   s8: bit 5 is cleared whether it shows or not                   Ran 764 FAILED (failures=47, errors=4); 31 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_flips_once_in_the_all_one_state_
+BROKEN   s8: clearing bit 5 clears the transfers' bits with it          Ran 759 FAILED (failures=5, errors=472); 290 test(s): Class, a_bit_5_that_does_not_clear_is_recorded_so_
+KILLED   s8: what the register reads after the clearing is not kept     Ran 764 FAILED (failures=4, errors=1); 5 test(s): bit_5_is_reported_and_is_not_a_failure, bit_5_is_reported_by_run
+KILLED   s8: a read of the list that fails does not stop the run        Ran 764 FAILED (failures=12); 5 test(s): a_failure_of_the_interface_stops_at_once, a_pad_that_is_not_zero_and_a_register_read_
+KILLED   s8: the RAM is not read again after the list was read          Ran 764 FAILED (failures=52, errors=4); 40 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: a RAM that did not hold is reported as one that never took the state Ran 764 FAILED (failures=5); 5 test(s): a_ram_that_did_not_hold_its_state_fails_the, a_ram_that_does_not_hold_its_state_after_th
+KILLED   s8: the counter may stand still                                Ran 764 FAILED (failures=2); 2 test(s): every_other_way_the_design_may_fail_is_name, the_identification_the_counter_the_shift_re
+KILLED   s8: the shift registers may read otherwise after a pass        Ran 764 FAILED (failures=2); 2 test(s): every_other_way_the_design_may_fail_is_name, the_identification_the_counter_the_shift_re
+KILLED   s8: the design's count of writes is held to one state's        Ran 764 FAILED (failures=51, errors=16); 53 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: the design's count of writes is not looked at              Ran 764 FAILED (failures=2); 2 test(s): every_other_way_the_design_may_fail_is_name, the_identification_the_counter_the_shift_re
+KILLED   s8: a design that failed after a pass is not a stop            Ran 764 FAILED (failures=1); 1 test(s): in_the_last_state_where_no_state_follows_to
+KILLED   s8: CTL0 is not read after the last state                      Ran 764 FAILED (failures=47, errors=11); 43 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: a reference frame that changed is not a stop               Ran 764 FAILED (failures=3); 3 test(s): a_reference_frame_that_changed_is_a_health_, a_reference_frame_that_fails_at_first_or_ha

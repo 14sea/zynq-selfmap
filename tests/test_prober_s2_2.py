@@ -391,6 +391,11 @@ class WhenTheDesignDoesNotAnswerAsItMust(unittest.TestCase):
         r = self.stopped(f"ramdisturb@{1 + N_LIST + 3}", 9, 2 + 2 * N_LIST)
         self.assertEqual(r.pl_log()[-1], (PL_RAM_DATA, False, 0xB))
 
+    def test_in_the_last_state_where_no_state_follows_to_stop_at(self) -> None:
+        r = self.stopped(f"ramdisturb@{1 + 2 * N_LIST + 3}", 9, 2 + 3 * N_LIST)
+        self.assertEqual(r.pl_log()[-1], (PL_RAM_DATA, False, 0x4))
+        self.assertEqual(len(r.dmas), 5 + 4 + 5 * 3 * N_LIST, "CTL0 and the reference frame are not read after it")
+
     def test_a_ram_that_never_took_the_state_is_another_failure(self) -> None:
         r = self.stopped("ramstuck", 5, 2 + N_LIST)   # one bit never sets: all zero holds, all one does not
         self.assertEqual(r.pl_log()[-1], (PL_RAM_DATA, False, 0xB))
@@ -434,14 +439,15 @@ class Parameters(unittest.TestCase):
     def refused(self, name: str, **kw) -> None:
         r = Run(**kw)
         self.assertEqual((r.status, r.rc, r.n_records, r.total), (0x500, 0x500, 0, HB), name)
+        self.assertEqual(r.violations, [], f"{name}: and nothing was read that is not the prober's to read — not a word beyond the list's room")
         self.assertEqual(r.accesses, [], f"{name}: refused on form alone: no device register is even read")
         self.assertEqual(r.uart, "SM8 start\r\nSM8 end status=00000500\r\n")
         self.assertEqual((r.plb[0], r.plb[1], r.plb[3]), (0x4C504D53, 0, 0xFFFFFFFF))
 
     def test_a_block_that_is_not_of_this_form_is_refused(self) -> None:
         for name, kw in (("another version", {"w1": 2}), ("an envelope the wrong way round", {"w3": HI, "w4": LO}),
-                         ("a reference frame outside the envelope", {"w5": HI + 1}),
-                         ("no state", {"w7": 0}), ("four states", {"w7": 4, "w17": 0x0101}),
+                         ("a reference frame above the envelope", {"w5": HI + 1}), ("one below it", {"w5": LO - 1}),
+                         ("no state", {"w7": 0}), ("no state and none named", {"w7": 0, "w17": 0}), ("four states", {"w7": 4, "w17": 0x0101}),
                          ("a state that is neither all zero nor all one", {"w17": 0x210}),
                          ("a state named beyond the last", {"w17": 0x1010}),
                          ("no poll limit", {"w9": 0}), ("a poll limit beyond every bound", {"w9": 0x10000001}),
@@ -466,6 +472,9 @@ class Parameters(unittest.TestCase):
                                ("a count in the top bits", 7, 9 << 28 | 0xB00)):
             with self.subTest(name):
                 self.refused(name, list_words=good[:at] + [word] + good[at + 1:])
+
+    def test_a_list_one_read_longer_than_a_list_may_be_is_refused_though_every_read_in_it_is_good(self) -> None:
+        self.refused("179 reads", reads=[(0xB80 + k % 28, 1) for k in range(179)])
 
     def test_only_the_reads_the_block_counts_are_looked_at(self) -> None:
         r = Run(list_words=s2_2_shares.list_words(READS) + [0xFFFFFFFF], w16=N_LIST)

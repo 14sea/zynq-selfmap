@@ -19,7 +19,8 @@ board: PASS, and control register 0 has bit 8 set — LUT RAM is not masked in r
 register's word (section 17).** **S2.1 has been on the
 board: PASS — the first access to our own design returned, and the design is a RAM from its
 own side (section 18).** **S2.2 is proposed in full in section 19 and agreed, all eight
-points as recommended (section 20); its host side is being built.** S2.3 to S2.5 are not proposed in full yet.
+points as recommended (section 20); its host side is built and waits for the owner's review
+(section 21) — its mutants have not all been run.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1135,3 +1136,207 @@ The owner: all eight points of section 19 as recommended.
 8. The complete set of mutants for the new image before the board.
 
 The host side is built next; its account follows as a section "as built".
+
+## 21. S2.2 as built (2026-11-21; host side, nothing on a board yet)
+
+For the owner's review. Section 19 says what the step is and section 20 what was decided;
+this says what was built, where it differs from them, and what is and is not tested.
+**Nothing of it has been on a board.**
+
+### What there is
+
+| part | where |
+|---|---|
+| the prober's stage 8 | `prober/sm_core.c` (`run_s8`), `prober/sm.h` |
+| the twin: cells of the RAM shown in configuration memory, the list, the faults | `prober/twin_hal.c` |
+| the shares and the rule for the address register | `host/s2_2_shares.py` |
+| the judge | `host/s2_2_judge.py` |
+| the chain's driver, which also closes the step | `host/s2_2_chain.py` |
+| the run script: a set run a share at a time | `host/s1a_run.py` (`--share`, `with_share`, `planned_words`) |
+| the set | `build/prober/expected_s2_2.json`, written by `tests/test_prober_image.py` |
+| tests | `tests/test_prober_s2_2.py` (38), `tests/test_s2_2_host.py` (74) |
+
+**A new image** — the second of point 10: `prober.bin`, 16,360 bytes, sha256
+`73d7bbf8…a01f`, crc32 `57c6ef68`. Every set is written for it. The image of S2.0 and S2.1
+(`480bbdd4…aa46`) stays beside their evidence.
+
+### The stage
+
+Parameters (words of the block; every other word must be zero, and the prober refuses the
+block before it looks at the device if one is not):
+
+| word | holds |
+|---|---|
+| 3, 4, 5 | the envelope — block type 0 as the census has it, `0x00000000..0x00401ba9` — and the reference frame `0xb99` |
+| 7 | how many states: 3 |
+| 9, 15 | the poll limit; the wait that touches no memory |
+| 16 | how many reads the list has |
+| 17 | the states, four bits each: `0x010` — all zero, all one, all zero. No other state exists in this stage |
+| 24 to 26, 28 to 31 | the PL envelope, the design's identification word, the four SLCR words: as in S2.1 |
+
+The list lies at `0x10180000`, one word a read: the address in the low 28 bits, the number
+of frames (1 to 3) above. The prober refuses a list with a count of 0 or above 3, an address
+outside the envelope, or a read that runs past it; it looks at exactly as many words as word
+16 says.
+
+What it does, in order: the gates of S2.1; the reference frame; the design's
+identification and one reading of the shift registers' outputs; CTL0; then for each state
+the RAM written and read back, the counter, **the reads of the list**, the RAM read again,
+the counter, the shift registers, the design's count of writes; CTL0; the reference frame.
+1,418 accesses to the design in a run of three states, all in the log.
+
+The result: the header, a PL block of 2,896 words (the log is longer than S2.1's), then
+records of the form stages 2 to 7 use — 4 and three times the list. Two words of a record
+that were free have a use in a read of the list: **the status (`INT_STS`) after the read**,
+and, where bit 5 showed in it, **what the register read after that bit was cleared**
+(otherwise `ffffffff`). The clearing writes `0x20` and nothing else, straight after the read
+that showed the bit.
+
+New stop: `0xa09`, the RAM did not hold its state after the frames were read. The stops of
+S2.1 for the design (`0xa02`, `0xa04` to `0xa07`) and the gate stops are as there.
+
+### The shares
+
+Made from the census by `s2_2_shares.py` and by nothing else: the columns of block type 0 in
+the order the device named them, each read in threes from its first address, whole columns
+to a run.
+
+| share | reads | frames | addresses |
+|---|---|---|---|
+| 0 | 174 | 516 | `0x00000000 .. 0x0000071b` |
+| 1 | 174 | 516 | `0x00000780 .. 0x00000ea3` |
+| 2 | 174 | 520 | `0x00000f00 .. 0x00001623` |
+| 3 | 176 | 524 | `0x00001680 .. 0x004001a3` |
+| 4 | 172 | 508 | `0x00400200 .. 0x00400923` |
+| 5 | 176 | 524 | `0x00400980 .. 0x004010a3` |
+| 6 | 172 | 512 | `0x00401100 .. 0x00401823` |
+| 7 | 82 | 244 | `0x00401880 .. 0x00401ba9` |
+
+1,300 reads, 3,864 frames: every address of block type 0, each once. A list holds at most
+178 reads (section 19 said 179: the longer log took the room of one).
+
+**The rule for the address register**, which the judge holds every read to: the register
+passes through the addresses in the census's order, with one place more after the last
+frame of a row, where it still shows that frame's address; after a read of n frames it is
+n + 1 places on. This is S1b's finding written as one rule. It is held against everything
+the board has said: all 25,230 clean records of the stored chains obey it — 1,900 of them
+reads of three frames, some ending at a row's last frame — and so do the reads of S2.0 and
+S2.1.
+
+### The judge, the chain, the closing
+
+The judge is section 19's: the list read is the list planned, read by read, in every state,
+and the list is one made from the census; the address register; the log of accesses walked
+against the sequence; the status after every read and the rule for the clearing; CTL0 the
+same before and after; then every bit by its three readings. A run passes with any number
+of candidates; restless bits fail it.
+
+`s2_2_chain.py` drives the runs (a `reset`, then the run script, as S1b's chains did),
+judges every stored run again from its raw words before it relies on it, and holds the
+stored verdict to what the judge says now. It halts at a run that is not a passing run of
+its share and **runs nothing again**. When every share has its run it closes the step: the
+addresses read are counted against block type 0, the candidates of all runs against the
+256 cells the design has, and the outcome is said in section 19's numbers — 1 (256), 2
+(none), 3 (fewer), 4 (more), with 5 (some inverted) and 9 (bit 5, by run) beside it. The
+places are written to `candidates.json`, labelled closed-book.
+
+### Where what was built differs from sections 19 and 20
+
+1. **The list goes to the board as a file, by YMODEM, like the prober** — not word by word
+   as the parameters do. 178 words would be 178 exchanges at the prompt in every run. What
+   is in memory is held to the list by U-Boot's checksum before `go`, whichever way it came,
+   and the file sent is kept beside the run's record (`list.bin`).
+2. **There is no separate echo of the list.** Every record says which address and how many
+   frames it read; the judge holds the records to the planned list. A run that stops early
+   has said nothing of the reads it did not make.
+3. **A read that fails ends the run there**, with the stop of the interface or, for a short
+   read or a pad that is not zero, `0x400`. Stages 2 to 7 read the reference frame once
+   more before such a stop; this stage does not.
+4. **All four DEVCFG words are read before the first failing gate ends the run** (S2.1's
+   stage returned at the first). The header then has all of them. The SLCR is still read
+   only once the gates before it hold, and nothing is written in either case.
+5. **The chain's driver and the closing are one program.**
+6. **The shift registers** are read once before the first state; every later reading is
+   held to that one by the prober, and that one to the design's words by the judge.
+7. **`status_seen.py` is not changed.** It lists bits from the transfers' own status words;
+   the status after a read is another word, and bit 5 there is reported by the judge
+   (`bit_5`) and by the chain's closing.
+
+### What cannot be told, and is said so in the tests
+
+- **A bit that flips once, in the all-one state, reads 0, 1, 0 as a cell does.** Three
+  states cannot tell them apart. What stands against it is the count — one more than the RAM
+  has cells is outcome 4 — and after that S2.3's code probes.
+- Where the cells show in the twin is made up by the tests, differently for every seed.
+  That the judge finds them wherever they are put says the judge is right about a device
+  that behaves so; whether the board does is the run.
+- A reference frame that held cells of the RAM would end a run with a health stop only if
+  the last state differed from what was loaded. With the set's states it would not; and on
+  the board the frame is all zero under `s2a` before and after the RAM was written (S2.1).
+
+### Tests that changed their statement
+
+- The bound on the image's size: 16 KiB since the first commit, 32 KiB now. Stage 8 came
+  within 24 bytes of it, and no part of the memory map sets a bound (the image is at
+  `0x02000000`; the next thing above is the PL design at `0x04000000`). It is a guard
+  against growth by accident, and says so.
+- The list of data constants a literal pool may hold has one more (which words of the
+  block stage 8 uses); the one instruction that forms the PL's base is matched with a
+  register's other name as well.
+- The audit of stored runs takes a run of a share with its list.
+
+### Mutants
+
+949 mutants, none stale by the tool's own rule (735 before). Eleven older ones were anchored
+on lines this work changed and were set right. 214 are new: 75 of stage 8, 88 of its judge,
+14 of the shares and the rule for the register, 26 of the chain, 11 of the run script.
+
+**They have not all been run.** The first run, of stage 8's, was stopped by the host after
+66 mutants: the machine was short of memory, with eight copies of the suite running. I did
+not start it again; that is for the owner to say. What the 66 showed
+(`evidence/host_checks/mutants_2026-11-21_s2_2_first_part.txt`): 62 killed, 2 survived, 2
+that the tool could not judge.
+
+- *Survived: a list one read longer than a list may be.* The test for it passed for the
+  wrong reason: the twin refuses a read beyond the list's room and hands the prober a zero,
+  and the prober then refuses the list for that word. On a board the word would be read and
+  the result area overrun. The test now also asks that the twin saw nothing it refuses;
+  tried by hand, the mutant fails it.
+- *Survived: a read of no frame taken from the list.* The same line refuses such a read a
+  second time, by its last condition (a count of zero, less one, is above every distance).
+  The mutant changes nothing that can be seen and was taken out; the plain check stays.
+- *Not judged, two:* each put a new constant into the image, which the test of the image's
+  literals refuses, and with the image every test that needs it fell — the tool counts that
+  as a mutant that did not build. One said nothing the others do not and was taken out; the
+  other was written again without a new constant (where bit 5 shows, the transfers' bits
+  are cleared instead of it) and, tried by hand, fails two tests.
+
+Not run at all so far: 13 of stage 8's, the two just changed, and every mutant of the judge,
+of the shares, of the chain and of the run script, with the eleven that were set right. They
+are due before this section can be called reviewed, and the complete set after that. A run
+of the suite alone takes about 1 GB at its peak; eight at once fitted this machine on
+2026-11-20, and why they did not today I do not know.
+
+### My slips
+
+- I counted the accesses of a state as 452; they are 451. A comment and a test said 452
+  until the test ran.
+- The made-up device of the first tests had nothing after block type 0, so the last read's
+  register had no value to be held to; the real census has. Seen at the first run of the
+  tests.
+- Eleven older mutants were anchored on lines this work changed. This time they were found
+  by the tool's own rule before any run (section 16), not by a run.
+- In the check of a list, one condition I wrote is unreachable for any list of consecutive
+  addresses the census can have (a read across a column's end is already an address the census does not
+  have). I kept it — it guards the one place where an address is added to — and gave it a
+  test with a census in which two columns are neighbours by number.
+
+### For the board, when the owner has reviewed this
+
+- **The mutants of this work** that have not been run, and then **the complete set**, as the
+  rule has it: 949 now, about nine hours on this host by yesterday's rate.
+- Then, on the owner's word, the chain: a pre-check as before every step; `s2a.bit` is on
+  the card; eight runs with a `reset` before each, about an hour; the first run's result
+  committed before the second starts.
+- If the first access to the design at the prompt does not return, the board has to be
+  switched off and on, as in S2.1.

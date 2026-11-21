@@ -714,7 +714,8 @@ class StoredBoardResults(unittest.TestCase):
         three complete chains, the run at `0x01800000`, and every other stored run with a passing walk. The stored
         document is what the program gives now, from the raw words of the chains; and what census/README.md says of
         it is held here. Nothing in it is graded."""
-        import jsonschema, s1_census
+        import jsonschema, s1_census, stage_designs
+        stage_designs.stage()                           # the document says the design's hash was held against the file: the file has to be staged (section 24 of the S2 plan)
         e = ROOT / "evidence"
         parts = [s1_census.chain_part(s, e / d, KNOWN) for s, d in (("s1b3", "s1b3_17A6_2026-11-17"), ("s1b4", "s1b4_17A6_2026-11-18"), ("s1b5", "s1b5_17A6_2026-11-19"))]
         also = [(n, s1_census.stored_verdicts(e / d)) for n, d in (("s1b1r", "s1b1r_17A6_2026-11-15"), ("dx", "dx_17A6_2026-11-15"), ("quiet", "quiet_17A6_2026-11-15"),

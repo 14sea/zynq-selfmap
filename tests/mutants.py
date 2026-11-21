@@ -1077,6 +1077,9 @@ MUTANTS = [
     (CHAIN8, 'chain8: every run is of share 0', '        runner(a["next_share"], out)', '        runner(0, out)'),
     (CHAIN8, 'chain8: inverted candidates are not counted', '    inverted = sum(1 for c in found if c["inverted"])', '    inverted = 0'),
     (CHAIN8, 'chain8: bit 5 is not reported by run', '"bit_5": {r["dir"]: r["bit_5_shown_after_records"] for r in runs if r["bit_5_shown_after_records"]},', '"bit_5": {},'),
+    # section 24: the two designs staged from their copies in git
+    ("host/stage_designs.py", 'designs: a copy that is not what its record says is staged', '        if (hashlib.sha256(data).hexdigest(), len(data)) != (d["sha256"], d["bytes"]):', '        if False:'),
+    ("host/stage_designs.py", 'designs: a design that is there is written over', '        if d["staged"].exists():', '        if False:'),
     (RUN, 'run s2.2: the dry run says the result begins after 64 words whatever the stage', '''        size = f"{STAGES[a.stage]['judge'].HDR}+''', '''        size = f"64+'''),
     (RUN, 'run s2.2: a share is given to a set that has none', '    if stage not in SHARES_AT_RUN_TIME:', '    if False:'),
     (RUN, 'run s2.2: a share that does not exist is taken', '    if not 0 <= share < len(every):', '    if not share < len(every):'),

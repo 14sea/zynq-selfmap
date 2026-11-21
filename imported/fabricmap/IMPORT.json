@@ -1,7 +1,7 @@
 {
  "schema": "import_record",
  "schema_version": 1,
- "why": "docs/s2_plan.md, section 12, point 4 (owner, 2026-11-20): the AXI3 front of the probe design s2a is copied, with its bench, and nothing else of that project is. Both files are used unchanged; neither names a site or a frame address.",
+ "why": "docs/s2_plan.md, section 12, point 4 (owner, 2026-11-20): the AXI3 front of the probe design s2a is copied, with its bench. Both files are used unchanged; neither names a site or a frame address. docs/s2_plan.md, section 24 (owner, 2026-11-21): the bitstream of the carrier design is copied as well \u2014 the design every run of S1 and S2.0 was made with \u2014 so that a clean copy of this repository has it. It is an opaque file here: loaded, hashed, never looked into. Nothing else of that project is copied.",
  "files": {
   "carrier_axi3_lite.v": {
    "from_repo": "zynq-fabricmap (github.com/14sea/zynq-fabricmap)",
@@ -20,6 +20,17 @@
    "copied": "2026-11-20",
    "modified": false,
    "licence": "Apache-2.0"
+  },
+  "carrier.bit": {
+   "from_repo": "zynq-fabricmap (github.com/14sea/zynq-fabricmap)",
+   "from_path": "gate_runs/claimb_round1_carrier_2026_08_13_erratum006/carrier.bit",
+   "from_commit": "90829f8e10d4c8569393a090f96982116015efee",
+   "sha256": "8c3369e8e4755da5aceeb7844690d5e132b2e65647004c0a46c0e868e34f0b8a",
+   "bytes": 2083863,
+   "copied": "2026-11-21",
+   "modified": false,
+   "licence": "Apache-2.0",
+   "build_record": "gate_runs/claimb_round1_carrier_2026_08_13_erratum006/carrier_build.json in that repository; data/known_frames_17A6.json here names the same hash"
   }
  }
 }

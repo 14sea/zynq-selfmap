@@ -205,6 +205,8 @@ class ClosedBook(unittest.TestCase):
         for path in [*PLD.iterdir(), *IMPORTED.iterdir()]:
             if path.name in ("slicem_sites.txt", "IMPORT.json"):      # a list of names; a record whose own sentence says "names no frame address"
                 continue
+            if path.name == "carrier.bit":                           # the carrier's bitstream (section 24): not a text, and nothing here reads into it
+                continue
             text = path.read_text()
             for word in ("prjxray", "segbits", "tilegrid", "baseaddr", "frame address"):
                 self.assertNotIn(word.lower(), text.lower(), f"{path.name}: {word}")

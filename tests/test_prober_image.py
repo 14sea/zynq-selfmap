@@ -5,11 +5,14 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 import unittest
 import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "host"))
+import stage_designs  # noqa: E402
 BUILD = ROOT / "build" / "prober"
 DEVICE_ADDRESSES = {0xF8007000, 0xF800700C, 0xF8007014, 0xF8007018, 0xF800701C, 0xF8007020, 0xF8007024, 0xF8007080,
                     0xE000102C, 0xE0001030, 0xE0001000}
@@ -33,6 +36,7 @@ class Image(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "all"], check=True)
+        stage_designs.stage()                           # build/ made ready: with the image and the sets, the two designs where they are missing (section 24)
         cls.dis = (BUILD / "prober.dis").read_text()
         cls.size = (BUILD / "prober.size").read_text()
         cls.bin = (BUILD / "prober.bin").read_bytes()

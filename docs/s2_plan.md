@@ -22,7 +22,8 @@ own side (section 18).** **S2.2 is proposed in full in section 19 and agreed, al
 points as recommended (section 20); its host side is built and waits for the owner's review
 (section 21) — its mutants have not all been run. A first review found one fault, mended
 (section 22): the status read after a read of the list was judged for bit 5 alone. A second
-found six; five are mended and one is the owner's to decide (section 23).** S2.3 to S2.5 are not proposed in full yet.
+found six; five are mended (section 23), and the sixth on the owner's decision (section 24):
+a clean copy of the repository now runs every test.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1479,7 +1480,7 @@ been on a board; the image is a new one again.**
 | 1 | high — an error bit between two transfers of one read is cleared unseen | mended (the owner's word: before the board) |
 | 2 | high — a chain that is gone on with does not hold its stored runs to the prober image and the design | mended |
 | 3 | medium — the chain's driver runs on without the first run committed | mended |
-| 4 | medium — a clean copy of the repository cannot run the tests | reproduced; **for the owner** |
+| 4 | medium — a clean copy of the repository cannot run the tests | reproduced; for the owner — decided and mended, section 24 |
 | 5 | low — the dry run states the wrong length of the result | mended |
 | 6 | low — a stored record that is not a record ends in an exception; a list of candidates outlives its chain | mended |
 
@@ -1593,3 +1594,43 @@ The mutants of S2.2 that the tool has not run, then the complete set (990), then
 word; the board's serial adapter has not been attached to this host since 2026-11-20. With
 the driver as it is now the first step on the board is one run, a commit of it, and then
 the rest.
+
+## 24. The carrier imported; a clean copy runs the tests (owner, 2026-11-21)
+
+Finding 4 of section 23. The owner's decision: import the carrier's bitstream, with a record
+of where it is from. This adds to section 12, point 4, which had two files of zynq-fabricmap
+copied and nothing else; the import record now says both decisions.
+
+**What was done.**
+
+- `imported/fabricmap/carrier.bit`: 2,083,863 bytes, sha256 `8c3369e8…0b8a`, from
+  zynq-fabricmap `gate_runs/claimb_round1_carrier_2026_08_13_erratum006/carrier.bit` at
+  commit `90829f8e`, unchanged. It is byte for byte the file every run of S1 and S2.0 was
+  made with (`build/pl/carrier.bit` here), and its hash is the one zynq-psmap's record of
+  the known frames names (`data/known_frames_17A6.json`). The record is
+  `imported/fabricmap/IMPORT.json`.
+- `host/stage_designs.py`: puts a design that is missing in `build/pl/` there from its copy
+  in git, once the copy has the hash and length its record gives — the carrier from the
+  import, held to the import record; `s2a.bit` from `evidence/s2_1_17A6_2026-11-20/`, held
+  to `pl/s2a/build.json`. A copy that is not what its record says is refused and nothing is
+  written. A design that is already staged is left as it is: the run script and the chain
+  hold what is staged to the set before they use it.
+- The tests' step that makes `build/` ready (the image built, the sets written:
+  `tests/test_prober_image.py`) stages the designs as well; the one test that needs a
+  design without going through that step stages it itself.
+
+The files stay opaque: read whole, hashed, written. The test that reads every file of the
+design for a word of the database or a frame address passes the bitstream by, and says why.
+
+**Held.** An archive of the tree as committed, with no `build/` and no `.git`: the whole
+suite passes — 798 tests, one skipped (it asks git which files are tracked, and there is no
+git there). The prober built there from source is the image of section 23 (`e44c5d7b…bda4`).
+Before, the same archive gave 12 failures and 450 errors.
+
+798 tests (791 before). 992 mutants, none stale; the two new ones, of the staging program,
+were tried by hand and fail its tests. One thing no mutant can show in the working tree:
+that the readiness step stages the designs at all — with `build/` in place nothing is
+missing. Only a clean copy shows it, and that was run by hand as said above. None of the
+mutants of S2.2 has been run by the tool yet (sections 21 to 23).
+
+Not changed: `build/` stays out of git; a design is not built again by any test.

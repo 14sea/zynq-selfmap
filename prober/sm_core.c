@@ -164,6 +164,17 @@ static uint32_t poll_mode(void)
     return (stage >= 4u && stage <= 8u) ? par(P_DIAG_STACK) >> DIAG_POLL_SHIFT : POLL_AS_BEFORE;
 }
 
+/* What a transfer writes to INT_STS before it begins. Every stage up to 7 clears the error bits with the two done
+ * bits, and then holds the register to be clean: an error bit that appeared after the transfer before was seen done
+ * is cleared without ever having been read. Stage 8 clears the done bits alone (reviews of 9fa606e and 334df53: a
+ * read of the register before the clearing still left the moment between that read and the write). No error bit is
+ * cleared by stage 8 at any time, so one that shows after the clearing stood there before it: C_LATE, and the
+ * transfer is not queued. The other stages make the accesses they always made, with the values they always wrote. */
+static uint32_t begin_mask(void)
+{
+    return par(P_STAGE) == 8u ? STS_DONE_MASK : STS_CLEAR_MASK;
+}
+
 /* The wait that stores nothing (diagnostics): the write that queues the command, then the same polls and the same
  * four ways out as in dma() below, with the status and the count kept in registers until the transfer is over. With
  * `limit_at` the limit is read through it on every poll — the caller passes the stack slot the original loop loads
@@ -195,9 +206,11 @@ static uint32_t dma_quiet(uint32_t mode, uint32_t src, uint32_t dst, uint32_t sl
     uint32_t v;
 
     *polls = 0u;
-    hal_wr(DEVCFG_INT_STS, STS_CLEAR_MASK);
+    hal_wr(DEVCFG_INT_STS, begin_mask());
     v = hal_rd(DEVCFG_INT_STS);
     *sts = v;
+    if ((v & STS_ERR_MASK) && begin_mask() == STS_DONE_MASK)
+        return C_LATE;
     if (v & STS_CLEAR_MASK)
         return C_STALE;
     if (!(v & STS_PCFG_DONE))
@@ -215,24 +228,15 @@ static uint32_t dma(uint32_t src, uint32_t dst, uint32_t slen, uint32_t dlen, ui
 {
     uint32_t s, n;
 
-    /* Stage 8 (review of 9fa606e): every transfer begins by clearing the register, so an error bit that appeared
-     * after the transfer before this one was seen done was cleared without ever having been read. In stage 8 the
-     * register is read first, and an error bit in it ends the transfer before anything is cleared or queued. The
-     * other stages make the accesses they always made. */
-    if (par(P_STAGE) == 8u) {
-        s = hal_rd(DEVCFG_INT_STS);
-        if (s & STS_ERR_MASK) {
-            *sts = s; *polls = 0u;
-            return C_LATE;
-        }
-    }
     n = poll_mode();                                    /* read before anything is sent */
     if (n != POLL_AS_BEFORE)                            /* diagnostics; from here on this function is as it always was */
         return dma_quiet(n, src, dst, slen, dlen, poll_limit, &poll_limit, sts, polls);
     *polls = 0u;
-    hal_wr(DEVCFG_INT_STS, STS_CLEAR_MASK);
+    hal_wr(DEVCFG_INT_STS, begin_mask());
     s = hal_rd(DEVCFG_INT_STS);
     *sts = s;
+    if ((s & STS_ERR_MASK) && begin_mask() == STS_DONE_MASK)
+        return C_LATE;
     if (s & STS_CLEAR_MASK)
         return C_STALE;
     if (!(s & STS_PCFG_DONE))
@@ -860,6 +864,29 @@ static uint32_t s8_sts(uint32_t s)
     return (s & STS_ERR_MASK) ? C_DEVERR : !(s & STS_PCFG_DONE) ? C_DONE_DROPPED : C_OK;
 }
 
+/* One read of stage 8, and the register as the read left it: recorded and held to s8_sts, after every read — of the
+ * list, of CTL0 and of the reference frame alike (review of 334df53: after the reads that are not of the list the
+ * register was not looked at, and the design was written before the next transfer met the bit). `clear5`: a read of
+ * the list, after which bit 5 is cleared, alone, where it shows and nothing is amiss; what the register reads then
+ * is recorded and held to the same. The record's code is the read's own, or what the register says. */
+static uint32_t s8_read(uint32_t rec, uint32_t far, uint32_t n, uint32_t kind, uint32_t repeat, uint32_t op,
+                        uint32_t lo, uint32_t hi, uint32_t limit, uint32_t clear5)
+{
+    uint32_t code = read_op(rec, far, n, kind, repeat, op, lo, hi, limit), g = hal_rd(DEVCFG_INT_STS);
+
+    r2_wr(rec, REC2_FARBLK + F_STS_AFTER, g);
+    if (code == C_OK)
+        code = s8_sts(g);
+    if (clear5 && code == C_OK && (g & STS_SEU_ERR)) {
+        hal_wr(DEVCFG_INT_STS, STS_SEU_ERR);
+        g = hal_rd(DEVCFG_INT_STS);
+        r2_wr(rec, R8_STS_CLEARED, g);
+        code = s8_sts(g);
+    }
+    r2_wr(rec, R_CODE, code);
+    return code;
+}
+
 static uint32_t s8_end(uint32_t code, uint32_t rec)     /* a read that was not clean: the status the run ends with */
 {
     return finish2(IS_INTERFACE(code) ? (S_STOP_INTERFACE | code) : S_STOP_BUDGET, rec, 1u, rec - 1u);
@@ -925,7 +952,7 @@ static uint32_t run_s8(void)
     if (x)
         return finish2(x, 0u, 0u, 0xFFFFFFFFu);
 
-    code = read_op(rec, ref, 1u, KIND_BASELINE, 0u, 0xFFFFFFFFu, lo, hi, limit);
+    code = s8_read(rec, ref, 1u, KIND_BASELINE, 0u, 0xFFFFFFFFu, lo, hi, limit, 0u);
     rec++;
     if (code != C_OK)
         return finish2(S_STOP_BASELINE | code, rec, 0u, 0u);
@@ -941,7 +968,7 @@ static uint32_t run_s8(void)
     if (plb_rd(PLB_CODE) != PLC_OK)
         return finish2(S_STOP_PL | plb_rd(PLB_CODE), rec, 0u, 0xFFFFFFFFu);
 
-    code = read_op(rec, ref, N_NONE, KIND_TARGET, 0u, OP8_CTL0, lo, hi, limit);
+    code = s8_read(rec, ref, N_NONE, KIND_TARGET, 0u, OP8_CTL0, lo, hi, limit, 0u);
     rec++;
     if (code != C_OK)
         return s8_end(code, rec);
@@ -959,18 +986,7 @@ static uint32_t run_s8(void)
 
         for (k = 0; k < n_list; k++) {
             w = hal_mem_rd(LIST_ADDR + 4u * k);
-            code = read_op(rec, LIST_FAR(w), LIST_N(w), KIND_TARGET, s, k, lo, hi, limit);
-            g = hal_rd(DEVCFG_INT_STS);
-            r2_wr(rec, REC2_FARBLK + F_STS_AFTER, g);
-            if (code == C_OK)
-                code = s8_sts(g);
-            if (code == C_OK && (g & STS_SEU_ERR)) {    /* bit 5 shows, and nothing else is amiss: that bit is cleared and no other, and what the register reads then is kept and judged */
-                hal_wr(DEVCFG_INT_STS, STS_SEU_ERR);
-                g = hal_rd(DEVCFG_INT_STS);
-                r2_wr(rec, R8_STS_CLEARED, g);
-                code = s8_sts(g);
-            }
-            r2_wr(rec, R_CODE, code);                   /* the read's own code, or what the status after it says */
+            code = s8_read(rec, LIST_FAR(w), LIST_N(w), KIND_TARGET, s, k, lo, hi, limit, 1u);
             rec++;
             if (code != C_OK)
                 return s8_end(code, rec);
@@ -993,11 +1009,11 @@ static uint32_t run_s8(void)
             return finish2(S_STOP_PL | plb_rd(PLB_CODE), rec, 0u, 0xFFFFFFFFu);
     }
 
-    code = read_op(rec, ref, N_NONE, KIND_TARGET, n_states, OP8_CTL0, lo, hi, limit);
+    code = s8_read(rec, ref, N_NONE, KIND_TARGET, n_states, OP8_CTL0, lo, hi, limit, 0u);
     rec++;
     if (code != C_OK)
         return s8_end(code, rec);
-    code = read_op(rec, ref, 1u, KIND_FINAL, n_states, 0xFFFFFFFFu, lo, hi, limit);
+    code = s8_read(rec, ref, 1u, KIND_FINAL, n_states, 0xFFFFFFFFu, lo, hi, limit, 0u);
     x = ref_healthy(rec, code);
     r2_wr(rec, R_REF_EQUAL, x);
     rec++;

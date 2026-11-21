@@ -57,6 +57,22 @@ class TheCopiesInGit(unittest.TestCase):
             self.assertEqual(d["staged"].read_bytes(), d["copy"].read_bytes(), d["name"])
 
 
+class TheReadinessStep(unittest.TestCase):
+    def test_no_test_class_makes_build_ready_once_for_all_its_tests(self) -> None:
+        """The step that makes build/ ready is the image's own tests, run as a command that must succeed. A class that
+        runs it in setUpClass loses all its tests when one test of the image fails: the suite then runs fewer tests,
+        and the mutant tool, which counts them, calls the mutant one that did not build. One class did (found
+        2026-11-21, section 25 of the S2 plan); every mutant that only the image's tests catch was BROKEN for it."""
+        import ast
+        for path in sorted((ROOT / "tests").glob("test_*.py")):
+            tree = ast.parse(path.read_text())
+            for cls in (n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)):
+                for fn in (n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name in ("setUpClass", "tearDownClass")):
+                    self.assertNotIn("test_prober_image", ast.unparse(fn), f"{path.name}: {cls.name}.{fn.name}")
+            for fn in (n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in ("setUpModule", "tearDownModule")):
+                self.assertNotIn("test_prober_image", ast.unparse(fn), f"{path.name}: {fn.name}")
+
+
 class Staging(unittest.TestCase):
     """On a made-up tree with the same places and small files."""
 

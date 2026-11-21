@@ -208,7 +208,8 @@ class Judge(unittest.TestCase):
         self.assertEqual(v["bit_5"], {"shown_after_records": [], "cleared_after_records": [], "still_set_after_clearing": []})
         self.assertEqual(len(v["records"]), N)
         self.assertEqual(v["records"][2]["int_sts_after"], f"{r.rec(2)['after']:08x}")
-        self.assertNotIn("int_sts_after", v["records"][1])
+        self.assertIn("int_sts_after", v["records"][1], "the status after every read, of the list or not")
+        self.assertNotIn("int_sts_after_clearing_bit_5", v["records"][1])
 
     def test_wherever_the_cells_are_put_that_is_where_they_are_found(self) -> None:
         for seed in (2, 3, 5, 11):
@@ -287,15 +288,27 @@ class Judge(unittest.TestCase):
                 v = judged(r)
                 self.assertEqual((v["verdict"], v["problems"]), ("FAIL", [f"the run did not complete: status {0x200 | code:#x}", "1 anomalous read(s)"]))
                 self.assertEqual(v["records"][-1]["code"], f"{code:#x}")
+        # review of 334df53: after the reads that are not of the list as well
+        for fault, status, tail in (("lateerr@5", 0x621, []), ("lateerr@9", 0x221, ["1 anomalous read(s)"]), ("lateerr@313", 0x221, ["1 anomalous read(s)"]),
+                                    ("lateerr@318", 0x221, []), ("latedrop@9", 0x223, ["1 anomalous read(s)"]), ("latedrop@318", 0x223, [])):
+            with self.subTest(fault):
+                v = judged(Run(fault))
+                self.assertEqual((v["verdict"], v["problems"]), ("FAIL", [f"the run did not complete: status {status:#x}"] + tail))
+        v = judged(Run("donestays"))                     # a done bit that would not clear: the other code of a transfer that was never queued
+        self.assertEqual((v["verdict"], v["problems"], v["records"][0]["code"]), ("FAIL", ["the run did not complete: status 0x620"], "0x20"))
         v = judged(Run("bit5@2,short@2"))              # a read that failed by itself, bit 5 showing after it: nothing is cleared, and nothing is missed
         self.assertEqual((v["verdict"], v["bit_5"]), ("FAIL", {"shown_after_records": [2], "cleared_after_records": [], "still_set_after_clearing": []}))
         self.assertFalse([p for p in v["problems"] if "clearing" in p or "raw words" in p], v["problems"])
 
     def test_an_error_bit_met_before_a_transfer_begins_is_a_stop_the_record_itself_shows(self) -> None:
         """Review of 9fa606e (section 23): stage 8 reads the register before it clears it; code 0x24."""
-        for d, status in ((2, 0x624), (7, 0x224), (10, 0x224), (11, 0x224), (12, 0x224), (13, 0x224), (311, 0x224), (315, 0x224)):
-            with self.subTest(after_command=d):
-                r = Run(f"lateerr@{d}")
+        for fault, status in (("lateerr@2", 0x624), ("lateerr@7", 0x224), ("lateerr@10", 0x224), ("lateerr@11", 0x224), ("lateerr@12", 0x224), ("lateerr@13", 0x224),
+                              ("lateerr@311", 0x224), ("lateerr@315", 0x224),
+                              # review of 334df53: the bit set just before the write that begins a transfer — it passed
+                              ("preclear@1", 0x624), ("preclear@6", 0x224), ("preclear@10", 0x224), ("preclear@11", 0x224), ("preclear@14", 0x224),
+                              ("preclear@15", 0x224), ("preclear@314", 0x224)):
+            with self.subTest(fault):
+                r = Run(fault)
                 v = judged(r)
                 self.assertEqual((r.status, v["verdict"], v["problems"][0]), (status, "FAIL", f"the run did not complete: status {status:#x}"))
                 self.assertFalse([p for p in v["problems"] if "raw words" in p or "implies" in p or "imply" in p], v["problems"])
@@ -517,8 +530,14 @@ class Tampered(unittest.TestCase):
         self.says(self.changed({self.rec_at(6, cleared): 0xFFFFFFFF}), "record 6: bit 5 shows in the status after the read", "nothing is recorded of its clearing")
         self.says(self.changed({self.rec_at(7, cleared): 0x50033004}), "record 7: a clearing of bit 5 is recorded (50033004) although the status after the read")
         self.says(self.changed({self.rec_at(6, 2): 0x23}), "record 6: code 0x23, but its raw words say 0x0")
-        self.says(self.changed({self.rec_at(1, after): 0x50033004}), "record 1: a status after the read is recorded in a read that is not of the list")
-        self.says(self.changed({self.rec_at(0, after): 0x50033004}), "record 0: a status after the read is recorded in a read that is not of the list")
+        # the reads that are not of the list have the word too (review of 334df53), held to the same; nothing is cleared after them
+        w = self.r.words
+        for i in (0, 1, N - 2, N - 1):
+            self.says(self.changed({self.rec_at(i, after): w[self.rec_at(i, after)] | 0x00040000}), f"record {i}: code 0x0, but its raw words say 0x21")
+            self.says(self.changed({self.rec_at(i, after): w[self.rec_at(i, after)] & ~4}), f"record {i}: code 0x0, but its raw words say 0x23")
+            self.says(self.changed({self.rec_at(i, after): 0}), f"record {i}: code 0x0, but its raw words say 0x23")
+        v = self.changed({self.rec_at(1, after): w[self.rec_at(1, after)] | 0x20})
+        self.assertEqual((v["verdict"], v["bit_5"]["shown_after_records"], v["bit_5"]["cleared_after_records"]), ("PASS", [1, 6], [6]), "bit 5 after CTL0: recorded, reported, left")
         v = self.changed({self.rec_at(6, cleared): self.r.words[self.rec_at(6, cleared)] | 0x20})
         self.assertEqual((v["verdict"], v["bit_5"]["still_set_after_clearing"]), ("PASS", [6]), "a bit 5 that did not clear is reported, not judged")
 
@@ -559,20 +578,22 @@ class Tampered(unittest.TestCase):
         self.assertIn("record 2: code 0x21, but its raw words say 0x0", problems({at(cleared): r.words[at(cleared)] & ~0x00040000}, r))
 
     def test_the_code_of_an_error_bit_met_before_a_transfer_with_one_thing_changed(self) -> None:
-        """Code 0x24 is what the words can mean only where a transfer that was never queued recorded an error bit.
-        Whether that word was read before the clearing (0x24) or after it (0x20, a bit that would not clear) the one
-        word does not say: either code is taken there, and neither anywhere else."""
+        """Stage 8 never clears an error bit, so the word of a transfer that was never queued says which it was: with
+        an error bit, one that stood there before the transfer (0x24); with a done bit still set, one that would not
+        clear (0x20). Section 23 had to take either code; now each is held."""
         r = Run("lateerr@11")                            # record 2: the frames were read, then the register command met the bit
         at = lambda field: HB + 2 * REC + field         # noqa: E731
         problems = lambda edits: judged(r, words=[edits.get(k, x) for k, x in enumerate(r.words)])["problems"]   # noqa: E731
-        self.assertEqual(r.words[at(FARBLK)] & 0x00040000, 0x00040000)
-        self.assertFalse([p for p in problems({at(2): 0x20}) if "raw words" in p], "0x20 there cannot be refuted")
-        self.assertIn("record 2: code 0x21, but its raw words say 0x20", problems({at(2): 0x21}))
-        self.assertIn("record 2: code 0x0, but its raw words say 0x20", problems({at(2): 0}))
-        self.assertIn("record 2: code 0x24, but its raw words say 0x20", problems({at(FARBLK): r.words[at(FARBLK)] & ~0x00040000}),
-                      "without an error bit in the word it is done bits that did not clear, and that is 0x20 alone")
+        word = r.words[at(FARBLK)]
+        self.assertEqual((word & 0x00043000, r.words[at(FARBLK + 1)]), (0x00040000, 0), "the error bit, the done bits cleared, no poll")
+        for code in (0, 0x20, 0x21, 0x23):
+            self.assertIn(f"record 2: code {code:#x}, but its raw words say 0x24", problems({at(2): code}))
+        self.assertIn("record 2: code 0x24, but its raw words say 0x20", problems({at(FARBLK): (word & ~0x00040000) | 0x1000}), "a done bit and no error bit: 0x20 alone")
         self.assertIn("record 2: code 0x24, but its raw words say 0x21", problems({at(FARBLK + 1): 2}), "with polls it is a transfer that failed while it ran")
         self.says(self.changed({self.rec_at(7, 2): 0x24}), "record 7: code 0x24, but its raw words say 0x0")
+        r = Run("donestays")
+        v = judged(r, words=[0x24 if k == HB + 2 else x for k, x in enumerate(r.words)])
+        self.assertIn("record 0: code 0x24, but its raw words say 0x20", v["problems"])
 
     def test_ctl0_read_differently_before_and_after(self) -> None:
         self.says(self.changed({self.rec_at(N - 2, FARBLK + 4): 0x00000401}), "CTL0 does not read the same before and after: 0x00000401 in record(s) [62], 0x00000501 in record(s) [1]")
@@ -679,10 +700,13 @@ def run8(share: int, census: dict | None = None, limit: int = s2_2_shares.LIST_M
 
 
 class WithAShare(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
+    def setUp(self) -> None:
+        # Before every test, not once for the class: where the image's own tests fail, each test here must be a test
+        # that ran and failed. Made ready once for the class, none of them ran, the suite counted six tests fewer, and
+        # the mutant tool took every mutant the image's tests are there to catch for one that did not build
+        # (docs/s2_plan.md, section 25; tests/test_stage_designs.py holds every test file to this).
         subprocess.run([sys.executable, "-B", "-m", "unittest", "tests.test_prober_image"], cwd=ROOT, check=True, capture_output=True)
-        cls.base = json.loads(s1a_run.STAGES["s2_2"]["expected"].read_text())
+        self.base = json.loads(s1a_run.STAGES["s2_2"]["expected"].read_text())
 
     def test_the_set_as_the_tests_write_it(self) -> None:
         par = [int(w, 16) for w in self.base["params"]]
@@ -875,17 +899,58 @@ class Chain(unittest.TestCase):
         git("init", "-q")
         self.assertIn("is not committed whole", s2_2_chain.committed(run), "an empty directory holds no run")
         (run / "result.bin").write_bytes(b"\x01\x02"); (run / "run.json").write_text("{}")
-        self.assertIn("not committed as they stand", s2_2_chain.committed(run))
+        self.assertIn("not in the last commit as they stand: ['result.bin', 'run.json']", s2_2_chain.committed(run), "a repository with no commit yet")
         git("add", "evidence/run00/run.json"); git("commit", "-q", "-m", "one of two")
-        self.assertIn("result.bin", s2_2_chain.committed(run), "one file committed is not the run committed")
-        git("add", "-A"); git("commit", "-q", "-m", "the run")
+        self.assertIn("['result.bin']", s2_2_chain.committed(run), "one file committed is not the run committed")
+        git("add", "-A")
+        self.assertIn("['result.bin']", s2_2_chain.committed(run), "added and not committed")
+        git("commit", "-q", "-m", "the run")
         self.assertEqual(s2_2_chain.committed(run), "")
         (run / "result.bin").write_bytes(b"\x01\x03")
-        self.assertIn("result.bin", s2_2_chain.committed(run), "a file changed since")
+        self.assertIn("['result.bin']", s2_2_chain.committed(run), "a file changed since")
+        # review of 334df53: a file git was told to assume unchanged, or to skip, shows in no `git status` — the bytes are what is held
+        for flag, back in (("--assume-unchanged", "--no-assume-unchanged"), ("--skip-worktree", "--no-skip-worktree")):
+            git("update-index", flag, "evidence/run00/result.bin")
+            self.assertEqual(subprocess.run(["git", "-C", str(repo), "status", "--porcelain"], capture_output=True, text=True).stdout, "", flag)
+            self.assertIn("['result.bin']", s2_2_chain.committed(run), flag)
+            git("update-index", back, "evidence/run00/result.bin")
         git("checkout", "-q", "--", "."); self.assertEqual(s2_2_chain.committed(run), "")
+        (run / "result.bin").unlink()
+        self.assertIn("['result.bin']", s2_2_chain.committed(run), "a file of the commit that is gone")
+        git("checkout", "-q", "--", ".")
         (repo / ".gitignore").write_text("*.log\n"); git("add", ".gitignore"); git("commit", "-q", "-m", "ignore")
         (run / "console.log").write_text("x")
-        self.assertIn("console.log", s2_2_chain.committed(run), "a file git ignores is a file that is not committed")
+        self.assertIn("['console.log']", s2_2_chain.committed(run), "a file git ignores is a file that is not committed")
+
+    def test_nothing_is_sent_for_a_run_the_run_script_would_refuse(self) -> None:
+        """Review of 334df53: the chain looked at the image kept with the runs, the run script loads the build's. With
+        the two apart the board was reset, the script refused, and a run directory without a record halted the chain."""
+        self.drive(max_new=1)
+        self.assertEqual(s2_2_chain.ready(self.root, self.base), "")
+        build = s1a_run.IMAGE
+        other = Path(scratch_dirs.mkdtemp(prefix="smimg_")) / "prober.bin"
+        other.write_bytes(build.read_bytes()[:-1] + bytes([build.read_bytes()[-1] ^ 1]))
+        s1a_run.IMAGE = other
+        self.addCleanup(setattr, s1a_run, "IMAGE", build)
+        self.assertEqual(self.assess()["state"], "go on", "what is stored stands: the image kept with the runs is the set's")
+        a = self.drive()
+        self.assertEqual((a["state"], self.calls, (self.root / "run01").exists()), ("go on", [0], False), "no run was started and no directory left")
+        self.assertEqual(a["held"], "nothing was sent: the image of the build, which the run script would load, is not the image the set declares")
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["held"], a["held"])
+        # a set that declares the build's image, while another is kept with the runs
+        moved = dict(self.base, image_sha256=hashlib.sha256(other.read_bytes()).hexdigest(), image_crc32=f"{zlib.crc32(other.read_bytes()) & 0xFFFFFFFF:08x}")
+        self.assertEqual(s2_2_chain.ready(self.root, moved), "the image of the build, which the run script would load, is not the image kept with the runs")
+        s1a_run.IMAGE = other.parent / "none.bin"
+        self.assertEqual(s2_2_chain.ready(self.root, self.base), "there is no image of the build for the run script to load")
+        s1a_run.IMAGE = build
+        self.assertEqual(self.drive()["state"], "complete")
+
+    def test_the_run_script_s_own_dry_run_is_asked_before_the_board_is_reset(self) -> None:
+        self.assertEqual(s2_2_chain.refusal(0), "")
+        self.assertTrue(s2_2_chain.refusal(8).startswith("REFUSED: "), s2_2_chain.refusal(8))
+        src = (ROOT / "host" / "s2_2_chain.py").read_text().split("def board_runner")[1]
+        self.assertLess(src.index("refusal(share)"), src.index('u.cmd("reset"'), "asked before anything is sent")
+        self.assertLess(src.index("raise RuntimeError"), src.index("u = UB()"), "and a refusal ends it before the console is opened")
 
     def test_the_driver_keeps_the_image_with_the_runs_and_the_chain_says_what_it_was_made_with(self) -> None:
         a = self.drive(max_new=1)

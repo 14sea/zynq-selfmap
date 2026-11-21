@@ -21,7 +21,9 @@ copy the driver keeps with the runs when it makes the first (DIR/prober.bin), th
 is the design. A chain whose runs were made with another image or another design does not go on.
 
 **The first run is made alone.** No second run is started before everything in DIR/run00 is committed to git as it
-stands (docs/s2_plan.md, section 21: the first run's result is committed before the second starts).
+stands (docs/s2_plan.md, section 21: the first run's result is committed before the second starts). And no run is
+started — the board is not reset for one — unless the image the run script will load is the one the set declares
+and the one kept with the runs, and the run script's own dry run of that share refuses nothing.
 
 Anything else halts it. Nothing is run again: a run directory that does not hold a passing run stays where it is and
 the chain stands there until someone has looked and moved it. (A reply that showed a restart, a result that could not
@@ -133,24 +135,52 @@ def bound(rec: dict, d: Path, exp: dict, held: dict) -> list[str]:
 
 
 def committed(path: Path) -> str:
-    """Why `path` is not in git as it stands: "" if every file under it is tracked and unchanged."""
-    def git(*args: str) -> subprocess.CompletedProcess:
-        return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True)
+    """Why `path` is not in git as it stands: "" if the last commit holds exactly the files that are under it now,
+    each with the bytes it has now. The files are hashed here and held to the commit's own tree: what git's index
+    says of them, or was told to assume of them, is not asked (review of 334df53)."""
+    def git(*args: str, **kw) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, **kw)
     try:
         if not path.is_dir():
             return f"{path.name} is not there"
-        status = git("status", "--porcelain", "--untracked-files=all", "--ignored", "--", ".")
-        if status.returncode:
+        if git("rev-parse", "--show-toplevel").returncode:
             return f"{path.name} is not in a git repository"
-        if status.stdout.strip():
-            return f"{path.name} has files that are not committed as they stand: {[ln[3:] for ln in status.stdout.splitlines()][:4]}"
-        tracked = git("ls-files", "--", ".").stdout.split("\n")
-        on_disk = sorted(str(f.relative_to(path)) for f in path.rglob("*") if f.is_file())
-        if sorted(x for x in tracked if x) != on_disk or not on_disk:
+        tree = git("ls-tree", "-r", "-z", "HEAD", "--", ".")
+        in_commit = {entry.split("\t", 1)[1]: entry.split("\t", 1)[0].split()[2] for entry in tree.stdout.split("\0") if entry} if not tree.returncode else {}
+        names = sorted(str(f.relative_to(path)) for f in path.rglob("*") if f.is_file())
+        hashed = git("hash-object", "--no-filters", "--stdin-paths", input="".join(f"{path.resolve() / n}\n" for n in names)) if names else None   # whole paths: git does not take these from where it was started
+        if hashed is None or hashed.returncode or len(hashed.stdout.split()) != len(names):
             return f"{path.name} is not committed whole"
+        on_disk = dict(zip(names, hashed.stdout.split()))
+        differ = sorted(n for n in set(in_commit) | set(on_disk) if in_commit.get(n) != on_disk.get(n))
+        if differ:
+            return f"{path.name} has files that are not in the last commit as they stand: {differ[:4]}"
         return ""
     except OSError as e:
         return f"git could not be asked about {path.name}: {e}"
+
+
+def ready(root: Path, base: dict) -> str:
+    """Why the next run would not be made with what the chain is made with: "" if the image the run script loads — the
+    build's — is the image the set declares and, where one is kept with the runs, that one. Asked before anything is
+    sent to the board: the run script refuses such an image itself, but only after the board was reset for the run,
+    and what it leaves is a run directory without a record (review of 334df53)."""
+    try:
+        image = s1a_run.IMAGE.read_bytes()
+    except OSError:
+        return "there is no image of the build for the run script to load"
+    if (hashlib.sha256(image).hexdigest(), len(image), crc(image)) != (base.get("image_sha256"), base.get("image_bytes"), base.get("image_crc32")):
+        return "the image of the build, which the run script would load, is not the image the set declares"
+    kept = root / KEPT_IMAGE
+    if kept.is_file() and kept.read_bytes() != image:
+        return "the image of the build, which the run script would load, is not the image kept with the runs"
+    return ""
+
+
+def refusal(share: int) -> str:
+    """What the run script says if it would refuse the run of this share, from its own dry run, which sends nothing."""
+    r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", STAGE, "--share", str(share), "--dry-run"], capture_output=True, text=True)
+    return "" if r.returncode == 0 else ((r.stdout + r.stderr).strip().splitlines() or ["it ended with a code and said nothing"])[-1]
 
 
 def read_run(d: Path, exp: dict, share: int, known: dict, held: dict) -> dict:
@@ -312,7 +342,8 @@ def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = Non
     """Go on with the chain until it is complete or halts (or `max_new` runs have been added). `runner(share, out)`
     makes the run of that share and leaves its files in the directory `out`. After every run the whole chain is
     assessed again from what is stored. The first run is made alone: a second is started only when `committed` finds
-    nothing wanting in the first run's directory; until then the chain is "held", which is not a halt."""
+    nothing wanting in the first run's directory, and no run at all unless the image the run script will load is the
+    one the chain is made with (`ready`); until then the chain is "held", which is not a halt."""
     root.mkdir(parents=True, exist_ok=True)
     added = 0
     while True:
@@ -329,13 +360,18 @@ def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = Non
             say(f"{last['dir']}: share {last['share']}, {last.get('frames', '?')} addresses, {len(last.get('candidates', []))} candidate(s) — {last['decision']}")
         if a["state"] != "go on" or (max_new is not None and added >= max_new):
             return a
-        if a["runs"]:
+        why = ready(root, base)
+        if why:
+            why = f"nothing was sent: {why}"
+        elif a["runs"]:
             why = committed(root / "run00")
             if why:
-                a["held"] = f"no second run before the first is committed: {why}"
-                (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\n")
-                return a
-        elif not (root / KEPT_IMAGE).exists():           # the image every run of this chain is to be made with, kept with them
+                why = f"no second run before the first is committed: {why}"
+        if why:
+            a["held"] = why
+            (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\n")
+            return a
+        if not a["runs"] and not (root / KEPT_IMAGE).exists():           # the image every run of this chain is to be made with, kept with them
             (root / KEPT_IMAGE).write_bytes(s1a_run.IMAGE.read_bytes())
         out = root / f"run{a['next_run']:02d}"
         runner(a["next_share"], out)
@@ -350,6 +386,9 @@ def board_runner(root: Path):
     from uboot_console import UB
 
     def run(share: int, out: Path) -> None:
+        why = refusal(share)                             # before the reset: the board is not touched for a run the script would refuse
+        if why:
+            raise RuntimeError(f"before {out.name}: the run script refuses the run ({why}); nothing was sent")
         u = UB()
         _, ok = u.interrupt()
         reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)

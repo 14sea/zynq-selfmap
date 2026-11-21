@@ -21,6 +21,7 @@
 #define STS_D_P_DONE       0x00001000u
 #define STS_ERR_MASK       0x00F4C840u
 #define STS_CLEAR_MASK     0x00F4F840u   /* errors + D_P_DONE + DMA_DONE; never PCFG_DONE */
+#define STS_DONE_MASK      0x00003000u   /* D_P_DONE + DMA_DONE: what stage 8 clears when a transfer begins, so that no error bit is ever cleared unread */
 #define STS_SEU_ERR        0x00000020u   /* bit 5, PCFG_SEU_ERR: not a bit of a transfer. Stage 8 clears it, alone, where it shows */
 #define PCAP_ENDPOINT      0xFFFFFFFFu
 #define DMA_HOLD_TAG       0x1u
@@ -161,7 +162,7 @@ enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PL
 #define REC2_WORDS         (REC2_DATA + DATA2_WORDS)                                      /* 480 */
 enum { F_STS_CMD, F_POLLS_CMD, F_STS_READ, F_POLLS_READ, F_VALUE, F_UNREAD,
        F_POLL_VAR,     /* the FAR-read block; this one: where on the stack the status word of the polling loop lay (recorded, not judged) */
-       F_STS_AFTER };  /* stage 8, a read of the list: INT_STS as that read left it, before anything is cleared; zero elsewhere */
+       F_STS_AFTER };  /* stage 8, every read: INT_STS as that read left it, before anything is cleared; zero in the other stages */
 #define R_NFRAMES          14u           /* stages 2 and 3; zero in stage 1 */
 #define R_OP               15u
 enum { H_MAGIC, H_VERSION, H_STATUS, H_N_RECORDS, H_N_ANOMALIES, H_TOTAL_WORDS, H_REC_WORDS, H_HDR_WORDS,
@@ -188,7 +189,7 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define C_DEVERR           0x21u
 #define C_TIMEOUT          0x22u
 #define C_DONE_DROPPED     0x23u
-#define C_LATE             0x24u         /* stage 8: an error bit stood in INT_STS when a transfer was to begin, before anything was cleared */
+#define C_LATE             0x24u         /* stage 8: an error bit stood in INT_STS when a transfer was to begin (stage 8 clears none) */
 #define C_GUARD            0x30u         /* the generator produced something the guard refuses: a bug */
 #define IS_INTERFACE(c)    ((c) >= 0x20u)
 

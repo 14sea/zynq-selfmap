@@ -58,6 +58,9 @@
  *                                    appears in INT_STS / PCFG_DONE goes one status read after that. Nothing of
  *                                    either shows in any status the transfer itself was judged by
  *   clearerr                         a write that clears bit 5 raises an error bit
+ *   donestays                        a write to INT_STS does not clear D_P_DONE
+ *   preclear@D                       an error bit appears just before the write to INT_STS that begins command D:
+ *                                    after every status read made before it
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -292,10 +295,11 @@ void hal_wr(uint32_t a, uint32_t v)
     wait_over();
     printf("W %08x %08x\n", a, v);
     switch (a) {
-    case DEVCFG_INT_STS:  if (!fault_on("stale")) reg_sts &= ~v; else reg_sts |= 0x00000800u;
+    case DEVCFG_INT_STS:  if (v != STS_SEU_ERR && fault_at("preclear", n_dma + 1u)) reg_sts |= 0x00040000u;
+                          if (!fault_on("stale")) reg_sts &= ~(fault_on("donestays") ? v & ~0x00001000u : v); else reg_sts |= 0x00000800u;
                           if (v == STS_SEU_ERR && fault_on("bit5stays")) reg_sts |= STS_SEU_ERR;
                           if (v == STS_SEU_ERR && fault_on("clearerr")) reg_sts |= 0x00040000u;
-                          if (v != STS_CLEAR_MASK && v != STS_SEU_ERR) printf("VIOLATION INT_STS write %08x\n", v);
+                          if (v != STS_CLEAR_MASK && v != STS_DONE_MASK && v != STS_SEU_ERR) printf("VIOLATION INT_STS write %08x\n", v);
                           if (drop_on_next_clear) { drop_on_next_clear = 0; reg_sts &= ~STS_PCFG_DONE; }
                           break;
     case DEVCFG_DMA_SRC:  dma_src = v; break;

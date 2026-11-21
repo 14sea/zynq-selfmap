@@ -23,7 +23,8 @@ points as recommended (section 20); its host side is built and waits for the own
 (section 21) — its mutants have not all been run. A first review found one fault, mended
 (section 22): the status read after a read of the list was judged for bit 5 alone. A second
 found six; five are mended (section 23), and the sixth on the owner's decision (section 24):
-a clean copy of the repository now runs every test.** S2.3 to S2.5 are not proposed in full yet.
+a clean copy of the repository now runs every test. A third found four, all mended
+(section 25): stage 8 no longer clears an error bit at any time.** S2.3 to S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1566,8 +1567,8 @@ nothing but says the file is there and does not stand; the driver takes it away.
 
 ### The image, the tests, the mutants
 
-`prober.bin`: 16,532 bytes, sha256 `e44c5d7b…bda4`, crc32 `ad72adb3`. Neither image before
-it of this step was on a board.
+`prober.bin`: 16,532 bytes, sha256 `e44c5d7b…bda4`, crc32 `ad72adb3` (replaced in section
+25). Neither image before it of this step was on a board.
 
 791 tests (774 before).
 
@@ -1634,3 +1635,120 @@ missing. Only a clean copy shows it, and that was run by hand as said above. Non
 mutants of S2.2 has been run by the tool yet (sections 21 to 23).
 
 Not changed: `build/` stays out of git; a design is not built again by any test.
+
+## 25. Review of `334df53` (2026-11-21): four findings, all accepted and mended; and why mutants were "not judged"
+
+A third review. It confirms the six of section 23 as mended and a clean copy as running, and
+finds four more. Findings 1 and 2 were reproduced on the twin before anything was changed;
+3 and 4 follow from the code as it was, and the premise of 4 is now asserted in a test.
+**Nothing has been on a board; the image is a new one again.**
+
+### 1. (high) Between the read of the register and the write that clears it
+
+Section 23 had stage 8 read the status register before each transfer cleared it. An error
+bit that appears between that read and the write was still cleared. Reproduced with a new
+fault of the twin, `preclear@D` — the bit set just before the write that begins command D:
+all 318 commands were made and the judge passed the run.
+
+The review's own proposal is what was built, and it is the better mechanism: **stage 8
+clears the two done bits when a transfer begins (`0x00003000`) and never an error bit.** The
+read before the write is gone again. The check after the write is the one every stage has
+— the register must be clean — and in stage 8 an error bit there stood before the transfer
+was to begin, whenever it appeared: code `0x24`, the transfer not queued, the bit left
+where it is. A done bit that would not clear is `0x20` as before. So the two codes no longer
+overlap, and **the judge holds each exactly**: what section 23 called "what the judge cannot
+tell" is no longer so.
+
+The other stages write what they always wrote. Both transfer routines (the wait as it was,
+and the one that touches no memory) begin alike, and a test runs each.
+
+The first transfer of a run now also meets, and no longer clears, an error bit U-Boot left;
+in all 197 stored results the register at the gates is `50021004`.
+
+### 2. (medium) After the reads that are not of the list
+
+The register was looked at after a read of the list only. Reproduced: an error bit after
+CTL0's last transfer (`lateerr@9`) was met by the next transfer — after the RAM had been
+written for the first state; after the reference frame's first reading the design had been
+read before the stop; after the last transfer of all (`lateerr@318`) the prober said done
+and it was the judge that failed the run, from the header's last status.
+
+**The register is now read, recorded and held after every read of the stage** (`s8_read`):
+the reference frame, CTL0 and the list alike. The run ends at that read, before the design
+is touched again: `0x621` at the first reading of the reference frame, `0x221` elsewhere,
+the last record included. Bit 5 is cleared after a read of the list only, as agreed; after
+another read it is recorded, reported, and left for the next read of the list to meet.
+
+What is left: the moment between the last look at the register and the next thing done.
+After the last record that is the header's own reading of the register, which the judge
+holds.
+
+### 3. (medium) The board reset for a run the run script then refuses
+
+The chain held the set to the image kept with the runs; the run script loads the build's.
+With the two apart the driver reset the board, the script refused, and a run directory
+without a record halted the chain. In section 23 I had this check in mind and left it out
+as implied by the others. It was not: the others look at the kept copy.
+
+Now, before anything is sent: the driver holds the build's image to the set and to the kept
+copy (`ready`), and the board's runner asks the run script's own dry run of that share
+whether it refuses (`refusal`). Either way nothing is sent, no directory is made, and the
+chain is held, not halted.
+
+### 4. (low) The commit check asked `git status`
+
+A tracked file that git was told to assume unchanged, or to skip, shows in no status. The
+check no longer asks the index anything: **the files under `run00` are hashed and held to
+the tree of the last commit**, both ways — every file there in the commit with those bytes,
+every file of the commit there. The test sets both flags and asserts that `git status` says
+nothing and the check still refuses.
+
+### Why two mutants were "not judged" on 2026-11-21, and it was not the mutants
+
+Section 21 says of two mutants that each put a new constant into the image, that the
+image's tests refused it, "and with the image every test that needs it fell — the tool
+counts that as a mutant that did not build". I took one out and wrote the other again.
+
+That was the wrong mend. Found while trying this section's mutants by hand: three of them,
+two of them as old as the prober, showed fewer tests run. The cause is **a test class of
+mine** (`WithAShare`, written with S2.2): it made `build/` ready in `setUpClass`. Every
+other test does that before each test. When a test of the image fails, a class that
+prepares once runs none of its tests; the suite runs six fewer; and the tool, which counts
+tests, says BROKEN. Fourteen of the first 230 mutants of the prober fail a test of the
+image — most of them are there to be caught by exactly those tests — and every one would
+have been BROKEN in the complete run.
+
+The class now prepares before every test, a test holds every test file to that, and the
+mutant taken out in section 21 is back (it fails two tests). The three I had begun to write
+again for the same wrong reason are killed in either form.
+
+### The image, the tests, the mutants
+
+`prober.bin`: 16,680 bytes, sha256 `94ad860c…6f50`, crc32 `ed47e7ab`. None of the images of
+this step has been on a board.
+
+806 tests (798 before).
+
+1,002 mutants, none stale. This change moved the anchors of 42; all were set right, five of
+the withdrawn mechanism were taken out, and those of the new one added. The 52 that are new
+or changed were tried by hand against the tests of the prober and of S2.2, one at a time:
+all fail them, with the count of tests run unchanged. Two I had written did not build (a
+parameter left unused) and were written again before they counted. **None has been run by
+the tool**; that is still the owner's to say, and the complete set is still due before the
+board.
+
+### My slips
+
+- Section 23, finding 1: I read the register and then cleared it, and did not ask what
+  happens between the two. A check and the act it guards have to be one step, or the act
+  must not be able to destroy what the check looks for.
+- Section 22: "after every read of the list" was the plan's wording for bit 5. I gave the
+  new check the same reach without asking where else a read ends.
+- Section 23, finding 2: I wrote down that a check was implied and did not build it.
+- Section 21: a mutant the tool cannot judge is a question about the tests first. I changed
+  the mutants and did not look at why the count of tests fell.
+
+### For the board
+
+As before: the mutants of S2.2 by the tool, then the complete set (1,002), then the owner's
+word. On the board the first step is one run; it is committed; then the rest.

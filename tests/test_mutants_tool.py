@@ -57,5 +57,28 @@ class WhatTheToolReads(unittest.TestCase):
         self.assertEqual((killed, summary), (False, "Ran 5 OK; 0 test(s): "))
 
 
+class WhereAStoppedRunGoesOn(unittest.TestCase):
+    """A run that was stopped (2026-11-22: by the session, the machine short of memory) goes on from where its record
+    ends: the record's lines are in the list's order, so the count of them is the place."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.m = tool()
+
+    def test_the_first_of_the_list_are_passed_by_and_the_rest_are_taken_in_order(self) -> None:
+        every = self.m.MUTANTS
+        self.assertEqual(self.m.taken("", 0), every)
+        self.assertEqual(self.m.taken("", 7), every[7:])
+        self.assertEqual(self.m.taken("", len(every)), [])
+        name = every[9][1]
+        self.assertEqual([m[1] for m in self.m.taken(name, 9)][:1], [name])
+        self.assertNotIn(every[9], self.m.taken(name, 10))
+
+    def test_a_place_that_is_not_in_the_list_is_refused(self) -> None:
+        for start in (-1, len(self.m.MUTANTS) + 1):
+            with self.subTest(start), self.assertRaises(ValueError):
+                self.m.taken("", start)
+
+
 if __name__ == "__main__":
     unittest.main()

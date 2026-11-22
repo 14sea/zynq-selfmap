@@ -4,6 +4,9 @@
     python3 tests/mutants.py            run all of them; exit 1 if any survives (or does not build: BROKEN)
     python3 tests/mutants.py guard      run only those whose name contains "guard"
 
+    SM_MUTANT_FROM=818 python3 tests/mutants.py     pass by the first 818 of the list: a run that was stopped goes on
+                                                    from where its record ends (the lines are in the list's order)
+
 Works on scratch copies of the tree (SM_MUTANT_JOBS of them, 8 by default, one mutant at a time in each),
 so the working tree is never dirtied. A mutant counts as killed
 only if the suite ran (Ran N > 0) and reported FAILED. Mutants are written so that they still compile:
@@ -914,7 +917,7 @@ MUTANTS = [
     (CORE, 's8: a reference frame that changed is not a stop', '    if (!x)\n        return finish2(health_stop(rec - 1u), rec, 0u, rec - 1u);\n    return finish2(S_DONE, rec, 0u, 0xFFFFFFFFu);', '    return finish2(S_DONE, rec, 0u, 0xFFFFFFFFu);'),
     (CORE, 's8: a read that fails is not counted', 'S_STOP_BUDGET, rec, 1u, rec - 1u);', 'S_STOP_BUDGET, rec, 0u, rec - 1u);'),
     (CORE, 's8: a read that fails names the record after it', 'S_STOP_BUDGET, rec, 1u, rec - 1u);', 'S_STOP_BUDGET, rec, 1u, rec);'),
-    (CORE, 's8: a failure of the interface is taken for a short read', '    return finish2(IS_INTERFACE(code) ? (S_STOP_INTERFACE | code) : S_STOP_BUDGET,', '    return finish2(S_STOP_BUDGET,'),
+    (CORE, 's8: a failure of the interface is taken for a short read', '    return finish2(IS_INTERFACE(code) ? (S_STOP_INTERFACE | code) : S_STOP_BUDGET,', '    return finish2(IS_INTERFACE(code) && 0 ? (S_STOP_INTERFACE | code) : S_STOP_BUDGET,'),
     (CORE, "s8: the RAM's read-back is held to all zero whatever the state", '        if (plb_rd(PLB_CODE) == PLC_OK && x != ram_pattern(state, a))\n            return pl_fail(code);', '        if (plb_rd(PLB_CODE) == PLC_OK && x != ram_pattern(0u, a))\n            return pl_fail(code);'),
     (CORE, 's8: its read of another register reads the address register', '        return op == OP8_CTL0 ? REG_CTL0 : REG_FAR;', '        return REG_FAR;'),
     (CORE, "s8: its records begin where stage 7's do", 'par(P_STAGE) == 8u ? HDR_WORDS + PLB8_WORDS : HDR_WORDS;', 'par(P_STAGE) == 8u ? HDR_WORDS + PLB_WORDS : HDR_WORDS;'),
@@ -1150,6 +1153,13 @@ def passed(summary: str) -> bool:
     return re.match(r"Ran [1-9]\d* OK", summary) is not None
 
 
+def taken(only: str, start: int) -> list:
+    """The mutants a run takes: the list less its first `start`, and of those the ones whose name contains `only`."""
+    if not 0 <= start <= len(MUTANTS):
+        raise ValueError(f"SM_MUTANT_FROM is {start}; the list has {len(MUTANTS)} mutants")
+    return [m for m in MUTANTS[start:] if only in m[1]]
+
+
 def scratch() -> Path:
     tree = Path(tempfile.mkdtemp(prefix="selfmap_mutants_")) / "tree"
     shutil.copytree(ROOT, tree, ignore=shutil.ignore_patterns(".git", "__pycache__", "prober", "ret2uboot", "board_*", "sdcard"))
@@ -1160,7 +1170,10 @@ def scratch() -> Path:
 
 def main() -> int:
     only = sys.argv[1] if len(sys.argv) > 1 else ""       # an optional substring: run just the mutants whose name contains it
-    chosen = [m for m in MUTANTS if only in m[1]]
+    start = int(os.environ.get("SM_MUTANT_FROM", "0"))    # a run that was stopped goes on: the first `start` are passed by
+    chosen = taken(only, start)
+    if start:
+        print(f"from mutant {start} of the {len(MUTANTS)} in the list ({len(chosen)} taken); the first is: {chosen[0][1] if chosen else 'none'}")
     jobs = max(1, min(int(os.environ.get("SM_MUTANT_JOBS", "8")), len(chosen) or 1))
     free = shutil.disk_usage(tempfile.gettempdir()).free  # every worker has a copy of the tree and what one run of the suite writes
     if free < NEEDS_FREE:

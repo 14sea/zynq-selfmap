@@ -809,7 +809,7 @@ class StoredBoardResults(unittest.TestCase):
                 elif step["what"] == "status afterwards":
                     self.assertEqual(f"{got[0]:08x}", rec["int_sts_afterwards"], record)
         self.assertEqual(not_whole, [("s1b3_17A6_2026-11-17/halted_at_run51/run51/run.json", "md.l 10000000 40"),
-                                     ("s2_2_17A6_2026-11-22/run01/run.json", "md.l 10000000 40")])
+                                     ("s2_2_17A6_2026-11-22/halted_at_run01/run01/run.json", "md.l 10000000 40")])
         self.assertGreater(seen["crc32"], 7000)
         self.assertGreater(seen["md.l"], 700)
         self.assertGreaterEqual(headers, 145)

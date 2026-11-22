@@ -28,7 +28,7 @@ EVIDENCE = ROOT / "evidence"
 # adapter dropped off the host; each of those results was taken from the card afterwards and is kept beside the run.
 # The fifth was set aside when the console lost characters before anything could be pulled: there is no result.
 RECOVERED = {"fifo_rate_17A6_2026-11-14/rate1_run01", "fifo_rate_17A6_2026-11-14/ratep_run03", "s1b1_17A6_2026-11-14/run1", "s1b1_17A6_2026-11-14/run2"}
-NEVER_PULLED = {"s1b3_17A6_2026-11-17/halted_at_run51/run51", "s2_2_17A6_2026-11-22/run01"}
+NEVER_PULLED = {"s1b3_17A6_2026-11-17/halted_at_run51/run51", "s2_2_17A6_2026-11-22/halted_at_run01/run01"}
 # Stored verdicts that are the judges' words of their day: the judges were given more to say afterwards (where the
 # polling variable lay and what the polling loop was, 2026-11-15; the words of a record, 2026-11-14) and the stored
 # files were left as they were. Directory: how many of its runs. PASS or FAIL is the same in every one of them.

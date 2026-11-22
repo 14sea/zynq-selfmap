@@ -50,10 +50,12 @@ def found(v: dict) -> set:
 class Shares(unittest.TestCase):
     """Block type 0 of the real census, cut into runs."""
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.lay = s2_2_shares.layout(CENSUS)
-        cls.shares = s2_2_shares.shares(CENSUS)
+    def setUp(self) -> None:
+        # Before every test, not once for the class: where the cutting itself refuses (a mutant of it did, 2026-11-22),
+        # each test here must be a test that ran and failed. Made once for the class, none ran, the suite counted ten
+        # tests fewer, and the mutant tool took the mutant for one that did not build (docs/s2_plan.md, section 27).
+        self.lay = s2_2_shares.layout(CENSUS)
+        self.shares = s2_2_shares.shares(CENSUS)
 
     def test_block_type_0_is_eight_shares(self) -> None:
         self.assertEqual(len(self.shares), 8)
@@ -1310,6 +1312,18 @@ class Chain(unittest.TestCase):
         self.assertIn("a place is a candidate in two runs: the shares are not apart", s2_2_chain.close(twice, T.census(), 256)["problems"])
         ctl = json.loads(json.dumps(runs)); ctl[2]["ctl0"] = "0x00000401"
         self.assertIn("CTL0 did not read the same in every run: ['0x00000401', '0x00000501']", s2_2_chain.close(ctl, T.census(), 256)["problems"])
+
+    def test_runs_that_pass_each_alone_and_do_not_agree_halt_the_chain(self) -> None:
+        """CTL0 reads as another value all through one run: that run's judge has nothing against it (it holds the two
+        reads of a run to each other), the closing has, and what the closing has against the runs halts the chain."""
+        plain, other = self.runner(), self.runner(env={"SM_CREG": "ctl0:00000401"})
+        a = self.drive(runner=lambda share, out: (other if share == 1 else plain)(share, out))
+        self.assertEqual([(r["decision"], r["problems"], r["ctl0"]) for r in a["runs"]],
+                         [("go on", [], "0x00000501"), ("go on", [], "0x00000401"), ("complete", [], "0x00000501")])
+        self.assertEqual((a["state"], a.get("why")), ("halted", ["CTL0 did not read the same in every run: ['0x00000401', '0x00000501']"]))
+        self.assertFalse((self.root / "candidates.json").exists(), "no candidates are written for a chain that is halted")
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["state"], "halted")
+        self.assertEqual(self.assess()["state"], "halted", "and it is halted when it is looked at again")
 
     def test_the_real_census_makes_eight(self) -> None:
         a = s2_2_chain.assess(self.root, self.base, s1a_run.known_for("s2_2"))

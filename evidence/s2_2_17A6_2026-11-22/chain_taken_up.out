@@ -1,0 +1,55 @@
+run00: share 0, 516 addresses, 0 candidate(s) — go on
+run01: share 1, 516 addresses, 0 candidate(s) — go on
+run02: share 2, 520 addresses, 0 candidate(s) — go on
+run03: share 3, 524 addresses, 0 candidate(s) — go on
+run04: share 4, 508 addresses, 0 candidate(s) — go on
+run05: share 5, 524 addresses, 0 candidate(s) — go on
+run06: share 6, 512 addresses, 256 candidate(s) — go on
+run07: share 7, 244 addresses, 0 candidate(s) — complete
+{
+ "stage": "s2_2",
+ "shares": 8,
+ "set_aside": [
+  "halted_at_run01"
+ ],
+ "made_with": {
+  "image_bytes": 16680,
+  "image_crc32": "ed47e7ab",
+  "image_sha256": "94ad860cf80b4f1f3d41bba7e03d475450846416fc0740789e9dd528aae86f50",
+  "image_from": "kept with the runs",
+  "design_bytes": 2083859,
+  "design_crc32": "6a1efe06",
+  "design_sha256": "09782815b7420fb3c4aecd7397946295ed735fea2ae8b8060d8d912aecf9df64"
+ },
+ "closing": {
+  "problems": [],
+  "addresses_read": 3864,
+  "cells_in_the_design": 256,
+  "candidates": 256,
+  "candidates_inverted": 0,
+  "outcome": "1: as many candidates as the RAM has cells; every other bit still; the RAM held its state through every pass",
+  "ctl0": [
+   "0x00000501"
+  ],
+  "frames_with_candidates": {
+   "0x00401220": 64,
+   "0x00401221": 64,
+   "0x00401222": 64,
+   "0x00401223": 64
+  },
+  "bit_5": {
+   "run03": [
+    46,
+    47,
+    222,
+    223,
+    398,
+    399
+   ]
+  },
+  "bit_5_still_set_after_clearing": {}
+ },
+ "state": "complete",
+ "candidates_file": "there"
+}
+8 run(s) stored of 8; the chain: complete

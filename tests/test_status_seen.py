@@ -69,11 +69,29 @@ class TheBitsListed(unittest.TestCase):
 
 class OverTheStoredRuns(unittest.TestCase):
     READ_COLUMNS_2_TO_4 = ("s1b4_17A6_2026-11-18", "sbit_17A6_2026-11-19")      # the directories whose runs read such frames of block type 1
+    S2_2_RUN = "s2_2_17A6_2026-11-22/run03"                                     # and the one run that has such a bit and read none of them
 
     def test_no_other_stored_run_has_such_a_bit(self) -> None:
         files = sorted(p for p in (ROOT / "evidence").rglob("verdict.json") if not set(self.READ_COLUMNS_2_TO_4) & set(p.parts))
         self.assertGreaterEqual(len(files), 158, "the 158 verdicts stored before S1b.4, and whatever was stored since elsewhere")
-        self.assertEqual([str(f) for f in files if status_seen.seen(json.loads(f.read_text()))["bits"]], [])
+        self.assertEqual([str(f.relative_to(ROOT / "evidence")) for f in files if status_seen.seen(json.loads(f.read_text()))["bits"]], [self.S2_2_RUN + "/verdict.json"])
+
+    def test_the_one_run_of_block_type_0_that_has_it(self) -> None:
+        """S2.2 on 2026-11-22, the run of share 3: bit 5 after two reads next to each other, the same two in each of the
+        three states, and nowhere else in the chain's eight runs. Stage 8 clears the bit after such a read, so it does
+        not stay. Until then the bit had been seen only when frames of block type 1 were read, under another design."""
+        v = json.loads((ROOT / "evidence" / self.S2_2_RUN / "verdict.json").read_text())
+        (b,) = status_seen.seen(v)["bits"]
+        self.assertEqual((b["bit"], b["words_with_it"], b["stayed_once_it_showed"], b["in_the_last_word"]), (5, 24, False, False))
+        self.assertEqual((b["first"]["record"], b["first"]["far"], b["first"]["frames"]), (46, "0x0000181e", 3))
+        with_it = [r for r in v["records"] if any(int(w, 16) & 0x20 for w in r["int_sts"])]
+        self.assertEqual([(r["index"], r["far"], r["state"]) for r in with_it],
+                         [(46 + 176 * k + i, far, k) for k in range(3) for i, far in enumerate(("0x0000181e", "0x00001821"))])
+        for r in with_it:
+            self.assertEqual((r["int_sts"][0], r["int_sts_after"], r["int_sts_after_clearing_bit_5"], r["code"]), ("50033004", "50033024", "50033004", "0x0"))
+        d = ROOT / "evidence" / "s2_2_17A6_2026-11-22"
+        others = [f for f in status_seen.verdicts(d) if f.parent.name != "run03"]
+        self.assertEqual((len(others), [f for f in others if status_seen.seen(json.loads(f.read_text()))["bits"]]), (7, []))
 
     def test_the_chain_over_block_type_1(self) -> None:
         d = ROOT / "evidence" / "s1b4_17A6_2026-11-18"

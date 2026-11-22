@@ -102,12 +102,12 @@ def audit() -> dict:
 class EveryStoredRun(unittest.TestCase):
     def test_how_many_there_are_and_which_have_no_result(self) -> None:
         a = audit()
-        self.assertEqual(len(a), 187)                         # 185 at the close of S1b; S2.0 and S2.1 since
+        self.assertEqual(len(a), 188)                         # 185 at the close of S1b; S2.0, S2.1 and the first run of S2.2 since
         self.assertEqual({k for k, v in a.items() if v["result"] is None}, NEVER_PULLED)
         self.assertEqual({k for k, v in a.items() if v["result"] is not None and not v["own_result"]}, RECOVERED)
         for k in RECOVERED | NEVER_PULLED:
             self.assertTrue(a[k]["stop"], f"{k}: a run without a result of its own says in its record why")
-        self.assertEqual(sum(1 for v in a.values() if v["own_result"]), 182)
+        self.assertEqual(sum(1 for v in a.values() if v["own_result"]), 183)
 
     def test_no_result_or_verdict_is_stored_that_the_audit_does_not_reach(self) -> None:
         a = audit()
@@ -129,7 +129,7 @@ class EveryStoredRun(unittest.TestCase):
             self.assertIn(v["verdict_now"], ("PASS", "FAIL"), k)
             if v["own_result"] and v["judge_in_the_record"] is not None:
                 self.assertEqual(v["judge_in_the_record"], v["verdict_now"], f"{k}: what the run script recorded of the judge")
-        self.assertEqual(collections.Counter(v["verdict_now"] for v in a.values() if v["result"] is not None), {"PASS": 142, "FAIL": 44})
+        self.assertEqual(collections.Counter(v["verdict_now"] for v in a.values() if v["result"] is not None), {"PASS": 143, "FAIL": 44})
 
     def test_the_stored_verdict_is_the_judges_word_as_it_is_now_or_an_older_form_of_it(self) -> None:
         """An older form lacks fields and has nothing else: whatever a stored verdict says, the judge says now."""
@@ -150,7 +150,7 @@ class EveryStoredRun(unittest.TestCase):
                 older[top] += 1
                 self.assertIn(top, OLDER_FORM, f"{k}: its stored verdict is not what the judge writes now")
         self.assertEqual(dict(older), OLDER_FORM)
-        self.assertEqual(sum(1 for v in a.values() if v["result"] is not None and not v["changed"] and not v["added"]), 186 - sum(OLDER_FORM.values()))
+        self.assertEqual(sum(1 for v in a.values() if v["result"] is not None and not v["changed"] and not v["added"]), 187 - sum(OLDER_FORM.values()))
         self.assertEqual({x for v in a.values() if v["result"] is not None for x in v["added"]}, ADDED_SINCE, "each of the additions listed is one that is met")
 
     def test_a_change_is_not_taken_for_an_addition(self) -> None:

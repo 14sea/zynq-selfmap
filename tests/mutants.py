@@ -918,7 +918,7 @@ MUTANTS = [
     (CORE, 's8: a read that fails is not counted', 'S_STOP_BUDGET, rec, 1u, rec - 1u);', 'S_STOP_BUDGET, rec, 0u, rec - 1u);'),
     (CORE, 's8: a read that fails names the record after it', 'S_STOP_BUDGET, rec, 1u, rec - 1u);', 'S_STOP_BUDGET, rec, 1u, rec);'),
     (CORE, 's8: a failure of the interface is taken for a short read', '    return finish2(IS_INTERFACE(code) ? (S_STOP_INTERFACE | code) : S_STOP_BUDGET,', '    return finish2(IS_INTERFACE(code) && 0 ? (S_STOP_INTERFACE | code) : S_STOP_BUDGET,'),
-    (CORE, "s8: the RAM's read-back is held to all zero whatever the state", '        if (plb_rd(PLB_CODE) == PLC_OK && x != ram_pattern(state, a))\n            return pl_fail(code);', '        if (plb_rd(PLB_CODE) == PLC_OK && x != ram_pattern(0u, a))\n            return pl_fail(code);'),
+    (CORE, "s8: the RAM's read-back is held to all zero whatever the state", '        if (plb_rd(PLB_CODE) == PLC_OK && x != ram_pattern(state, a))\n            return pl_fail(code);', '        if (plb_rd(PLB_CODE) == PLC_OK && x != ram_pattern(state & 0u, a))\n            return pl_fail(code);'),
     (CORE, 's8: its read of another register reads the address register', '        return op == OP8_CTL0 ? REG_CTL0 : REG_FAR;', '        return REG_FAR;'),
     (CORE, "s8: its records begin where stage 7's do", 'par(P_STAGE) == 8u ? HDR_WORDS + PLB8_WORDS : HDR_WORDS;', 'par(P_STAGE) == 8u ? HDR_WORDS + PLB_WORDS : HDR_WORDS;'),
     (CORE, "s8: its log is as long as stage 7's", '    if (n >= (par(P_STAGE) == 8u ? PL8_LOG_MAX : PL_LOG_MAX)) {', '    if (n >= PL_LOG_MAX) {'),

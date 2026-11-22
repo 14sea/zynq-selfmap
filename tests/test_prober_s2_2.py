@@ -152,10 +152,13 @@ class Run:
         return self.words[HB + i * REC: HB + (i + 1) * REC]
 
     def rec(self, i: int) -> dict:
+        """One record's words by name. The count of frames is the prober's word and may be anything: no more of
+        it is followed than a record has room for (a mutant put the records elsewhere, the word read four
+        thousand million, and the list below took the machine's memory — twice, 2026-11-22)."""
         r = self.raw(i)
         return {"far": r[0], "kind": r[1], "code": r[2], "n": r[14], "op": r[15], "state": r[12], "guard": r[13], "cleared": r[10],
                 "stream": r[16:59], "regrd": r[59:63], "cleanup": r[63:68], "value": r[FARBLK + 4], "unread": r[FARBLK + 5],
-                "after": r[FARBLK + 7], "frames": [r[DATA + FRAME * (j + 1): DATA + FRAME * (j + 2)] for j in range(r[14] if r[14] != NONE else 0)]}
+                "after": r[FARBLK + 7], "frames": [r[DATA + FRAME * (j + 1): DATA + FRAME * (j + 2)] for j in range(min(r[14], REC // FRAME) if r[14] != NONE else 0)]}
 
     def pl_log(self) -> list[tuple[int, bool, int]]:
         return [(self.plb[16 + 2 * i] & ~3, bool(self.plb[16 + 2 * i] & 1), self.plb[17 + 2 * i]) for i in range(self.plb[1])]
@@ -719,6 +722,15 @@ class WhenAReadFails(unittest.TestCase):
         """A frame that reads differently in the second state is what the stage is there to see: no code for it."""
         r = Run(f"flip@{1 + N_LIST + 2}")
         self.assertEqual((r.status, [r.rec(i)["code"] for i in range(N)]), (1, [0] * N))
+
+
+class WhatTheseTestsReadOfAResult(unittest.TestCase):
+    def test_a_count_of_frames_no_record_could_hold_is_not_followed(self) -> None:
+        r = Run.__new__(Run)                          # no run: only the words, and a count that is not a count
+        r.words = [0] * HB + [0] * 14 + [0xFFFFFFFE] + [0] * (REC - 15)
+        self.assertLessEqual(len(r.rec(0)["frames"]), REC // FRAME)
+        r.words[HB + 14] = 2
+        self.assertEqual([len(f) for f in r.rec(0)["frames"]], [FRAME, FRAME])
 
 
 if __name__ == "__main__":

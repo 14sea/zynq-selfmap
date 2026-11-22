@@ -4,15 +4,19 @@ v0.3 folds in the owner's decisions of 2026-11-13 (section 12). The proposal its
 changed since; what has been done under it is noted where it belongs — the stage table of
 section 7, the open questions of section 11 — and those notes are dated.
 
-**Where the work stands (2026-11-20).** S0, S1a and S1b are done: the owner closed S1b on
+**Where the work stands (2026-11-22).** S0, S1a and S1b are done: the owner closed S1b on
 2026-11-20, after its review as a whole (`docs/s1b_review.md`). S1b, the read-only census, has
 block types 0 and 1 complete and graded: 3,864 and 1,280 frame addresses, 5,144 in all,
 nothing differs from prjxray-db. Block type 2 is complete too: 112 frame addresses, two rows of 56 columns of one frame, every
 frame all zero; not graded, there being nothing to grade against. After it the device names
 `0x01800000` (block type 3): one unfinished pass there read ten addresses, all zero, and left the
-register at `0x02000000`, which was not read. S2 to
-S6 have not been begun, and nothing has written configuration memory. The frame census is
-written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
+register at `0x02000000`, which was not read. **S2 is under way: three of its six steps
+are done on the board** — control register 0 read (bit 8 set: LUT RAM is not masked in
+readback), the path from the prober to a design of our own, and the search of block type 0
+for the design's LUT RAM: 256 bits follow the RAM, as many as it has cells, in four frames
+next to each other, and reading does not disturb it. Which bit is which cell is the next
+step, proposed and agreed, not built. S3 to S6 have not been begun, and nothing has written
+configuration memory. The frame census is written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 The plan for S2 is `docs/s2_plan.md`, agreed by the owner on 2026-11-20 (its section 12);
 where it stands is said at its head.
 
@@ -97,6 +101,16 @@ place.
 *2026-11-19:* the frame census is written: `census/frame_census_17A6.json`, following
 `schemas/frame_census_v1.schema.json`, made by `host/s1_census.py` from the stored runs
 (`census/README.md`; `docs/s1b_plan.md`, section 68).
+
+*2026-11-22:* the owner changed the first sentence of this section for S2. What S2 finds is
+written in a document of this project's own, modelled on the copied schema as the census's
+was (`schemas/ram_map_v1.schema.json`, to be written in S2.3), and **nothing is written in
+the copied schema's form in S2**. The reason (`docs/s2_plan.md`, sections 29 and 30): the
+only relation the copied schema has is `lut_init` with an `init_index`, which would say that
+the address user logic gives a LUT RAM is the index of a LUT's truth table — and S2 does not
+show that; its `binding` and `genome_bit` have no counterpart here either. A field that says
+more than was shown would be read as what it says. The copied schema stays as it is, for the
+stage that shows what its relation claims (S4 or S5).
 
 ## 5. The prober
 
@@ -183,7 +197,7 @@ the chain halted there.
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
 | S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range — **done 2026-11-13, PASS** (`evidence/s1a_17A6_2026-11-13/`) |
 | S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **done (closed by the owner 2026-11-20, after the review in `docs/s1b_review.md`)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, where one unfinished pass (2026-11-19) read ten addresses of block type 3, all zero, and left the register at `0x02000000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
-| S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) |
+| S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) — **under way**, in six steps (`docs/s2_plan.md`, which says at its head where it stands). Done on the board: S2.0 (2026-11-20; control register 0 is `0x00000501`, bit 8 set), S2.1 (2026-11-20; the prober reaches our own design `s2a` and returns), S2.2 (2026-11-22; 256 bits of block type 0 follow the design's 256 cells of LUT RAM, in the frames `0x00401220` to `0x00401223`; every other bit is still; reading does not disturb the RAM). S2.3 (which bit is which cell) is proposed and agreed, not built; S2.4 (the shift register) and S2.5 (more sites) are outlined. No entry of the bit table exists yet. Nothing of S2 is graded: once, at its end |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
 | S5 | Ordinary LUTs (SLICEL): known INIT values with locked pins in our design, searched for in readback; then pin-connectivity probing | yes | bit table for SLICEL LUTs (half-open); a connectivity graph |
@@ -234,6 +248,11 @@ This project is engineering and measurement. It makes no claim of a new mechanis
   11, questions 1 to 3. Reading the frames of three of the five columns of block type 1 sets
   `PCFG_SEU_ERR` in `devcfg.INT_STS`; nothing stopped, and what it means for the running
   design has not been looked into — `docs/s1b_plan.md`, section 52.)
+  (2026-11-22: the same bit showed in block type 0, under our own design, after the reads
+  of six frames of one column, the same in each of three states of the design's RAM; not
+  after the reads of the frames that hold that RAM, whatever it held. From S2.2 on the
+  prober records it and clears it alone. Still not explained — `docs/s2_plan.md`,
+  section 28.)
 - From S4 on configuration memory is written, and only at LUT bits that the project located
   itself and that belong to the probe circuit.
 - If the PL-side AXI clock is not running, a PS read of the PL never returns and only a power
@@ -277,13 +296,27 @@ To be settled from documents or on the board:
 4. **Is LUT RAM masked in PCAP readback?** UG470 describes a global GLUTMASK for the 7 series;
    on UltraScale, Attia and Betz had to edit the bitstream to clear per-frame mask bits.
    Untested here.
+   *2026-11-22:* not masked, on this board and with these two designs. Control register 0
+   reads `0x00000501` under the carrier and under our own design (S2.0, S2.1): bit 8,
+   `GLUTMASK_B`, is set, which by UG470's table does not mask. And the content is seen: the
+   256 cells of the design's LUT RAM read back as user logic wrote them, all zero, all one,
+   all zero (S2.2). Nothing was written to MASK or CTL0. What a design reads as whose
+   bitstream leaves the bit clear is not known.
 5. **Must the design be stopped for readback?** Attia and Betz say UltraScale does not support
    readback with clocks running; zynq-psmap's non-perturbation result covers only its few
    frames.
+   *2026-11-22:* for LUT RAM that is not being written at that moment, no. With the design's
+   clock running, every address of block type 0 was read in three states of the RAM; after
+   each of the 24 passes the RAM read back through the design as written, and the design's
+   counter had gone on (S2.2). Not shown: a RAM written while it is read, block RAM,
+   flip-flop state.
 6. **Does GCAPTURE work through PCAP, and does it disturb the design?** Never used by us;
    zynq-xpart established only that GRESTORE disturbs a running design.
 7. **How are shift-register and LUT-RAM bits laid out within the 64 bits?** On UltraScale the
    shift-register state occupies only the odd bits. For the 7 series this is what S2 is for.
+   *2026-11-22:* still open. For one slice of LUT RAM the places are known — all 32 bits of
+   two words in each of four frames (S2.2) — and not yet which place is which cell (S2.3),
+   nor anything of the shift registers (S2.4).
 8. **Getting results off the board, and returning to U-Boot.** The earlier PS program on this
    board (zynq-psoracle's, started with `go 0x02000000`) brought its own startup code and
    took the machine over; it never returned. The prober is meant to be a function in U-Boot's
@@ -318,6 +351,12 @@ To be settled from documents or on the board:
    in a hundred reads; a wait that stores nothing has not overflowed since (`docs/s1b_plan.md`,
    sections 15 to 22). The mechanism in the hardware is not known. The AXI path from this
    program to user logic has not been used yet; S2 needs it.
+   *2026-11-20:* the path works. With our own design loaded, the first access to user logic
+   at the U-Boot prompt returned, and the prober made 1,164 accesses to the design's
+   registers on `M_AXI_GP0` and returned to U-Boot (S2.1); in S2.2 it made 11,344 more in
+   eight runs, with PCAP reads between them. The gates it holds first: `SEU_EN` clear, the
+   level shifters, the FPGA resets, FCLK0's control word and the PLLs as recorded on this
+   board, and the design's identification word.
 
 Decided on 2026-11-13: see section 12.
 
@@ -335,6 +374,9 @@ Decided on 2026-11-13: see section 12.
   on a small known range and is widened once the principle is confirmed; the safety check is
   by rule and envelope because unknown frames cannot be enumerated in advance; the first
   board test is whether a bare-metal function returns to U-Boot cleanly.
+- *2026-11-22:* one of these is changed by the owner for S2: zynq-fabricmap's structure
+  description is not used for what S2 finds; a document of our own, modelled on it, is
+  (section 4, the note of that day).
 
 ## 13. Relation to other projects
 

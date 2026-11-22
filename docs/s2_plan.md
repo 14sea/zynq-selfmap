@@ -31,8 +31,8 @@ now has its test (section 27).** **S2.2 has been on the board: the chain of eigh
 complete — 256 bits of block type 0 follow the RAM, as many as it has cells, in four frames
 next to each other; every other bit is still; reading does not disturb the RAM; bit 5 of the
 status showed after two reads that are not of those frames (section 28).** **S2.3 is
-proposed in full in section 29 and waits for the owner's decisions; nothing of it is
-built.** S2.4 and S2.5 are not proposed in full yet.
+proposed in full in section 29 and agreed, all eight points as recommended (section 30);
+nothing of it is built.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2244,3 +2244,33 @@ do not think so. I have not examined it further than this.
 If this is agreed, the next thing built is the host side — the stage, the twin, the lists,
 the two judges, the closing, the chain, the schema — followed by its "as built" section
 and the owner's review, the mutants, and only then, on the owner's word, the board.
+
+## 30. Decisions on S2.3 (owner, 2026-11-22)
+
+The owner: all eight points of section 29 as recommended.
+
+1. One code run of eighteen states over the whole column; the table closed and committed;
+   then the 256 singles in four runs.
+2. The singles read the two reads that deliver the four frames.
+3. The states come from the host as a list of accesses to the design; the prober knows no
+   state.
+4. **The description is a document of this project's own (`ram_map_v1`); nothing is written
+   in the copied schema's form in S2.** I pointed out that this changes a decision of
+   2026-11-13 — "zynq-fabricmap's structure description is used as it is" (the proposal,
+   sections 4 and 12). The owner: accepted, knowing that. `proposal.md` has the change with
+   its date, in both sections.
+5. Which registers the prober may write is a parameter, bounded in the image by the four it
+   may write now and the shift registers' data. S2.3's sets do not allow the shift; the
+   prober refuses a list that asks for one; the judge fails a run whose log has one.
+6. One word for the code run and the singles together, after the review of the "as built"
+   section: the code run alone and committed, the table closed and committed, the singles
+   only if the code run ended in outcome 1; the chain halts by itself and runs nothing
+   again.
+7. A lost prompt stops the run and halts the chain, as now.
+8. The complete set of mutants for the new image before the board.
+
+`proposal.md` was brought up to date the same day, at the owner's word: where the work
+stands, the row of S2 in the stage table, the questions 4, 5, 7 and 9, the note on bit 5
+among the risks — each as a dated note, the text of 2026-11-13 left as it was.
+
+The host side is built next; its account follows as a section "as built".

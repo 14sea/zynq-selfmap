@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import struct
 import subprocess
@@ -176,6 +177,15 @@ class States(unittest.TestCase):
         outside = candidates_of([(a, m, 0xC00, w, b, i) for a, m, _, w, b, i in CELLS])
         self.assertRaisesRegex(ValueError, "do not lie in one column", st.column_reads, KNOWN["census"], outside)
 
+    def test_a_list_or_a_result_too_large_is_not_made(self) -> None:
+        self.assertRaisesRegex(ValueError, "entries; a list holds 32768", st.accesses, st.code_run() * 5, DESIGN)
+        long = [("top", 0, 20, 0xA00, 100)]            # a made-up column of a hundred frames: 34 reads a state
+        entries = [{"far": f"{base + m:#010x}", "block_type": 0, "half": half, "row": row, "column": col, "minor": m} for half, row, col, base, n in long for m in range(n)]
+        census = {"entries": entries, "rows": [{"last": "0x00000a63", "ended_by": "the register stood still"}]}
+        self.assertEqual(len(st.column_reads(census, KNOWN["candidates"])), 34)
+        self.assertRaisesRegex(ValueError, r"the result would have 3\d{5} words; its area holds 262144", st.plan, "code", None, DESIGN, census, KNOWN["candidates"])
+        self.assertEqual(st.plan("singles", 0, DESIGN, census, KNOWN["candidates"])["reads"], [(0xA03, 3)], "the singles of the same device fit")
+
     def test_the_runs_as_they_are_planned_for_the_board(self) -> None:
         got = []
         for kind, share in [("code", None)] + [("singles", r) for r in range(4)]:
@@ -296,6 +306,70 @@ class Judge(unittest.TestCase):
         self.assertEqual([x[:8] for x in v["problems"]], [f"state {s}:"[:8] for s in range(18)], "said of every state, and nothing else is wrong")
         self.assertTrue(all("the design's clock did not go on" in x for x in v["problems"]))
 
+    def test_no_bit_is_said_to_follow_a_cell_in_a_run_that_did_not_complete(self) -> None:
+        """Every state went through and every read is clean, but the reference frame read at the end is not the one
+        read at first: a health stop. Nothing is made of the frames of such a run."""
+        probe = clean()[1]
+        frames = sum(1 for e in probe.dmas if int(e[5].split("=")[1]) > 1)
+        p, r = twin(fault=f"flip@{frames}")
+        v = judged(p, r)
+        self.assertEqual((r.status, v["verdict"], v["pl"]["passes_the_ram_held_through"]), (0x300, "FAIL", 18))
+        self.assertEqual((v["finding"]["follows"], v["finding"]["frames"], v["run"]["kind"]), ([], 0, None))
+
+    def custom(self, change, fault: str = "") -> dict:
+        """The code run with its list of accesses changed by the test — a list the plan does not make. What the judge
+        says of the design in such a run does not depend on the list being the plan's."""
+        p = plan("code")
+        entries = change(list(p["entries"]))
+        r = Run(states=p["states"], reads=p["reads"], cells=CELLS, entries=entries, fault=fault, w19=p["may_write"])
+        return s2_3_judge.judge(r.words, KNOWN, s2_3_judge.planned_words(r.params, r.reads, entries, DESIGN))
+
+    def test_a_list_that_does_not_read_the_ram_back_or_the_shift_registers_gives_no_state(self) -> None:
+        reg = st.registers(DESIGN)
+        marks = lambda e: [i for i, (kind, _, _) in enumerate(e) if kind == st.A_MARK]   # noqa: E731
+
+        def no_ram_after(e):                           # the readings of the RAM after the first state's frames taken out
+            m = marks(e)
+            return e[:m[0] + 1] + [x for x in e[m[0] + 1:m[1]] if x[1] not in (reg["RAM_ADDR"], reg["RAM_DATA"])] + e[m[1]:]
+        v = self.custom(no_ram_after)
+        self.assertIn("state 0: the RAM was not read back at every address before the frames and after them", v["problems"])
+        self.assertEqual(v["finding"]["follows"], [])
+
+        def no_srl_after(e):
+            m = marks(e)
+            return e[:m[0] + 1] + [x for x in e[m[0] + 1:m[1]] if x[1] not in (reg["SRL_ADDR"], reg["SRL_DATA"])] + e[m[1]:]
+        v = self.custom(no_srl_after)
+        self.assertIn("state 0: the shift registers were not read at every address after the frames", v["problems"])
+
+        def ram_changed_after(e):                      # after the first state's frames the list itself writes address 3, and holds the readings to that
+            m = marks(e)
+            after = list(e[m[0] + 1:m[1]])
+            at = after.index((st.A_WRITE, reg["RAM_ADDR"], 3))
+            after[at + 1] = (st.A_EXPECT, reg["RAM_DATA"], 0xF)
+            after = [(k, a, val + 1) if a == reg["WRITES"] else (k, a, val) for k, a, val in after]      # one write more than the plan made
+            return e[:m[0] + 1] + [(st.A_WRITE, reg["RAM_ADDR"], 3), (st.A_WRITE, reg["RAM_DATA"], 0xF)] + after + e[m[1]:]
+        v = self.custom(ram_changed_after)
+        self.assertIn("state 0: the RAM did not read back after the frames as before them", v["problems"])
+        self.assertEqual(v["pl"]["passes_the_ram_held_through"], 1, "every reading of the first state was what that list said; the judge looks at what they were")
+
+    def test_readings_the_list_only_records_are_held_by_the_judge_where_the_design_s_own_facts_say_what_they_must_be(self) -> None:
+        reg = st.registers(DESIGN)
+        record_only = lambda which: (lambda e: [(st.A_READ, a, 0) if k == st.A_EXPECT and a == reg[which] else (k, a, val) for k, a, val in e])   # noqa: E731
+        v = self.custom(record_only("WRITES"), fault="plcount")
+        self.assertTrue(any("state 0: the design counted 65 write(s) and 0 shift(s); the log has 64 write(s) to the RAM and no shift" in x for x in v["problems"]), v["problems"])
+        v = self.custom(record_only("SRL_DATA"), fault="srlmoves")
+        self.assertTrue(any("the shift registers do not read as the design loads them" in x for x in v["problems"]), v["problems"])
+        v = self.custom(record_only("WRITES"))
+        self.assertEqual(v["problems"], ["the list of accesses is not the one the plan makes for this run"], "with a design that answers as it must, only that")
+
+    def test_sixty_six_states_that_are_no_run_of_the_singles_are_not_taken_for_the_code_run(self) -> None:
+        states = st.single_run(1)
+        states = states[:1] + states[1:65][::-1] + states[65:]      # the singles of a run in another order
+        r = Run(states=states, reads=[(0xA03, 3)], cells=CELLS)
+        v = s2_3_judge.judge(r.words, KNOWN, s2_3_judge.planned_words(r.params, r.reads, r.entries, DESIGN))
+        self.assertEqual(v["problems"], ["the states the RAM read back as are not those of the code run or of a run of the singles"])
+        self.assertEqual((v["run"]["kind"], v["finding"]["bits"]["follow"]), (None, 64), "what follows is still said: the states tell these cells apart")
+
     def test_bit_5_is_reported_and_is_not_a_failure(self) -> None:
         p, r = twin(fault="bit5@3")                   # the third frame read: the second read of the list, record 3
         v = judged(p, r)
@@ -336,6 +410,46 @@ class WhatTheJudgeIsGiven(unittest.TestCase):
         v = judged(p, r, plan_words=broken)
         self.assertEqual(v["verdict"], "INVALID")
         self.assertIn("the planned list of accesses is not one the prober takes", v["problems"][0])
+
+    def test_a_plan_with_words_after_its_two_lists(self) -> None:
+        p, r, _ = clean()
+        v = judged(p, r, plan_words=planned(p, r) + [0, 0])
+        self.assertEqual((v["verdict"], v["problems"]), ("INVALID", ["the parameter block names 3 reads and 7834 entries; the plan has 15673 words after the block"]))
+
+    def test_the_judge_s_own_question_of_a_list_is_the_prober_s(self) -> None:
+        states = T.few(st.code_run(), 2)
+        e = [(kind, addr - 0x40000000 if kind != st.A_MARK else 0, value) for kind, addr, value in st.accesses(states, DESIGN)]
+        par = [0] * 32
+        par[7], par[18], par[19], par[24], par[25] = 2, len(e), 1 << 0x0C | 1 << 0x10 | 1 << 0x14, 0x40000000, 0x4000001F
+        marks = [i for i, (kind, _, _) in enumerate(e) if kind == st.A_MARK]
+        self.assertEqual(s2_3_judge.entries_problems(e, par), [])
+        for why, entries, says in (
+                ("the last mark is missing", e[:-1], "the list ends inside state 1"),
+                ("an entry after the last state's end", e + [(st.A_READ, 0x08, 0)], "something after the end of the last state"),
+                ("the end before the frames", e[:marks[0]] + [(st.A_MARK, 0, st.MARK_END)] + e[marks[0] + 1:], "a mark that is not the one due"),
+                ("the frames twice in a state", e[:marks[1]] + [(st.A_MARK, 0, st.MARK_FRAMES)] + e[marks[1] + 1:], "a mark that is not the one due"),
+                ("a mark with an offset", e[:marks[0]] + [(st.A_MARK, 0x08, st.MARK_FRAMES)] + e[marks[0] + 1:], "a mark that is not the one due"),
+                ("a register beyond the design", [(st.A_READ, 0x20, 0)] + e, "offset 0x20 is no register of the design inside the envelope"),
+                ("a write the run's word does not name", [(st.A_WRITE, 0x18, 1)] + e, "a write to offset 0x18, which the run may not write"),
+                ("a recorded reading with a value", [(st.A_READ, 0x08, 1)] + e, "a reading that is only recorded has a value")):
+            with self.subTest(why=why):
+                problems = s2_3_judge.entries_problems(entries, dict(enumerate(par)) | {18: len(entries)})
+                self.assertTrue(any(says in x for x in problems), problems)
+        self.assertTrue(s2_3_judge.entries_problems(e, dict(enumerate(par)) | {7: 3}), "one state fewer in the list than the block says")
+        self.assertTrue(s2_3_judge.entries_problems(e, dict(enumerate(par)) | {25: 0x4000000F}), "an envelope that leaves the RAM's data out")
+
+    def test_a_list_of_reads_that_reads_an_address_twice_is_not_one_made_from_the_census(self) -> None:
+        p = plan("code")
+        reads = [(0xA00, 3), (0xA02, 3)]
+        r = Run(states=p["states"], reads=reads, cells=CELLS, w19=p["may_write"])
+        v = s2_3_judge.judge(r.words, KNOWN, s2_3_judge.planned_words(r.params, reads, p["entries"], DESIGN))
+        self.assertIn("the list of reads is not one made from the census: read 1: 0x00000a02 x3 reads an address the list has already read", v["problems"])
+
+    def test_without_the_words_the_shift_registers_are_loaded_with_that_is_said(self) -> None:
+        p, r, _ = clean()
+        known = {k: x for k, x in KNOWN.items() if k != "srl"}
+        v = s2_3_judge.judge(r.words, known, planned(p, r))
+        self.assertIn("the words the design loads into its shift registers were not given: what they read as cannot be held to anything", v["problems"])
 
     def test_another_list_of_accesses_than_the_prober_made(self) -> None:
         p, r, _ = clean()
@@ -490,6 +604,92 @@ class Tampered(unittest.TestCase):
         self.says(self.changed({self.rec_at(4, FARBLK + 7): 0x50073004}), "record 4: code 0x0, but its raw words say 0x21")
         self.says(self.changed({self.rec_at(3, 10): 0x50033000}), "record 3: code 0x0, but its raw words say 0x23")
 
+    def test_more_of_the_header_and_the_gates(self) -> None:
+        r = self.r
+        self.says(self.changed({16: 0x50073004}), "its final INT_STS 50073004")
+        self.says(self.changed({4: 1}), "the header counts 1 anomalies; the records show 0", "1 anomalous read(s)")
+        self.says(self.changed({8: r.words[8] & ~0x08000000}), "fail the CTRL gate")
+        self.says(self.changed({9: r.words[9] | 0x10}), "fail the loopback gate")
+        self.says(self.changed({10: r.words[10] & ~4}), "fail the PCFG_DONE gate")
+        self.says(self.changed({12: r.words[12] | 4}), "fail the data-cache gate")
+        self.says(self.changed({64 + 6: 0x00200A00}), "fail the FPGA0_CLK_CTRL gate")
+        p, gate = twin(fault="lpbk")
+        v = judged(p, gate, words=gate.words[:2] + [0x103] + gate.words[3:])
+        self.assertIn("the run reports a stop at the PCFG_DONE gate, but the readings in its header fail the loopback gate", v["problems"])
+        v = judged(p, gate, words=gate.words[:64 + 4] + [0xF] + gate.words[64 + 5:])
+        self.assertIn("SLCR words are recorded although a gate before them fails", v["problems"])
+        self.assertEqual(judged(p, gate)["problems"], ["the run stopped at the loopback gate"])
+
+    def test_more_of_a_record_s_own_words(self) -> None:
+        r, i = self.r, 5                               # record 5: the first read of the list in the second state
+        self.says(self.changed({self.rec_at(i, 1): 1}), "record 5: expected the target read of")
+        self.says(self.changed({self.rec_at(i, 15): 2}), "record 5: expected the target read of")
+        self.says(self.changed({self.rec_at(i, 14): 2}), "record 5: expected the target read of")
+        self.says(self.changed({self.rec_at(i, 14): 4}), "record 5: 4 frames per read")
+        self.says(self.changed({self.rec_at(i, 0): 0x900}), "record 5: reads 0x00000900 + 3 frame(s), outside the envelope")
+        self.says(self.changed({self.rec_at(i, 16 + 9): 0x30004001}), "record 5: the frame read stream is not read-only")
+        self.says(self.changed({self.rec_at(i, 59 + 1): 0x2800E001}), "record 5: the FAR read stream is not the pinned one")
+        self.says(self.changed({self.rec_at(i, 63): 0}), "record 5: the cleanup stream is not the pinned one")
+        self.says(self.changed({self.rec_at(i, 9): 1}), "record 5: 0 sentinel word(s) in the data, the record says 1")
+        self.says(self.changed({self.rec_at(i, DATA + FRAME + 5): 0xA5A55A5A}), "record 5: 1 sentinel word(s)", "raw words say 0x10")
+        self.says(self.changed({self.rec_at(i, 3): 0x50073004}), "record 5: code 0x0, but its raw words say 0x21")
+        self.says(self.changed({self.rec_at(i, 4): 1001}), "record 5: 1001 polls, above the limit 1000")
+        self.says(self.changed({self.rec_at(i, FARBLK + 5): 1}), "record 5: the value")
+        self.says(self.changed({self.rec_at(1, 59 + 1): 0x28002001}), "record 1: the CTL0 read stream is not the pinned one")
+        self.says(self.changed({self.rec_at(1, 5): 0x50033004}), "record 1: a frame read transfer has a status in an operation that reads nothing")
+        self.says(self.changed({self.rec_at(0, 10): 1}), "record 0: a health flag on a baseline read")
+
+    def test_the_status_after_the_reads_that_are_not_of_the_list_and_every_error_bit(self) -> None:
+        after, cleared = FARBLK + 7, 10
+        w, n = self.r.words, self.r.n_records
+        for i in (0, 1, n - 2, n - 1):
+            self.says(self.changed({self.rec_at(i, after): w[self.rec_at(i, after)] | 0x00040000}), f"record {i}: code 0x0, but its raw words say 0x21")
+            self.says(self.changed({self.rec_at(i, after): w[self.rec_at(i, after)] & ~4}), f"record {i}: code 0x0, but its raw words say 0x23")
+        v = self.changed({self.rec_at(1, after): w[self.rec_at(1, after)] | 0x20})
+        self.assertEqual((v["verdict"], v["bit_5"]["shown_after_records"], v["bit_5"]["cleared_after_records"]), ("PASS", [1, 3], [3]), "bit 5 after CTL0: recorded, reported, left")
+        v = self.changed({self.rec_at(3, cleared): w[self.rec_at(3, cleared)] | 0x20})
+        self.assertEqual((v["verdict"], v["bit_5"]["still_set_after_clearing"]), ("PASS", [3]), "a bit 5 that did not clear is reported, not judged")
+        for bit in (6, 11, 14, 15, 18, 20, 21, 22, 23):                     # every bit of a transfer's error mask
+            self.says(self.changed({self.rec_at(4, after): w[self.rec_at(4, after)] | 1 << bit}), "record 4: code 0x0, but its raw words say 0x21")
+            self.says(self.changed({self.rec_at(3, cleared): w[self.rec_at(3, cleared)] | 1 << bit}), "record 3: code 0x0, but its raw words say 0x21")
+        self.says(self.changed({self.rec_at(3, after): w[self.rec_at(3, after)] | 0x00040000}), "record 3: bit 5 was cleared", "record 3: code 0x0, but its raw words say 0x21")
+        self.says(self.changed({self.rec_at(3, 2): 0x23}), "record 3: code 0x23, but its raw words say 0x0")
+
+    def test_a_run_that_stopped_at_a_status_with_one_thing_changed(self) -> None:
+        after, cleared, code = FARBLK + 7, 10, 2
+
+        def problems(fault: str, edits: dict) -> list[str]:
+            p, r = twin(fault=fault)
+            at = lambda field: r.hb + 2 * REC + field   # noqa: E731  record 2: the first read of the list
+            return judged(p, r, words=[{at(k): x for k, x in edits.items()}.get(i, w) for i, w in enumerate(r.words)])["problems"]
+        self.assertIn("record 2: code 0x0, but its raw words say 0x21", problems("lateerr@14", {code: 0}))
+        self.assertIn("record 2: code 0x23, but its raw words say 0x21", problems("lateerr@14", {code: 0x23, cleared: 0x50023004}))
+        self.assertTrue(any("record 2: bit 5 was cleared (50063004) after a read that was not clean" in x for x in problems("bit5@2,lateerr@14", {cleared: 0x50063004})))
+        self.assertTrue(any("record 2: bit 5 was cleared (50023004) after a read that was not clean" in x for x in problems("bit5@2,short@2", {cleared: 0x50023004})))
+        late = problems("lateerr@11", {})
+        self.assertEqual(late, ["the run did not complete: status 0x224", "1 anomalous read(s)"], "an error bit met before a transfer of record 2 began")
+        for c in (0, 0x20, 0x21, 0x23):
+            self.assertIn(f"record 2: code {c:#x}, but its raw words say 0x24", problems("lateerr@11", {code: c}))
+
+    def test_accesses_after_the_run_must_have_ended_and_a_log_that_ends_early(self) -> None:
+        p, r = twin(fault="ramstuck")                 # stopped at a reading before the frames of the second state
+        n = r.plb[1]
+        w = list(r.words)
+        w[65] = n + 1; w[64 + FIXED + 2 * n], w[64 + FIXED + 2 * n + 1] = PL_COUNT, 7
+        v = judged(p, r, words=w)
+        self.assertIn(f"1 access(es) to the design after the point where the list ends or the run must have ended (access {n})", v["problems"])
+
+        def shorter(w):                                # the clean run with the last access of its log taken away
+            k = self.r.n_log
+            w[65] = k - 1; w[64 + FIXED + 2 * (k - 1)] = w[64 + FIXED + 2 * (k - 1) + 1] = 0
+        self.says(self.changed(fn=shorter), f"the log of PL accesses ends after {self.r.n_log - 1}, where access {self.r.n_log - 1} of the list is due")
+
+    def test_a_log_in_a_run_that_never_came_to_the_design(self) -> None:
+        p, r = twin(fault="short@1")                  # the reference frame's first reading fails: nothing of the design is touched
+        self.assertEqual((r.status, r.plb[1]), (0x610, 0))
+        w = list(r.words); w[65] = 1; w[64 + FIXED], w[64 + FIXED + 1] = 0x40000000, 0x53324131
+        self.assertIn("the PL block shows an access to the design in a run that never came to it", judged(p, r, words=w)["problems"])
+
     def test_ctl0_read_differently_before_and_after(self) -> None:
         self.says(self.changed({self.rec_at(self.r.n_records - 2, FARBLK + 4): 0x00000401}), "CTL0 does not read the same before and after")
 
@@ -551,6 +751,13 @@ class Table(unittest.TestCase):
         self.assertEqual((v["verdict"], c["table"]), ("PASS", None))
         self.assertIn("1 place(s) are shown the other way than S2.2 saw them", c["problems"])
 
+    def test_a_cell_with_two_bits_gives_no_table_even_where_s2_2_found_both(self) -> None:
+        twice = CELLS + [(5, 1, 0xA06, 7, 7, 0)]
+        known = dict(DESIGN, census=T8.census(), candidates=KNOWN["candidates"])
+        p, r = twin(cells=twice, known=known)
+        c = s2_3_table.close_code(judged(p, r, known=known), candidates_of(twice))
+        self.assertEqual((c["table"], c["problems"], c["cells_with_several_bits"]), (None, ["1 cell(s) of the RAM are followed by more than one bit"], [69]))
+
     def test_only_a_passing_code_run_is_closed(self) -> None:
         p, r = twin(fault="flip@7")
         self.assertEqual(s2_3_table.close_code(judged(p, r), KNOWN["candidates"])["problems"], ["the code run is not a passing run"])
@@ -592,6 +799,40 @@ class Table(unittest.TestCase):
         h = s2_3_table.hold_singles(judged(p, r, known=KNOWN), table)
         self.assertEqual(([c["cell"] for c in h["contradictions"]], h["contradictions"][0]["the_single_shows"]), ([133], []))
         self.assertIn("cell 133: its single changes 0 bit(s)", h["problems"][0])
+
+    def test_a_single_shown_the_other_way_than_the_table_has_it_is_a_contradiction(self) -> None:
+        table = [dict(row) for row in self.closing()[1]["table"]]
+        table[140]["inverted"] = True
+        h = s2_3_table.hold_singles(clean("singles", 2)[2], table)
+        self.assertEqual(([c["cell"] for c in h["contradictions"]], len(h["confirmed"])), ([140], 63))
+
+    def test_a_failing_run_of_the_singles_and_a_bit_that_follows_a_cell_of_another_run(self) -> None:
+        table = self.closing()[1]["table"]
+        p, r = twin("singles", 2, fault="countstuck")
+        v = judged(p, r)
+        self.assertEqual(v["verdict"], "FAIL")
+        self.assertEqual(s2_3_table.hold_singles(v, table), {"problems": ["not a passing run of the singles"], "confirmed": [], "contradictions": []})
+        # A bit that flips once, in the state of one single, has that cell's row: the judge says it follows the cell —
+        # one state cannot tell them apart — and the table says the cell has two bits.
+        p, r = twin("singles", 2, fault="flip@5")     # the frame read of the fourth state: the single of cell 130
+        v = judged(p, r)
+        self.assertEqual((v["verdict"], v["finding"]["bits"]["follow"]), ("PASS", 65))
+        h = s2_3_table.hold_singles(v, table)
+        self.assertEqual(([c["cell"] for c in h["contradictions"]], len(h["confirmed"])), ([130], 63))
+        self.assertIn("cell 130: its single changes 2 bit(s)", h["problems"][0])
+        v = json.loads(json.dumps(clean("singles", 2)[2]))
+        v["finding"]["follows"].append({"far": "0x00000a03", "word": 0, "bit": 0, "cell": 7, "memory": 0, "address": 7, "inverted": False})
+        h = s2_3_table.hold_singles(v, table)
+        self.assertEqual((h["problems"], len(h["confirmed"])), (["a bit follows cell 7, which is not a cell of this run"], 64))
+
+    def test_the_transition_written_for_an_inverted_place_is_the_one_seen(self) -> None:
+        cells = T.ram_map(4, inverted=9)
+        p, r = twin(cells=cells)
+        c = s2_3_table.close_code(judged(p, r), candidates_of(cells))
+        doc = s2_3_table.ram_map(DESIGN, c["table"], {"dir": "run00", "result_sha256": "0" * 64, "reads": p["reads"], "states": p["states"]}, [])
+        jsonschema.Draft202012Validator(SCHEMA).validate(doc)
+        self.assertEqual([e["observed_transition"] for e in doc["entries"][:10]], [{"base": 1, "set": 0}] * 9 + [{"base": 0, "set": 1}])
+        self.assertEqual([e["inverted"] for e in doc["entries"][:10]], [True] * 9 + [False])
 
     def test_what_is_not_a_run_of_the_singles_or_not_a_table(self) -> None:
         table = self.closing()[1]["table"]
@@ -863,6 +1104,7 @@ class Chain(unittest.TestCase):
         self.assertEqual((a["state"], self.calls, len(a["runs"])), ("go on", [0], 1))
         self.assertIn("no single before the code run and its table are committed: run00", a["held"])
         self.assertNotIn("blocked", a)
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["held"], a["held"], "what holds it is in the chain's file")
         self.assertTrue((self.root / "table" / "table.json").is_file(), "the table is written when the code run is closed, before anything is asked of git")
         asked: list[Path] = []
         a = self.drive(committed=lambda path: asked.append(path) or ("" if path.name == "run00" else "table has files that are not in the last commit"))
@@ -977,6 +1219,71 @@ class Chain(unittest.TestCase):
         self.assertTrue(any("does not show the list of accesses planned for the run" in w for w in other), other)
         f.write_text(json.dumps(rec))
         self.assertEqual(self.assess()["state"], "go on")
+
+    def edit_record(self, run: str, fn) -> None:
+        f = self.root / run / "run.json"
+        rec = json.loads(f.read_text()); fn(rec); f.write_text(json.dumps(rec))
+
+    def test_what_a_run_s_record_must_say_of_the_run(self) -> None:
+        self.drive(max_new=2)
+        f = self.root / "run01" / "run.json"
+        kept = f.read_text()
+        for fn, says in ((lambda r: r.update(restart={"step": 5, "cmd": "go 02000000", "line": "resetting ..."}), "run01: a reply showed an exception or a restart"),
+                         (lambda r: r.update(went=False), "run01: the prober was not started"),
+                         (lambda r: r.update(stop="no prompt after 'md.l 10000000 40'"), "run01: the run script stopped: no prompt after"),
+                         (lambda r: r.update(card_verified=False), "run01: the card copy was not verified"),
+                         (lambda r: r.update(stage="s2_2"), "run01: the run record is of stage s2_2, not s2_3s"),
+                         (lambda r: r.update(verdict="FAIL"), "run01: the run script's verdict is FAIL")):
+            with self.subTest(says):
+                self.edit_record("run01", fn)
+                why = self.assess()["why"]
+                self.assertTrue(any(says in w for w in why), why)
+                f.write_text(kept)
+        for text, says in (("[]", "the run record is not a record"), ('"x"', "the run record is not a record"), ("{", "there is no run record")):
+            with self.subTest(text):
+                f.write_text(text)
+                self.assertTrue(any(says in w for w in self.assess()["why"]))
+                self.assertEqual(self.drive(runner=lambda *_: self.fail("a run was started"))["state"], "halted")
+        f.write_text(kept)
+        self.assertEqual(self.assess()["state"], "go on")
+
+    def test_sets_that_do_not_declare_the_same_image_and_design(self) -> None:
+        other = dict(self.bases, s2_3s=dict(self.bases["s2_3s"], image_sha256="0" * 64))
+        a = s2_3_chain.assess(self.root, other, KNOWN)
+        self.assertEqual((a["state"], a["why"]), ("halted", ["the two sets of the step do not declare the same image and the same design"]))
+        other = dict(self.bases, s2_3s=dict(self.bases["s2_3s"], pl_design=dict(self.bases["s2_3s"]["pl_design"], bytes=1)))
+        self.assertEqual(s2_3_chain.assess(self.root, other, KNOWN)["state"], "halted")
+
+    def test_a_link_where_a_run_is_to_be_is_no_run(self) -> None:
+        self.drive(max_new=1)
+        os.symlink("run00", self.root / "run01")         # a link to the code run's directory is not the first run of the singles
+        self.assertEqual(self.assess()["why"], ["what has the name of a run and is not a directory: ['run01']"])
+        a = self.drive(runner=lambda *_: self.fail("the runner was called"), refuses=lambda *_: self.fail("the run script was asked"))
+        self.assertEqual((a["state"], json.loads((self.root / "chain.json").read_text())["state"]), ("halted", "halted"))
+
+    def test_the_command_ends_with_a_code_when_a_run_could_not_be_started(self) -> None:
+        import contextlib, io
+        build = s1a_run.IMAGE
+        other = Path(scratch_dirs.mkdtemp(prefix="smimg_")) / "prober.bin"
+        other.write_bytes(build.read_bytes()[:-1] + bytes([build.read_bytes()[-1] ^ 1]))
+        root = Path(scratch_dirs.mkdtemp(prefix="smcmd_")) / "chain"
+        root.mkdir()
+        (root / "prober.bin").write_bytes(build.read_bytes())   # the image kept with the runs is the set's: what is stored stands
+        keep_argv, keep_log = sys.argv, os.environ.get("SELFMAP_CONSOLE_LOG")
+        self.addCleanup(setattr, s1a_run, "IMAGE", build)
+        self.addCleanup(setattr, sys, "argv", keep_argv)
+        self.addCleanup(lambda: os.environ.pop("SELFMAP_CONSOLE_LOG", None) if keep_log is None else os.environ.__setitem__("SELFMAP_CONSOLE_LOG", keep_log))
+        s1a_run.IMAGE = other                            # the image the run script would load is not the set's: nothing is opened, nothing sent
+        sys.argv = ["s2_3_chain.py", "--dir", str(root), "--go"]
+        said = io.StringIO()
+        with contextlib.redirect_stdout(said):
+            rc = s2_3_chain.main()
+        self.assertEqual(rc, 1)
+        self.assertIn("HELD: nothing was sent: the image of the build", said.getvalue())
+        self.assertIn("0 run(s) stored of 5; the chain: go on", said.getvalue())
+        stored = json.loads((root / "chain.json").read_text())
+        self.assertEqual((stored["state"], stored["blocked"], stored["held"].startswith("nothing was sent: ")), ("go on", True, True))
+        self.assertEqual(sorted(p.name for p in root.iterdir()), ["chain.json", "prober.bin"])
 
     def test_a_run_of_another_kind_or_share_in_a_run_s_place(self) -> None:
         self.drive(max_new=3)

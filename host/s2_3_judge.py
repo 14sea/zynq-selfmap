@@ -559,7 +559,7 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
         else:
             try:
                 p = st.plan(run["kind"], run["share"], known, known["census"], known["candidates"])
-            except ValueError as e:
+            except (ValueError, KeyError) as e:          # what is known does not make a plan, or lacks what a plan is made from
                 p = None
                 bad(f"no plan can be made for the run: {e}")
             if p is not None:

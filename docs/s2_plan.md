@@ -31,8 +31,11 @@ now has its test (section 27).** **S2.2 has been on the board: the chain of eigh
 complete — 256 bits of block type 0 follow the RAM, as many as it has cells, in four frames
 next to each other; every other bit is still; reading does not disturb the RAM; bit 5 of the
 status showed after two reads that are not of those frames (section 28).** **S2.3 is
-proposed in full in section 29 and agreed, all eight points as recommended (section 30);
-nothing of it is built.** S2.4 and S2.5 are not proposed in full yet.
+proposed in full in section 29 and agreed, all eight points as recommended (section 30).
+Its host side is built and waits for the owner's review (section 31): a new stage of the
+prober and so a new image, the judge, the table, the chain. Its mutants have had a first
+look and none survives it; the tool has not run them, and the complete set has not been
+run for the new image. Nothing of S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2274,3 +2277,276 @@ stands, the row of S2 in the stage table, the questions 4, 5, 7 and 9, the note 
 among the risks — each as a dated note, the text of 2026-11-13 left as it was.
 
 The host side is built next; its account follows as a section "as built".
+
+## 31. S2.3 as built (2026-11-22; host side, nothing on a board yet)
+
+For the owner's review. Sections 29 and 30 are the proposal and the decisions; this is what
+was built from them, where it differs, and what it cannot show.
+
+### What there is
+
+| part | where |
+|---|---|
+| the prober's stage 9 | `prober/sm_core.c` (`run_s9`, `pl_addr`, `log9`), `prober/sm.h` |
+| the twin: the list of accesses; a stop for a program that floods it | `prober/twin_hal.c` |
+| the numbering, the states, the two lists of a run | `host/s2_3_states.py` |
+| the judge; its two layouts | `host/s2_3_judge.py`; `host/s2_3c_judge.py`, `host/s2_3s_judge.py` |
+| the table, the singles held to it, the description | `host/s2_3_table.py`; `schemas/ram_map_v1.schema.json` |
+| the chain's driver | `host/s2_3_chain.py` |
+| the run script: the sets `s2_3c` and `s2_3s`, both lists made at run time | `host/s1a_run.py` (`with_plan`, `acc_bytes`, `PLANS_AT_RUN_TIME`) |
+| the sets | `build/prober/expected_s2_3c.json`, `expected_s2_3s.json`, written by `tests/test_prober_image.py` |
+| tests | `tests/test_prober_s2_3.py` (36), `tests/test_s2_3_host.py` (113) |
+
+**A new image**: `prober.bin`, 19,248 bytes, sha256
+`ca2f6b5e3253dbecc70dbd56767b7f0463fb6d80aabca3d1ce39da35338de5e9`, crc32 `0231c989`. Every
+set is written for it. The image of S2.2 (`94ad860c…6f50`) stays beside its evidence.
+
+### The stage
+
+Stage 9 is stage 8 with the states taken out. Its gates, its reads, the status after every
+read, the clearing of bit 5 and the two reads of CTL0 are stage 8's, by the same functions.
+What is new is that it makes **the host's list of accesses**, entry by entry.
+
+Parameters (every other word must be zero; the block is refused before the device is looked
+at if one is not):
+
+| word | holds |
+|---|---|
+| 3, 4, 5 | the envelope and the reference frame, as in S2.2 |
+| 7 | how many states (at most 80) |
+| 9, 15 | the poll limit; the wait that touches no memory |
+| 16 | how many reads the list of reads has (at most 178) |
+| 18 | how many entries the list of accesses has, the marks counted (at most 32,768) |
+| 19 | which registers of the design this run may write, one bit for each offset |
+| 24 to 26, 28 to 31 | the PL envelope, the identification word, the four SLCR words |
+
+**The list of accesses** lies at `0x10190000`, two words an entry. The first word is the
+register's offset in the design with the kind of the entry in its two low bits; the second
+is a value.
+
+| kind | what the prober does |
+|---|---|
+| 0 | reads the register; the reading is logged (the value must be zero) |
+| 1 | writes the value to the register |
+| 2 | reads the register; **it must read the value**, or the run ends there |
+| 3 | a mark, no access. Value 0: every read of the list of reads is made now. Value 1: the state is over |
+
+A state is: entries, the first mark, entries, the second mark; the list is exactly as many
+states as word 7 says. The prober refuses, before anything is touched, a list that is not of
+that form, an offset that is no register of the design or lies outside the PL envelope, a
+write to a register word 19 does not name, a word 19 beyond the image's own bound, and a
+run whose result would not lie in its area.
+
+What it does, in order: the gates; the reference frame; the design's identification (its
+own access, the only one: word 26); CTL0; for each state the entries up to the mark, the
+reads, the entries up to the state's end; CTL0; the reference frame.
+
+**The result.** The log of accesses has room for the identification and every entry that is
+not a mark, so the PL block — and with it the place where the records begin — is as long as
+the list makes it: 64 + 16 + 2 x accesses words. The records are stage 8's.
+
+**New stops**: `0xa0a`, a reading before the frames of a state was not what the list says;
+`0xa0b`, one after them — for the readings of the RAM that is the stop of S2.2's "the RAM
+did not hold".
+
+### The states and the lists (`host/s2_3_states.py`)
+
+The numbering and the states are section 29's. The list of accesses for a state: the RAM
+written; read back at all 64 addresses, each reading held to the state; the counter read;
+the mark; the RAM read back again at all 64, held again; the counter; the design's count of
+writes, held to the writes made so far in the run; the shift registers' outputs at all 32
+addresses, held to the words the design loads. Before the first state the shift registers
+are read the same way.
+
+| run | states | entries | accesses | reads a state | result |
+|---|---|---|---|---|---|
+| the code run | 18 | 7,834 | 7,799 | 12 (`0x00401200` .. `0x00401223`) | 121,278 words |
+| singles, each of four | 66 | 21,898 | 21,767 | 2 (`0x0040121e` .. `0x00401223`) | 108,894 words |
+
+Every list writes the two address registers and the RAM's data, and nothing else: word 19
+is `0x00111000`.
+
+The reads come from the census and from `evidence/s2_2_17A6_2026-11-22/candidates.json`: the
+one column of block type 0 in which S2.2's frames lie, read in threes as S2.2's shares read
+it; for the singles those of these reads that deliver a frame with a candidate. Candidates
+in two columns, or none, give no plan.
+
+### The judge (`host/s2_3_judge.py`)
+
+Everything about a read is held as S2.2's judge holds it — that part is taken over from it
+line for line. What is its own:
+
+- **The log against the list.** Access by access: the same register, the same value
+  written, and where the list holds a reading to a value, that reading. The first that is
+  not so is where the run must have ended, with the stop that says before or after the
+  frames.
+- **The states are taken from the log**: what the RAM read back as, at all 64 addresses,
+  before the frames of a state and after — both must be there, and alike.
+- **The counter must have gone on** between the two readings of a state. The prober knows
+  nothing of a counter; this is the judge's.
+- **The design's count of writes** is held to the writes the log shows, and no access of the
+  log may be a write to the shift registers' data.
+- **Which run it is** is read from the states — the code run's, or those of one run of the
+  singles — and both lists must then be the lists `s2_3_states.plan` makes for that run from
+  the design, the census and S2.2's finding; word 19 must be what those lists write.
+- **The finding.** Every cell has a row of values over the states. A bit of a frame whose
+  readings are constant is *still*; one whose readings are the row of exactly one cell
+  *follows* that cell; the opposite of a cell's row: it follows it inverted; anything else
+  that changed is *irregular* and fails the run. Cells the states do not tell apart are
+  listed, and no bit is said to follow one of them.
+
+The same judge judges both kinds of run. It passes a run with any number of bits that
+follow; whether that is a table is asked next.
+
+### The table, the singles, the description (`host/s2_3_table.py`)
+
+- `close_code`: **every cell has exactly one bit, and the bits are exactly the places S2.2
+  found, each shown the way S2.2 saw it.** Then the table; otherwise none, and which of the
+  outcomes it is.
+- `hold_singles`: for each of a run's 64 cells, the bits that follow it must be exactly one,
+  the place the table has, shown the same way. A cell for which that is not so is a
+  contradiction.
+- `ram_map`: the description, `schemas/ram_map_v1.schema.json` — per cell the place
+  (`address/word/bit`), the memory and the RAM's address, whether inverted, the confidence
+  and state in the copied schema's words, the transition observed, and the evidence: the
+  states of the code run in which the cell was set, the records of the code run that hold
+  the frame in those states, and the run, state and record of its single. The build's
+  record of where it put each memory is copied beside the entries under a name that says
+  what it is.
+
+### The chain (`host/s2_3_chain.py`)
+
+`run00` is the code run; `run01` to `run04` the singles. Each stored run is judged again from
+its raw words and held to the image, the design and both lists, as S2.2's chain does (the
+checks are that chain's own functions, and one more for the list of accesses).
+
+- The code run is closed into the table, which is written to `DIR/table/table.json` —
+  **once**. A table that is there is held to what the code run's verdict gives now and is
+  never written over.
+- **No single is started before `run00` and `table/` are committed as they stand.** Until
+  then the chain is held, which is not a halt.
+- No table: the chain halts, says which outcome, and runs no single.
+- A contradiction halts the chain at that run; what the run's other singles said is in
+  `chain.json`.
+- Complete: five runs stored, every cell confirmed once. Then `ram_map.json` is written; it
+  is taken away again if the stored runs no longer make a complete chain.
+
+### Where what was built differs from sections 29 and 30
+
+1. **The list has offsets, not addresses.** The image's tests hold that an address of the
+   PL is formed by one instruction in one function. That function was `pl_access`; it is
+   now `pl_addr`, which gives the address of a register or refuses to, and is asked by
+   `pl_access` and by stage 9's check of its list. The test names both callers.
+2. **The identification is still the prober's own access**, held to word 26, before the
+   list's first entry. Section 29 had the prober know "no state"; it knows this one word of
+   the design, as stages 7 and 8 do.
+3. **The counter is the judge's.** Stage 8 stops if it stands still; stage 9 logs two
+   readings and the judge fails the run.
+4. **A single that contradicts the table does not fail its run; it halts the chain.**
+   Section 29 said "that entry is a contradiction and the run fails". The judge is a
+   function of the result and the plan and of nothing else, so that a stored run judged
+   again — by the chain, by the audit — says what it said; the table is not a thing it is
+   given. The run passes as a run; the chain holds it to the table and halts.
+5. **A later state is written only at the addresses where it differs from the state
+   before**, and is read back whole. In a run of the singles that is one or two writes a
+   state.
+6. **Two sets and two layouts** (`s2_3c`, `s2_3s`): the run script knows a result by the
+   length of its header, and the two kinds of run have two.
+7. **The image's bound on what a run may write** has the four registers of the stages
+   before and the shift registers' data: `0x01111010`. Section 30 said so; the scratch
+   register is among the four although no list of S2.3 writes it.
+8. **Limits**: 80 states and 32,768 entries a run. The result area decides before either.
+9. **The table has its own directory**, so that the question "is it committed" is the one
+   already asked of a run's directory.
+
+### What cannot be told, and is said so in the tests
+
+- **Nothing outside the column** (section 29). The singles read six frames; a second place
+  of a cell elsewhere in the column would have shown in the code run as a cell with two
+  bits, and nowhere else.
+- **A bit that is a function of several cells** has no cell's row: it is irregular and
+  fails the run. That is a refusal to say, not a finding about it.
+- **Where the cells show in the twin is made up by the tests.** That the judge finds them
+  wherever they are put says the judge is right about a device that behaves so.
+- **The log beyond the last access of a run that stopped** is zero in the twin whether or
+  not the prober cleared it; the clearing has no test that could fail.
+- **The bound on the prober's walk of the list** (below) cannot be shown to matter on a list
+  the check lets through; it is there for the case that the check is wrong.
+
+### Tests that changed their statement
+
+- `tests/test_prober_image.py`: the PL's base is formed in `pl_addr`, asked from two
+  places; three new constants are accounted for (the words stage 9 uses, the bound, and the
+  bound's complement, which the compiler uses to hold word 19 to it).
+- Nothing else: the tests of the stages before pass as they were.
+
+970 tests in all (821 before this step).
+
+### Mutants
+
+**1,304 now, none stale** by the tool's own rule (its condition for an anchor, applied to
+every mutant without running any).
+
+- **53 older ones had lost their anchors.** 40 because stage 9 has stage 8's words: each now
+  names the first of the two places, and has a twin for stage 9 at the second. 13 stood in
+  lines that changed (the choice of the wait, the address of a register, the log's bound,
+  the console's digit, the run script's list of stages) and are written again.
+- **249 new** for what is S2.3's own: stage 9 (36), the states and lists (29), the judge
+  (102, of which 63 are S2.2's judge's own mutants at the lines taken over from it), the
+  table (26), the chain (42, 21 of them S2.2's chain's), the run script's sets (14).
+
+**None of them has been run by the tool.** What has been done is a first look: each of the
+289 that are new or are stage 9's, alone, in a scratch copy, against the three test files of
+this step (`test_prober_image`, `test_prober_s2_3`, `test_s2_3_host`) and not the whole
+suite. That is not the tool's verdict — the tool runs everything and holds the number of
+tests that ran — and it says nothing of the 13 written again, which older tests must kill.
+
+- First pass: 231 killed, 62 not. Three of the 62 did not build (an unused parameter, an
+  unused function, an unbalanced bracket) and are written again. 55 showed tests that were
+  missing — most of them for what the judge has from S2.2's, which my first tests had not
+  taken over, and for the block's checks stage 9 has from stage 8. About thirty tests were
+  added for them.
+- **One of the 55 was a fault of the judge**, not of the tests: without the design's words
+  for its shift registers the judge did not say so, it raised an exception. Mended.
+- **Four are taken out**, because nothing can kill them, and the lines they stood in stay:
+  the chain's check that a passing result is of the run planned in its place (the judge
+  cannot pass a run against another run's lists); the chain's check that every cell is
+  confirmed when five runs are stored (a run with a contradiction has halted it before);
+  which of two equal readings of the RAM is called the state; and the line of the run
+  script that keeps the list of accesses beside a run, which only a run on the board
+  reaches — as the same line for the list of reads has none.
+- Second pass: **289 of 289 killed**, none that did not build.
+
+One of the mutants is the one that took the machine's memory (below); it now ends.
+
+### My slips
+
+- **A mutant of mine took the machine's memory.** It let a list through that ends inside a
+  state; the prober walked on past the end of the list, the twin printed a violation for
+  every word without end, and the test kept all of it. The host stopped the job. Mended at
+  both ends, as section 27's was not: the prober's walk of the list is bounded by the
+  list's length whatever the check before it said, and the twin ends with a code after a
+  thousand accesses nobody may make. A loop that ends only because an earlier check holds
+  is the thing to look for when a stage is written.
+- **Stage 9 did not at first take stage 8's three branches** — the choice of the wait, the
+  clearing of the done bits alone, CTL0 as the register of its one other read. I found it
+  by reading for "stage 8" before the first test ran; a result would have shown it at the
+  first run, and a mutant now holds each.
+- **I ran the suite in a shell that still had the twin's variables set** from a diagnosis
+  (`SM_LIST` and the like, pointing at files already removed): 955 errors that were none.
+  The older tests do not clear those variables before they start the twin. I have not
+  changed that; it is noted here.
+- A commit message gave the image's size before its last rebuild; set right in the same
+  commit. Several of my own expectations in new tests were wrong and were set right by the
+  twin, not the other way round — each is a place where I had the device's behaviour in
+  mind and not the prober's.
+
+### For the board, when the owner has reviewed this
+
+- The mutants of this work by the tool, then **the complete set** for the new image, as the
+  rule has it: 1,304 now.
+- Then, on the owner's word, the chain: a pre-check; `s2a.bit` is on the card; the code run
+  alone (`--max-new 1`); its directory and the table committed; the four runs of the
+  singles; whatever it ends in committed as it stands before anything is made of it.
+- The set's file is copied beside the runs before the first run, not after the last (section
+  28).

@@ -252,6 +252,9 @@ class WhatItRefuses(unittest.TestCase):
         self.assertFalse(r.touched(), why)
         self.assertEqual(r.uart, "SM9 start\r\nSM9 end status=00000500\r\n", why)
         self.assertEqual(r.total, len(r.words), why)
+        n, s = r.params[18], r.params[7]                # what is left of a refused block: the header and the PL block, as long as the counts make it —
+        room = 0 if (s == 0 or s > 80 or n > 32768 or n < 2 * s) else 1 + n - 2 * s   # and with no log at all where the counts cannot be
+        self.assertEqual((r.hdr_words, r.total), (64 + FIXED + 2 * room,) * 2, why)
 
     def setUp(self) -> None:
         self.states = few(st.code_run(), 2)
@@ -281,7 +284,28 @@ class WhatItRefuses(unittest.TestCase):
     def test_the_count_of_entries_is_the_blocks(self) -> None:
         self.refused(Run(states=self.states, w18=len(self.entries) - 1), "one entry fewer than the list has: the last mark is not looked at")
         self.refused(Run(states=self.states, w18=0), "no entry at all")
+        self.refused(Run(states=self.states, w18=3), "fewer entries than two states have marks")
         self.refused(Run(states=self.states, w18=32769), "more than a list holds")
+
+    def test_a_list_longer_than_a_list_may_be_is_refused_before_a_word_beyond_its_room_is_read(self) -> None:
+        """One state of 32,768 readings and its two marks: 32,770 entries, well formed, and the result would fit.
+        It is refused for its length alone, and no word of memory beyond the list's room is looked at (the twin would
+        call that a violation)."""
+        long = [(st.A_READ, PL_COUNT, 0)] * 32768 + [(st.A_MARK, 0, st.MARK_FRAMES), (st.A_MARK, 0, st.MARK_END)]
+        r = Run(states=[], entries=long, n_states=1)
+        self.refused(r, "32,770 entries")
+        fits = [(st.A_READ, PL_COUNT, 0)] * 32766 + long[-2:]
+        ok = Run(states=[], entries=fits, n_states=1)
+        self.assertEqual((ok.rc, ok.status, ok.violations, ok.plb[1]), (0, 1, [], 32767), "32,768 entries is a list: 32,766 readings, and the identification before them")
+
+    def test_no_state_at_all_is_no_run(self) -> None:
+        r = Run(states=[], entries=[], n_states=0)
+        self.refused(r, "a block of no state, with a list of no entry")
+
+    def test_a_pl_envelope_the_wrong_way_round_is_refused_even_where_no_entry_names_a_register(self) -> None:
+        empty = [(st.A_MARK, 0, st.MARK_FRAMES), (st.A_MARK, 0, st.MARK_END)]
+        self.refused(Run(states=[], entries=empty, n_states=1, w24=PL + 0x1C, w25=PL), "the envelope ends before it begins")
+        self.assertEqual(Run(states=[], entries=empty, n_states=1).status, 1)
 
     def test_an_address_that_is_no_register_of_the_design(self) -> None:
         for why, addr in (("below the design", PL - 4), ("beyond its last register", PL + 0x20), ("far away", 0xF8007000), ("the result area", 0x10000000)):
@@ -423,6 +447,16 @@ class WhereItStops(unittest.TestCase):
                 r = Run(fault=fault)
                 self.assertEqual((r.rc, r.status, r.violations, r.n_records), (status, status, [], 0))
                 self.assertEqual((r.pl_accesses(), r.dmas), ([], []), "nothing of the design touched, nothing sent")
+
+    def test_of_two_gates_that_fail_the_first_is_the_one_the_run_stops_at(self) -> None:
+        for faults, status in (("ctrl,seu", 0x101), ("seu,lpbk", 0x105), ("lpbk,nodone", 0x102), ("nodone,dcache", 0x103), ("dcache,lvl", 0x104), ("fpgarst,pll", 0x111)):
+            with self.subTest(faults=faults):
+                r = Run(fault=faults)
+                self.assertEqual((r.rc, r.status, r.n_records, r.pl_accesses()), (status, status, 0, []))
+        r = Run(fault="seu")
+        self.assertEqual(r.plb[4:8], [0, 0, 0, 0], "the SLCR is not read once a gate before it has failed")
+        r = Run(fault="pll")
+        self.assertEqual(r.plb[4:8], [0xF, 0, 0x00400800, 0x3B], "and all four of its words are recorded when it is read")
 
     def test_a_read_that_fails_ends_the_run_there(self) -> None:
         r = Run(fault="err@12")                       # a transfer of the first state's reads ends with an error bit

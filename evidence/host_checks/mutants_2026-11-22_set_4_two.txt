@@ -1,0 +1,11 @@
+# SM_MUTANT_JOBS=1 python3 tests/mutants.py <name>, twice, one after the other   (the two the rest of the set did not kill, after a test for each)
+# started 2026-11-22T13:01:21Z on 76697f4faf04a4a9c65774de783f7c905198d895, working tree clean: 0 changed file(s)
+unmutated: Ran 819 OK (skipped=1); 0 test(s): 
+KILLED   shares: the whole of a row is one column                       Ran 819 FAILED (failures=88, errors=50, skipped=1); 84 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_census_in_which_the_register_goes_another
+restored: Ran 819 OK (skipped=1); 0 test(s):  (1 copies)
+1 mutants, 0 survived
+unmutated: Ran 819 OK (skipped=1); 0 test(s): 
+KILLED   chain8: the closing's problems do not halt it                  Ran 819 FAILED (failures=1, skipped=1); 1 test(s): runs_that_pass_each_alone_and_do_not_agree_
+restored: Ran 819 OK (skipped=1); 0 test(s):  (1 copies)
+1 mutants, 0 survived
+# ended 2026-11-22T13:20:18Z, exit codes 0 and 0

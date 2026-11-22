@@ -1,0 +1,8 @@
+# SM_MUTANT_FROM=817 SM_MUTANT_JOBS=8 python3 tests/mutants.py   (the rest of the complete set: the one rewritten and the 197 not judged on 2026-11-22)
+# started 2026-11-22T08:57:55Z on 0c9143e2d88017c73aab0d59fc9b1224a58c84ad, working tree clean: 0 changed file(s)
+from mutant 817 of the 1015 in the list (198 taken); the first is: s8: a failure of the interface is taken for a short read
+unmutated: Ran 817 OK (skipped=1); 0 test(s): 
+KILLED   s8: a failure of the interface is taken for a short read       Ran 817 FAILED (failures=49, skipped=1); 16 test(s): a_failure_of_the_interface_stops_at_once, a_read_that_fails_ends_the_run_and_the_verd
+BROKEN   s8: the RAM's read-back is held to all zero whatever the state Ran 286 FAILED (errors=563, skipped=1); 183 test(s): Class, a_bit_5_that_does_not_clear_is_recorded_so_
+KILLED   s8: its read of another register reads the address register    Ran 817 FAILED (failures=77, errors=10, skipped=1); 41 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+# stopped 2026-11-22 between 09:11Z and 09:27Z by the session, the machine short of memory (not the tool's end): 3 of 198 judged; the eight scratch copies were removed by hand

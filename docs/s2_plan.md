@@ -11,7 +11,7 @@ when the step before it has answered. The points for the owner are in section 11
 the owner decided in section 12. **No board run happens without the owner's word for that
 step.**
 
-**Where S2 stands (2026-11-21).** The host side of S2.0 and S2.1 is built (section 13). A
+**Where S2 stands (2026-11-22).** The host side of S2.0 and S2.1 is built (section 13). A
 review of it found one fault in the run script, and a review of the mending two more; all
 three are mended (sections 14 and 15). The complete set of mutants has been run, and the
 mutants of the run script on the script as it is now (section 16). **S2.0 has been on the
@@ -25,8 +25,10 @@ points as recommended (section 20); its host side is built and waits for the own
 found six; five are mended (section 23), and the sixth on the owner's decision (section 24):
 a clean copy of the repository now runs every test. A third found four, all mended
 (section 25): stage 8 no longer clears an error bit at any time. A fourth found three in the
-chain's driver, mended without a new image (section 26). No mutant of S2.2 has been run by
-the tool yet.** S2.3 to S2.5 are not proposed in full yet.
+chain's driver, mended without a new image (section 26). The complete set of mutants has
+been run on that image — 1,015, all killed in the end, after one survivor in the chain that
+now has its test (section 27). Nothing of S2.2 has been on a board.** S2.3 to S2.5 are not
+proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1824,3 +1826,118 @@ register and the next act (section 25); a single flip in the all-one state that 
 cell (section 21); and that **no mutant has been run by the tool since 2026-11-21's run was
 stopped**. That last is the largest: 1,015 mutants, of which every one of S2.2 has only
 been tried by hand or not at all. It is due before the board, and it is the next thing.
+
+## 27. The complete set of mutants on the image of S2.2 (2026-11-21 and 22): 1,015, all killed in the end
+
+What section 26 named as the largest thing open. The owner said on 2026-11-21 to run the
+set four at a time. It took four starts, and on the way it found one fault in the tool, one
+test that could take the machine's memory, two mutants that did not build, one class of
+tests that could vanish from the count, and **one survivor: a rule of the chain that no test
+held**. Nothing under `prober/` or `host/` was changed by any of it: the image is the one of
+section 25 (16,680 bytes, sha256 `94ad860c…6f50`), and the judge and the chain are as
+section 26 left them.
+
+### What was run, and on what
+
+| started (GMT) | on | from | at a time | judged | killed | survived | BROKEN | how it ended |
+|---|---|---|---|---|---|---|---|---|
+| 11-21 16:59 | `c5b1ba1` | 0 | 4 | 1 | — | — | — | stopped by me: the tool took the unmutated tree for one with no result |
+| 11-21 17:18 | `8247f74` | 0 | 4 | 818 | 817 | 0 | 1 | stopped by the session, about 11-22 08:50: the machine short of memory |
+| 11-22 08:57 | `0c9143e` | 817 | 8 | 3 | 2 | 0 | 1 | stopped by the session, between 09:11 and 09:27: the same |
+| 11-22 09:49 | `e70d932` | 818 | 8 | 197 | 195 | 1 | 1 | by itself, 12:52: every scratch copy restored |
+| 11-22 13:01 | `76697f4` | two by name | 1 | 2 | 2 | 0 | 0 | by itself: restored |
+
+No mutant was stale in any of them. The records are
+`evidence/host_checks/mutants_2026-11-22_set_1_stopped.txt`, `…_set_2_stopped.txt`,
+`…_set_3_rest.txt` and `…_set_4_two.txt` (nothing is kept of the first start: one line).
+
+**Every one of the 1,015 has been killed by the tool**: the first 817 of the list in the
+second row, the 818th in the third, 195 of the remaining 197 in the fourth, and the last two
+in the fifth. One (the 820th) was judged twice and killed twice.
+
+They were not all killed on one commit, and that is to be said plainly. Between the first
+verdict and the last, these changed and nothing else: the tool itself (how it reads the
+suite's last line; where a run begins; two mutants rewritten so that they build), a helper
+of `tests/test_prober_s2_2.py` (below), the setup of one class of `tests/test_s2_2_host.py`
+(below), and four tests added. No test was taken away or made to ask less, so a mutant
+killed on an earlier commit has, on the last, every test that killed it — with the one
+helper as the exception I cannot rule out by argument alone: it now follows at most four
+frames of a record where it followed whatever the record said. I know of no mutant whose
+killing rested on more than four; I have not run the first 817 again to show it.
+
+### 1. The tool: a suite that passed with a skipped test
+
+The test of section 24 that asks git is skipped where there is no `.git`, and the tool's
+scratch copies have none; unittest's last line is then `OK (skipped=1)`, the tool looked for
+a line that is `OK` and nothing more, and said "Ran 811 no result" of the unmutated tree.
+It went on regardless; I stopped it after one mutant. The tool now reads `OK` with whatever
+follows it in brackets, **and refuses to begin on a tree that did not pass** — before, only
+a tree that failed was refused (`8247f74`; `tests/test_mutants_tool.py`).
+
+### 2. The memory: a test followed a count of four thousand million
+
+Both stops fell at the same place in the list, and I did not see it at the first: I
+reported that stop as the machine's and its cause as unknown, and the owner, who had
+started other programs, took it for theirs. At the second it could not be missed. The
+mutant "s8: its records begin where stage 7's do" puts stage 8's records over the PL block;
+word 14 of a record, the count of frames, then reads as anything; and `Run.rec` in
+`tests/test_prober_s2_2.py` built a list with one entry for each. Shown by hand, the one
+mutant in place against the two test files of S2.2 with the address space held to 6 GB:
+6,028 MB resident, 18 lines of `MemoryError`, 403 seconds. With the helper holding the count
+to what a record has room for: 130 MB, 48 seconds, the mutant killed (`e70d932`).
+
+**The judge was looked at for the same thing and does not have it**: it refuses a count of
+accesses above the log's room and a count of frames outside 1 to 3 before it follows
+either. A result from the board with such a word in it is refused, not followed.
+
+### 3. Two mutants that did not build
+
+"s8: a failure of the interface is taken for a short read" and "s8: the RAM's read-back is
+held to all zero whatever the state": each replacement left a parameter unused, which the
+build refuses. Both date from section 21 and were among those never run. Rewritten so that
+the parameter is still named (`&& 0`, `& 0u`); both killed by the tool since.
+
+### 4. A class of tests that could vanish from the count
+
+"shares: the whole of a row is one column" builds, and the suite under it ran 808 tests of
+818: the cutting of the census refused, the class `Shares` did its cutting once for the
+class, and its ten tests did not run — which the tool, rightly, does not take for a kill.
+The same kind of thing as section 25's, in another class. The cutting is done before every
+test now (`76697f4`), and the mutant is killed with the count whole.
+
+### 5. The survivor: what the closing finds did not have to halt the chain
+
+"chain8: the closing's problems do not halt it" — with the line that halts the chain for
+what all runs together show (addresses read that are not block type 0's, a place that is a
+candidate in two runs, CTL0 not the same in every run) taken out, every test passed. The
+three findings were tested on `close` by itself; nothing held `assess` to acting on them.
+On the board this would have been a chain of eight runs called complete, with a list of
+candidates written, though its runs did not agree.
+
+New test: CTL0 reads as another value all through the second of three runs. Each run passes
+its judge (which holds a run's two reads of CTL0 to each other and to nothing else); the
+closing does not; the chain is halted, no list of candidates is written, `chain.json` says
+halted, and it is halted when looked at again. The mutant is killed by it.
+
+### Tests, mutants
+
+819 tests (811 at section 26): four of the tool, one of the helper, two of where a stopped
+run goes on, one of the chain — and `Shares` and its ten as before. 1,015 mutants, none
+stale; `SM_MUTANT_FROM=n` passes by the first n of the list, for a run that was stopped.
+
+### My slips
+
+- The first stop's cause. Above, under 2.
+- **Times.** I said about 13 hours for four at a time; it was a rate of 0.9 a minute, which
+  is 19. At the first look I said the rate "matched" the 13 hours when it already gave 20.
+  Eight at a time was 1.1 a minute, not twice four.
+- The line "# ended … exit code" that I wrap around a run took the code of the `date` in
+  the same line, not the tool's, in the first three starts: it would always have said 0.
+  None of those three reached it. From the fourth start on it is the tool's own.
+
+### For the board
+
+The owner's rule — the complete set before a new image first goes on the board — is met for
+the image of section 25. Nothing of S2.2 has been on a board. The next step is the first
+run alone (section 23), on the owner's word and with the board's serial line attached to
+this machine again; it has not been since 2026-11-20 21:46 GMT.

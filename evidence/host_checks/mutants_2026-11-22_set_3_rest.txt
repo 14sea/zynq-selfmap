@@ -1,0 +1,204 @@
+# SM_MUTANT_FROM=818 SM_MUTANT_JOBS=8 python3 tests/mutants.py   (the rest of the complete set: 197, the first of them rewritten)
+# started 2026-11-22T09:49:16Z on e70d9329025fd417f50518e8aa9e5a339d9dad5c, working tree clean: 0 changed file(s)
+from mutant 818 of the 1015 in the list (197 taken); the first is: s8: the RAM's read-back is held to all zero whatever the state
+unmutated: Ran 818 OK (skipped=1); 0 test(s): 
+KILLED   s8: the RAM's read-back is held to all zero whatever the state Ran 818 FAILED (failures=77, errors=25, skipped=1); 77 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: its read of another register reads the address register    Ran 818 FAILED (failures=77, errors=10, skipped=1); 41 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+KILLED   s8: its records begin where stage 7's do                       Ran 818 FAILED (failures=188, errors=32, skipped=1); 100 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: its log is as long as stage 7's                            Ran 818 FAILED (failures=68, errors=22, skipped=1); 68 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   s8: it does not take the choice of the wait                    Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_block_that_is_not_of_this_form_is_refused, the_wait_is_the_one_asked_for_and_another_i
+KILLED   s8: the console says stage 2 for stage 8                       Ran 818 FAILED (failures=68, errors=10, skipped=1); 27 test(s): a_block_that_is_not_of_this_form_is_refused, a_list_of_candidates_does_not_outlive_the_c
+KILLED   s8: the header says the records begin after 64 words           Ran 818 FAILED (failures=103, errors=23, skipped=1); 62 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   s8: the PL block does not say it is one                        Ran 818 FAILED (failures=151, errors=23, skipped=1); 67 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   judge8: any magic passes                                       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: a record size that is not the stage's passes           Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: more records than the result area holds pass           Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: a total that does not add up passes                    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: a buffer of another length than its header says passes Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: reserved header words may hold anything                Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: the echoed parameters need not be the planned ones     Ran 818 FAILED (failures=2, skipped=1); 2 test(s): another_parameter_block_than_the_one_planne, the_echoed_parameters
+KILLED   judge8: the PL block needs no magic                            Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_pl_block_s_form
+KILLED   judge8: the PL block may count more accesses than it holds     Ran 818 FAILED (errors=1, skipped=1); 1 test(s): the_pl_block_s_form
+KILLED   judge8: reserved words of the PL block may hold anything       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_pl_block_s_form
+KILLED   judge8: words after the last access may hold anything          Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_pl_block_s_form
+KILLED   judge8: any echoed block is a block of the stage               Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_echoed_parameters
+KILLED   judge8: a word the stage has no use for may be set             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_echoed_parameters
+KILLED   judge8: a state that is neither all zero nor all one is a valid state Ran 818 FAILED (errors=1, skipped=1); 1 test(s): the_echoed_parameters
+KILLED   judge8: a planned list of another length is taken              Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_planned_list_of_another_length
+KILLED   judge8: without the census nothing is said                     Ran 818 FAILED (failures=1, skipped=1); 1 test(s): without_the_census_or_the_design_s_words_no
+KILLED   judge8: the list is not held to the census                     Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_list_that_was_not_made_from_the_census_fa, another_list_than_the_one_the_prober_read
+KILLED   judge8: the CTRL gate is not judged                            Ran 818 FAILED (failures=2, skipped=1); 2 test(s): gates_and_refused_parameters, the_gate_readings
+KILLED   judge8: the SEU_EN gate is not judged                          Ran 818 FAILED (failures=2, skipped=1); 2 test(s): gates_and_refused_parameters, the_gate_readings
+KILLED   judge8: the loopback gate is not judged                        Ran 818 FAILED (failures=2, skipped=1); 2 test(s): gates_and_refused_parameters, the_gate_readings
+KILLED   judge8: the PCFG_DONE gate is not judged                       Ran 818 FAILED (failures=2, skipped=1); 2 test(s): gates_and_refused_parameters, the_gate_readings
+KILLED   judge8: the data-cache gate is not judged                      Ran 818 FAILED (failures=2, skipped=1); 2 test(s): gates_and_refused_parameters, the_gate_readings
+KILLED   judge8: the SLCR gate is not judged                            Ran 818 FAILED (failures=5, skipped=1); 2 test(s): gates_and_refused_parameters, the_gate_readings
+KILLED   judge8: SLCR words may be recorded behind a failing gate       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_gate_readings
+KILLED   judge8: a gate stop need not be at the gate the readings fail  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_gate_readings
+KILLED   judge8: a run that went on past a failing gate passes          Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_gate_readings
+KILLED   judge8: a final status without PCFG_DONE passes                Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: a final status with an error bit passes                Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: a record of four frames passes                         Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: a read outside the envelope passes                     Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: the guard's word is not looked at                      Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: words after the data may hold anything                 Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: the streams are not held to the pinned ones            Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: the streams are not held to read-only                  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: a frame read's status in an operation that reads nothing passes Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: polls above the limit pass                             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: the count of sentinel words is not checked             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: the unread flag is not checked                         Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: a record's code is not derived again                   Ran 818 FAILED (failures=5, skipped=1); 5 test(s): a_record_s_own_words, a_run_that_stopped_at_such_a_status_with_on
+KILLED   judge8: a short read is not seen in the data                   Ran 818 FAILED (failures=5, skipped=1); 4 test(s): a_read_that_fails_ends_the_run_and_the_verd, a_record_s_own_words
+KILLED   judge8: a pad that is not zero is not seen                     Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_read_that_fails_ends_the_run_and_the_verd, a_record_s_own_words
+KILLED   judge8: the address register is not held to the census         Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_census_in_which_the_register_goes_another, a_record_s_own_words
+KILLED   judge8: the address register is held to one place less         Ran 818 FAILED (failures=77, errors=10, skipped=1); 38 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_census_in_which_the_register_goes_another
+KILLED   judge8: CTL0 may read differently before and after             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): ctl0_read_differently_before_and_after
+KILLED   judge8: bit 5 shown and no clearing recorded passes            Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_status_after_a_read_and_the_clearing_of
+KILLED   judge8: a clearing recorded where bit 5 did not show passes    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_status_after_a_read_and_the_clearing_of
+KILLED   judge8: the status after a read is held to nothing             Ran 818 FAILED (failures=10, skipped=1); 4 test(s): a_run_that_stopped_at_such_a_status_with_on, a_status_after_a_read_that_is_amiss_in_a_ru
+KILLED   judge8: what the register reads after the clearing is held to nothing Ran 818 FAILED (failures=3, skipped=1); 2 test(s): a_status_after_a_read_that_is_amiss_in_a_ru, a_status_that_is_amiss_after_a_read_or_afte
+KILLED   judge8: an error bit in a status between transfers passes      Ran 818 FAILED (failures=11, skipped=1); 4 test(s): a_run_that_stopped_at_such_a_status_with_on, a_status_after_a_read_that_is_amiss_in_a_ru
+KILLED   judge8: a lost PCFG_DONE in a status between transfers passes  Ran 818 FAILED (failures=3, skipped=1); 3 test(s): a_status_after_a_read_that_is_amiss_in_a_ru, a_status_that_is_amiss_after_a_read_or_afte
+KILLED   judge8: a clearing after a read that failed by itself passes   Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_run_that_stopped_at_such_a_status_with_on
+KILLED   judge8: a clearing after a status that was amiss passes        Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_run_that_stopped_at_such_a_status_with_on, a_status_after_a_read_that_is_amiss_in_a_ru
+KILLED   judge8: a code of 0x23 that nothing shows is taken though bit 5 was cleared Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_run_that_stopped_at_such_a_status_with_on, the_status_after_a_read_and_the_clearing_of
+KILLED   judge8: an error bit in the word of a transfer that was never queued is read as a bit that would not clear Ran 818 FAILED (failures=16, skipped=1); 2 test(s): an_error_bit_met_before_a_transfer_begins_i, the_code_of_an_error_bit_met_before_a_trans
+KILLED   judge8: any transfer that was never queued is read as one that met an error bit Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_status_that_is_amiss_after_a_read_or_afte, the_code_of_an_error_bit_met_before_a_trans
+KILLED   judge8: the word of the clearing is read in a read that is not of the list Ran 818 FAILED (failures=40, errors=10, skipped=1); 33 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+KILLED   judge8: bit 5 after a read that is not of the list must have been cleared Ran 818 FAILED (failures=2, skipped=1); 2 test(s): bit_5_is_reported_and_is_not_a_failure, the_status_after_a_read_and_the_clearing_of
+KILLED   judge8: bit 5 is not reported                                  Ran 818 FAILED (failures=4, skipped=1); 4 test(s): a_status_that_is_amiss_after_a_read_or_afte, bit_5_is_reported_and_is_not_a_failure
+KILLED   judge8: a bit 5 that did not clear is not reported             Ran 818 FAILED (failures=2, skipped=1); 2 test(s): bit_5_is_reported_and_is_not_a_failure, the_status_after_a_read_and_the_clearing_of
+KILLED   judge8: an access outside what the prober may touch passes     Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: a write to a register the prober may not write passes  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: an access that is not the one due passes               Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: a value written that is not the one due passes         Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: a wrong answer of the design is not seen in the log    Ran 818 FAILED (failures=7, skipped=1); 3 test(s): a_ram_that_did_not_hold_its_state_fails_the, every_other_way_the_design_may_fail_is_name
+KILLED   judge8: an answer held to a value is not                       Ran 818 FAILED (failures=5, skipped=1); 3 test(s): a_ram_that_did_not_hold_its_state_fails_the, every_other_way_the_design_may_fail_is_name
+KILLED   judge8: the shift registers' later readings are not held to the first Ran 818 FAILED (failures=2, skipped=1); 2 test(s): every_other_way_the_design_may_fail_is_name, the_log_of_accesses_to_the_design
+KILLED   judge8: the counter may stand still in the log                 Ran 818 FAILED (failures=2, skipped=1); 2 test(s): every_other_way_the_design_may_fail_is_name, the_log_of_accesses_to_the_design
+KILLED   judge8: a log that ends early passes                           Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: accesses after the end of the sequence pass            Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: the PL block's code is not held to its log             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: where the PL block says it stopped is not checked      Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge8: a log in a run that never came to the design passes    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_log_in_a_run_that_never_came_to_the_desig
+KILLED   judge8: a record that is not the one due passes                Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_record_s_own_words, another_list_than_the_one_the_prober_read
+KILLED   judge8: missing records pass                                   Ran 818 FAILED (failures=1, skipped=1); 1 test(s): records_missing_and_records_too_many
+KILLED   judge8: records after the end of the schedule pass             Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_status_after_a_read_that_is_amiss_in_a_ru, records_missing_and_records_too_many
+KILLED   judge8: the header's status is not held to the records         Ran 818 FAILED (failures=3, skipped=1); 3 test(s): a_status_after_a_read_that_is_amiss_in_a_ru, the_header
+KILLED   judge8: the header's count of anomalies is not held to the records Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: the header's stop record is not held to the records    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge8: a health flag on a read that has none passes           Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: the final reference flag is not held to the data       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge8: a read that fails is taken for a failure of the interface whatever its code Ran 818 FAILED (failures=4, skipped=1); 1 test(s): a_read_that_fails_ends_the_run_and_the_verd
+KILLED   judge8: a design that did not answer does not end the schedule Ran 818 FAILED (failures=8, skipped=1); 4 test(s): a_ram_that_did_not_hold_its_state_fails_the, an_envelope_that_leaves_registers_out
+KILLED   judge8: the shift registers are not held to the design's words Ran 818 FAILED (failures=2, skipped=1); 2 test(s): the_shift_registers_first_reading, without_the_census_or_the_design_s_words_no
+KILLED   judge8: readings of the shift registers above four bits pass   Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_shift_registers_first_reading
+KILLED   judge8: no words for the shift registers and nothing said      Ran 818 FAILED (failures=1, skipped=1); 1 test(s): without_the_census_or_the_design_s_words_no
+KILLED   judge8: a bit that follows the states is not a candidate       Ran 818 FAILED (failures=34, errors=10, skipped=1); 32 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   judge8: every bit that moved is a candidate                    Ran 818 FAILED (failures=6, skipped=1); 5 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_reads_differently_in_the_two_all
+KILLED   judge8: an inverted candidate is restless                      Ran 818 FAILED (failures=2, skipped=1); 2 test(s): cells_shown_inverted_are_candidates_and_sai, the_outcomes_the_plan_named
+KILLED   judge8: a candidate is told by the all-one state alone         Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_bit_that_comes_on_with_the_all_one_state_
+KILLED   judge8: an inverted candidate is told by the all-one state alone Ran 818 FAILED (failures=3, skipped=1); 2 test(s): a_bit_that_reads_differently_in_the_two_all, a_frame_changed_in_one_state
+KILLED   judge8: restless bits do not fail the run                      Ran 818 FAILED (failures=4, skipped=1); 3 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_reads_differently_in_the_two_all
+KILLED   judge8: states that are all the same pass                      Ran 818 FAILED (failures=1, skipped=1); 1 test(s): one_and_two_states
+KILLED   judge8: candidates are named in a run that did not complete    Ran 818 FAILED (errors=44, skipped=1); 11 test(s): a_log_in_a_run_that_never_came_to_the_desig, a_ram_that_did_not_hold_its_state_fails_the
+KILLED   judge8: a run that did not complete passes                     Ran 818 FAILED (failures=43, errors=4, skipped=1); 10 test(s): a_ram_that_did_not_hold_its_state_fails_the, a_read_that_fails_ends_the_run_and_the_verd
+KILLED   judge8: anomalous reads pass                                   Ran 818 FAILED (failures=10, skipped=1); 2 test(s): a_status_that_is_amiss_after_a_read_or_afte, the_header
+KILLED   judge8: the read-back after a pass implies the code of the one before it Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_ram_that_did_not_hold_its_state_fails_the, the_log_of_accesses_to_the_design
+KILLED   judge8: the count of writes is held to one state's             Ran 818 FAILED (failures=51, errors=10, skipped=1); 41 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   shares: no place where the register stands still               Ran 818 FAILED (failures=44, errors=2, skipped=1); 29 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_clean_run_passes_and_the_candidates_are_t
+KILLED   shares: rows that ended otherwise are given such a place too   Ran 818 FAILED (failures=1, skipped=1); 1 test(s): only_a_row_that_ended_with_a_standstill_has
+KILLED   shares: the register is one place short after a read           Ran 818 FAILED (failures=82, errors=10, skipped=1); 43 test(s): a_bit_that_flips_once_in_the_all_one_state_, a_census_in_which_the_register_goes_another
+KILLED   shares: every address of the census is taken for block type 0  Ran 818 FAILED (failures=148, errors=39, skipped=1); 109 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+BROKEN   shares: the whole of a row is one column                       Ran 808 FAILED (failures=88, errors=40, skipped=1); 74 test(s): Class, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   shares: a column is read a frame at a time                     Ran 818 FAILED (failures=33, errors=38, skipped=1); 62 test(s): a_bit_that_comes_on_with_the_all_one_state_, a_bit_that_reads_differently_in_the_two_all
+KILLED   shares: a share may be one read longer than a list             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_share_takes_columns_up_to_the_limit_and_n
+KILLED   shares: a column too long for a list is cut                    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_column_too_long_for_a_list_is_refused_not
+KILLED   shares: the number of frames is not in the list's word         Ran 818 FAILED (failures=149, errors=46, skipped=1); 109 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   shares: a read the list cannot hold is put into it             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_list_as_the_prober_takes_it
+KILLED   shares: an address the census does not have passes in a list   Ran 818 FAILED (failures=1, errors=3, skipped=1); 2 test(s): a_list_that_is_not_made_from_the_census_is_, a_list_that_was_not_made_from_the_census_fa
+KILLED   shares: an address of another block type passes in a list      Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_list_that_is_not_made_from_the_census_is_
+KILLED   shares: a read across the end of a column passes in a list     Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_read_must_lie_in_one_column_even_where_tw
+KILLED   shares: an address read twice passes in a list                 Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_list_that_is_not_made_from_the_census_is_, another_list_than_the_one_the_prober_read
+KILLED   chain8: a run of another stage is taken                        Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a run of another share is taken                        Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_record_that_is_not_a_record_halts_the_cha, what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a run whose reply showed a restart is taken            Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_restart_halts_it, what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a run in which the prober was not started is taken     Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a run the run script stopped is taken                  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a run the run script failed is taken                   Ran 818 FAILED (failures=4, skipped=1); 2 test(s): a_run_that_is_not_a_passing_run_halts_the_c, what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a run whose card copy was not verified is taken        Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a stored result that is not the board's is taken       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: a set that declares another image is taken             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): stored_runs_are_held_to_the_image_and_the_d
+KILLED   chain8: a staged design that is not the declared one is taken  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): stored_runs_are_held_to_the_image_and_the_d
+KILLED   chain8: the image of the build is taken though one is kept with the runs Ran 818 FAILED (failures=3, skipped=1); 3 test(s): nothing_is_sent_for_a_run_the_run_script_wo, stored_runs_are_held_to_the_image_and_the_d
+KILLED   chain8: a run's record is not held to the image                Ran 818 FAILED (failures=5, skipped=1); 2 test(s): stored_runs_are_held_to_the_image_and_the_d, what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: the image need not be looked at after the prober returned Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: the image's checksum may stand anywhere before the start Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: a run's record is not held to the design               Ran 818 FAILED (failures=2, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: the design's checksum may stand after its load         Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: a record with two loads of the design or no start is taken Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: a run's record is not held to the list                 Ran 818 FAILED (failures=2, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: the list kept beside a run is not looked at            Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_list_of_candidates_does_not_outlive_the_c, what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: a second run is started whether the first is committed or not Ran 818 FAILED (failures=1, skipped=1); 1 test(s): no_second_run_is_started_before_the_first_i
+KILLED   chain8: a run whose files are not those of the last commit counts as committed Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_committed_means
+KILLED   chain8: only the files of the last commit are looked at, not those beside them Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_committed_means
+KILLED   chain8: only the files that are there are looked at, not those of the last commit Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_committed_means
+KILLED   chain8: a run is started though the build's image is not the set's Ran 818 FAILED (failures=1, errors=1, skipped=1); 2 test(s): nothing_is_sent_for_a_run_the_run_script_wo, the_command_ends_with_a_code_when_a_run_cou
+KILLED   chain8: the build's image is not held to the set before a run  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): nothing_is_sent_for_a_run_the_run_script_wo
+KILLED   chain8: the build's image is not held to the image kept with the runs Ran 818 FAILED (failures=1, skipped=1); 1 test(s): nothing_is_sent_for_a_run_the_run_script_wo
+KILLED   chain8: the run script is not asked before the runner is called Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_the_run_script_would_refuse_is_asked_b
+KILLED   chain8: a run that could not be started is not marked so       Ran 818 FAILED (failures=1, errors=3, skipped=1); 4 test(s): a_runner_that_could_not_begin_holds_the_cha, nothing_is_sent_for_a_run_the_run_script_wo
+KILLED   chain8: a run that is waited for is marked as one that could not be started Ran 818 FAILED (failures=1, skipped=1); 1 test(s): no_second_run_is_started_before_the_first_i
+KILLED   chain8: a runner that could not begin ends the driver with an exception Ran 818 FAILED (errors=1, skipped=1); 1 test(s): a_runner_that_could_not_begin_holds_the_cha
+KILLED   chain8: what held the chain is not written to its file         Ran 818 FAILED (errors=5, skipped=1); 5 test(s): a_runner_that_could_not_begin_holds_the_cha, no_second_run_is_started_before_the_first_i
+KILLED   chain8: the command ends without a code when a run could not be started Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_command_ends_with_a_code_when_a_run_cou
+KILLED   chain8: the name of a run taken by a file or a link is passed by Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_run_s_name_taken_by_something_that_is_not
+KILLED   chain8: a link to a directory counts as a run                  Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_run_s_name_taken_by_something_that_is_not
+KILLED   chain8: a link under a run is passed by when the run is asked about Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_committed_means
+KILLED   chain8: a link in the last commit counts as a plain file       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_committed_means
+KILLED   chain8: a run's directory may itself be a link                 Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_committed_means
+KILLED   chain8: the dry run is not told the directory the run is to write into Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_run_script_s_own_dry_run_says_what_the_
+KILLED   run: a dry run does not look at the directory it is given      Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_dry_run_given_a_directory_says_what_the_r, the_run_script_s_own_dry_run_says_what_the_
+KILLED   run: a link that leads nowhere is taken for a directory that does not exist yet Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_run_script_s_own_dry_run_says_what_the_
+KILLED   chain8: the run script's dry run is taken to refuse nothing    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_run_script_s_own_dry_run_says_what_the_
+KILLED   chain8: a record that is not a record is read as one           Ran 818 FAILED (errors=2, skipped=1); 1 test(s): a_record_that_is_not_a_record_halts_the_cha
+KILLED   chain8: steps that are no list are read as one                 Ran 818 FAILED (errors=2, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_image_
+KILLED   chain8: a list of candidates stays when the chain is no longer complete Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_list_of_candidates_does_not_outlive_the_c
+KILLED   chain8: looking at a chain does not say that a list of candidates lies there Ran 818 FAILED (errors=1, skipped=1); 1 test(s): a_list_of_candidates_does_not_outlive_the_c
+KILLED   chain8: the image is not kept with the runs                    Ran 818 FAILED (failures=2, errors=1, skipped=1); 3 test(s): nothing_is_sent_for_a_run_the_run_script_wo, stored_runs_are_held_to_the_image_and_the_d
+KILLED   chain8: a run the judge fails is taken                         Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_result_that_is_another_share_s_fails_the_
+KILLED   chain8: the stored verdict need not be the judge's             Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain8: run directories with a gap are taken                   Ran 818 FAILED (failures=1, skipped=1); 1 test(s): gaps_and_too_many
+KILLED   chain8: more runs than shares are taken                        Ran 818 FAILED (errors=1, skipped=1); 1 test(s): gaps_and_too_many
+KILLED   chain8: a run with problems does not halt the chain            Ran 818 FAILED (failures=21, errors=5, skipped=1); 9 test(s): a_list_of_candidates_does_not_outlive_the_c, a_record_that_is_not_a_record_halts_the_cha
+SURVIVED chain8: the closing's problems do not halt it                  Ran 818 OK (skipped=1); 0 test(s): 
+KILLED   chain8: the addresses read are not counted against block type 0 Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_the_closing_holds_the_runs_to
+KILLED   chain8: a place found in two runs passes                       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_the_closing_holds_the_runs_to
+KILLED   chain8: CTL0 may differ from run to run                        Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_the_closing_holds_the_runs_to
+KILLED   chain8: one candidate too many is outcome 1                    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_outcomes_the_plan_named
+KILLED   chain8: no candidate is called fewer                           Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_outcomes_the_plan_named
+KILLED   chain8: fewer candidates are called more                       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_outcomes_the_plan_named
+KILLED   chain8: the number of cells is one memory's                    Ran 818 FAILED (failures=4, skipped=1); 2 test(s): the_outcomes_the_plan_named, three_runs_and_the_step_is_closed
+KILLED   chain8: the candidates are not written out                     Ran 818 FAILED (errors=2, skipped=1); 2 test(s): a_list_of_candidates_does_not_outlive_the_c, three_runs_and_the_step_is_closed
+KILLED   chain8: it goes on after the last run it was allowed           Ran 818 FAILED (failures=4, errors=2, skipped=1); 6 test(s): a_run_s_name_taken_by_something_that_is_not, it_goes_on_where_it_stands
+KILLED   chain8: every run is of share 0                                Ran 818 FAILED (failures=16, errors=4, skipped=1); 15 test(s): a_list_of_candidates_does_not_outlive_the_c, a_result_that_is_another_share_s_fails_the_
+KILLED   chain8: inverted candidates are not counted                    Ran 818 FAILED (failures=1, skipped=1); 1 test(s): the_outcomes_the_plan_named
+KILLED   chain8: bit 5 is not reported by run                           Ran 818 FAILED (failures=1, skipped=1); 1 test(s): bit_5_is_reported_by_run
+KILLED   designs: a copy that is not what its record says is staged     Ran 818 FAILED (failures=4, skipped=1); 1 test(s): a_copy_that_is_not_what_its_record_says_is_
+KILLED   designs: a design that is there is written over                Ran 818 FAILED (failures=2, skipped=1); 2 test(s): a_design_that_is_there_is_left_as_it_is_wha, what_is_missing_is_staged_and_said
+KILLED   run s2.2: the dry run says the result begins after 64 words whatever the stage Ran 818 FAILED (failures=2, skipped=1); 1 test(s): the_dry_run_says_how_long_the_result_is_for
+KILLED   run s2.2: a share is given to a set that has none              Ran 818 FAILED (errors=1, skipped=1); 1 test(s): what_is_refused
+KILLED   run s2.2: a share that does not exist is taken                 Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_refused
+KILLED   run s2.2: the block does not count the list's reads            Ran 818 FAILED (failures=23, errors=10, skipped=1); 22 test(s): a_list_of_candidates_does_not_outlive_the_c, a_real_share_across_the_end_of_the_row_and_
+KILLED   run s2.2: the judge is not given the list                      Ran 818 FAILED (failures=23, errors=10, skipped=1); 22 test(s): a_list_of_candidates_does_not_outlive_the_c, a_real_share_across_the_end_of_the_row_and_
+KILLED   run s2.2: the list is not sent                                 Ran 818 FAILED (failures=23, errors=13, skipped=1); 25 test(s): a_list_of_candidates_does_not_outlive_the_c, a_list_that_did_not_arrive_whole_stops_the_
+KILLED   run s2.2: the list in RAM is not held to its checksum          Ran 818 FAILED (failures=18, errors=12, skipped=1); 22 test(s): a_list_of_candidates_does_not_outlive_the_c, a_list_that_did_not_arrive_whole_stops_the_
+KILLED   run s2.2: the design is not asked at the prompt before a run of stage 8 Ran 818 FAILED (failures=2, errors=2, skipped=1); 4 test(s): a_share_of_the_made_up_device, the_design_that_does_not_answer_at_the_prom
+KILLED   run s2.2: the run's record does not say which share            Ran 818 FAILED (failures=16, errors=14, skipped=1); 21 test(s): a_list_of_candidates_does_not_outlive_the_c, a_real_share_across_the_end_of_the_row_and_
+KILLED   run s2.2: the judge of a set with a census is not given it     Ran 818 FAILED (errors=2, skipped=1); 2 test(s): the_command_ends_with_a_code_when_a_run_cou, the_real_census_makes_eight
+KILLED   run s2.2: a share's records are counted for one state          Ran 818 FAILED (failures=1, skipped=1); 1 test(s): a_share_fills_in_the_list_and_what_follows_
+KILLED   run s2.2: a run without a share is taken                       Ran 818 FAILED (failures=1, skipped=1); 1 test(s): what_is_refused
+restored: Ran 818 OK (skipped=1); 0 test(s):  (8 copies)
+197 mutants, 2 survived
+# ended 2026-11-22T12:52:46Z, exit code 1

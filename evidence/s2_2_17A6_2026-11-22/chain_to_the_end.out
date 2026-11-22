@@ -1,0 +1,25 @@
+run00: share 0, 516 addresses, 0 candidate(s) — go on
+run01: share 1, ? addresses, 0 candidate(s) — halt
+{
+ "stage": "s2_2",
+ "shares": 8,
+ "set_aside": [],
+ "made_with": {
+  "image_bytes": 16680,
+  "image_crc32": "ed47e7ab",
+  "image_sha256": "94ad860cf80b4f1f3d41bba7e03d475450846416fc0740789e9dd528aae86f50",
+  "image_from": "kept with the runs",
+  "design_bytes": 2083859,
+  "design_crc32": "6a1efe06",
+  "design_sha256": "09782815b7420fb3c4aecd7397946295ed735fea2ae8b8060d8d912aecf9df64"
+ },
+ "state": "halted",
+ "why": [
+  "run01: the run record does not show the declared image (crc32 ed47e7ab) in RAM just before the prober was started and again after it returned: before ['ed47e7ab'], after []",
+  "run01: the run script stopped: no prompt after 'md.l 10000000 40'",
+  "run01: the run script's verdict is FAIL: [\"no prompt after 'md.l 10000000 40'\"]",
+  "run01: the card copy was not verified",
+  "run01: there is no stored result"
+ ]
+}
+2 run(s) stored of 8; the chain: halted

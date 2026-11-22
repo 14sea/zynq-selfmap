@@ -1,0 +1,172 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'dcache off\r'>>
+dcache off
+Zynq> 
+<<TX b'dcache\r'>>
+dcache
+Data (writethrough) Cache is OFF
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000a                             ....
+Zynq> 
+<<TX b'mw.l f800700c 00000004 1\r'>>
+mw.l f800700c 00000004 1
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000a                             ....
+Zynq> 
+<<TX b'fatload mmc 0:1 04000000 s2a.bit\r'>>
+fatload mmc 0:1 04000000 s2a.bit
+2083859 bytes read in 425 ms (4.7 MiB/s)
+Zynq> 
+<<TX b'crc32 04000000 1fcc13\r'>>
+crc32 04000000 1fcc13
+crc32 for 04000000 ... 041fcc12 ==> 6a1efe06
+Zynq> 
+<<TX b'fpga loadb 0 04000000 1fcc13\r'>>
+fpga loadb 0 04000000 1fcc13
+  design filename = "s2a_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=878dfc43"
+  part number = "7z010clg400"
+  date = "2026/11/20"
+  time = "06:04:13"
+  bytes in bitstream = 2083740
+zynq_align_dma_buffer: Align buffer at 4000077 to 4000040(swap 1)
+INFO:post config was not run, please run manually if needed
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: 50021004                             ...P
+Zynq> 
+<<TX b'md.l f8000900 1\r'>>
+md.l f8000900 1
+f8000900: 0000000f                             ....
+Zynq> 
+<<TX b'md.l f8000240 1\r'>>
+md.l f8000240 1
+f8000240: 00000000                             ....
+Zynq> 
+<<TX b'md.l f8000170 1\r'>>
+md.l f8000170 1
+f8000170: 00400800                             ..@.
+Zynq> 
+<<TX b'md.l f800010c 1\r'>>
+md.l f800010c 1
+f800010c: 0000003f                             ?...
+Zynq> 
+<<TX b'md.l 40000000 1\r'>>
+md.l 40000000 1
+40000000: 53324131                             1A2S
+Zynq> 
+<<TX b'mw.l 10100000 0 20\r'>>
+mw.l 10100000 0 20
+Zynq> 
+<<TX b'mw.l 10100000 31504d53 1\r'>>
+mw.l 10100000 31504d53 1
+Zynq> 
+<<TX b'mw.l 10100004 00000001 1\r'>>
+mw.l 10100004 00000001 1
+Zynq> 
+<<TX b'mw.l 10100008 00000008 1\r'>>
+mw.l 10100008 00000008 1
+Zynq> 
+<<TX b'mw.l 10100010 00401ba9 1\r'>>
+mw.l 10100010 00401ba9 1
+Zynq> 
+<<TX b'mw.l 10100014 00000b99 1\r'>>
+mw.l 10100014 00000b99 1
+Zynq> 
+<<TX b'mw.l 1010001c 00000003 1\r'>>
+mw.l 1010001c 00000003 1
+Zynq> 
+<<TX b'mw.l 10100024 00200000 1\r'>>
+mw.l 10100024 00200000 1
+Zynq> 
+<<TX b'mw.l 1010003c 00000200 1\r'>>
+mw.l 1010003c 00000200 1
+Zynq> 
+<<TX b'mw.l 10100040 000000ae 1\r'>>
+mw.l 10100040 000000ae 1
+Zynq> 
+<<TX b'mw.l 10100044 00000010 1\r'>>
+mw.l 10100044 00000010 1
+Zynq> 
+<<TX b'mw.l 10100060 40000000 1\r'>>
+mw.l 10100060 40000000 1
+Zynq> 
+<<TX b'mw.l 10100064 4000001f 1\r'>>
+mw.l 10100064 4000001f 1
+Zynq> 
+<<TX b'mw.l 10100068 53324131 1\r'>>
+mw.l 10100068 53324131 1
+Zynq> 
+<<TX b'mw.l 10100070 0000000f 1\r'>>
+mw.l 10100070 0000000f 1
+Zynq> 
+<<TX b'mw.l 10100078 00400800 1\r'>>
+mw.l 10100078 00400800 1
+Zynq> 
+<<TX b'mw.l 1010007c 0000003f 1\r'>>
+mw.l 1010007c 0000003f 1
+Zynq> 
+<<TX b'crc32 10100000 80\r'>>
+crc32 10100000 80
+crc32 for 10100000 ... 1010007f ==> 175cd7b2
+Zynq> 
+<<TX b'loady 10180000\r'>>
+loady 10180000
+## Ready for binary (ymodem) download to 0x10180000 at 115200 bps...
+C## Total Size      = 0x000002b8 = 696 Bytes
+## Start Addr      = 0x10180000
+Zynq> 
+<<TX b'crc32 10180000 2b8\r'>>
+crc32 10180000 2b8
+crc32 for 10180000 ... 101802b7 ==> 119b9ec4
+Zynq> 
+<<TX b'mw.l 10000000 0 40\r'>>
+mw.l 10000000 0 40
+Zynq> 
+<<TX b'loady 02000000\r'>>
+loady 02000000
+## Ready for binary (ymodem) download to 0x02000000 at 115200 bps...
+C## Total Size      = 0x00004128 = 16680 Bytes
+## Start Addr      = 0x02000000
+Zynq> 
+<<TX b'crc32 02000000 4128\r'>>
+crc32 02000000 4128
+crc32 for 02000000 ... 02004127 ==> ed47e7ab
+Zynq> 
+<<TX b'go 02000000\r'>>
+go 02000000
+## Starting application at 0x02000000 ...
+SM8 start
+SM8 end status=00000001 records=0000020e anomalies=00000000 words=0003e5d0
+## Application terminated, rc = 0x0
+Zynq> 
+<<TX b'md.l 10000000 40\r'>>
+md.l 10000000 40
+10000000: 31524d53 00000001 00000001 0000020e  SMR1............
+10000010: 00000000 0003e5d0 000001e0 00000b90  ................
+10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@
+10000030: 08c51878 800001d3 1eacaaf8 1ead0ec0  x...............
+10000040: 50033004 50000f30 ffffffff 00000000  .0.P0..P........
+10000050: 00000000 00000000 00000000 00000000  ................
+10000060: 00000000 00000000 00000000 00000000  ................
+10000070: 00000000 00000000 00000000 00000000  ................
+10000080: 31504d53 00000001 00000008 00000000  SMP1............
+10000090: 00401ba9 00000b99 00000000 00000003  ..@.............
+100000a0: 00000000 00200000 00000000 00000000  ...... .........
+100000b0: 00000000 00000000 0000000......
+100000d0: 00000000 00000000 00000000 00000000  .........0000f0: 0000000f 00000000 00400800 0000003f  ..........@.?...
+Z

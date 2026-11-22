@@ -784,8 +784,10 @@ class StoredBoardResults(unittest.TestCase):
     def test_the_replies_the_board_gave_by_the_rule_for_a_whole_reply(self) -> None:
         """The run script asks again for a dump of a few words or a checksum whose reply is not whole (2026-11-18). The
         rule for "whole" is held here against every such reply stored from the board so far, as the run records have
-        them: all are whole, and say what the run took from them — but one, the header dump of run 51 of the chain over
-        block type 0, which lost a stretch of characters and stopped that run."""
+        them: all are whole, and say what the run took from them — but two. The header dump of run 51 of the chain over
+        block type 0 lost a stretch of characters and stopped that run, before the rule was there. The header dump of
+        the second run of S2.2 (2026-11-22) lost stretches too, and most of the prompt after it: no prompt is not a
+        reply to ask again for, and that run stopped as the rule has it."""
         import s1a_run
         seen = {"md.l": 0, "crc32": 0}
         not_whole, headers = [], 0
@@ -806,7 +808,8 @@ class StoredBoardResults(unittest.TestCase):
                     self.assertEqual(got, rec["board_crc32"], record)
                 elif step["what"] == "status afterwards":
                     self.assertEqual(f"{got[0]:08x}", rec["int_sts_afterwards"], record)
-        self.assertEqual(not_whole, [("s1b3_17A6_2026-11-17/halted_at_run51/run51/run.json", "md.l 10000000 40")])
+        self.assertEqual(not_whole, [("s1b3_17A6_2026-11-17/halted_at_run51/run51/run.json", "md.l 10000000 40"),
+                                     ("s2_2_17A6_2026-11-22/run01/run.json", "md.l 10000000 40")])
         self.assertGreater(seen["crc32"], 7000)
         self.assertGreater(seen["md.l"], 700)
         self.assertGreaterEqual(headers, 145)

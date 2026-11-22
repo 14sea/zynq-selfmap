@@ -1,0 +1,268 @@
+{
+ "stage": "s2_2",
+ "steps": [
+  {
+   "n": 1,
+   "what": "prompt",
+   "cmd": "version",
+   "reply": "version\r\nU-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)\r\n\r\narm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\r\nGNU ld (GNU Binutils for Ubuntu) 2.42\r\nZynq> "
+  },
+  {
+   "n": 2,
+   "what": "cache off (the verified run had it off; the prober refuses otherwise)",
+   "cmd": "dcache off",
+   "reply": "dcache off\r\nZynq> "
+  },
+  {
+   "n": 3,
+   "what": "cache state",
+   "cmd": "dcache",
+   "reply": "dcache\r\nData (writethrough) Cache is OFF\r\nZynq> "
+  },
+  {
+   "n": 4,
+   "what": "status before the PL load",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "
+  },
+  {
+   "n": 5,
+   "what": "clear the sticky PCFG_DONE bit so that the load is seen as an edge (as the verified run did)",
+   "cmd": "mw.l f800700c 00000004 1",
+   "reply": "mw.l f800700c 00000004 1\r\nZynq> "
+  },
+  {
+   "n": 6,
+   "what": "status after the clear",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: a802000a                             ....\r\nZynq> "
+  },
+  {
+   "n": 7,
+   "what": "the PL design (2083859 bytes, sha256 09782815\u2026) from the card; by YMODEM if the card does not have it",
+   "cmd": "fatload mmc 0:1 04000000 s2a.bit",
+   "reply": "fatload mmc 0:1 04000000 s2a.bit\r\n2083859 bytes read in 425 ms (4.7 MiB/s)\r\nZynq> "
+  },
+  {
+   "n": 8,
+   "what": "the design in RAM is the file, whichever way it came",
+   "cmd": "crc32 04000000 1fcc13",
+   "reply": "crc32 04000000 1fcc13\r\ncrc32 for 04000000 ... 041fcc12 ==> 6a1efe06\r\nZynq> "
+  },
+  {
+   "n": 9,
+   "what": "configure the PL",
+   "cmd": "fpga loadb 0 04000000 1fcc13",
+   "reply": "fpga loadb 0 04000000 1fcc13\r\n  design filename = \"s2a_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=878dfc43\"\r\n  part number = \"7z010clg400\"\r\n  date = \"2026/11/20\"\r\n  time = \"06:04:13\"\r\n  bytes in bitstream = 2083740\r\nzynq_align_dma_buffer: Align buffer at 4000077 to 4000040(swap 1)\r\nINFO:post config was not run, please run manually if needed\r\nZynq> "
+  },
+  {
+   "n": 10,
+   "what": "status after the load",
+   "cmd": "md.l f800700c 1",
+   "reply": "md.l f800700c 1\r\nf800700c: 50021004                             ...P\r\nZynq> "
+  },
+  {
+   "n": 11,
+   "what": "LVL_SHFTR_EN is as recorded on this board",
+   "cmd": "md.l f8000900 1",
+   "reply": "md.l f8000900 1\r\nf8000900: 0000000f                             ....\r\nZynq> "
+  },
+  {
+   "n": 12,
+   "what": "FPGA_RST_CTRL is as recorded on this board",
+   "cmd": "md.l f8000240 1",
+   "reply": "md.l f8000240 1\r\nf8000240: 00000000                             ....\r\nZynq> "
+  },
+  {
+   "n": 13,
+   "what": "FPGA0_CLK_CTRL is as recorded on this board",
+   "cmd": "md.l f8000170 1",
+   "reply": "md.l f8000170 1\r\nf8000170: 00400800                             ..@.\r\nZynq> "
+  },
+  {
+   "n": 14,
+   "what": "PLL_STATUS is as recorded on this board",
+   "cmd": "md.l f800010c 1",
+   "reply": "md.l f800010c 1\r\nf800010c: 0000003f                             ?...\r\nZynq> "
+  },
+  {
+   "n": 15,
+   "what": "THE FIRST ACCESS TO USER LOGIC: the design's identification register. If no prompt comes back, the design does not answer: power cycle",
+   "cmd": "md.l 40000000 1",
+   "reply": "md.l 40000000 1\r\n40000000: 53324131                             1A2S\r\nZynq> "
+  },
+  {
+   "n": 16,
+   "what": "zero the parameter block",
+   "cmd": "mw.l 10100000 0 20",
+   "reply": "mw.l 10100000 0 20\r\nZynq> "
+  },
+  {
+   "n": 17,
+   "what": "parameter word 0",
+   "cmd": "mw.l 10100000 31504d53 1",
+   "reply": "mw.l 10100000 31504d53 1\r\nZynq> "
+  },
+  {
+   "n": 18,
+   "what": "parameter word 1",
+   "cmd": "mw.l 10100004 00000001 1",
+   "reply": "mw.l 10100004 00000001 1\r\nZynq> "
+  },
+  {
+   "n": 19,
+   "what": "parameter word 2",
+   "cmd": "mw.l 10100008 00000008 1",
+   "reply": "mw.l 10100008 00000008 1\r\nZynq> "
+  },
+  {
+   "n": 20,
+   "what": "parameter word 4",
+   "cmd": "mw.l 10100010 00401ba9 1",
+   "reply": "mw.l 10100010 00401ba9 1\r\nZynq> "
+  },
+  {
+   "n": 21,
+   "what": "parameter word 5",
+   "cmd": "mw.l 10100014 00000b99 1",
+   "reply": "mw.l 10100014 00000b99 1\r\nZynq> "
+  },
+  {
+   "n": 22,
+   "what": "parameter word 7",
+   "cmd": "mw.l 1010001c 00000003 1",
+   "reply": "mw.l 1010001c 00000003 1\r\nZynq> "
+  },
+  {
+   "n": 23,
+   "what": "parameter word 9",
+   "cmd": "mw.l 10100024 00200000 1",
+   "reply": "mw.l 10100024 00200000 1\r\nZynq> "
+  },
+  {
+   "n": 24,
+   "what": "parameter word 15",
+   "cmd": "mw.l 1010003c 00000200 1",
+   "reply": "mw.l 1010003c 00000200 1\r\nZynq> "
+  },
+  {
+   "n": 25,
+   "what": "parameter word 16",
+   "cmd": "mw.l 10100040 000000ae 1",
+   "reply": "mw.l 10100040 000000ae 1\r\nZynq> "
+  },
+  {
+   "n": 26,
+   "what": "parameter word 17",
+   "cmd": "mw.l 10100044 00000010 1",
+   "reply": "mw.l 10100044 00000010 1\r\nZynq> "
+  },
+  {
+   "n": 27,
+   "what": "parameter word 24",
+   "cmd": "mw.l 10100060 40000000 1",
+   "reply": "mw.l 10100060 40000000 1\r\nZynq> "
+  },
+  {
+   "n": 28,
+   "what": "parameter word 25",
+   "cmd": "mw.l 10100064 4000001f 1",
+   "reply": "mw.l 10100064 4000001f 1\r\nZynq> "
+  },
+  {
+   "n": 29,
+   "what": "parameter word 26",
+   "cmd": "mw.l 10100068 53324131 1",
+   "reply": "mw.l 10100068 53324131 1\r\nZynq> "
+  },
+  {
+   "n": 30,
+   "what": "parameter word 28",
+   "cmd": "mw.l 10100070 0000000f 1",
+   "reply": "mw.l 10100070 0000000f 1\r\nZynq> "
+  },
+  {
+   "n": 31,
+   "what": "parameter word 30",
+   "cmd": "mw.l 10100078 00400800 1",
+   "reply": "mw.l 10100078 00400800 1\r\nZynq> "
+  },
+  {
+   "n": 32,
+   "what": "parameter word 31",
+   "cmd": "mw.l 1010007c 0000003f 1",
+   "reply": "mw.l 1010007c 0000003f 1\r\nZynq> "
+  },
+  {
+   "n": 33,
+   "what": "the parameter block is as intended",
+   "cmd": "crc32 10100000 80",
+   "reply": "crc32 10100000 80\r\ncrc32 for 10100000 ... 1010007f ==> 175cd7b2\r\nZynq> "
+  },
+  {
+   "n": 34,
+   "what": "send the list of reads (174 reads, 696 bytes) by YMODEM",
+   "cmd": "loady 10180000",
+   "reply": "## Total Size      = 0x000002b8 = 696 Bytes\r\n## Start Addr      = 0x10180000\r\nZynq> "
+  },
+  {
+   "n": 35,
+   "what": "the list in RAM is the list",
+   "cmd": "crc32 10180000 2b8",
+   "reply": "crc32 10180000 2b8\r\ncrc32 for 10180000 ... 101802b7 ==> 119b9ec4\r\nZynq> "
+  },
+  {
+   "n": 36,
+   "what": "clear the result header",
+   "cmd": "mw.l 10000000 0 40",
+   "reply": "mw.l 10000000 0 40\r\nZynq> "
+  },
+  {
+   "n": 37,
+   "what": "send the prober (16680 bytes) by YMODEM",
+   "cmd": "loady 02000000",
+   "reply": "## Total Size      = 0x00004128 = 16680 Bytes\r\n## Start Addr      = 0x02000000\r\nZynq> "
+  },
+  {
+   "n": 38,
+   "what": "the prober in RAM is the checked image",
+   "cmd": "crc32 02000000 4128",
+   "reply": "crc32 02000000 4128\r\ncrc32 for 02000000 ... 02004127 ==> ed47e7ab\r\nZynq> "
+  },
+  {
+   "n": 39,
+   "what": "RUN",
+   "cmd": "go 02000000",
+   "reply": "go 02000000\r\n## Starting application at 0x02000000 ...\r\nSM8 start\r\nSM8 end status=00000001 records=0000020e anomalies=00000000 words=0003e5d0\r\n## Application terminated, rc = 0x0\r\nZynq> "
+  },
+  {
+   "n": 40,
+   "what": "the result header",
+   "cmd": "md.l 10000000 40",
+   "reply": "md.l 10000000 40\r\n10000000: 31524d53 00000001 00000001 0000020e  SMR1............\r\n10000010: 00000000 0003e5d0 000001e0 00000b90  ................\r\n10000020: 4e00e07f 30800100 50021004 40000f30  ...N...0...P0..@\r\n10000030: 08c51878 800001d3 1eacaaf8 1ead0ec0  x...............\r\n10000040: 50033004 50000f30 ffffffff 00000000  .0.P0..P........\r\n10000050: 00000000 00000000 00000000 00000000  ................\r\n10000060: 00000000 00000000 00000000 00000000  ................\r\n10000070: 00000000 00000000 00000000 00000000  ................\r\n10000080: 31504d53 00000001 00000008 00000000  SMP1............\r\n10000090: 00401ba9 00000b99 00000000 00000003  ..@.............\r\n100000a0: 00000000 00200000 00000000 00000000  ...... .........\r\n100000b0: 00000000 00000000 0000000......\r\n100000d0: 00000000 00000000 00000000 00000000  .........0000f0: 0000000f 00000000 00400800 0000003f  ..........@.?...\r\nZ"
+  }
+ ],
+ "problems": [
+  "no prompt after 'md.l 10000000 40'"
+ ],
+ "replies_not_whole": [],
+ "card_file": "sb030beb.bin",
+ "started": "2026-11-22T15:36:11+0000",
+ "share": {
+  "index": 1,
+  "of": 8,
+  "reads": 174,
+  "frames": 516,
+  "first": "0x00000780",
+  "last": "0x00000ea3"
+ },
+ "pl_source": "card",
+ "went": true,
+ "return_code": "0x0",
+ "console": [
+  "SM8 start",
+  "SM8 end status=00000001 records=0000020e anomalies=00000000 words=0003e5d0"
+ ],
+ "stop": "no prompt after 'md.l 10000000 40'",
+ "verdict": "FAIL"
+}

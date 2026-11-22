@@ -28,7 +28,7 @@ EVIDENCE = ROOT / "evidence"
 # adapter dropped off the host; each of those results was taken from the card afterwards and is kept beside the run.
 # The fifth was set aside when the console lost characters before anything could be pulled: there is no result.
 RECOVERED = {"fifo_rate_17A6_2026-11-14/rate1_run01", "fifo_rate_17A6_2026-11-14/ratep_run03", "s1b1_17A6_2026-11-14/run1", "s1b1_17A6_2026-11-14/run2"}
-NEVER_PULLED = {"s1b3_17A6_2026-11-17/halted_at_run51/run51"}
+NEVER_PULLED = {"s1b3_17A6_2026-11-17/halted_at_run51/run51", "s2_2_17A6_2026-11-22/run01"}
 # Stored verdicts that are the judges' words of their day: the judges were given more to say afterwards (where the
 # polling variable lay and what the polling loop was, 2026-11-15; the words of a record, 2026-11-14) and the stored
 # files were left as they were. Directory: how many of its runs. PASS or FAIL is the same in every one of them.
@@ -102,7 +102,7 @@ def audit() -> dict:
 class EveryStoredRun(unittest.TestCase):
     def test_how_many_there_are_and_which_have_no_result(self) -> None:
         a = audit()
-        self.assertEqual(len(a), 188)                         # 185 at the close of S1b; S2.0, S2.1 and the first run of S2.2 since
+        self.assertEqual(len(a), 189)                         # 185 at the close of S1b; S2.0, S2.1 and two runs of S2.2 since, one of them stopped
         self.assertEqual({k for k, v in a.items() if v["result"] is None}, NEVER_PULLED)
         self.assertEqual({k for k, v in a.items() if v["result"] is not None and not v["own_result"]}, RECOVERED)
         for k in RECOVERED | NEVER_PULLED:

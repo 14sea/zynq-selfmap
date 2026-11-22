@@ -18,6 +18,19 @@
    "bit_5_still_set_after_clearing": [],
    "decision": "go on",
    "candidates": 0
+  },
+  {
+   "dir": "run01",
+   "share": 1,
+   "problems": [
+    "the run record does not show the declared image (crc32 ed47e7ab) in RAM just before the prober was started and again after it returned: before ['ed47e7ab'], after []",
+    "the run script stopped: no prompt after 'md.l 10000000 40'",
+    "the run script's verdict is FAIL: [\"no prompt after 'md.l 10000000 40'\"]",
+    "the card copy was not verified",
+    "there is no stored result"
+   ],
+   "decision": "halt",
+   "candidates": 0
   }
  ],
  "set_aside": [],
@@ -30,7 +43,12 @@
   "design_crc32": "6a1efe06",
   "design_sha256": "09782815b7420fb3c4aecd7397946295ed735fea2ae8b8060d8d912aecf9df64"
  },
- "state": "go on",
- "next_run": 1,
- "next_share": 1
+ "state": "halted",
+ "why": [
+  "run01: the run record does not show the declared image (crc32 ed47e7ab) in RAM just before the prober was started and again after it returned: before ['ed47e7ab'], after []",
+  "run01: the run script stopped: no prompt after 'md.l 10000000 40'",
+  "run01: the run script's verdict is FAIL: [\"no prompt after 'md.l 10000000 40'\"]",
+  "run01: the card copy was not verified",
+  "run01: there is no stored result"
+ ]
 }

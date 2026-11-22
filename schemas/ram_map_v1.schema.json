@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ram_map 1 — which bit of configuration memory is which cell of a probe design's LUT RAM",
+  "description": "zynq-selfmap, S2.3 (docs/s2_plan.md, sections 29 and 30). Written by host/s2_3_table.py from the verdicts of stored runs. Modelled on self_map_v2 (the same words for confidence and state, the same form of address, the transition observed, the records an entry rests on) and not that schema: what is related here is a place in configuration memory and a cell of a RAM as user logic addresses it, and nothing says that this address is the index of a LUT's truth table. Closed-book: nothing in a document of this form comes from a database or from a bitstream.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "label", "what", "design", "numbering", "cells", "confidence", "runs", "counts", "entries"],
+  "properties": {
+    "schema": {"const": "ram_map"},
+    "schema_version": {"const": 1},
+    "label": {"const": "closed-book"},
+    "what": {"type": "string"},
+    "design": {"type": "string", "description": "the probe design whose RAM this is (its name in its own record, pl/<name>/design.json)"},
+    "numbering": {"type": "string", "description": "how a cell's number is made from the design's side"},
+    "cells": {"type": "integer", "minimum": 1},
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["0", "1", "2"],
+      "properties": {"0": {"type": "string"}, "1": {"type": "string"}, "2": {"type": "string"}}
+    },
+    "runs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "singles"],
+      "properties": {
+        "code": {"$ref": "#/$defs/run"},
+        "singles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dir", "share", "result_sha256"],
+            "properties": {"dir": {"type": "string"}, "share": {"type": "integer", "minimum": 0}, "result_sha256": {"$ref": "#/$defs/sha256"}}
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confirmed", "decoded", "contradiction"],
+      "properties": {
+        "confirmed": {"type": "integer", "minimum": 0},
+        "decoded": {"type": "integer", "minimum": 0},
+        "contradiction": {"type": "integer", "minimum": 0}
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["address", "cell", "memory", "ram_address", "inverted", "confidence", "state", "observed_transition", "evidence"],
+        "properties": {
+          "address": {"type": "string", "pattern": "^0x[0-9a-f]{8}/[0-9]+/[0-9]+$", "description": "frame address / word / bit"},
+          "cell": {"type": "integer", "minimum": 0},
+          "memory": {"type": "integer", "minimum": 0},
+          "ram_address": {"type": "integer", "minimum": 0},
+          "inverted": {"type": "boolean", "description": "the place reads the opposite of what the cell holds"},
+          "confidence": {"type": "integer", "minimum": 0, "maximum": 2},
+          "state": {"enum": ["decoded", "confirmed", "contradiction"]},
+          "observed_transition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["base", "set"],
+            "properties": {"base": {"enum": [0, 1]}, "set": {"enum": [0, 1]}},
+            "description": "what the place read with the cell clear and with it set"
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code_states", "code_records", "single"],
+            "properties": {
+              "code_states": {"type": "array", "items": {"type": "integer", "minimum": 0}, "description": "the states of the code run in which the cell was set"},
+              "code_records": {"type": "array", "items": {"type": "integer", "minimum": 0}, "description": "the records of the code run that hold the frame as read in those states"},
+              "single": {
+                "oneOf": [
+                  {"type": "null"},
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["run", "state", "record"],
+                    "properties": {"run": {"type": "string"}, "state": {"type": "integer", "minimum": 0}, "record": {"type": "integer", "minimum": 0}}
+                  }
+                ],
+                "description": "the run of the singles, the state and the record in which the cell alone was set; null where no single was made"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {"if": {"properties": {"state": {"const": "decoded"}}}, "then": {"properties": {"confidence": {"const": 1}}}},
+          {"if": {"properties": {"state": {"const": "confirmed"}}}, "then": {"properties": {"confidence": {"const": 2}}}},
+          {"if": {"properties": {"state": {"const": "contradiction"}}}, "then": {"properties": {"confidence": {"const": 0}}}}
+        ]
+      }
+    },
+    "as_the_build_placed_them": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["what", "site", "memories"],
+      "properties": {
+        "what": {"type": "string"},
+        "site": {"type": "string"},
+        "memories": {"type": "object", "additionalProperties": {"type": "string"}}
+      },
+      "description": "the build's word of where it put each memory; not a finding"
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dir", "result_sha256"],
+      "properties": {"dir": {"type": "string"}, "result_sha256": {"$ref": "#/$defs/sha256"}}
+    }
+  }
+}

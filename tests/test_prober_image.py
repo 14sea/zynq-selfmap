@@ -371,6 +371,21 @@ class Image(unittest.TestCase):
             e22, stage="S2.2, the RAM in readback: block type 0 in three states, a share a run", params=[f"{w:08x}" for w in p22],
             pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
                        "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
+        # S2.3 (section 29): stage 9 — the gates, the envelopes and the reference frame of S2.2. The two sets, the code
+        # run's and the singles', are alike here: neither has states, reads or accesses of its own. How many states,
+        # how many reads, how many entries the list of accesses has and which registers it writes are four words the
+        # run script fills in with the plan of the run (s1a_run.with_plan), and with them the lists themselves.
+        p23 = [0] * 32
+        p23[0:10] = [0x31504D53, 1, 9, min(block0), max(block0), 0xB99, 0, 0, 0, 0x00200000]
+        p23[15] = 2 << 8
+        p23[24], p23[25], p23[26] = PL_BASE, PL_BASE + 0x1F, int(design["id"], 16)
+        p23[28:32] = [0x0000000F, 0x00000000, 0x00400800, 0x0000003F]
+        for name, what in (("s2_3c", "the code run: eighteen states over the column of S2.2's candidates"),
+                           ("s2_3s", "a run of the singles: sixty-six states over the reads that deliver the frames with candidates")):
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(
+                e22, stage=f"S2.3, which bit is which cell — {what}", params=[f"{w:08x}" for w in p23],
+                pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
+                           "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
         # No part of the memory map bounds the image: it is loaded at 0x02000000 and the next thing above it is the PL
         # design at 0x04000000. The bound is a guard against an image that has grown by accident; it was 16 KiB until
         # stage 8 (16,360 bytes) came within 24 bytes of it.

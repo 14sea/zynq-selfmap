@@ -54,6 +54,9 @@ import s2_0_judge  # noqa: E402
 import s2_1_judge  # noqa: E402
 import s2_2_judge  # noqa: E402
 import s2_2_shares  # noqa: E402
+import s2_3c_judge  # noqa: E402
+import s2_3s_judge  # noqa: E402
+import s2_3_states  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
 STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
@@ -110,6 +113,16 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # (--share), see with_share() below. What the judge holds the run to is the design's facts and the census.
           "s2_2": {"judge": s2_2_judge, "expected": ROOT / "build" / "prober" / "expected_s2_2.json", "known": ROOT / "pl" / "s2a" / "design.json",
                    "census": s2_2_shares.CENSUS},
+          # S2.3 (section 29): which bit is which cell — stage 9, in two kinds of run. s2_3c: the code run, eighteen
+          # states over the column in which S2.2 found its candidates. s2_3s: one of the four runs of the singles
+          # (--share), sixty-six states over the reads that deliver the frames with candidates. Neither set has lists of
+          # its own: the list of reads and the list of accesses are made at run time from the design, the census and
+          # what S2.2 found (with_plan below; s2_3_states.plan). The two kinds have two layouts: the header of a
+          # stage-9 result is as long as the run's list of accesses makes it.
+          "s2_3c": {"judge": s2_3c_judge, "expected": ROOT / "build" / "prober" / "expected_s2_3c.json", "known": ROOT / "pl" / "s2a" / "design.json",
+                    "census": s2_2_shares.CENSUS, "candidates": s2_3_states.CANDIDATES},
+          "s2_3s": {"judge": s2_3s_judge, "expected": ROOT / "build" / "prober" / "expected_s2_3s.json", "known": ROOT / "pl" / "s2a" / "design.json",
+                    "census": s2_2_shares.CENSUS, "candidates": s2_3_states.CANDIDATES},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -136,6 +149,7 @@ PL = ROOT / "build" / "pl" / "carrier.bit"
 KNOWN = ROOT / "data" / "known_frames_17A6.json"
 PL_ADDR, IMG_ADDR, RES_ADDR, PAR_ADDR, SCRATCH_ADDR = 0x04000000, 0x02000000, 0x10000000, 0x10100000, 0x11000000
 LIST_ADDR = 0x10180000                               # stage 8: where the prober looks for the list of reads (prober/sm.h)
+ACC_ADDR = 0x10190000                                # stage 9: where it looks for the list of accesses to the design
 PAR_WORDS = 32
 MAX_RESULT_WORDS = max(m["judge"].HDR + m["judge"].MAX_RECORDS * m["judge"].REC for m in STAGES.values())
 PL_CARD_NAME = "carrier.bit"
@@ -148,6 +162,8 @@ STARTS_AT_RUN_TIME = ("s1b2", "s1b3", "s1b4", "s1b5")  # the sets whose starting
 P_FAR_LO, P_FAR_HI, P_START = 3, 4, 16               # words of the parameter block
 P_STAGE, P_PL_LO, P_PL_ID, P_SLCR = 2, 24, 26, 28    # stage 7: the PL envelope's lower end, the identification word, four SLCR words
 SHARES_AT_RUN_TIME = ("s2_2",)                       # the sets whose list of reads is a share of the census, given at run time
+PLANS_AT_RUN_TIME = {"s2_3c": "code", "s2_3s": "singles"}   # the sets of S2.3: both lists are made at run time; a run of the singles is one of four (--share)
+P_ACC_N, P_PL_WRITE = 18, 19                         # stage 9: how many entries the list of accesses has; which registers the run may write
 P_STATES_N, P_LIST_N = 7, 16                         # stage 8: how many states, how many reads the list has
 SLCR_GATES = ((0xF8000900, "LVL_SHFTR_EN"), (0xF8000240, "FPGA_RST_CTRL"), (0xF8000170, "FPGA0_CLK_CTRL"), (0xF800010C, "PLL_STATUS"))
 
@@ -167,13 +183,15 @@ def known_for(stage: str) -> dict:
     known = json.loads(STAGES[stage].get("known", KNOWN).read_text())
     if "census" in STAGES[stage]:
         known = dict(known, census=json.loads(STAGES[stage]["census"].read_text()))
+    if "candidates" in STAGES[stage]:                # S2.3: what S2.2 found, as its chain wrote it
+        known = dict(known, candidates=json.loads(STAGES[stage]["candidates"].read_text()))
     return known
 
 
 def planned_words(exp: dict) -> list[int]:
-    """What a judge is given as the plan: the words of the parameter block, and after them the list of reads of a set
-    that has one."""
-    return [int(w, 16) for w in exp["params"]] + [int(w, 16) for w in exp.get("list", [])]
+    """What a judge is given as the plan: the words of the parameter block, after them the list of reads of a set
+    that has one, and after that the list of accesses of a set that has one."""
+    return [int(w, 16) for w in exp["params"]] + [int(w, 16) for w in exp.get("list", [])] + [int(w, 16) for w in exp.get("acc", [])]
 
 
 class Stop(Exception):
@@ -262,6 +280,37 @@ def list_bytes(exp: dict) -> bytes:
     return b"".join(struct.pack("<I", int(w, 16)) for w in exp["list"])
 
 
+def with_plan(stage: str, exp: dict, share: int | None, known: dict | None = None) -> dict:
+    """The expected values of a set of S2.3 for one run: both lists, the words of the parameter block that count them
+    and say what the run may write, and what follows from their numbers. The plan is made by s2_3_states from the
+    design, the census and what S2.2 found, and by nothing else; which run it is goes into the record."""
+    if stage not in PLANS_AT_RUN_TIME:
+        raise ValueError(f"{stage} has no plan made at run time")
+    kind = PLANS_AT_RUN_TIME[stage]
+    if (share is None) != (kind == "code"):
+        raise ValueError("the code run is one run" if kind == "code" else "a run of the singles is one of four (--share)")
+    known = known if known is not None else known_for(stage)
+    plan = s2_3_states.plan(kind, share, known, known["census"], known["candidates"])
+    params = list(exp["params"])
+    params[P_STATES_N] = f"{len(plan['states']):08x}"
+    params[P_LIST_N] = f"{len(plan['reads']):08x}"
+    params[P_ACC_N] = f"{len(plan['entries']):08x}"
+    params[P_PL_WRITE] = f"{plan['may_write']:08x}"
+    form = STAGES[stage]["judge"]
+    records = 4 + len(plan["states"]) * len(plan["reads"])
+    hdr = 64 + 16 + 2 * len(plan["log"])
+    reads = plan["reads"]
+    return dict(exp, params=params, list=[f"{w:08x}" for w in s2_2_shares.list_words(reads)],
+                acc=[f"{w:08x}" for w in s2_3_states.acc_words(plan["entries"], known)], records=records, result_words=hdr + records * form.REC,
+                console=[f"SM{form.STAGE} start", f"SM{form.STAGE} end status=00000001 records={records:08x} anomalies=00000000 words={hdr + records * form.REC:08x}"],
+                plan={"kind": kind, "share": share, "states": len(plan["states"]), "entries": len(plan["entries"]), "accesses": len(plan["log"]),
+                      "reads": len(reads), "frames": sum(n for _, n in reads), "first": f"{reads[0][0]:#010x}", "last": f"{reads[-1][0] + reads[-1][1] - 1:#010x}"})
+
+
+def acc_bytes(exp: dict) -> bytes:
+    return b"".join(struct.pack("<I", int(w, 16)) for w in exp["acc"])
+
+
 def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     """The fixed steps up to and including `go`."""
     p: list[dict] = []
@@ -277,7 +326,7 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
     add("the design in RAM is the file, whichever way it came", f"crc32 {PL_ADDR:08x} {pl_bytes:x}", f"crc32 {pl_crc}", crc=pl_crc)
     add("configure the PL", f"fpga loadb 0 {PL_ADDR:08x} {pl_bytes:x}", "no error", timeout=60)
     add("status after the load", "md.l f800700c 1", "bit 2 (PCFG_DONE) set", bit=(2, True))
-    if int(exp["params"][P_STAGE], 16) in (7, 8):
+    if int(exp["params"][P_STAGE], 16) in (7, 8, 9):
         # S2.1 and every stage after it that touches user logic: the first access to it is made here, at the prompt, where a design that does not answer costs
         # a power cycle and nothing else. Before it, the PS side of the PL as the prober itself will want it: the four
         # words the set carries. The prober runs in U-Boot's context and mapping, so this read is the read it will make.
@@ -301,6 +350,13 @@ def before_go(exp: dict, pl_bytes: int, pl_crc: str) -> list[dict]:
         add(f"send the list of reads ({len(exp['list'])} reads, {len(raw)} bytes) by YMODEM", f"loady {LIST_ADDR:08x}", "U-Boot reports the same size",
             ymodem=exp.get("list_file", "<the list, written beside the run's record>"), size=len(raw))
         add("the list in RAM is the list", f"crc32 {LIST_ADDR:08x} {len(raw):x}", f"crc32 {list_crc}", crc=list_crc)
+    if "acc" in exp:
+        # S2.3: the list of accesses to the design, where the prober looks for it — sent and held the same way.
+        raw = acc_bytes(exp)
+        acc_crc = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
+        add(f"send the list of accesses ({len(exp['acc']) // 2} entries, {len(raw)} bytes) by YMODEM", f"loady {ACC_ADDR:08x}", "U-Boot reports the same size",
+            ymodem=exp.get("acc_file", "<the list, written beside the run's record>"), size=len(raw))
+        add("the list of accesses in RAM is the list", f"crc32 {ACC_ADDR:08x} {len(raw):x}", f"crc32 {acc_crc}", crc=acc_crc)
     add("clear the result header", f"mw.l {RES_ADDR:08x} 0 40", "prompt")
     add(f"send the prober ({exp['image_bytes']} bytes) by YMODEM", f"loady {IMG_ADDR:08x}", "U-Boot reports the same size",
         ymodem=str(IMAGE), size=exp["image_bytes"])
@@ -368,6 +424,8 @@ def execute(con, exp: dict, out: Path, send_file, known: dict, pl_bytes: int, pl
         record["chain"] = exp["chain"]
     if "share" in exp:                               # which share of the census the run is of
         record["share"] = exp["share"]
+    if "plan" in exp:                                # S2.3: which run of the step it is
+        record["plan"] = exp["plan"]
 
     def link(call):
         """Everything that goes over the serial line goes through here, and nothing else does. A failure of the line is
@@ -582,12 +640,17 @@ def main() -> int:
     ap.add_argument("--stage", choices=sorted(STAGES), default="s1a")
     ap.add_argument("--start", type=lambda s: int(s, 16), help="hex; only for a set whose starting address is given at run time (s1b2, s1b3, s1b4, s1b5)")
     ap.add_argument("--start-from", default="given on the command line", help="where the starting address was taken from; recorded, not used")
-    ap.add_argument("--share", type=int, help="which share of the census's addresses; only for a set that is run a share at a time (s2_2)")
+    ap.add_argument("--share", type=int, help="which share of the census's addresses (s2_2), or which of the four runs of the singles (s2_3s); only for those sets")
     a = ap.parse_args()
     exp = json.loads(STAGES[a.stage]["expected"].read_text())
-    if (a.share is not None) != (a.stage in SHARES_AT_RUN_TIME):
+    if a.stage in PLANS_AT_RUN_TIME:
+        try:
+            exp = with_plan(a.stage, exp, a.share)
+        except ValueError as e:
+            print(f"REFUSED: {e}"); return 2
+    elif (a.share is not None) != (a.stage in SHARES_AT_RUN_TIME):
         print(f"REFUSED: {a.stage} is run a share at a time (--share)" if a.share is None else f"REFUSED: {a.stage} has no shares"); return 2
-    if a.share is not None:
+    elif a.share is not None:
         try:
             exp = with_share(a.stage, exp, a.share)
         except ValueError as e:
@@ -610,7 +673,10 @@ def main() -> int:
     if a.dry_run or not a.go:
         print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else "")
               + (f", share {exp['share']['index']} of {exp['share']['of']}: {exp['share']['reads']} reads, {exp['share']['frames']} frames, "
-                 f"{exp['share']['first']} .. {exp['share']['last']}" if "share" in exp else ""))
+                 f"{exp['share']['first']} .. {exp['share']['last']}" if "share" in exp else "")
+              + (f", the {'code run' if exp['plan']['kind'] == 'code' else 'singles, run %d' % exp['plan']['share']}: {exp['plan']['states']} states, "
+                 f"{exp['plan']['entries']} entries in the list of accesses, {exp['plan']['reads']} reads a state, {exp['plan']['first']} .. {exp['plan']['last']}"
+                 if "plan" in exp else ""))
         print(f"image {exp['image_sha256']}  ({exp['image_bytes']} bytes)")
         print(f"PL    {exp['pl_design']['sha256']}  ({len(pl)} bytes)\n")
         steps = before_go(exp, len(pl), pl_crc)
@@ -638,6 +704,9 @@ def main() -> int:
     if "list" in exp:                                # the list as it is sent, kept beside the run's record
         (a.out / "list.bin").write_bytes(list_bytes(exp))
         exp = dict(exp, list_file=str(a.out / "list.bin"))
+    if "acc" in exp:                                 # and the list of accesses
+        (a.out / "acc.bin").write_bytes(acc_bytes(exp))
+        exp = dict(exp, acc_file=str(a.out / "acc.bin"))
     os.environ["SELFMAP_CONSOLE_LOG"] = str(a.out / "console.log")
     from uboot_console import UB
     card_name = "s%07x.bin" % (int(time.time()) & 0xFFFFFFF)

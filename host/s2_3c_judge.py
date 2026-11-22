@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Judge the result of the code run of S2.3: s2_3_judge, with the layout that run's result has. See s2_3_judge.
+
+The header of a stage-9 result is as long as the run's list of accesses makes it, so the two kinds of run of S2.3 have
+two layouts; the run script knows a result by its layout, and this module says the code run's."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "host"))
+import s2_3_judge  # noqa: E402
+from s2_3_judge import ERR_MASK, PCFG_DONE, REC, STAGE, judge  # noqa: E402,F401
+
+KIND = "code"
+HDR = s2_3_judge.layout_hdr(KIND)
+MAX_RECORDS = (s2_3_judge.RESULT_MAX_WORDS - HDR) // REC
+
+if __name__ == "__main__":
+    sys.exit(s2_3_judge.main([sys.argv[0], sys.argv[1], KIND] if len(sys.argv) == 2 else ["", "", ""]))

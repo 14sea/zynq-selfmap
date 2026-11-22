@@ -74,17 +74,18 @@ def params(n_list: int, n_states: int, n_acc: int, **over) -> list[int]:
 
 
 class Run:
-    def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, **over) -> None:
+    def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, list_words=None, **over) -> None:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
         tmp = Path(scratch_dirs.mkdtemp(prefix="smtwin9_"))
         self.states = few(st.code_run(), 4) if states is None else states
         self.reads = COLUMN_READS if reads is None else reads
         self.cells = ram_map() if cells is None else cells
         self.entries = st.accesses(self.states, DESIGN) if entries is None else entries
-        self.list = s2_2_shares.list_words(self.reads)
+        self.list = s2_2_shares.list_words(self.reads) if list_words is None else list_words
         self.acc = st.acc_words(self.entries, DESIGN)
         self.n_states = len(self.states) if n_states is None else n_states
         self.params = params(len(self.list), self.n_states, len(self.entries), **over)
+        self.list_sent = self.list
         (tmp / "frames.txt").write_text("\n".join(" ".join(f"{x:x}" for x in [far] + words) for far, words in FRAMES.items()) + "\n")
         (tmp / "params.txt").write_text("\n".join(f"{x:x}" for x in self.params) + "\n")
         (tmp / "list.txt").write_text("\n".join(f"{x:x}" for x in self.list) + "\n")
@@ -101,7 +102,7 @@ class Run:
         if shifts:
             env["SM_SHIFTS"] = "allowed"
         out = subprocess.run([str(TWIN), "run", str(tmp / "frames.txt"), str(tmp / "params.txt"), str(tmp / "result.bin")],
-                             check=True, capture_output=True, text=True, env=env).stdout
+                             check=True, capture_output=True, text=True, env=env, timeout=120).stdout   # a twin that does not end is an error, not a wait
         self.lines = [line.split() for line in out.splitlines()]
         raw = (tmp / "result.bin").read_bytes()
         self.words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
@@ -330,6 +331,28 @@ class WhatItRefuses(unittest.TestCase):
         self.refused(Run(states=self.states, w16=0), "no read")
         self.refused(Run(states=self.states, w16=179), "more reads than a list holds")
         self.refused(Run(states=self.states, w4=0xA04), "a read beyond the envelope")
+        self.refused(Run(states=self.states, w3=0xA01, w5=0xA01), "a read below the envelope")
+        two = [3 << 28 | 0xA00, 3 << 28 | 0xA03]
+        self.refused(Run(states=self.states, list_words=two, w4=0xA04, w5=0xA02), "the second read begins inside the envelope and runs past its end")
+        self.assertEqual(Run(states=self.states, list_words=two, w4=0xA05, w5=0xA02).status, 1, "and with the envelope one address longer it does not")
+        for why, word in (("four frames", 4 << 28 | 0xA00), ("no frame", 0xA00), ("an address above the envelope", 1 << 28 | 0x400A83), ("an address below it", 1 << 28 | 0x9FF)):
+            with self.subTest(why=why):
+                r = Run(states=self.states, list_words=[word, 3 << 28 | 0xA03, 1 << 28 | 0xA06])
+                self.refused(r, why)
+        self.refused(Run(states=self.states, list_words=[3 << 28 | 0xA00, 3 << 28 | 0xA03, 4 << 28 | 0xA06]), "the last word of the list is looked at as well")
+        ok = Run(states=self.states, list_words=[3 << 28 | 0xA00, 3 << 28 | 0xA03, 1 << 28 | 0xA06, 4 << 28 | 0xA00], w16=3)
+        self.assertEqual((ok.rc, ok.status, ok.n_records), (0, 1, 4 + 2 * 3), "and no word beyond the count the block gives: what lies after the list is not the list")
+
+    def test_the_block_s_other_words(self) -> None:
+        for why, over in (("another version", {"w1": 2}), ("an envelope the wrong way round", {"w3": HI, "w4": LO}), ("a reference frame below the envelope", {"w3": REF + 1}),
+                          ("a reference frame above it", {"w4": REF - 1}), ("no poll limit", {"w9": 0}), ("a poll limit beyond any", {"w9": 0x10000001}),
+                          ("more stack beneath the reads", {"w15": 2 << 8 | 1}), ("a wait that is none", {"w15": 3 << 8}),
+                          ("a PL envelope that begins below the design", {"w24": PL - 4}), ("a PL envelope the wrong way round", {"w24": PL + 0x1C, "w25": PL}),
+                          ("a PL envelope that ends above the design", {"w25": PL + 0x20})):
+            with self.subTest(why=why):
+                self.refused(Run(states=self.states, **over), why)
+        self.assertEqual(Run(states=self.states, w9=0x10000000).status, 1, "the largest poll limit there is, is one")
+        self.assertEqual(Run(states=self.states, w15=0).status, 1, "and the wait as it was before is a wait")
 
     def test_a_result_that_would_not_lie_in_its_area(self) -> None:
         """80 states of 178 reads would be 14,244 records. The block is refused before anything is written beyond
@@ -342,6 +365,10 @@ class WhatItRefuses(unittest.TestCase):
         ok = Run(states=[], entries=empty * 3, n_states=3, reads=reads)   # 538 records, as stage 8's largest: it fits
         self.assertEqual((ok.rc, ok.status, ok.n_records, ok.pl_log()), (0, 1, 538, [(PL_ID, False, ID_WORD)]))
         self.refused(Run(states=[], entries=empty * 81, n_states=81, reads=reads[:1]), "more states than the stage takes")
+        longer = (COLUMN_READS * 60)[:179]
+        r = Run(states=[], entries=empty, n_states=1, reads=longer)
+        self.refused(r, "one read more than a list holds, in a run whose result would fit")
+        self.assertEqual(Run(states=[], entries=empty, n_states=1, reads=longer[:178]).n_records, 4 + 178)
         fits = Run(states=[], entries=empty * 80, n_states=80, reads=reads[:1])
         self.assertEqual((fits.rc, fits.status, fits.n_records), (0, 1, 84))
 
@@ -416,6 +443,33 @@ class WhereItStops(unittest.TestCase):
         stays = Run(fault="bit5@2,bit5stays")
         self.assertEqual((stays.rc, stays.status), (0, 1), "a bit 5 that does not clear is recorded; it is no error of a transfer")
         self.assertEqual(stays.rec(2)["cleared"] & SEU_ERR, SEU_ERR)
+
+    def test_the_register_is_looked_at_after_every_read_of_the_stage(self) -> None:
+        """An error bit that appears once a read's last transfer was seen done: after the reference frame at first
+        (command 5), CTL0 before the first state (9), a read of the list (14), CTL0 after the last state and the
+        reference frame at the end — each ends the run at that read, with the read's own record saying so."""
+        probe = Run()
+        last = len(probe.dmas)                          # the last command of the run: the cleanup of the final reference read
+        for d, status, records in ((5, 0x621, 1), (9, 0x221, 2), (14, 0x221, 3), (last - 5, 0x221, probe.n_records - 1), (last, 0x221, probe.n_records)):
+            with self.subTest(command=d):
+                r = Run(fault=f"lateerr@{d}")
+                self.assertEqual((r.rc, r.status, r.violations, r.n_records), (status, status, [], records))
+                self.assertEqual(r.rec(r.n_records - 1)["code"], 0x21)
+
+    def test_a_reference_frame_that_cannot_be_read_or_that_changed(self) -> None:
+        r = Run(fault="err@2")                        # the first reading of the reference frame
+        self.assertEqual((r.rc, r.status, r.n_records, r.pl_accesses()), (0x621, 0x621, 1, []), "a baseline stop; nothing of the design touched")
+        probe = Run()
+        frames = sum(1 for e in probe.dmas if int(e[5].split("=")[1]) > 1)
+        r = Run(fault=f"flip@{frames}")               # the last frame read of the run: the reference frame at the end, with one bit changed
+        self.assertEqual((r.rc, r.status, r.violations, r.n_records, r.stop_record), (0x300, 0x300, [], probe.n_records, probe.n_records - 1))
+        self.assertEqual(r.raw(r.n_records - 1)[10], 0, "its flag says it is not the frame read at first")
+        self.assertEqual(probe.raw(probe.n_records - 1)[10], 1)
+
+    def test_a_read_of_the_list_says_which_state_it_was_made_in_and_reads_what_the_list_says(self) -> None:
+        r = Run(reads=[(0xA00, 1), (0xA01, 2), (0xA03, 3)])
+        got = [(x["far"], x["n"], x["state"], x["op"], len(x["frames"])) for x in (r.rec(i) for i in range(2, 2 + 3 * r.n_states))]
+        self.assertEqual(got, [(far, n, s, k, n) for s in range(r.n_states) for k, (far, n) in enumerate([(0xA00, 1), (0xA01, 2), (0xA03, 3)])])
 
     def test_an_error_bit_after_a_read_or_after_the_clearing_ends_the_run(self) -> None:
         for fault, code in (("lateerr@14", 0x21), ("bit5@2,clearerr", 0x21)):   # command 14: the last transfer of the first read of the list

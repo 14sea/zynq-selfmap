@@ -114,6 +114,20 @@ static uint32_t pl_ram_writes, pl_srl_shifts; static unsigned n_srl_reads; stati
 static struct { uint32_t addr, mem, far, word, bit, inv; } place[MAX_PLACES]; static unsigned n_places;
 #define PL_ID_WORD 0x53324131u                         /* "S2A1": what pl/s2a answers with */
 
+/* An access nobody may make is logged as a VIOLATION and the run goes on, so that a test sees what else happened. A
+ * program that makes them without end is stopped: the twin ends with a code, and whoever reads its output is not
+ * given more of it than fits (2026-11-22: a mutant that walked past the end of its list printed until the machine
+ * had no memory left). */
+static unsigned n_wild;
+static void wild(void)
+{
+    if (++n_wild > 1000u) {
+        printf("VIOLATION more than 1000 accesses nobody may make: the twin stops here\n");
+        fflush(stdout);
+        exit(3);
+    }
+}
+
 /* faults */
 static const char *fault;
 static int fault_at(const char *name, unsigned index)
@@ -287,7 +301,7 @@ uint32_t hal_rd(uint32_t a)
     case PL_BASE + PL_SRL_ADDR: v = pl_srl_addr; break;
     case PL_BASE + PL_SRL_DATA: v = pl_srl[pl_srl_addr] ^ ((fault_on("srlmoves") && n_srl_reads++ >= SRL_DEPTH + 3u) ? 0x2u : 0u); break;
     case PL_BASE + PL_WRITES:   v = (pl_ram_writes + (fault_on("plcount") ? 1u : 0u)) | pl_srl_shifts << 16; break;
-    default:             v = 0; printf("VIOLATION read %08x\n", a); break;
+    default:             v = 0; printf("VIOLATION read %08x\n", a); wild(); break;
     }
     if (a != DEVCFG_INT_STS) wait_over();
     printf("R %08x %08x\n", a, v);
@@ -322,7 +336,7 @@ void hal_wr(uint32_t a, uint32_t v)
                                     pl_srl[0] = v & 0xFu; pl_srl_shifts = (pl_srl_shifts + 1u) & 0xFFFFu;
                                     if (!shifts_allowed) printf("VIOLATION shift %08x\n", v);
                                 } break;
-    default: printf("VIOLATION write %08x\n", a); break;
+    default: printf("VIOLATION write %08x\n", a); wild(); break;
     }
 }
 
@@ -331,7 +345,7 @@ uint32_t hal_mem_rd(uint32_t a)
     wait_over();
     if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)
           || in(a, LIST_ADDR, LIST_MAX) || in(a, ACC_ADDR, 2u * ACC_MAX)))
-        { printf("VIOLATION memory read %08x\n", a); return 0; }
+        { printf("VIOLATION memory read %08x\n", a); wild(); return 0; }
     return ddr[(a - DDR_BASE) / 4u];
 }
 
@@ -339,7 +353,7 @@ void hal_mem_wr(uint32_t a, uint32_t v)
 {
     wait_over();
     if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, CMD_BUF, STREAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
-        { printf("VIOLATION memory write %08x\n", a); return; }
+        { printf("VIOLATION memory write %08x\n", a); wild(); return; }
     ddr[(a - DDR_BASE) / 4u] = v;
 }
 

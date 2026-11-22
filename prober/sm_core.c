@@ -1142,7 +1142,7 @@ static uint32_t run_s9(void)
     at = 0u;
     for (s = 0; s < n_states; s++)
         for (phase = 0; phase < 2u; phase++) {
-            for (;;) {
+            while (at < n_acc) {                        /* never past the end of the list, whatever the check above let through */
                 w = acc_word(at, 0u); v = acc_word(at, 1u);
                 at++;
                 if (A_KIND(w) == A_MARK)

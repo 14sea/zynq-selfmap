@@ -132,7 +132,9 @@ enum { PLB_MAGIC, PLB_N, PLB_CODE, PLB_AT, PLB_SLCR, PLB_LOG = 16 };
 #define PL_LOG_MAX         1280u         /* accesses; each two words: the address (bit 0 set: a write), the value */
 #define PLB_WORDS          (PLB_LOG + 2u * PL_LOG_MAX)                                    /* 2576 */
 enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PLC_WRITES, PLC_FULL,
-       PLC_DISTURBED };                  /* stage 8: after frames were read, the RAM no longer holds the state it was given */
+       PLC_DISTURBED,                    /* stage 8: after frames were read, the RAM no longer holds the state it was given */
+       PLC_EXPECT,                       /* stage 9: a reading was not what the host's list says it must be — before the frames of a state were read */
+       PLC_EXPECT_AFTER };               /*          — after them */
 
 /* ---- stage 8 (S2.2): is the RAM seen in readback (docs/s2_plan.md, section 19) ----
  * For each of the states the host names, the RAM is set through the design, every read of a list is made through
@@ -150,6 +152,38 @@ enum { PLC_OK, PLC_REFUSED, PLC_ID, PLC_SCRATCH, PLC_COUNT, PLC_RAM, PLC_SRL, PL
 #define OP8_CTL0           0x100u        /* in R_OP: the read of CTL0, which reads no frame; a read of the list has its index there */
 #define PL8_LOG_MAX        1440u         /* 1 + 64 accesses before the states, 451 for each state: 1418 with three */
 #define PLB8_WORDS         (PLB_LOG + 2u * PL8_LOG_MAX)                                   /* 2896 */
+
+/* ---- stage 9 (S2.3): which bit is which cell (docs/s2_plan.md, section 29) ----
+ * Stage 8 with the states taken out of the prober. Beside the list of reads the host writes a list of accesses to the
+ * design, two words an entry, to ACC_ADDR: the first word is the register's offset in the design with the kind of the
+ * entry in its two low bits, the second a value. (An offset, not an address: an address of the PL is formed in one
+ * place of this program, the function every access goes through.)
+ *     A_READ    read the register; the value is recorded (the second word must be zero)
+ *     A_WRITE   write the second word to the register
+ *     A_EXPECT  read the register; it must read the second word, or the run ends there
+ *     A_MARK    no access (the offset must be zero). MARK_FRAMES: every read of the list of reads is made now.
+ *               MARK_END: the state is over.
+ * A state is: entries, MARK_FRAMES, entries, MARK_END. The list is exactly P_REPEATS states. The prober makes the
+ * entries in order and knows nothing of what they are for: no pattern, no address of the RAM, no count is computed
+ * here. It refuses a list that is not of that form, an offset that is no register of the design or lies outside the
+ * PL envelope, and a write to a register the run may not write. Which registers a run may write is the host's word
+ * (P_PL_WRITE, one bit for each offset) inside the image's own bound, PL_WRITABLE9: the four of the stages before and
+ * the shift registers' data, whose write is a shift. */
+#define ACC_ADDR           0x10190000u
+#define ACC_MAX            32768u        /* entries */
+#define A_READ             0u
+#define A_WRITE            1u
+#define A_EXPECT           2u
+#define A_MARK             3u
+#define A_KIND(w)          ((w) & 3u)
+#define A_OFF(w)           ((w) & ~3u)
+#define MARK_FRAMES        0u
+#define MARK_END           1u
+#define P_ACC_N            18u           /* how many entries the list of accesses has, the marks counted */
+#define P_PL_WRITE         19u           /* the registers this run may write, one bit for each offset */
+#define PL_WRITABLE9       (PL_WRITABLE | (1u << PL_SRL_DATA))                            /* 0x01111010 */
+#define MAX9_STATES        80u
+#define P9_USED            0xF70D82BFu   /* stage 8's words without the word of states, and the two above */
 
 /* ---- result ---- */
 #define RESULT_MAGIC       0x31524D53u   /* "SMR1" */
@@ -210,7 +244,7 @@ enum { KIND_TARGET = 0, KIND_HEALTH = 1, KIND_BASELINE = 2, KIND_FINAL = 3 };
 #define S_STOP_WALK        0x700u        /* | record code; stage 4: any anomaly ends the walk, there is nothing to skip to */
 #define S_STOP_STUCK       0x800u        /* stage 4: the address the device named is not above the one it was asked about */
 #define S_STOP_STANDSTILLS 0x900u        /* stage 4: the register stood still at one address more than a pass may cross */
-#define S_STOP_PL          0xA00u        /* | PLC_*; stages 7 and 8: user logic did not answer as the design must */
+#define S_STOP_PL          0xA00u        /* | PLC_*; stages 7 to 9: user logic did not answer as the design must, or as the list says */
 
 /* ---- hardware access: the only doors (board: sm_board.c, host twin: twin_hal.c) ---- */
 uint32_t hal_rd(uint32_t addr);                 /* device register read */

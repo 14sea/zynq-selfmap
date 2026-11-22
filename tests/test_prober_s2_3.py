@@ -1,0 +1,428 @@
+"""Stage 9 (S2.3) on the host twin — docs/s2_plan.md, section 29.
+
+The prober is given two lists: the reads, as in stage 8, and the accesses to the probe design — what to write, what to
+read, what a reading must be, and where between them the frames are read. It makes them in order and knows no state.
+The device, the design and where the RAM's cells show in configuration memory are models here (prober/twin_hal.c, and
+a layout made up below); these tests are about the prober: what it refuses, what it touches, in which order, what it
+writes down, and where it stops."""
+from __future__ import annotations
+
+import json
+import os
+import struct
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "host"))
+sys.path.insert(0, str(ROOT / "tests"))
+import scratch_dirs  # noqa: E402
+import s2_2_shares  # noqa: E402
+import s2_3_states as st  # noqa: E402
+from test_prober_s1b0 import DLEN, FRAMES, INT_STS, TWIN  # noqa: E402
+from test_prober_s2_2 import (CTL0_HEAD, FAR_HEAD, HI, ID_WORD, LAY, LO, NO_OP, NONE, OP_CTL0, PL, PL_COUNT, PL_ID, PL_RAM_ADDR,  # noqa: E402
+                              PL_RAM_DATA, PL_SCRATCH, PL_SRL_ADDR, PL_SRL_DATA, PL_WRITES, REF, SEU_ERR, SLCR, SLCR_WORDS, census, successors)
+
+REC, FARBLK, DATA, FRAME = 480, 68, 76, 101
+FIXED = 16                                             # the PL block before its log
+DESIGN = json.loads((ROOT / "pl" / "s2a" / "design.json").read_text())
+ACC_ADDR, LIST_ADDR = 0x10190000, 0x10180000
+MAY_WRITE = 1 << 0x0C | 1 << 0x10 | 1 << 0x14          # the two address registers and the RAM's data: what S2.3's lists write
+BOUND = MAY_WRITE | 1 << 0x04 | 1 << 0x18              # the image's own bound: those, the scratch register, the shift registers' data
+
+# ---- the made-up device of the stage-8 tests (block type 0 of two rows, six columns). The cells of the RAM are put,
+# each at a place of its own, into one column: the first of the top row, seven frames, read in three reads.
+COLUMN = [0xA00 + m for m in range(7)]
+COLUMN_READS = s2_2_shares.reads_of(COLUMN)            # (0xa00, 3), (0xa03, 3), (0xa06, 1)
+
+
+def ram_map(seed: int = 1, frames: tuple = (0xA03, 0xA04, 0xA05), inverted: int = 0) -> list[tuple[int, int, int, int, int, int]]:
+    """Where the 256 cells show: (RAM address, memory, frame address, word, bit, inverted) — every cell at one place,
+    all of them in the given frames of the column, made up differently for every seed."""
+    x = seed * 2654435761 % 2 ** 32
+    used: set[tuple[int, int, int]] = set()
+    out = []
+    for n in range(st.CELLS):
+        while True:
+            x = (x * 1103515245 + 12345) % 2 ** 31
+            p = (frames[x % len(frames)], (x >> 8) % FRAME, (x >> 16) % 32)
+            if p not in used:
+                used.add(p)
+                break
+        out.append((n % st.DEPTH, n // st.DEPTH, *p, 1 if n < inverted else 0))
+    return out
+
+
+def few(states: list[dict], k: int) -> list[dict]:
+    """The first k states of a run: enough for most of what is asked of the prober here."""
+    return states[:k]
+
+
+def params(n_list: int, n_states: int, n_acc: int, **over) -> list[int]:
+    w = [0] * 32
+    w[0:10] = [0x31504D53, 1, 9, LO, HI, REF, 0, n_states, 0, 1000]
+    w[15] = 2 << 8                                    # the wait that touches no memory
+    w[16] = n_list
+    w[18], w[19] = n_acc, MAY_WRITE
+    w[24], w[25], w[26] = PL, PL + 0x1F, ID_WORD
+    w[28:32] = SLCR_WORDS
+    for k, v in over.items():
+        w[int(k[1:])] = v                             # w7=..., w19=...: a word of the block by its number
+    return w
+
+
+class Run:
+    def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, **over) -> None:
+        subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
+        tmp = Path(scratch_dirs.mkdtemp(prefix="smtwin9_"))
+        self.states = few(st.code_run(), 4) if states is None else states
+        self.reads = COLUMN_READS if reads is None else reads
+        self.cells = ram_map() if cells is None else cells
+        self.entries = st.accesses(self.states, DESIGN) if entries is None else entries
+        self.list = s2_2_shares.list_words(self.reads)
+        self.acc = st.acc_words(self.entries, DESIGN)
+        self.n_states = len(self.states) if n_states is None else n_states
+        self.params = params(len(self.list), self.n_states, len(self.entries), **over)
+        (tmp / "frames.txt").write_text("\n".join(" ".join(f"{x:x}" for x in [far] + words) for far, words in FRAMES.items()) + "\n")
+        (tmp / "params.txt").write_text("\n".join(f"{x:x}" for x in self.params) + "\n")
+        (tmp / "list.txt").write_text("\n".join(f"{x:x}" for x in self.list) + "\n")
+        (tmp / "acc.txt").write_text("\n".join(f"{x:x}" for x in self.acc) + "\n")
+        (tmp / "rammap.txt").write_text("".join("%d %d %x %d %d %d\n" % c for c in self.cells))
+        env = dict(os.environ)
+        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS"):
+            env.pop(name, None)
+        env["SM_FAR_RULE"] = "skip"
+        env["SM_SUCC"], env["SM_SHOWS"] = successors()
+        env["SM_LIST"], env["SM_ACC"], env["SM_RAMMAP"] = str(tmp / "list.txt"), str(tmp / "acc.txt"), str(tmp / "rammap.txt")
+        if fault:
+            env["SM_FAULT"] = fault
+        if shifts:
+            env["SM_SHIFTS"] = "allowed"
+        out = subprocess.run([str(TWIN), "run", str(tmp / "frames.txt"), str(tmp / "params.txt"), str(tmp / "result.bin")],
+                             check=True, capture_output=True, text=True, env=env).stdout
+        self.lines = [line.split() for line in out.splitlines()]
+        raw = (tmp / "result.bin").read_bytes()
+        self.words = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+        self.rc = int([e for e in self.lines if e[0] == "RC"][0][1], 16)
+        self.uart = bytes(int(x, 16) for x in [e for e in self.lines if e[0] == "UART"][0][1:]).decode()
+        self.violations = [" ".join(e) for e in self.lines if e[0] == "VIOLATION"]
+        self.accesses = [(e[0], int(e[1], 16), int(e[2], 16)) for e in self.lines if e[0] in ("R", "W")]
+        self.dmas = [e for e in self.lines if e[0] == "DMA"]
+        h = self.words
+        self.status, self.n_records, self.n_anomalies, self.total, self.hdr_words, self.stop_record = h[2], h[3], h[4], h[5], h[7], h[18]
+        self.n_log = len(st.planned_log(self.entries, DESIGN))
+        self.hb = 64 + FIXED + 2 * self.n_log         # where the records begin, if the block is one the prober takes
+        self.plb = self.words[64:self.hb] if len(self.words) >= self.hb else self.words[64:]
+
+    def raw(self, i: int) -> list[int]:
+        return self.words[self.hb + i * REC: self.hb + (i + 1) * REC]
+
+    def rec(self, i: int) -> dict:
+        r = self.raw(i)
+        return {"far": r[0], "kind": r[1], "code": r[2], "n": r[14], "op": r[15], "state": r[12], "guard": r[13], "cleared": r[10],
+                "regrd": r[59:63], "value": r[FARBLK + 4], "unread": r[FARBLK + 5], "after": r[FARBLK + 7],
+                "frames": [r[DATA + FRAME * (j + 1): DATA + FRAME * (j + 2)] for j in range(min(r[14], REC // FRAME) if r[14] != NONE else 0)]}
+
+    def pl_log(self) -> list[tuple[int, bool, int]]:
+        n = min(self.plb[1], (len(self.plb) - FIXED) // 2)
+        return [(self.plb[FIXED + 2 * i] & ~3, bool(self.plb[FIXED + 2 * i] & 1), self.plb[FIXED + 1 + 2 * i]) for i in range(n)]
+
+    def pl_accesses(self) -> list[tuple[int, bool, int]]:
+        return [(a, k == "W", v) for k, a, v in self.accesses if PL <= a < PL + 0x1000]
+
+    def touched(self) -> bool:
+        """Was anything of the device looked at: a register read or written, a transfer made."""
+        return bool(self.accesses or self.dmas)
+
+
+def n_records(r: Run) -> int:
+    return 4 + r.n_states * len(r.reads)                # the reference frame, CTL0, the reads of every state, CTL0, the reference frame
+
+
+class StageNine(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.r = Run()
+
+    def test_it_completes_and_says_so(self) -> None:
+        r, n = self.r, n_records(self.r)
+        self.assertEqual((r.rc, r.status, r.n_anomalies, r.violations), (0, 1, 0, []))
+        self.assertEqual((r.n_records, r.hdr_words, r.total, len(r.words)), (n, r.hb, r.hb + n * REC, r.hb + n * REC))
+        self.assertEqual(r.uart, "SM9 start\r\nSM9 end status=00000001 records=%08x anomalies=00000000 words=%08x\r\n" % (n, r.total))
+        self.assertEqual(r.stop_record, 0xFFFFFFFF)
+
+    def test_the_records_are_the_reference_frame_ctl0_the_list_in_every_state_ctl0_and_the_reference_frame(self) -> None:
+        r, n = self.r, n_records(self.r)
+        want = [(2, REF, 1, 0, NO_OP), (0, REF, NONE, 0, OP_CTL0)]
+        want += [(0, far, k, s, i) for s in range(r.n_states) for i, (far, k) in enumerate(r.reads)]
+        want += [(0, REF, NONE, r.n_states, OP_CTL0), (3, REF, 1, r.n_states, NO_OP)]
+        self.assertEqual([(x["kind"], x["far"], x["n"], x["state"], x["op"]) for x in (r.rec(i) for i in range(n))], want)
+        for i in range(n):
+            rec = r.rec(i)
+            self.assertEqual((rec["code"], rec["guard"], rec["unread"]), (0, 0, 0), f"record {i}")
+            self.assertEqual(rec["regrd"], [0x20000000, CTL0_HEAD if rec["op"] == OP_CTL0 else FAR_HEAD, 0x20000000, 0x20000000], f"record {i}")
+            if rec["op"] != OP_CTL0:
+                self.assertEqual(rec["value"], s2_2_shares.register_after(LAY, rec["far"], rec["n"]), f"record {i}")
+
+    def test_the_log_is_the_identification_and_then_the_list_entry_by_entry(self) -> None:
+        r = self.r
+        log, plan = r.pl_log(), st.planned_log(r.entries, DESIGN)
+        self.assertEqual((r.plb[0], r.plb[1], r.plb[2], r.plb[3]), (0x4C504D53, len(plan), 0, 0xFFFFFFFF))
+        self.assertEqual(len(log), len(plan))
+        for i, ((addr, write, value), (p_addr, p_write, p_value)) in enumerate(zip(log, plan)):
+            self.assertEqual((addr, write), (p_addr, p_write), f"access {i}")
+            if p_value is not None:
+                self.assertEqual(value, p_value, f"access {i}")
+        self.assertEqual(log[0], (PL_ID, False, ID_WORD))
+
+    def test_what_the_twin_saw_of_the_design_is_the_log_and_nothing_else(self) -> None:
+        r = self.r
+        self.assertEqual(r.pl_accesses(), r.pl_log())
+        self.assertEqual({a for a, w, _ in r.pl_accesses() if w}, {PL_RAM_ADDR, PL_RAM_DATA, PL_SRL_ADDR})
+        self.assertNotIn(PL_SRL_DATA, {a for a, w, _ in r.pl_accesses() if w}, "nothing shifts")
+        self.assertNotIn(PL_SCRATCH, {a for a, _, _ in r.pl_accesses()})
+
+    def test_the_frames_of_a_state_are_read_where_its_mark_is(self) -> None:
+        """In the order the twin saw things: the reference frame; the identification; then for every state the
+        entries before its mark, exactly the reads of the list, the entries after the mark; the reference frame. (A
+        read of CTL0 delivers one word and no frame, and is not counted here.)"""
+        r = self.r
+        got = []
+        for e in r.lines:
+            if e[0] in ("R", "W") and PL <= int(e[1], 16) < PL + 0x1000:
+                got.append("pl")
+            elif e[0] == "DMA" and int(e[5].split("=")[1]) > 1:   # a transfer that delivers frames (a register read delivers one word)
+                got.append("frames")
+        want = ["frames", "pl"]
+        for kind, _, value in r.entries:
+            want += ["pl"] if kind != st.A_MARK else ["frames"] * len(r.reads) if value == st.MARK_FRAMES else []
+        self.assertEqual(got, want + ["frames"])
+        self.assertEqual(got.count("frames"), 2 + r.n_states * len(r.reads))
+
+    def test_the_frames_delivered_show_the_cells_as_the_state_has_them(self) -> None:
+        r = self.r
+        where = {(far, word, bit): (mem * st.DEPTH + addr, inv) for addr, mem, far, word, bit, inv in r.cells}
+        seen = 0
+        for i in range(2, 2 + r.n_states * len(r.reads)):
+            rec = r.rec(i)
+            ram = r.states[rec["state"]]["ram"]
+            for j, frame in enumerate(rec["frames"]):
+                for (far, word, bit), (n, inv) in where.items():
+                    if far == rec["far"] + j:
+                        self.assertEqual((frame[word] >> bit) & 1, st.cell(ram, n) ^ inv, (i, hex(far), word, bit))
+                        seen += 1
+        self.assertEqual(seen, st.CELLS * r.n_states)
+
+    def test_nothing_is_written_but_the_transfers_own_words_the_list_and_bit_5(self) -> None:
+        r = self.r
+        writes = [(a, v) for k, a, v in r.accesses if k == "W" and not PL <= a < PL + 0x1000]
+        self.assertEqual({v for a, v in writes if a == INT_STS}, {0x00003000}, "the two done bits when a transfer begins; no error bit, ever")
+        self.assertEqual({a for a, _ in writes} - {INT_STS}, {0xF8007018, 0xF800701C, 0xF8007020, DLEN})
+
+    def test_the_whole_code_run_goes_through_and_its_result_is_as_large_as_planned(self) -> None:
+        states = st.code_run()
+        r = Run(states=states)
+        self.assertEqual((r.rc, r.status, r.violations, r.n_records), (0, 1, [], 4 + 18 * 3))
+        self.assertEqual(len(r.words), st.result_words(18, 3, r.n_log))
+        self.assertEqual(r.pl_accesses(), r.pl_log())
+
+    def test_a_run_of_singles_goes_through(self) -> None:
+        states = st.single_run(2)
+        r = Run(states=states, reads=COLUMN_READS[1:2])
+        self.assertEqual((r.rc, r.status, r.violations, r.n_records), (0, 1, [], 4 + 66))
+        self.assertEqual(len(r.words), st.result_words(66, 1, r.n_log))
+        where = {(mem * st.DEPTH + addr): (far, word, bit) for addr, mem, far, word, bit, _ in r.cells}
+        for s in range(1, 65):                        # the single of cell n: its place reads one in the frames of that state, if they were read
+            n = states[s]["cell"]
+            far, word, bit = where[n]
+            rec = r.rec(2 + s)
+            if rec["far"] <= far < rec["far"] + rec["n"]:
+                self.assertEqual((rec["frames"][far - rec["far"]][word] >> bit) & 1, 1, n)
+
+
+class WhatItRefuses(unittest.TestCase):
+    """A block or a list that is not as the stage takes it is refused on its form: nothing of the device is read, and
+    the twin has no violation of its own to report — the refusal is the prober's."""
+
+    def refused(self, r: Run, why: str) -> None:
+        self.assertEqual((r.rc, r.status, r.violations), (0x500, 0x500, []), why)
+        self.assertFalse(r.touched(), why)
+        self.assertEqual(r.uart, "SM9 start\r\nSM9 end status=00000500\r\n", why)
+        self.assertEqual(r.total, len(r.words), why)
+
+    def setUp(self) -> None:
+        self.states = few(st.code_run(), 2)
+        self.entries = st.accesses(self.states, DESIGN)
+
+    def test_the_form_of_the_list(self) -> None:
+        e = self.entries
+        marks = [i for i, (kind, _, _) in enumerate(e) if kind == st.A_MARK]
+        cases = {
+            "the last mark is missing": e[:-1],
+            "an entry after the last state's end": e + [(st.A_READ, PL_COUNT, 0)],
+            "a state too many": e + e[marks[0] + 1: marks[1] + 1][-1:] * 0 + [(st.A_MARK, 0, st.MARK_FRAMES), (st.A_MARK, 0, st.MARK_END)],
+            "the end before the frames": e[:marks[0]] + [(st.A_MARK, 0, st.MARK_END)] + e[marks[0] + 1:],
+            "the frames twice in a state": e[:marks[1]] + [(st.A_MARK, 0, st.MARK_FRAMES)] + e[marks[1] + 1:],
+            "a mark that is neither": e[:marks[0]] + [(st.A_MARK, 0, 2)] + e[marks[0] + 1:],
+            "a mark with an address": e[:marks[0]] + [(st.A_MARK, PL_COUNT, st.MARK_FRAMES)] + e[marks[0] + 1:],
+            "a reading that is only recorded, with a value": [(st.A_READ, PL_COUNT, 1)] + e,
+        }
+        for why, entries in cases.items():
+            with self.subTest(why=why):
+                self.refused(Run(states=self.states, entries=entries), why)
+
+    def test_fewer_states_in_the_list_than_the_block_says_and_more(self) -> None:
+        self.refused(Run(states=self.states, n_states=3), "the block says three states, the list has two")
+        self.refused(Run(states=self.states, n_states=1), "the block says one state, the list has two")
+
+    def test_the_count_of_entries_is_the_blocks(self) -> None:
+        self.refused(Run(states=self.states, w18=len(self.entries) - 1), "one entry fewer than the list has: the last mark is not looked at")
+        self.refused(Run(states=self.states, w18=0), "no entry at all")
+        self.refused(Run(states=self.states, w18=32769), "more than a list holds")
+
+    def test_an_address_that_is_no_register_of_the_design(self) -> None:
+        for why, addr in (("below the design", PL - 4), ("beyond its last register", PL + 0x20), ("far away", 0xF8007000), ("the result area", 0x10000000)):
+            with self.subTest(why=why):
+                self.refused(Run(states=self.states, entries=[(st.A_READ, addr, 0)] + self.entries), why)
+                self.refused(Run(states=self.states, entries=[(st.A_WRITE, addr, 0)] + self.entries), why)
+
+    def test_an_address_outside_the_envelope_the_block_gives(self) -> None:
+        self.refused(Run(states=self.states, w25=PL + 0x0F), "the list reads the RAM's data, the envelope ends before it")
+        self.refused(Run(states=self.states, w24=PL + 0x10), "the list writes the RAM's address, the envelope begins after it")
+
+    def test_a_write_to_a_register_the_run_may_not_write(self) -> None:
+        for why, addr in (("the identification", PL_ID), ("the counter", PL_COUNT), ("the count of writes", PL_WRITES),
+                          ("the scratch register, which this run's word does not name", PL_SCRATCH),
+                          ("the shift registers' data: a shift", PL_SRL_DATA)):
+            with self.subTest(why=why):
+                self.refused(Run(states=self.states, entries=[(st.A_WRITE, addr, 1)] + self.entries), why)
+        self.refused(Run(states=self.states, w19=MAY_WRITE & ~(1 << 0x10)), "the list writes the RAM's data and the run's word does not allow it")
+
+    def test_the_runs_word_cannot_go_beyond_the_images_bound(self) -> None:
+        for bit in (0x00, 0x08, 0x1C, 1, 31):
+            with self.subTest(bit=bit):
+                self.refused(Run(states=self.states, w19=MAY_WRITE | 1 << bit), f"bit {bit} is no register this image may ever write")
+
+    def test_inside_the_bound_the_runs_word_decides(self) -> None:
+        """The image's bound has the scratch register and the shift registers' data. A run whose word names them may
+        write them — S2.3's sets do not, and the test above holds that their lists are then refused."""
+        e = [(st.A_WRITE, PL_SCRATCH, 0x12345678), (st.A_EXPECT, PL_SCRATCH, 0x12345678)] + self.entries
+        r = Run(states=self.states, entries=e, w19=MAY_WRITE | 1 << 0x04)
+        self.assertEqual((r.rc, r.status, r.violations), (0, 1, []))
+        e = [(st.A_WRITE, PL_SRL_DATA, 0xF)] + [x for x in self.entries if x[1] not in (PL_SRL_ADDR, PL_SRL_DATA) and x[1] != PL_WRITES]
+        r = Run(states=self.states, entries=e, w19=BOUND, shifts=True)
+        self.assertEqual((r.rc, r.status, r.violations), (0, 1, []))
+        self.assertIn((PL_SRL_DATA, True, 0xF), r.pl_log())
+        r = Run(states=self.states, entries=e, w19=BOUND)
+        self.assertEqual(r.violations, ["VIOLATION shift 0000000f"], "the twin's own word for a shift nobody announced")
+
+    def test_the_words_the_stage_has_no_use_for_must_be_zero(self) -> None:
+        used = 0xF70D82BF
+        for k in range(32):
+            if not (used >> k) & 1:
+                with self.subTest(word=k):
+                    self.refused(Run(states=self.states, **{f"w{k}": 1}), f"word {k}")
+        self.assertEqual([k for k in range(32) if (used >> k) & 1], [0, 1, 2, 3, 4, 5, 7, 9, 15, 16, 18, 19, 24, 25, 26, 28, 29, 30, 31])
+
+    def test_a_list_of_reads_that_is_not_one(self) -> None:
+        self.refused(Run(states=self.states, w16=0), "no read")
+        self.refused(Run(states=self.states, w16=179), "more reads than a list holds")
+        self.refused(Run(states=self.states, w4=0xA04), "a read beyond the envelope")
+
+    def test_a_result_that_would_not_lie_in_its_area(self) -> None:
+        """80 states of 178 reads would be 14,244 records. The block is refused before anything is written beyond
+        the header: the twin would call a write outside the area a violation."""
+        reads = (COLUMN_READS * 60)[:178]
+        empty = [(st.A_MARK, 0, st.MARK_FRAMES), (st.A_MARK, 0, st.MARK_END)]          # a state of no entry: the frames, and its end
+        r = Run(states=[], entries=empty * 80, n_states=80, reads=reads)
+        self.refused(r, "6.8 million words")
+        self.assertEqual(len(r.words), 64 + FIXED + 2 * r.n_log)
+        ok = Run(states=[], entries=empty * 3, n_states=3, reads=reads)   # 538 records, as stage 8's largest: it fits
+        self.assertEqual((ok.rc, ok.status, ok.n_records, ok.pl_log()), (0, 1, 538, [(PL_ID, False, ID_WORD)]))
+        self.refused(Run(states=[], entries=empty * 81, n_states=81, reads=reads[:1]), "more states than the stage takes")
+        fits = Run(states=[], entries=empty * 80, n_states=80, reads=reads[:1])
+        self.assertEqual((fits.rc, fits.status, fits.n_records), (0, 1, 84))
+
+
+class WhereItStops(unittest.TestCase):
+    def test_a_reading_before_the_frames_that_is_not_what_the_list_says(self) -> None:
+        """The twin's RAM has a bit that never sets (address 5, memory 2). The first state that wants it set is read
+        back before its frames, and the run ends there: stop 0xa0a, nothing read through PCAP in that state."""
+        states = [st.code_run()[0], {"name": "ones", "kind": "base", "ram": [0xF] * st.DEPTH}]
+        r = Run(states=states, fault="ramstuck")
+        self.assertEqual((r.rc, r.status, r.violations), (0xA0A, 0xA0A, []))
+        log = r.pl_log()
+        self.assertEqual((r.plb[2], r.plb[3]), (10, len(log)))
+        self.assertEqual(log[-1], (PL_RAM_DATA, False, 0xB), "the reading that was not 0xf is the last thing in the log")
+        self.assertEqual(log[-2], (PL_RAM_ADDR, True, 5))
+        self.assertEqual(r.pl_accesses(), log, "and the last access made")
+        self.assertEqual(r.n_records, 2 + len(r.reads), "the reference frame, CTL0, the reads of the first state; none of the second")
+
+    def test_a_reading_after_the_frames_that_is_not_what_the_list_says(self) -> None:
+        """A frame read changes a cell of the RAM. The readings after the frames meet it: stop 0xa0b — the RAM did not
+        hold. Nothing is read through PCAP afterwards, and nothing more of the design."""
+        r = Run(fault="ramdisturb@3")                 # the third frame read: the second read of the list in the first state
+        self.assertEqual((r.rc, r.status, r.violations), (0xA0B, 0xA0B, []))
+        log = r.pl_log()
+        self.assertEqual((r.plb[2], r.plb[3]), (11, len(log)))
+        self.assertEqual(log[-1][0:2], (PL_RAM_DATA, False))
+        self.assertEqual(r.pl_accesses(), log)
+        self.assertEqual(r.n_records, 2 + len(r.reads), "the first state's reads were all made; then the readings, then nothing")
+        plan = st.planned_log(r.entries, DESIGN)
+        self.assertNotEqual(log[-1][2], plan[len(log) - 1][2])
+        for (addr, write, value), (p_addr, p_write, p_value) in zip(log[:-1], plan):
+            self.assertEqual((addr, write), (p_addr, p_write))
+            self.assertTrue(p_value is None or value == p_value)
+
+    def test_the_shift_registers_and_the_count_are_readings_like_any_other(self) -> None:
+        for fault, register in (("srlmoves", PL_SRL_DATA), ("plcount", PL_WRITES)):
+            with self.subTest(fault=fault):
+                r = Run(fault=fault)
+                self.assertIn(r.status, (0xA0A, 0xA0B))
+                self.assertEqual((r.rc, r.violations, r.pl_log()[-1][0]), (r.status, [], register))
+
+    def test_the_identification_is_the_probers_own_question(self) -> None:
+        r = Run(fault="plid")
+        self.assertEqual((r.rc, r.status, r.violations), (0xA02, 0xA02, []))
+        self.assertEqual(r.pl_accesses(), [(PL_ID, False, 0x53324132)], "one access, and no entry of the list")
+        self.assertEqual(r.n_records, 1)
+
+    def test_the_gates_are_stage_eights(self) -> None:
+        for fault, status in (("ctrl", 0x101), ("lpbk", 0x102), ("nodone", 0x103), ("dcache", 0x104), ("seu", 0x105),
+                              ("lvl", 0x110), ("fpgarst", 0x111), ("fclk", 0x112), ("pll", 0x113)):
+            with self.subTest(fault=fault):
+                r = Run(fault=fault)
+                self.assertEqual((r.rc, r.status, r.violations, r.n_records), (status, status, [], 0))
+                self.assertEqual((r.pl_accesses(), r.dmas), ([], []), "nothing of the design touched, nothing sent")
+
+    def test_a_read_that_fails_ends_the_run_there(self) -> None:
+        r = Run(fault="err@12")                       # a transfer of the first state's reads ends with an error bit
+        self.assertEqual((r.rc, r.status, r.violations), (0x221, 0x221, []))
+        self.assertEqual(r.stop_record, r.n_records - 1)
+        self.assertEqual(r.rec(r.n_records - 1)["code"], 0x21)
+        marks = [i for i, (kind, _, _) in enumerate(r.entries) if kind == st.A_MARK]
+        before_first_mark = 1 + sum(1 for kind, _, _ in r.entries[:marks[0]] if kind != st.A_MARK)
+        self.assertEqual(len(r.pl_log()), before_first_mark, "no entry after the mark was made")
+
+    def test_bit_5_is_recorded_and_cleared_alone_as_in_stage_eight(self) -> None:
+        r = Run(fault="bit5@2")                       # the second frame read: the first read of the list
+        self.assertEqual((r.rc, r.status, r.violations), (0, 1, []))
+        rec = r.rec(2)
+        self.assertEqual((rec["after"] & SEU_ERR, rec["cleared"] & SEU_ERR, rec["cleared"] != 0xFFFFFFFF), (SEU_ERR, 0, True))
+        self.assertEqual([v for k, a, v in r.accesses if k == "W" and a == INT_STS and v == SEU_ERR], [SEU_ERR])
+        self.assertEqual(r.rec(3)["cleared"], 0xFFFFFFFF, "where it did not show nothing was cleared")
+        stays = Run(fault="bit5@2,bit5stays")
+        self.assertEqual((stays.rc, stays.status), (0, 1), "a bit 5 that does not clear is recorded; it is no error of a transfer")
+        self.assertEqual(stays.rec(2)["cleared"] & SEU_ERR, SEU_ERR)
+
+    def test_an_error_bit_after_a_read_or_after_the_clearing_ends_the_run(self) -> None:
+        for fault, code in (("lateerr@14", 0x21), ("bit5@2,clearerr", 0x21)):   # command 14: the last transfer of the first read of the list
+            with self.subTest(fault=fault):
+                r = Run(fault=fault)
+                self.assertEqual((r.rc, r.status, r.violations), (0x200 | code, 0x200 | code, []))
+
+
+if __name__ == "__main__":
+    unittest.main()

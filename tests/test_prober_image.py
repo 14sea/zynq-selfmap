@@ -29,6 +29,10 @@ CONSTANTS = {0x00F4C840, 0x00F4F840, 0x00F4D844, 0x28006000, 0x28002001, 0x30002
 CONSTANTS_S2 = {0x28018001, 0x2800A001, 0x2800E001, 0x4C504D53, 0x5A5AA5A5, 0x00111010}
 # S2.2: which words of the parameter block stage 8 has a use for, one bit a word (P8_USED)
 CONSTANTS_S2_2 = {0xF70382BF}
+# S2.3: the words stage 9 has a use for (P9_USED); and the image's bound on what a run of that stage may write — the four
+# registers above and the shift registers' data (PL_WRITABLE9; offset 0x18: a write there is a shift, and no set of S2.3
+# names it — tests/test_prober_s2_3.py), and that bound's complement, with which the block's word is held to it
+CONSTANTS_S2_3 = {0xF70D82BF, 0x01111010, 0xFEEEEFEF}
 PL_BASE = 0x40000000
 
 
@@ -128,9 +132,10 @@ class Image(unittest.TestCase):
         self.assertGreater(len(self.literals), 20)
         for value in self.literals:
             ok = (0x02000000 <= value < 0x02008000 or 0x10000000 <= value < 0x10400000
-                  or value in DEVICE_ADDRESSES or value in SLCR_READ or value in CONSTANTS or value in CONSTANTS_S2 or value in CONSTANTS_S2_2)
+                  or value in DEVICE_ADDRESSES or value in SLCR_READ or value in CONSTANTS or value in CONSTANTS_S2 or value in CONSTANTS_S2_2
+                  or value in CONSTANTS_S2_3)
             self.assertTrue(ok, f"{value:#010x} is not accounted for")
-        pl = [f"{v:#010x}" for v in self.literals if 0x40000000 <= v < 0xC0000000 and v not in CONSTANTS | CONSTANTS_S2 | CONSTANTS_S2_2]
+        pl = [f"{v:#010x}" for v in self.literals if 0x40000000 <= v < 0xC0000000 and v not in CONSTANTS | CONSTANTS_S2 | CONSTANTS_S2_2 | CONSTANTS_S2_3]
         self.assertFalse(pl, "no word of a literal pool is an address in the PL: the few that lie in that range are the data constants above")
 
     def function_of(self, address: int) -> str:
@@ -138,15 +143,18 @@ class Image(unittest.TestCase):
         return max((a, name) for a, name in starts if a <= address)[1]
 
     def test_an_address_in_the_slcr_or_the_pl_is_formed_in_one_place_each(self) -> None:
-        """Read from the machine code. The base of the PL is formed by one instruction, in the function every access
-        to the PL goes through; an address of the SLCR comes from one literal, in the function that makes the four gate
+        """Read from the machine code. The base of the PL is formed by one instruction, in the function that gives
+        an address of the PL or refuses to (since stage 9 it is asked from two places: by the function every access to
+        the PL goes through, and by the check of a list before anything is touched); an address of the SLCR comes from one literal, in the function that makes the four gate
         reads (the compiler derives the other three from it), and that function writes none of them: every write it
         makes to a device register goes through hal_wr with an address that is not of the SLCR — which the twin's log
         holds for every run (tests/test_prober_s2.py)."""
         rows = re.findall(r"^\s*([0-9a-f]+):\s+[0-9a-f]{8}\s+(.*)$", self.dis, re.M)
         pl = [(int(at, 16), text) for at, text in rows if re.search(r"#1073741824|0x40000000", text) and not text.strip().startswith(".word")]
         self.assertEqual(len(pl), 1, pl)
-        self.assertEqual(self.function_of(pl[0][0]), "pl_access")
+        self.assertEqual(self.function_of(pl[0][0]), "pl_addr")
+        calls = [self.function_of(int(at, 16)) for at, text in rows if re.search(r"\bbl\s+[0-9a-f]+ <pl_addr>", text)]
+        self.assertEqual(sorted(calls), ["pl_access", "sm_run"], "who asks for an address of the PL: the access, and stage 9's check of its list (the stages are compiled into sm_run)")
         self.assertRegex(pl[0][1].split("@")[0].strip(), r"^add\s+(r\d+|sl|fp|ip), (r\d+|sl|fp|ip), #1073741824$")   # a register by number or by its other name
         slcr = [int(at, 16) for at, text in rows if text.strip().startswith(".word") and int(text.split()[1], 16) in SLCR_READ]
         self.assertEqual(len(slcr), 1, [f"{a:#x}" for a in slcr])

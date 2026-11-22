@@ -61,6 +61,10 @@
  *   donestays                        a write to INT_STS does not clear D_P_DONE
  *   preclear@D                       an error bit appears just before the write to INT_STS that begins command D:
  *                                    after every status read made before it
+ *
+ * S2.3 (docs/s2_plan.md, section 29). The list of accesses stage 9 makes is SM_ACC=<file> (hex words, two an entry),
+ * put where the host puts it. A write to the shift registers' data shifts them, as in the design; it is logged as a
+ * VIOLATION — no set of S2.3 allows it — unless SM_SHIFTS=allowed says the test means it.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,7 +108,7 @@ static unsigned n_stat_reads; static int disturbed;
 /* the PS side of the PL, and the probe design s2a */
 static uint32_t slcr_word[N_SLCR] = { 0x0000000Fu, 0x00000000u, 0x00400800u, 0x0000003Fu };
 static uint32_t pl_scratch, pl_count = 0x00010000u, pl_ram_addr, pl_srl_addr, pl_ram[RAM_DEPTH], pl_srl[SRL_DEPTH];
-static uint32_t pl_ram_writes, pl_srl_shifts; static unsigned n_srl_reads;
+static uint32_t pl_ram_writes, pl_srl_shifts; static unsigned n_srl_reads; static int shifts_allowed;
 /* where cells of the RAM show in configuration memory (SM_RAMMAP) */
 #define MAX_PLACES 1024
 static struct { uint32_t addr, mem, far, word, bit, inv; } place[MAX_PLACES]; static unsigned n_places;
@@ -316,7 +320,7 @@ void hal_wr(uint32_t a, uint32_t v)
                                     unsigned k;
                                     for (k = SRL_DEPTH - 1u; k > 0u; k--) pl_srl[k] = pl_srl[k - 1u];
                                     pl_srl[0] = v & 0xFu; pl_srl_shifts = (pl_srl_shifts + 1u) & 0xFFFFu;
-                                    printf("VIOLATION shift %08x\n", v);
+                                    if (!shifts_allowed) printf("VIOLATION shift %08x\n", v);
                                 } break;
     default: printf("VIOLATION write %08x\n", a); break;
     }
@@ -326,7 +330,7 @@ uint32_t hal_mem_rd(uint32_t a)
 {
     wait_over();
     if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, PARAM_ADDR, PARAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)
-          || in(a, LIST_ADDR, LIST_MAX)))
+          || in(a, LIST_ADDR, LIST_MAX) || in(a, ACC_ADDR, 2u * ACC_MAX)))
         { printf("VIOLATION memory read %08x\n", a); return 0; }
     return ddr[(a - DDR_BASE) / 4u];
 }
@@ -411,6 +415,8 @@ int main(int argc, char **argv)
         n_frames = (unsigned)n / (FRAME_WORDS + 1);
         if (load_words(argv[3], &ddr[(PARAM_ADDR - DDR_BASE) / 4u], PARAM_WORDS) < 0) return 2;
         if (getenv("SM_LIST") && load_words(getenv("SM_LIST"), &ddr[(LIST_ADDR - DDR_BASE) / 4u], LIST_MAX + 8u) < 0) return 2;
+        if (getenv("SM_ACC") && load_words(getenv("SM_ACC"), &ddr[(ACC_ADDR - DDR_BASE) / 4u], 2u * ACC_MAX + 8u) < 0) return 2;
+        shifts_allowed = getenv("SM_SHIFTS") && !strcmp(getenv("SM_SHIFTS"), "allowed");
         if (getenv("SM_RAMMAP")) {
             FILE *m = fopen(getenv("SM_RAMMAP"), "r"); unsigned long a, b, c, d, e, g;
             if (!m) return 2;

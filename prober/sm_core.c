@@ -161,7 +161,7 @@ static uint32_t par(uint32_t i)                     { return hal_mem_rd(PARAM_AD
 static uint32_t poll_mode(void)
 {
     uint32_t stage = par(P_STAGE);
-    return (stage >= 4u && stage <= 8u) ? par(P_DIAG_STACK) >> DIAG_POLL_SHIFT : POLL_AS_BEFORE;
+    return (stage >= 4u && stage <= 9u) ? par(P_DIAG_STACK) >> DIAG_POLL_SHIFT : POLL_AS_BEFORE;
 }
 
 /* What a transfer writes to INT_STS before it begins. Every stage up to 7 clears the error bits with the two done
@@ -172,7 +172,7 @@ static uint32_t poll_mode(void)
  * transfer is not queued. The other stages make the accesses they always made, with the values they always wrote. */
 static uint32_t begin_mask(void)
 {
-    return par(P_STAGE) == 8u ? STS_DONE_MASK : STS_CLEAR_MASK;
+    return (par(P_STAGE) == 8u || par(P_STAGE) == 9u) ? STS_DONE_MASK : STS_CLEAR_MASK;   /* stage 9 reads as stage 8 does */
 }
 
 /* The wait that stores nothing (diagnostics): the write that queues the command, then the same polls and the same
@@ -371,8 +371,11 @@ static uint32_t finish(uint32_t status, uint32_t n_records, uint32_t n_anomalies
  * Stage 3 differs from stage 2 only in which operations its parameters may ask for: also the pad alone
  * (a count of 0) and no FDRO read at all (N_NONE), to see what the FAR register holds after each. */
 /* where the records begin: after the header — and in stage 7 after the PL block, which is counted with the header */
+static uint32_t log9(void);
 static uint32_t rbase(void)
 {
+    if (par(P_STAGE) == 9u)
+        return HDR_WORDS + PLB_LOG + 2u * log9();
     return par(P_STAGE) == 7u ? HDR_WORDS + PLB_WORDS : par(P_STAGE) == 8u ? HDR_WORDS + PLB8_WORDS : HDR_WORDS;
 }
 static void r2_wr(uint32_t rec, uint32_t field, uint32_t v) { res_wr(rbase() + rec * REC2_WORDS + field, v); }
@@ -383,7 +386,7 @@ static uint32_t r2_rd(uint32_t rec, uint32_t field)         { return res_rd(rbas
 static uint32_t reg_of(uint32_t op)
 {
     uint32_t stage = par(P_STAGE);
-    if (stage == 8u)                                    /* its one read of another register, and no table */
+    if (stage == 8u || stage == 9u)                     /* its one read of another register, and no table */
         return op == OP8_CTL0 ? REG_CTL0 : REG_FAR;
     if ((stage != 6u && stage != 7u) || op >= MAX_REG_OPS)
         return REG_FAR;
@@ -529,7 +532,7 @@ static uint32_t ref_healthy(uint32_t rec, uint32_t code)
 static void tag(void)
 {
     put("SM");
-    hal_putc(par(P_STAGE) == 8u ? '8' : par(P_STAGE) == 7u ? '7' : par(P_STAGE) == 6u ? '6' : par(P_STAGE) == 5u ? '5' : par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
+    hal_putc(par(P_STAGE) == 9u ? '9' : par(P_STAGE) == 8u ? '8' : par(P_STAGE) == 7u ? '7' : par(P_STAGE) == 6u ? '6' : par(P_STAGE) == 5u ? '5' : par(P_STAGE) == 4u ? '4' : par(P_STAGE) == 3u ? '3' : '2');
 }
 
 static uint32_t finish2(uint32_t status, uint32_t n_records, uint32_t n_anomalies, uint32_t stop_record)
@@ -572,32 +575,45 @@ static uint32_t pl_fail(uint32_t code)
     return code;
 }
 
-static int pl_allowed(uint32_t off, int write)
+/* The address of the design's register at an offset, if this run may make that access; 0 if it may not. This is the
+ * one place where an address of the PL is formed: pl_access takes it from here, and so does the check of a list of
+ * stage 9 before anything is touched (it asks only whether the answer is 0). Kept a function of its own for that. */
+static __attribute__((noinline)) uint32_t pl_addr(uint32_t off, int write)
 {
     uint32_t a = PL_BASE + off;
     if (off >= PL_SPAN || (off & 3u) || a < par(P_PL_LO) || a > par(P_PL_HI))
-        return 0;
-    return !write || ((PL_WRITABLE >> off) & 1u);
+        return 0u;
+    if (write && !(((par(P_STAGE) == 9u ? par(P_PL_WRITE) & PL_WRITABLE9 : PL_WRITABLE) >> off) & 1u))
+        return 0u;
+    return a;
+}
+
+/* stage 9: how many accesses the log has room for — the identification register, and every entry of the host's list
+ * that is not a mark. Zero for a block whose counts cannot be: nothing is logged then, and nothing is made. */
+static uint32_t log9(void)
+{
+    uint32_t n = par(P_ACC_N), s = par(P_REPEATS);
+    return (s == 0u || s > MAX9_STATES || n > ACC_MAX || n < 2u * s) ? 0u : 1u + n - 2u * s;
 }
 
 static uint32_t pl_access(uint32_t off, int write, uint32_t value)
 {
-    uint32_t n = plb_rd(PLB_N);
+    uint32_t n = plb_rd(PLB_N), a = pl_addr(off, write);
     if (plb_rd(PLB_CODE) != PLC_OK)
         return 0u;                                      /* stopped: nothing more is accessed */
-    if (!pl_allowed(off, write)) {
+    if (!a) {
         pl_fail(PLC_REFUSED);
         return 0u;
     }
-    if (n >= (par(P_STAGE) == 8u ? PL8_LOG_MAX : PL_LOG_MAX)) {
+    if (n >= (par(P_STAGE) == 9u ? log9() : par(P_STAGE) == 8u ? PL8_LOG_MAX : PL_LOG_MAX)) {
         pl_fail(PLC_FULL);
         return 0u;
     }
     if (write)
-        hal_wr(PL_BASE + off, value);
+        hal_wr(a, value);
     else
-        value = hal_rd(PL_BASE + off);
-    plb_wr(PLB_LOG + 2u * n, (PL_BASE + off) | (write ? 1u : 0u));
+        value = hal_rd(a);
+    plb_wr(PLB_LOG + 2u * n, a | (write ? 1u : 0u));
     plb_wr(PLB_LOG + 2u * n + 1u, value);
     plb_wr(PLB_N, n + 1u);
     return value;
@@ -834,6 +850,7 @@ static uint32_t run_s2(void)
 }
 
 static uint32_t run_s4(void);
+static uint32_t run_s9(void);
 
 /* ================================================================== stage 8 (S2.2): the RAM in readback
  * docs/s2_plan.md, section 19. The gates of stage 7; the reference frame; the design's identification and the
@@ -1022,6 +1039,146 @@ static uint32_t run_s8(void)
     return finish2(S_DONE, rec, 0u, 0xFFFFFFFFu);
 }
 
+/* ================================================================== stage 9 (S2.3): which bit is which cell
+ * docs/s2_plan.md, section 29. Stage 8 with no state of its own: what is written to the design, what is read from
+ * it and what a reading must be is the host's list of accesses (sm.h), made here entry by entry. The gates, the
+ * reference frame, the design's identification, CTL0; then for each state the entries up to the mark, every read of
+ * the list of reads — the status after each as in stage 8, bit 5 cleared alone where it shows — and the entries up to
+ * the state's end; CTL0 and the reference frame. A reading that is not what the list says ends the run. */
+static uint32_t acc_word(uint32_t entry, uint32_t which) { return hal_mem_rd(ACC_ADDR + 8u * entry + 4u * which); }
+
+static uint32_t run_s9(void)
+{
+    uint32_t i, k, s, w, v, g, x, at, phase, code, rec = 0u;
+    uint32_t lo = par(P_FAR_LO), hi = par(P_FAR_HI), ref = par(P_REF_FAR), n_states = par(P_REPEATS);
+    uint32_t n_list = par(P_LIST_N), n_acc = par(P_ACC_N), limit = par(P_POLL_LIMIT);
+
+    tag(); put(" start\r\n");
+    for (i = 0; i < HDR_WORDS + PLB_LOG; i++)
+        res_wr(i, 0u);
+    res_wr(H_MAGIC, RESULT_MAGIC);
+    res_wr(H_VERSION, 1u);
+    res_wr(H_REC_WORDS, REC2_WORDS);
+    res_wr(H_HDR_WORDS, rbase());
+    res_wr(H_STOP_RECORD, 0xFFFFFFFFu);
+    for (i = 0; i < PARAM_WORDS; i++)
+        res_wr(H_PARAMS + i, par(i));
+    for (i = 0; i < 4u; i++)                            /* SCTLR, CPSR, SP, R9: as the header has them */
+        res_wr(H_SCTLR + i, hal_cpu((int)i));
+    plb_wr(PLB_MAGIC, PLB_MAGIC_VALUE);
+    plb_wr(PLB_AT, 0xFFFFFFFFu);
+
+    /* parameters and both lists: refused before anything of the device is looked at */
+    x = par(P_VERSION) != 1u || lo > hi || ref < lo || ref > hi || log9() == 0u
+        || n_list == 0u || n_list > LIST_MAX || limit == 0u || limit > 0x10000000u
+        || (par(P_DIAG_STACK) & 0xFFu) || poll_mode() > POLL_NO_STACK || (par(P_PL_WRITE) & ~PL_WRITABLE9)
+        || par(P_PL_LO) < PL_BASE || par(P_PL_LO) > par(P_PL_HI) || par(P_PL_HI) >= PL_BASE + PL_SPAN;
+    if (!x && rbase() + (4u + n_states * n_list) * REC2_WORDS > RESULT_MAX_WORDS)
+        x = 1u;                                         /* the result would not lie in its area */
+    for (k = 0; k < PARAM_WORDS; k++)
+        if (!((P9_USED >> k) & 1u) && par(k))
+            x = 1u;
+    for (k = 0; !x && k < n_list; k++) {
+        w = hal_mem_rd(LIST_ADDR + 4u * k);
+        if (LIST_N(w) == 0u || LIST_N(w) > MAX_READ_FRAMES || LIST_FAR(w) < lo || LIST_FAR(w) > hi || LIST_N(w) - 1u > hi - LIST_FAR(w))
+            x = 1u;
+    }
+    s = 0u; phase = 0u;                                 /* the list of accesses: n_states times entries, a mark, entries, a mark */
+    for (k = 0; !x && k < n_acc; k++) {
+        w = acc_word(k, 0u); v = acc_word(k, 1u);
+        if (s >= n_states)
+            x = 1u;                                     /* something after the last state's end */
+        else if (A_KIND(w) == A_MARK) {
+            if (A_OFF(w) || v != phase)                 /* MARK_FRAMES closes the entries before the frames, MARK_END those after */
+                x = 1u;
+            else if (phase) { phase = 0u; s++; }
+            else phase = 1u;
+        } else if (!pl_addr(A_OFF(w), A_KIND(w) == A_WRITE) || (A_KIND(w) == A_READ && v))
+            x = 1u;
+    }
+    if (!x && (s != n_states || phase))
+        x = 1u;
+    if (x)
+        return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
+    for (i = HDR_WORDS + PLB_LOG; i < rbase(); i++)     /* the log, whose length the block gives */
+        res_wr(i, 0u);
+
+    /* gates, each read live; the first that fails ends the run with nothing sent and nothing in the PL touched */
+    g = hal_rd(DEVCFG_CTRL);    res_wr(H_CTRL, g);
+    x = (g & CTRL_PCAP_MASK) != CTRL_PCAP_MASK ? S_GATE_CTRL : (g & CTRL_SEU_EN) ? S_GATE_SEU : 0u;
+    g = hal_rd(DEVCFG_MCTRL);   res_wr(H_MCTRL, g);
+    if (!x && (g & MCTRL_PCAP_LPBK))
+        x = S_GATE_LPBK;
+    g = hal_rd(DEVCFG_INT_STS); res_wr(H_INT_STS0, g);
+    res_wr(H_STATUS0, hal_rd(DEVCFG_STATUS));
+    if (!x && !(g & STS_PCFG_DONE))
+        x = S_GATE_NOT_DONE;
+    if (!x && (hal_cpu(CPU_SCTLR) & 0x4u))
+        x = S_GATE_DCACHE;
+    for (k = 0; !x && k < N_SLCR; k++)                  /* the PS side of the PL, all four words recorded */
+        plb_wr(PLB_SLCR + k, hal_rd(slcr_addr(k)));
+    for (k = 0; !x && k < N_SLCR; k++)
+        if (plb_rd(PLB_SLCR + k) != par(P_SLCR + k))
+            x = S_GATE_SLCR | k;
+    if (x)
+        return finish2(x, 0u, 0u, 0xFFFFFFFFu);
+
+    code = s8_read(rec, ref, 1u, KIND_BASELINE, 0u, 0xFFFFFFFFu, lo, hi, limit, 0u);
+    rec++;
+    if (code != C_OK)
+        return finish2(S_STOP_BASELINE | code, rec, 0u, 0u);
+
+    x = pl_rd(PL_ID);                                   /* the one access that is not the list's: is it the design */
+    if (plb_rd(PLB_CODE) == PLC_OK && x != par(P_PL_ID))
+        pl_fail(PLC_ID);
+    if (plb_rd(PLB_CODE) != PLC_OK)
+        return finish2(S_STOP_PL | plb_rd(PLB_CODE), rec, 0u, 0xFFFFFFFFu);
+
+    code = s8_read(rec, ref, N_NONE, KIND_TARGET, 0u, OP8_CTL0, lo, hi, limit, 0u);
+    rec++;
+    if (code != C_OK)
+        return s8_end(code, rec);
+
+    at = 0u;
+    for (s = 0; s < n_states; s++)
+        for (phase = 0; phase < 2u; phase++) {
+            for (;;) {
+                w = acc_word(at, 0u); v = acc_word(at, 1u);
+                at++;
+                if (A_KIND(w) == A_MARK)
+                    break;
+                if (A_KIND(w) == A_WRITE)
+                    pl_wr(A_OFF(w), v);
+                else {
+                    g = pl_rd(A_OFF(w));
+                    if (A_KIND(w) == A_EXPECT && plb_rd(PLB_CODE) == PLC_OK && g != v)
+                        pl_fail(phase ? PLC_EXPECT_AFTER : PLC_EXPECT);
+                }
+            }
+            if (plb_rd(PLB_CODE) != PLC_OK)
+                return finish2(S_STOP_PL | plb_rd(PLB_CODE), rec, 0u, 0xFFFFFFFFu);
+            for (k = 0; !phase && k < n_list; k++) {
+                w = hal_mem_rd(LIST_ADDR + 4u * k);
+                code = s8_read(rec, LIST_FAR(w), LIST_N(w), KIND_TARGET, s, k, lo, hi, limit, 1u);
+                rec++;
+                if (code != C_OK)
+                    return s8_end(code, rec);
+            }
+        }
+
+    code = s8_read(rec, ref, N_NONE, KIND_TARGET, n_states, OP8_CTL0, lo, hi, limit, 0u);
+    rec++;
+    if (code != C_OK)
+        return s8_end(code, rec);
+    code = s8_read(rec, ref, 1u, KIND_FINAL, n_states, 0xFFFFFFFFu, lo, hi, limit, 0u);
+    x = ref_healthy(rec, code);
+    r2_wr(rec, R_REF_EQUAL, x);
+    rec++;
+    if (!x)
+        return finish2(health_stop(rec - 1u), rec, 0u, rec - 1u);
+    return finish2(S_DONE, rec, 0u, 0xFFFFFFFFu);
+}
+
 /* ------------------------------------------------------------------ stage S1a */
 uint32_t sm_run(void)
 {
@@ -1034,6 +1191,8 @@ uint32_t sm_run(void)
         return run_s4();
     if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 8u)
         return run_s8();
+    if (par(P_MAGIC) == PARAM_MAGIC && par(P_STAGE) == 9u)
+        return run_s9();
     put("SM1 start\r\n");
     for (i = 0; i < HDR_WORDS; i++)
         res_wr(i, 0u);

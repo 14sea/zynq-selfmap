@@ -30,8 +30,9 @@ been run on that image — 1,015, all killed in the end, after one survivor in t
 now has its test (section 27).** **S2.2 has been on the board: the chain of eight runs is
 complete — 256 bits of block type 0 follow the RAM, as many as it has cells, in four frames
 next to each other; every other bit is still; reading does not disturb the RAM; bit 5 of the
-status showed after two reads that are not of those frames (section 28).** S2.3 to S2.5 are
-not proposed in full yet.
+status showed after two reads that are not of those frames (section 28).** **S2.3 is
+proposed in full in section 29 and waits for the owner's decisions; nothing of it is
+built.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2021,3 +2022,225 @@ No program of the host or the prober was changed, so no mutant was run.
 
 S2.3 is not proposed in full; its outline is section 8. What it now has to start from: four
 frames, two words in each. The proposal is the next thing to write, on the owner's word.
+
+## 29. S2.3 — which configuration bit is which bit of the RAM (proposal, 2026-11-22)
+
+For the owner. Section 8 outlined this step; S2.2 is in. This section is the step in full.
+The points to decide are at its end. Nothing of it is built.
+
+### What is known now that section 8 did not have
+
+| fact | source |
+|---|---|
+| 256 bits of block type 0 follow the RAM, and no other: the addresses `0x00401220` to `0x00401223`, words 61 and 62 of each, all 32 bits | S2.2, section 28 |
+| These are the last four frames of a column of 36, `0x00401200` to `0x00401223`; the shares read it in twelve reads of three frames, the last two of them `0x0040121e` and `0x00401221` | the census; the list of share 6 |
+| Reading those frames does not disturb the RAM, and raises no bit 5, in the states all zero and all one | S2.2 |
+| The design's RAM takes a state that differs from address to address and gives it back: the address's low four bits and their complement, at all 64 addresses | S2.1 (stage 7's four states) |
+| A state costs 451 accesses to the design (the RAM written and read back, read again after the frames, the counter, the shift registers, the counts), each two words in the log; a read with its record is 480 words; the result area holds 262,144 words | stage 8 as built, section 21 |
+| A megabyte of result takes seven and a half minutes to pull | the eight runs of S2.2 |
+| The complete set of mutants is 1,015 and ran at 0.9 a minute, four at a time: 19 hours | section 27 |
+
+Not known, and what this step asks: which of the 256 places is which cell. S2.2 wrote all
+cells alike. That one frame is one memory, that a word is half of one, that the bits lie in
+the order of the addresses — each of these is a thought the numbers invite, and none of
+them is in any program or assumed by any check below.
+
+### The numbering
+
+A cell of the RAM is named from the design's side and from nowhere else: **memory k (0 to
+3: the bit of the data register it is written by) and address a (0 to 63: what the address
+register held)**. Its number is n = 64 k + a, eight bits. The description this step writes
+says, for a place in configuration memory, which n it is. It does not say which LUT of the
+slice memory k is, nor which pin carries which address bit (section 10); the build's own
+record of where it put each memory (`pl/s2a/build.json`) can be copied beside the table as
+what the build said, and is marked as that.
+
+### The states
+
+All through the design's registers, as before.
+
+- **Base**: all zero.
+- **Code states**, eight and their complements: in code state j every cell holds bit j of
+  its number; in the complement, the opposite. For j below 6 that is a pattern over the
+  addresses, the same in all four memories; for j = 6 and 7 it is whole memories, zero or
+  one.
+- **Singles**, 256: cell n holds one, every other cell zero.
+
+### The runs
+
+**The code run — one run.** The gates, CTL0 and the reference frame as in S2.2; then
+eighteen states — base, the eight code states each followed by its complement, base again;
+in each, the state written and read back through the design, the **twelve reads of the
+column**, the RAM read through the design again (it must still hold the state), the
+counter, the shift registers, the counts; CTL0 and the reference frame. 216 reads; about
+120,000 words, half a megabyte: one run, about five minutes with its pull.
+
+**The singles — four runs of 64 states.** Run r has the singles of the cells 64 r to
+64 r + 63, with the base state before the first and after the last. In each state the
+**two reads that deliver the four frames** (`0x0040121e` and `0x00401221`: six frames, two
+of them not among the four), and everything around them as above. About 120,000 words a
+run; about twenty minutes for the four.
+
+In all about half an hour of board time, five runs, a `reset` and a fresh load of the
+design before each.
+
+The status is recorded after every read and bit 5 cleared alone where it shows, as stage 8
+does. Nothing is written to configuration memory or to a configuration register.
+
+### What the host does with it
+
+Per run, from the raw words and after they are saved: everything S2.2's judge holds (the
+list, the address register, the log of accesses walked against the planned sequence, the
+status words, CTL0, the RAM as read back before and after every pass). Then:
+
+**The code run.** For every bit of every frame read, its eighteen readings.
+
+- A bit is *still* if all eighteen are alike.
+- A bit *spells* n if it reads 0 in both base states, bit j of n in code state j and the
+  opposite in its complement, for all eight j. (Or all of that inverted: recorded as
+  inverted, as S2.2 would have.)
+- Anything else is *irregular*: it changed and spells nothing.
+
+The run passes if nothing else is wrong and there is no irregular bit. The decoding is then
+closed by a program over the verdict: **the bits that spell are exactly the 256 places of
+S2.2; every n from 0 to 255 is spelt by exactly one.** That is the table at confidence 1,
+written out and committed before any single is run.
+
+**The singles.** For state n, the bits that differ from the base reading of the same run:
+**exactly one, and it is the place the table has for n.** The base at the end of the run
+must read as the base at its start. Each entry that holds is at confidence 2, and has the
+record numbers of its eight code states and of its single.
+
+The singles are judged against the committed table and by nothing else; the table is held
+by its hash in the chain's record.
+
+### What may come out, said beforehand
+
+The code run:
+
+1. **256 bits spell, each a number of its own, and they are the 256 places of S2.2; every
+   other bit of the column is still; the RAM undisturbed.** The table at confidence 1.
+2. **Two places spell the same number, or a number is spelt by none.** No table. Reported
+   with the readings; the singles are not run.
+3. **Irregular bits.** A place that follows the all-one state and not the patterns, or one
+   whose complement readings do not agree. The run fails and names them; no singles.
+4. **A bit that was still in S2.2 changes.** Something follows a pattern that did not
+   follow all ones. It either spells (then there are more than 256, or it is not one of
+   S2.2's) or is irregular; in both cases reported, no table, no singles.
+5. **Places that spell inverted.** Recorded as found; not a failure.
+6. **The RAM does not hold a state after the frames were read.** S2.2 saw the two uniform
+   states undisturbed; a pattern is new. The prober stops there, as in S2.2.
+7. **Bit 5 shows.** Recorded, cleared, reported: it did not show in this column in S2.2.
+8. **The design did not go on, the interface fails, the address register is not what the
+   census has.** A stop, as always.
+
+The singles, for each cell:
+
+9. **Exactly the decoded place differs.** Confidence 2.
+10. **Another place, more than one, or none.** That entry is a contradiction (confidence 0)
+    and the run fails; the chain halts there. What the other singles of that run said is
+    stored and reported.
+
+The table itself is looked at only after it is committed: whether a frame is a memory,
+what order the addresses have. What is seen is written down as seen. It is the first thing
+in this project that S2.5 could find to be different at another site.
+
+### What is written out
+
+`schemas/self_map_v2.schema.json` is the structure description the proposal names, copied
+as it is. Three of its required parts have no counterpart here: the `binding` (a token and
+a universe of zynq-fabricmap's sessions), the `genome_bit`, and a `relation` whose only
+kind is `lut_init` with an `init_index` — which would say that the RAM's address is the
+index of a LUT's truth table, the very thing section 10 says S2 does not show.
+
+I propose a document of this project's own, modelled on it as the census's was
+(`schemas/ram_map_v1.schema.json`): per entry the place (`address/word/bit`), the cell
+(design, memory k, address a), the confidence and state in the copied schema's words, the
+transition observed, and the records it rests on — the run, and the record numbers of the
+code states and of the single. The copied schema is not edited and nothing is written in
+its form until a stage shows what its `relation` claims (S4 or S5). This is point 4.
+
+### What has to be built
+
+- **The prober: a new stage, and so a new image.** Stage 8 knows two states, all zero and
+  all one. I propose that the new stage knows none: **the host gives it, beside the list
+  of reads, a list of accesses to the design** — for each state, what to write to which
+  register, what to read from which and what the reading must be, before the frames and
+  after them. The prober makes them in order, logs every one as now, and stops at the first
+  reading that is not what the list says. It refuses a list with an address outside the PL
+  envelope, with a register it may not write, or longer than its room. It does no
+  arithmetic on states, as it does none on addresses. Both lists go to the board as files
+  and are held by U-Boot's checksum before `go`, as the list of reads is now.
+- **The twin**: configuration memory in which each cell of the design's model shows at a
+  place the test chooses — a bijection, and switches for outcomes 2 to 7 and 10.
+- **The host**: the program that makes the states and the two lists; the judge of the code
+  run and the program that closes it into the table; the judge of the singles; the chain's
+  driver (the code run, the commit of it and of the table, then the four); the schema and
+  the program that writes the description; the run script's step for the second list.
+- Tests and mutants; and the complete set before the image first goes on a board.
+
+### What S2.3 cannot show
+
+- Anything outside the column. A bit elsewhere that follows a pattern and did not follow
+  all ones would not be read. S2.2 read everything in two uniform states; this step reads
+  one column in sixteen states more and six frames in 256 more.
+- Which LUT of the slice a memory is, which pin an address bit is on, whether the same
+  cells are a LUT's truth table (section 10).
+- That the table holds at another site (S2.5) or on another die.
+- That a single cell can be read while its neighbours are being written: the prober is
+  still the only writer and does not write while it reads.
+
+### For the owner
+
+1. **The form of the step:** one code run of eighteen states over the whole column, the
+   table closed and committed, then 256 singles in four runs. *(Recommended. The other
+   order — singles alone, 256 states, no code probes — gives confidence 2 without
+   confidence 1 and has no check that every bit of the column was seen under patterns.)*
+2. **What the singles read:** the two reads that deliver the four frames — four runs, about
+   twenty minutes. The other way is the whole column in every single: eight runs of 32
+   states, about an hour. *(Recommended: the two reads. What the rest of the column does
+   under patterns is the code run's question, and it reads all of it eighteen times.)*
+3. **The states come from the host as a list of accesses; the prober knows no state.**
+   The other way is a stage that computes the patterns itself from a code in the parameter
+   block, as stage 8 does for its two. *(Recommended: the list. The judge then walks the log
+   against a list it made itself, the prober has less in it that can be wrong, and the same
+   image can serve where only the states differ.)*
+4. **The description is a document of our own** (`ram_map_v1`), and nothing is written in
+   the copied schema's form in S2. *(Recommended, for the reason above. The other way is the
+   copied schema with `init_index` holding the RAM's address and a note that it means only
+   that — I would not: a field that says more than was shown will be read as what it says.)*
+5. **Which registers the prober may write is a parameter, bounded in the image.** Today it
+   is a constant of the image: the scratch register, the two address registers, the RAM's
+   data — not the shift registers' data, whose write is a shift. I propose the image's bound
+   be those and the shift registers' data, and the set's parameter say which of them this
+   run may write; S2.3's sets do not allow the shift, the prober refuses a list that asks
+   for one, and the judge fails a run whose log has one. **Then S2.4 — states that are
+   sequences of shifts — would need no new image**, as S2.0 and S2.1 shared one (section
+   12, point 10): one complete set of mutants instead of two. Whether S2.4 needs anything
+   the list cannot say is known only when it is proposed. *(Recommended. The other way keeps
+   the constant as it is; S2.4 then has an image of its own and its own complete set.)*
+6. **One word for the code run and the singles together**, after the owner's review of the
+   "as built" section: the code run alone and committed; the table closed and committed;
+   the singles only if the code run ended in outcome 1 (with or without 5 and 7); the chain
+   halts by itself and runs nothing again. *(Recommended. The other way is a report after
+   the code run and a second word for the singles — reasonable too: the table is the first
+   result of this project that says what a bit is.)*
+7. **A lost prompt** stopped one run in 196 (section 28). The rule is left as it is: the
+   run stops, the chain halts, the owner decides. *(Recommended. Five runs.)*
+8. **The complete set of mutants** for the new image before the board: 1,015 now and more
+   with this stage; at the rate measured, **about a day** on this host, during which
+   nothing else heavy runs and the board is not used. *(No choice proposed; said so that
+   the time is known. Point 5 decides whether it is paid once or twice.)*
+
+Considered and not proposed: the states written at the U-Boot prompt by the run script
+(`mw.l` to the design's registers) and the frames read by a stage of the image that is on
+the board now. It needs no new image and no day of mutants. It needs a run for every
+state — some 270 runs, each with some hundreds of exchanges at the prompt that are never sent
+twice — and it moves the setting of the state from the program whose every access is
+logged in the result to the console, which is the part of this arrangement that loses
+characters. For the eighteen states of the code run alone it would do; for the singles I
+do not think so. I have not examined it further than this.
+
+If this is agreed, the next thing built is the host side — the stage, the twin, the lists,
+the two judges, the closing, the chain, the schema — followed by its "as built" section
+and the owner's review, the mutants, and only then, on the owner's word, the board.

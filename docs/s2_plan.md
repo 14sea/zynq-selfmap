@@ -27,8 +27,11 @@ a clean copy of the repository now runs every test. A third found four, all mend
 (section 25): stage 8 no longer clears an error bit at any time. A fourth found three in the
 chain's driver, mended without a new image (section 26). The complete set of mutants has
 been run on that image — 1,015, all killed in the end, after one survivor in the chain that
-now has its test (section 27). Nothing of S2.2 has been on a board.** S2.3 to S2.5 are not
-proposed in full yet.
+now has its test (section 27).** **S2.2 has been on the board: the chain of eight runs is
+complete — 256 bits of block type 0 follow the RAM, as many as it has cells, in four frames
+next to each other; every other bit is still; reading does not disturb the RAM; bit 5 of the
+status showed after two reads that are not of those frames (section 28).** S2.3 to S2.5 are
+not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -1941,3 +1944,80 @@ The owner's rule — the complete set before a new image first goes on the board
 the image of section 25. Nothing of S2.2 has been on a board. The next step is the first
 run alone (section 23), on the owner's word and with the board's serial line attached to
 this machine again; it has not been since 2026-11-20 21:46 GMT.
+
+## 28. S2.2 on the board (2026-11-22): complete — 256 candidates in four frames; the RAM undisturbed
+
+On the owner's word for the chain. The full account is
+`evidence/s2_2_17A6_2026-11-22/RESULT.md`; this section is what the plan needs of it.
+
+### What came out
+
+**Outcome 1 of section 19, and with it outcome 9.**
+
+- Eight runs, one of each share, every one PASS: 3,864 addresses of block type 0, 1,300
+  reads a state, three states. Image `94ad860c…6f50`, on a board for the first time.
+- **256 candidates**, none inverted, no restless bit; 12,488,192 other bits the same in all
+  three states. All 256 in the run of share 6: **`0x00401220`, `0x00401221`, `0x00401222`,
+  `0x00401223`, words 61 and 62 of each, all 32 bits** — 64 a frame.
+- **The RAM held its state through every pass** (24 passes), read back through the design's
+  registers. The counter ran, the shift registers were as loaded and not shifted.
+- **CTL0 `0x00000501`** at all 16 readings. Question 4 of section 1 (is LUT RAM masked in
+  PCAP readback?) is answered for this design and this register value: no. Question 5 (must
+  the design be stopped?): for a RAM that is not being written, no — it is read, and it is
+  not disturbed. Nothing was written to MASK or CTL0, and section 12's point 3 stays as it
+  is: not designed.
+- **Bit 5** showed after two reads, `0x0000181e` and `0x00001821`, the same two in each of
+  the three states, in the run of share 3; cleared each time, never still set. The reads
+  that deliver the four frames with the candidates raised nothing in any state.
+
+### What this says to the question S1b left (section 1, and S1b's sections 53 to 57)
+
+Outcome 9 asked whether bit 5 comes with frames whose RAM content is no longer what was
+loaded. **Not with these:** the four frames were read while the RAM held all ones, having
+been loaded all zero, and the bit did not show. It showed with six frames in another column,
+whose content did not change between the states.
+
+A guess, marked as one and not in any program: the design has a second kind of memory, the
+shift registers, loaded with words that are not zero and never shifted; the frames that
+raise the bit are the last of a column of 36, as the candidates are the last four of
+theirs. If those frames hold the shift registers, the bit comes with their content as
+loaded, not with a change. S2.4 is the step that finds where the shift registers are, and
+will say. Nothing else is done about it now.
+
+### The run that stopped
+
+The first try of share 1 ended with no prompt after the dump of the result header: the
+console lost stretches of the reply and all but the first letter of the prompt. The run
+script stopped, as section 43 of `docs/s1b_plan.md` has it for a missing prompt; nothing
+was saved or pulled; the chain halted and was reported. The owner: set aside, and the chain
+taken up again; nothing taken from memory by hand; the run script not changed. It lies in
+`halted_at_run01/` and the share passed at the second try. One such loss in 196 stored runs;
+the rule stays as it is.
+
+### Differences from what was written beforehand
+
+- Section 21 has the pre-check "as before every step"; there were two, one before each time
+  the board was taken in hand.
+- The set's file `expected_s2_2.json` was copied to the runs after the chain closed, not
+  before the first run as in earlier steps: the driver keeps the image with the runs and
+  not the set. Each run's record has the parameter words and its list as they were sent,
+  and the test that assesses the stored chain holds the copy to the image kept by the
+  driver.
+- I wrote the background command for the second start so that it ended with the exit code
+  of a `grep`, not the driver's; the driver's code (1, at the halt) was in a line the
+  command printed, and that is where I read it. The third start ends with the driver's own.
+
+### Tests
+
+820, then 821. The audit of stored runs counts 196 (nine more: the eight and the one that
+stopped). `tests/test_status_seen.py` said no run outside block type 1 had a status bit of
+this kind; it now names the one that has, and a test holds what its record says.
+`tests/test_board_evidence.py` assesses the stored chain again from the raw words — state,
+candidates, the closing, `chain.json` and `candidates.json` as the programs give them now —
+and names the header dump of the stopped run as the second stored reply that is not whole.
+No program of the host or the prober was changed, so no mutant was run.
+
+### Next
+
+S2.3 is not proposed in full; its outline is section 8. What it now has to start from: four
+frames, two words in each. The proposal is the next thing to write, on the owner's word.

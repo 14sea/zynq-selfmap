@@ -165,8 +165,40 @@ class BeforeAnyShift(unittest.TestCase):
                          sorted([(*at[0], 0, True, 0, 1, 0), (*at[2], 64, True, 0, 1, 0)]))
         c = s2_4_table.close_code(v, self.known()["candidates"])
         self.assertEqual((c["problems"], c["cells_by_their_places"]), ([], {"1 as it is, 0 inverted": 4, "1 as it is, 1 inverted": 120, "1 as it is, 2 inverted": 4}))
-        self.assertEqual(c["places_that_read_otherwise_as_loaded"], sorted([[*at[0], 0], [*at[2], 64]]))
+        self.assertEqual([(x["far"], x["word"], x["bit"], x["cell"], x["inverted"], x["state"], x["reads"], x["the_cell_gives"]) for x in c["places_that_read_otherwise_as_loaded"]],
+                         sorted([(*at[0], 0, True, 0, 1, 0), (*at[2], 64, True, 0, 1, 0)]))
         self.assertEqual({(x["far"], x["word"], x["bit"]) for row in c["table"] if row["cell"] % 32 == 0 for x in row["places"] if x["inverted"]} >= set(at.values()), True)
+
+    def test_the_description_rests_on_the_shifted_states_and_says_what_such_a_place_read_before(self) -> None:
+        """Review of 07abf08: the description named the state before any shift as evidence for the two places that read
+        otherwise in it — a record that reads one beside an entry that says a one in the output reads zero. An entry's
+        evidence is of the states made by shifts; what the place read before any shift is said beside it."""
+        pc, rc, vc = twin("code", cells=self.CELLS, known=self.known())
+        closing = s2_4_table.close_code(vc, self.known()["candidates"])
+        singles = []
+        for run in (0, 1):
+            p, r, v = twin("singles", run, cells=self.CELLS, known=self.known())
+            singles.append({"dir": f"run{run + 1:02d}", "share": run, "result_sha256": f"{run + 1}" * 64, "reads": p["reads"], "states": p["states"],
+                            "held": s2_4_table.hold_singles(v, closing["table"])})
+        doc = s2_4_table.srl_map(DESIGN, closing["table"], {"dir": "run00", "result_sha256": "0" * 64, "reads": pc["reads"], "states": pc["states"]}, singles,
+                                 closing["places_that_read_otherwise_as_loaded"])
+        jsonschema.Draft202012Validator(SCHEMA).validate(doc)
+        self.assertEqual((doc["counts"], doc["places_that_read_otherwise_before_any_shift"]), ({"confirmed": 256, "decoded": 0, "contradiction": 0}, 2))
+        apart = [e for e in doc["entries"] if "before_any_shift" in e]
+        self.assertEqual([(e["address"], e["cell"], e["inverted"], e["before_any_shift"]["state"], e["before_any_shift"]["reads"], e["before_any_shift"]["the_output_as_loaded_would_give"])
+                          for e in apart], [(f"{place(k, 0)[0]:#010x}/{place(k, 0)[1]}/{place(k, 0)[2]}", 32 * k, True, 0, 1, 0) for k in (0, 2)])
+        for e in doc["entries"]:                         # every record an entry names as evidence shows what the entry says: none is of the state before any shift
+            far, word, bit = (int(x, 0) for x in e["address"].split("/"))
+            self.assertNotIn(0, e["evidence"]["code_states"], e["address"])
+            for record in e["evidence"]["code_records"]:
+                rec = rc.rec(record)
+                self.assertEqual(((rec["frames"][far - rec["far"]][word] >> bit) & 1, rec["state"] > 0), (e["observed_transition"]["output_1"], True), (e["address"], record))
+        for e in apart:                                  # and the record named for the state before any shift reads what the entry says it read
+            far, word, bit = (int(x, 0) for x in e["address"].split("/"))
+            rec = rc.rec(e["before_any_shift"]["record"])
+            self.assertEqual(((rec["frames"][far - rec["far"]][word] >> bit) & 1, rec["state"]), (1, 0))
+        plain = s2_4_table.srl_map(DESIGN, closing["table"], {"dir": "run00", "result_sha256": "0" * 64, "reads": pc["reads"], "states": pc["states"]}, singles)
+        self.assertEqual((plain["places_that_read_otherwise_before_any_shift"], [e for e in plain["entries"] if "before_any_shift" in e]), (0, []))
 
     def test_the_singles_confirm_and_set_the_same_down(self) -> None:
         table = s2_4_table.close_code(twin("code", cells=self.CELLS, known=self.known())[2], self.known()["candidates"])["table"]
@@ -312,6 +344,24 @@ class ThePairs(unittest.TestCase):
         self.assertEqual((v["verdict"], v["problems"], v["run"]["kind"], v["run"]["share"], len(v["run"]["states"])), ("PASS", [], "pairs", None, 6))
         self.assertEqual({x["cell"] for x in v["finding"]["follows"]}, {0, 1, 2, 3, 4})
         self.assertEqual(v["finding"]["cells_not_told_from_another_inverted"], [])
+
+    def test_a_bit_that_moves_and_follows_no_cell_is_set_down_and_does_not_fail_this_run(self) -> None:
+        """Review of 07abf08, and section 37, outcome 13: nothing the pairs show fails the run but registers that do not
+        read back and what fails any run. In the code run and in a run of the singles the same bit fails the run."""
+        p, r, v = clean("pairs")
+        at = lambda run, plan, state: run.hb + (2 + state * len(plan["reads"])) * T.REC + T.DATA + T.FRAME + 7   # noqa: E731  a word that is still
+        w = list(r.words); w[at(r, p, 1)] ^= 0x10        # in the second state, in which no cell is turned that is turned in no other
+        now = s2_4_judge.judge(w, KNOWN, s2_3_judge.planned_words(r.params, p["reads"], p["entries"], DESIGN))
+        self.assertEqual((now["verdict"], now["problems"], now["finding"]["bits"]["irregular"], [x["readings"] for x in now["finding"]["irregular"]]), ("PASS", [], 1, ["010000"]))
+        for kind, share, states in (("code", None, (1,)), ("singles", 0, (1, 2))):      # in the singles one state is one cell's: two states are no cell's
+            p, r, v = clean(kind, share)
+            w = list(r.words)
+            for s in states:
+                w[at(r, p, s)] ^= 0x10
+            now = s2_4_judge.judge(w, KNOWN, s2_3_judge.planned_words(r.params, p["reads"], p["entries"], DESIGN))
+            self.assertEqual((now["verdict"], now["finding"]["bits"]["irregular"]), ("FAIL", 1), kind)
+        p, r = twin("pairs", fault="srlmoves")[:2]       # registers that do not read back fail it as they fail any run
+        self.assertEqual(s2_4_judge.judge(r.words, KNOWN, s2_3_judge.planned_words(r.params, p["reads"], p["entries"], DESIGN))["verdict"], "FAIL")
 
     def test_what_the_chain_sets_down_of_it(self) -> None:
         p, r, v = clean("pairs")
@@ -501,6 +551,41 @@ class TheChain(unittest.TestCase):
         self.assertFalse((self.root / "srl_map.json").exists())
         self.calls.clear()
         self.assertEqual((self.drive()["state"], self.calls), ("halted", []))
+
+    def test_a_device_with_a_place_that_reads_otherwise_before_any_shift_goes_through_and_the_table_says_so(self) -> None:
+        cells = srl_map(zero="last")
+        known = known_for(as_part_1_saw(cells))
+        a = self.drive(known=known, runner=self.runner(cells=cells, known=known))
+        self.assertEqual((a["state"], a["closing"]["confirmed"], a["closing"]["bits_of_the_pairs_that_follow_no_cell"]), ("complete", 128, []))
+        table = json.loads((self.root / "table" / "table.json").read_text())
+        self.assertEqual([(x["far"], x["word"], x["bit"], x["cell"], x["reads"]) for x in table["places_that_read_otherwise_as_loaded"]],
+                         [(f"{place(k, 0)[0]:#010x}", place(k, 0)[1], place(k, 0)[2], 32 * k, 1) for k in (0, 2)], "said in the table that is committed before the singles")
+        doc = json.loads((self.root / "srl_map.json").read_text())
+        jsonschema.Draft202012Validator(SCHEMA).validate(doc)
+        self.assertEqual((doc["places_that_read_otherwise_before_any_shift"], sorted(e["cell"] for e in doc["entries"] if "before_any_shift" in e)), (2, [0, 64]))
+
+    def test_a_bit_of_the_pairs_that_follows_no_cell_is_set_down_and_the_description_is_written(self) -> None:
+        """Review of 07abf08: such a bit failed the run of the pairs, halted the chain, and kept back the description of
+        128 cells the singles had confirmed."""
+        import struct
+        self.drive()
+        d = self.root / "run03"
+        raw = (d / "result.bin").read_bytes()
+        w = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+        w[w[7] + (2 + 1 * 2) * 480 + 76 + 101 + 7] ^= 0x10                    # the first read of the second state, a word that is still
+        raw = struct.pack("<%dI" % len(w), *w)
+        (d / "result.bin").write_bytes(raw)
+        rec = json.loads((d / "run.json").read_text()); rec["board_crc32"] = rec["host_crc32"] = f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"
+        (d / "run.json").write_text(json.dumps(rec, indent=1) + "\n")
+        exp = s1a_run.with_plan("s2_4p", self.bases["s2_4p"], None, KNOWN)
+        v = s2_4_judge.judge(w, KNOWN, s1a_run.planned_words(exp))
+        (d / "verdict.json").write_text(json.dumps(v, indent=1) + "\n")
+        a = self.drive()
+        self.assertEqual((a["state"], a["runs"][3]["judge"], len(a["runs"][3]["bits_that_follow_no_cell"]), len(a["closing"]["bits_of_the_pairs_that_follow_no_cell"])),
+                         ("complete", "PASS", 1, 1))
+        self.assertEqual(a["closing"]["bits_of_the_pairs_that_follow_no_cell"][0]["readings"], "010000")
+        self.assertTrue((self.root / "srl_map.json").is_file())
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["closing"]["bits_of_the_pairs_that_follow_no_cell"], a["closing"]["bits_of_the_pairs_that_follow_no_cell"])
 
     def test_a_run_that_fails_halts_the_chain(self) -> None:
         a = self.drive(runner=self.runner(per_run={3: {"fault": "srlmoves"}}))

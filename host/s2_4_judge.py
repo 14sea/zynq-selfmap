@@ -28,7 +28,9 @@ What is judged here is the design's side of this step, from the log and from not
 The finding: every bit of every frame read, by its readings over the states. A bit is still; or it follows a cell —
 it reads as that cell holds in every state — as it is or inverted; or it is irregular. In a run of part 1 every cell
 holds the same in a state, so a bit that follows follows them all alike, and no cell is named: those bits are the
-candidates. A run with an irregular bit fails.
+candidates. A run with an irregular bit fails — but for the run of the pairs, which is made for bit 5 of the status
+alone and of which section 37 says that nothing it shows fails it but registers that do not read back and what fails
+any run: there an irregular bit is set down like any other finding (review of 07abf08).
 
 **What a bit follows is asked over the states that were made by shifts.** A run of part 2 begins with the registers
 as loaded, nothing shifted yet. The frames S2.2 stored — the registers as loaded, never shifted — have, at one place
@@ -256,7 +258,7 @@ def design_side(c: dict) -> dict:
                     else:
                         finding["bits"]["irregular"] += 1
                         finding["irregular"].append(dict(where, readings="".join(str(v) for v in every)))
-        if finding["bits"]["irregular"]:
+        if finding["bits"]["irregular"] and run["kind"] != "pairs":
             bad(f"{finding['bits']['irregular']} bit(s) changed and follow no cell of the shift registers: irregular")
     out["finding"] = finding
 

@@ -73,7 +73,8 @@ def close_code(verdict: dict, candidates: dict) -> dict:
                cells_without_a_bit_as_it_is=none, places_part_1_did_not_have=[list(p) for p in new],
                candidates_of_part_1_that_follow_no_cell=[list(p) for p in lost], places_shown_the_other_way_than_in_part_1=[list(p) for p in turned],
                candidates_of_part_1=len(before), bit_5_after_records=(verdict.get("bit_5") or {}).get("shown_after_records", []),
-               places_that_read_otherwise_as_loaded=[[x["far"], x["word"], x["bit"], x["cell"]] for x in verdict["finding"].get("otherwise_as_loaded", [])])
+               places_that_read_otherwise_as_loaded=[{k: x[k] for k in ("far", "word", "bit", "cell", "inverted", "state", "reads", "the_cell_gives")}
+                                                     for x in verdict["finding"].get("otherwise_as_loaded", [])])
     if len(found) != len(follows):
         bad("a place is said to follow two cells")
     if none:
@@ -123,15 +124,20 @@ def hold_singles(verdict: dict, table: list[dict]) -> dict:
     return out
 
 
-def srl_map(design: dict, table: list[dict], code: dict, singles: list[dict]) -> dict:
+def srl_map(design: dict, table: list[dict], code: dict, singles: list[dict], otherwise: list[dict] | None = None) -> dict:
     """The description. `code`: {"dir", "result_sha256", "reads", "states"} of the code run; `singles`: the same for
-    each run of the singles that was made, with "share" and what `hold_singles` said of it ("held")."""
+    each run of the singles that was made, with "share" and what `hold_singles` said of it ("held"); `otherwise`: the
+    places that read otherwise before any shift than their cell's loaded content gives, as the closing of the code run
+    has them. An entry rests on the states that were made by shifts and on no other (review of 07abf08: the state
+    before any shift was named as evidence for a place that reads otherwise in it); what such a place read before any
+    shift is said in the entry, beside its evidence and not as part of it."""
     confirmed = {n: s for s in singles for n in s["held"]["confirmed"]}
     refuted = {c["cell"]: s for s in singles for c in s["held"]["contradictions"]}
+    apart = {(x["far"], x["word"], x["bit"]): x for x in otherwise or []}
     entries = []
     for row in table:
         n = row["cell"]
-        holds_one = [i for i, state in enumerate(code["states"]) if st.cell(state["srl"], n)]   # the states of the code run in which the cell held a one
+        holds_one = [i for i, state in enumerate(code["states"]) if state["shifted"] and st.cell(state["srl"], n)]   # the shifted states of the code run in which the cell held a one
         state = "contradiction" if n in refuted else "confirmed" if n in confirmed else "decoded"
         by = confirmed.get(n) or refuted.get(n)
         for p in row["places"]:
@@ -144,6 +150,10 @@ def srl_map(design: dict, table: list[dict], code: dict, singles: list[dict]) ->
                             "inverted": p["inverted"], "confidence": CONFIDENCE[state], "state": state,
                             "observed_transition": {"output_0": int(p["inverted"]), "output_1": 1 - int(p["inverted"])},
                             "evidence": {"code_states": holds_one, "code_records": records_of(far, code["reads"], holds_one), "single": single}})
+            x = apart.get((p["far"], p["word"], p["bit"]))
+            if x is not None:
+                entries[-1]["before_any_shift"] = {"state": x["state"], "record": records_of(far, code["reads"], [x["state"]])[0], "reads": x["reads"],
+                                                   "the_output_as_loaded_would_give": x["the_cell_gives"]}
     doc = {"schema": "srl_map", "schema_version": 1, "label": "closed-book",
            "what": "which bit of configuration memory is which output of the probe design's shift registers, found by shifting known contents in "
                    "through user logic and reading configuration memory back (docs/s2_plan.md, sections 37 to 41). An address is the frame address "
@@ -160,7 +170,7 @@ def srl_map(design: dict, table: list[dict], code: dict, singles: list[dict]) ->
            "runs": {"code": {"dir": code["dir"], "result_sha256": code["result_sha256"]},
                     "singles": [{"dir": s["dir"], "share": s["share"], "result_sha256": s["result_sha256"]} for s in singles]},
            "counts": {state: sum(1 for e in entries if e["state"] == state) for state in ("confirmed", "decoded", "contradiction")},
-           "places": len(entries), "entries": entries}
+           "places": len(entries), "places_that_read_otherwise_before_any_shift": sum(1 for e in entries if "before_any_shift" in e), "entries": entries}
     cells = design["srl"]["cells"]
     if all("bel" in cells[k] for k in cells):
         doc["as_the_build_placed_them"] = {

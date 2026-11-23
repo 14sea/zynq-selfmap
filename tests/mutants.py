@@ -1531,7 +1531,7 @@ MUTANTS = [
     (JUDGE24, "judge s2.4: a place of part 1 loses that it is inverted", "finding[\"follows\"].append(dict(where, inverted=inverted))", "finding[\"follows\"].append(dict(where, inverted=False))"),
     (JUDGE24, "judge s2.4: a place of part 2 loses that it is inverted", "output=cells[0] % st.DEPTH, inverted=inverted))", "output=cells[0] % st.DEPTH, inverted=False))"),
     (JUDGE24, "judge s2.4: a place of part 2 names the register for the output", "register=cells[0] // st.DEPTH, output=cells[0] % st.DEPTH,", "register=cells[0] % st.DEPTH, output=cells[0] // st.DEPTH,"),
-    (JUDGE24, "judge s2.4: an irregular bit passes", "        if finding[\"bits\"][\"irregular\"]:\n            bad(", "        if False:\n            bad("),
+    (JUDGE24, "judge s2.4: an irregular bit passes", "        if finding[\"bits\"][\"irregular\"] and run[\"kind\"] != \"pairs\":\n            bad(", "        if False:\n            bad("),
     (JUDGE24, "judge s2.4: in part 1 a bit must follow one cell alone", "                        if len(cells) == 1 or (cells and run[\"kind\"] == \"find\"):", "                        if len(cells) == 1:"),
     (JUDGE24, "judge s2.4: cells that would pass for another inverted are no fault", "        if mirrored:                                     # a bit with such readings", "        if False:                                     # a bit with such readings"),
     (JUDGE24, "judge s2.4: a run that did not complete passes", "    if status != 1:\n        bad(f\"the run did not complete", "    if False:\n        bad(f\"the run did not complete"),
@@ -1615,7 +1615,7 @@ MUTANTS = [
     (TABLE24, "table s2.4: a cell with no single is written as confirmed", "state = \"contradiction\" if n in refuted else \"confirmed\" if n in confirmed else \"decoded\"", "state = \"contradiction\" if n in refuted else \"confirmed\""),
     (TABLE24, "table s2.4: the description has an entry a cell and not a place", "        for p in row[\"places\"]:\n            far = int(p[\"far\"], 16)", "        for p in row[\"places\"][:1]:\n            far = int(p[\"far\"], 16)"),
     (TABLE24, "table s2.4: the description says an inverted place reads as the output does", "\"observed_transition\": {\"output_0\": int(p[\"inverted\"]), \"output_1\": 1 - int(p[\"inverted\"])}", "\"observed_transition\": {\"output_0\": 0, \"output_1\": 1}"),
-    (TABLE24, "table s2.4: the description names the states in which the output held a zero", "holds_one = [i for i, state in enumerate(code[\"states\"]) if st.cell(state[\"srl\"], n)]", "holds_one = [i for i, state in enumerate(code[\"states\"]) if not st.cell(state[\"srl\"], n)]"),
+    (TABLE24, "table s2.4: the description names the states in which the output held a zero", "if state[\"shifted\"] and st.cell(state[\"srl\"], n)]", "if state[\"shifted\"] and not st.cell(state[\"srl\"], n)]"),
     (CHAIN242, "chain2 s2.4: a code run under another CTL0 than part 1's is taken", "        if not r[\"problems\"] and k == 0 and (not known.get(\"ctl0_in_part_1\") or r.get(\"ctl0\") != known[\"ctl0_in_part_1\"]):", "        if False:"),
     (CHAIN242, "chain2 s2.4: a later run under another CTL0 than the code run is taken", "        if not r[\"problems\"] and k > 0 and r.get(\"ctl0\") != out[\"runs\"][0].get(\"ctl0\"):", "        if False:"),
     (CHAIN242, "chain2 s2.4: a code run that gives no table does not halt the chain", "            if closing[\"table\"] is None:\n                r[\"problems\"] += [f\"closed without a table", "            if False:\n                r[\"problems\"] += [f\"closed without a table"),
@@ -1647,6 +1647,12 @@ MUTANTS = [
     (STATES4, "states4: the run of the pairs begins before any shift", "    return ([{\"name\": \"loaded\", \"kind\": \"loaded\", \"srl\": list(loaded), \"shifted\": True}]\n            + [{\"name\": \"cells \"", "    return ([{\"name\": \"loaded\", \"kind\": \"loaded\", \"srl\": list(loaded), \"shifted\": False}]\n            + [{\"name\": \"cells \""),
     (TABLE24, "table s2.4: the places that read otherwise before any shift are not named", "for x in verdict[\"finding\"].get(\"otherwise_as_loaded\", [])])", "for x in []])"),
     (JUDGE24, "judge s2.4: the verdict of a run without a state before any shift has the field for one", "        if before:                                       # said only of a run that has such a state", "        if True:                                       # said only of a run that has such a state"),
+    (JUDGE24, "judge s2.4: a bit that follows no cell fails the run of the pairs", "        if finding[\"bits\"][\"irregular\"] and run[\"kind\"] != \"pairs\":", "        if finding[\"bits\"][\"irregular\"]:"),
+    (TABLE24, "table s2.4: the description names the state before any shift as evidence", "if state[\"shifted\"] and st.cell(state[\"srl\"], n)]", "if st.cell(state[\"srl\"], n)]"),
+    (TABLE24, "table s2.4: the description does not say that a place read otherwise before any shift", "            if x is not None:\n                entries[-1][\"before_any_shift\"]", "            if False:\n                entries[-1][\"before_any_shift\"]"),
+    (TABLE24, "table s2.4: what a place read before any shift is said as what its output would give", "\"reads\": x[\"reads\"],\n                                                   \"the_output_as_loaded_would_give\": x[\"the_cell_gives\"]}", "\"reads\": x[\"the_cell_gives\"],\n                                                   \"the_output_as_loaded_would_give\": x[\"the_cell_gives\"]}"),
+    (CHAIN242, "chain2 s2.4: the table that is committed does not say which places read otherwise before any shift", "            \"places_that_read_otherwise_as_loaded\": closing[\"places_that_read_otherwise_as_loaded\"],", "            \"places_that_read_otherwise_as_loaded\": [],"),
+    (CHAIN242, "chain2 s2.4: the bits of the pairs that follow no cell are not set down", "            r[\"bits_that_follow_no_cell\"] = v[\"finding\"][\"irregular\"]", "            r[\"bits_that_follow_no_cell\"] = []"),
 ]
 
 

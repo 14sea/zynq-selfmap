@@ -212,7 +212,7 @@
                   "type": "integer",
                   "minimum": 0
                 },
-                "description": "the states of the code run in which the output held a one"
+                "description": "the states of the code run, of those made by shifts, in which the output held a one"
               },
               "code_records": {
                 "type": "array",
@@ -253,6 +253,39 @@
                 "description": "the run of the singles, the state and the record in which that cell alone was the other way; null where no single was made"
               }
             }
+          },
+          "before_any_shift": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "record",
+              "reads",
+              "the_output_as_loaded_would_give"
+            ],
+            "properties": {
+              "state": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "record": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reads": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "the_output_as_loaded_would_give": {
+                "enum": [
+                  0,
+                  1
+                ]
+              }
+            },
+            "description": "only where it is so: in the state of the code run before anything was shifted in, the place read otherwise than the output's loaded content gives by this entry. Not part of the evidence, which is of the shifted states."
           }
         },
         "allOf": [
@@ -335,6 +368,11 @@
       "type": "integer",
       "minimum": 0,
       "description": "how many entries there are: a cell may have more than one"
+    },
+    "places_that_read_otherwise_before_any_shift": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "how many entries have before_any_shift"
     }
   },
   "$defs": {

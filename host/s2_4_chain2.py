@@ -25,7 +25,8 @@ the other way, exactly the places the table has for it — all of them, each the
 content. A contradiction halts the chain there. So does a run in which CTL0 read otherwise than in the code run.
 
 The run of the pairs is for bit 5 of the status alone (section 38, point 5). It must be a passing run made under the
-same CTL0; beyond that nothing of what it shows fails it. What it shows is set down: for each of its states the cells
+same CTL0; beyond that nothing of what it shows fails it — a bit of a frame that moves and follows no cell is set down
+there, where in any other run it fails the run (s2_4_judge). What it shows is set down: for each of its states the cells
 turned, how many bits of each frame that changes by the table, and after which of its reads bit 5 showed.
 
 When all four are stored and every cell is confirmed the chain is complete and writes DIR/srl_map.json, the
@@ -135,6 +136,7 @@ def table_file(closing: dict, run: dict, known: dict) -> dict:
                     "code run alone (docs/s2_plan.md, sections 37 to 41). Not yet confirmed by the singles.",
             "design": known.get("name"), "outcome": closing["outcome"], "cells": closing["cells"], "as_they_are": closing["as_they_are"],
             "inverted": closing["inverted"], "cells_by_their_places": closing["cells_by_their_places"],
+            "places_that_read_otherwise_as_loaded": closing["places_that_read_otherwise_as_loaded"],
             "code_run": {"dir": run["dir"], "result_sha256": run["result_sha256"]}, "table": closing["table"]}
 
 
@@ -228,6 +230,7 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
         if not r["problems"] and k == RUNS - 1:          # the pairs: set down, held to nothing
             reads = [(int(w, 16) & 0x0FFFFFFF, int(w, 16) >> 28) for w in exp["list"]]
             r["shown"] = shown_in_the_pairs(v, table, reads)
+            r["bits_that_follow_no_cell"] = v["finding"]["irregular"]   # set down, as section 37 has it of this run: it fails for none of them
         if r["problems"]:
             r["decision"] = "halt"
             if names[k + 1:]:
@@ -243,7 +246,7 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
                       "places": sum(len(row["places"]) for row in table), "cells_by_their_places": out["closing_of_the_code_run"]["cells_by_their_places"],
                       "ctl0": sorted({r["ctl0"] for r in out["runs"] if r.get("ctl0")}), "ctl0_in_part_1": known.get("ctl0_in_part_1"),
                       "bit_5": {r["dir"]: r["bit_5_shown_after_records"] for r in out["runs"] if r.get("bit_5_shown_after_records")},
-                      "the_pairs": out["runs"][RUNS - 1]["shown"]}
+                      "the_pairs": out["runs"][RUNS - 1]["shown"], "bits_of_the_pairs_that_follow_no_cell": out["runs"][RUNS - 1]["bits_that_follow_no_cell"]}
     if confirmed != list(range(s2_4_states.CELLS)):
         return halted(f"the singles confirm {len(confirmed)} cell(s), not every cell once")
     out["state"] = "complete"
@@ -265,7 +268,7 @@ def srl_map_file(a: dict, bases: dict, known: dict) -> dict:
     plans = [s2_4_states.plan(s1a_run.PLANS_AT_RUN_TIME[run_of(k)[0]], run_of(k)[1], known, known["census"], known["candidates"]) for k in range(RUNS - 1)]
     code = {"dir": a["runs"][0]["dir"], "result_sha256": a["runs"][0]["result_sha256"], "reads": plans[0]["reads"], "states": plans[0]["states"]}
     singles = [dict(r["_for_the_map"], reads=plans[k]["reads"], states=plans[k]["states"]) for k, r in enumerate(a["runs"]) if 0 < k < RUNS - 1]
-    return s2_4_table.srl_map(known, a["table"]["table"], code, singles)
+    return s2_4_table.srl_map(known, a["table"]["table"], code, singles, a["table"]["places_that_read_otherwise_as_loaded"])
 
 
 def drive(root: Path, bases: dict, known: dict, runner, max_new: int | None = None, say=lambda *_: None, committed=committed,

@@ -52,8 +52,8 @@ shift registers' bits are — is built (section 39) and has had a first review: 
 things found, all reproduced and mended (section 40)**; no new image. **Part 1 has been on the board (2026-11-23) and is complete: 256 bits follow
 the shift registers, 128 as they are and 128 inverted, in the four frames the prediction
 named; the prediction is a hit (section 41).** The host side of part 2 — which place is
-which output — is built and waits for the owner's review (section 42); still no new
-image. S2.5 is not proposed in full yet.
+which output — is built (section 42) and has had a first review: two things found, both
+reproduced and mended (section 43); still no new image. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3704,3 +3704,63 @@ code run alone (seventeen states, twelve reads of the column `0x00001800`–`0x0
 about four minutes), stored and committed with the table. Then `--go`: the two runs of the
 singles and the pairs, about ten minutes together. A halt is reported and nothing is run
 again.
+
+## 43. Review of `07abf08` (2026-11-23): two findings, both reproduced, both mended
+
+The owner had part 2 reviewed before the board. The review ran the suite in a clean copy
+(1,101 tests), judged part 1's eight stored verdicts again, rebuilt the image to the same
+bytes, made the chain of part 2 on the pretend board over part 1's stored candidates, and
+found two things. It also worked out again from S2.2's stored results that the four places
+at even address 0 read one before any shift, and that registers 0 and 2 then do not fit
+"output 0, inverted" — the ground of section 42's first point. I reproduced both findings
+on the twin before taking them.
+
+### 1. The description named a reading that contradicts the entry it stands under
+
+The code run rightly asks what a bit follows over the shifted states only (section 42,
+point 1). The description did not follow it there: for each entry it listed the states of
+the code run in which the cell held a one — the state before any shift among them. So for
+the two places that read otherwise in that state, the entry said "a one in the output
+reads zero" and named, as evidence, a record that reads one. Reproduced: the first record
+named for such a place was of state 0 and read 1. And the table written out and committed
+before the singles did not say that these places are such; only the verdict and the
+chain's file did.
+
+- **An entry's evidence is of the states made by shifts, and of no other.**
+- **What such a place read before any shift is said in the entry, beside its evidence**
+  (`before_any_shift`: the state, the record, what it read, what its output's loaded
+  content would give), and the description counts them.
+- **The table that is committed says which places they are** — with what each read —
+  before any single is run.
+- A test goes through every entry of a description made over a device with such places:
+  every record named as evidence reads what the entry says, none is of the state before
+  any shift, and the record named for that state reads what the entry says it read.
+
+### 2. One bit that follows no cell failed the pairs, halted the chain, and kept back the description
+
+Section 37 says of the pairs (outcome 13) that nothing they show fails the run but
+registers that do not read back and what fails any run. The judge failed the run of the
+pairs on an irregular bit as it fails every other run — and since the pairs are the
+chain's last run, a single such bit there would have left 128 cells confirmed by the
+singles without a description. Reproduced on the twin: one bit of one frame read otherwise
+in one state, and the run failed.
+
+- **In the run of the pairs a bit that moves and follows no cell is set down and does not
+  fail the run.** The chain keeps them with what else that run shows, and its closing
+  names them. In the code run and in a run of the singles such a bit fails the run as
+  before; a test holds all three.
+- What still fails the pairs: the interface, registers or a RAM that do not read back, a
+  log that is not the list, another CTL0 than the code run's.
+
+Making that test I met something worth knowing of the pairs: a bit that reads otherwise in
+the third state alone is said to follow cell 4, because cell 4 is turned in that state
+and in no other. Nothing is held to what the pairs say a bit follows, so nothing rests on
+it; it is one more reason why they are not.
+
+### In numbers
+
+- **Tests**: 1,105 (four new).
+- **Mutants**: 1,536, none stale — six new, two rewritten for the changed lines. A first
+  look at the eleven that touch what was changed: all killed. The tool has not run them
+  (section 35).
+- **Image**: unchanged. Nothing under `prober/` was touched. No serial port was opened.

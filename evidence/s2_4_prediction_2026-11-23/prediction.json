@@ -1,0 +1,423 @@
+{
+ "schema": "s2_4_prediction",
+ "schema_version": 1,
+ "label": "closed-book",
+ "what": "where the loaded words of the probe design's four shift registers would be in the frames S2.2 stored, if a shift register were laid out as S2.3 found a memory of the RAM to be (docs/s2_plan.md, section 37, part 0). A prediction made before the board was asked; it decides nothing.",
+ "from": {
+  "frames": "evidence/s2_2_17A6_2026-11-22",
+  "rule": "evidence/s2_3_17A6_2026-11-23/ram_map.json",
+  "words": "pl/s2a/design.json"
+ },
+ "loaded_words": [
+  "0xa5c30f69",
+  "0x0f1e2d3c",
+  "0x13579bdf",
+  "0xfedcba98"
+ ],
+ "rule": [
+  {
+   "address": 0,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 1,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 2,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 3,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 4,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 5,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 6,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 7,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 8,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 9,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 10,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 11,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 12,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 13,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 14,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 15,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 16,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 17,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 18,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 19,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 20,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 21,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 22,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 23,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 24,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 25,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 26,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 27,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 28,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 29,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 30,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 31,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 32,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 33,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 34,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 35,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 36,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 37,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 38,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 39,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 40,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 41,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 42,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 43,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 44,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 45,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 46,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 47,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 48,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 49,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 50,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 51,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 52,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 53,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 54,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 0
+  },
+  {
+   "address": 55,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 0
+  },
+  {
+   "address": 56,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 57,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 58,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 59,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 60,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 61,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 62,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 0
+  },
+  {
+   "address": 63,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 0
+  }
+ ],
+ "arrangements": [
+  "the even addresses, in order, as it is",
+  "the even addresses, in order, inverted",
+  "the even addresses, reversed, as it is",
+  "the even addresses, reversed, inverted",
+  "the odd addresses, in order, as it is",
+  "the odd addresses, in order, inverted",
+  "the odd addresses, reversed, as it is",
+  "the odd addresses, reversed, inverted",
+  "the even and the odd addresses, in order, as it is",
+  "the even and the odd addresses, in order, inverted",
+  "the even and the odd addresses, reversed, as it is",
+  "the even and the odd addresses, reversed, inverted",
+  "the lower 32 addresses, in order, as it is",
+  "the lower 32 addresses, in order, inverted",
+  "the lower 32 addresses, reversed, as it is",
+  "the lower 32 addresses, reversed, inverted",
+  "the upper 32 addresses, in order, as it is",
+  "the upper 32 addresses, in order, inverted",
+  "the upper 32 addresses, reversed, as it is",
+  "the upper 32 addresses, reversed, inverted",
+  "the lower and the upper 32 addresses, in order, as it is",
+  "the lower and the upper 32 addresses, in order, inverted",
+  "the lower and the upper 32 addresses, reversed, as it is",
+  "the lower and the upper 32 addresses, reversed, inverted"
+ ],
+ "frames_as_loaded": 3864,
+ "places_looked_at": 712656,
+ "chance_hits_expected": 0.0159,
+ "hits": [
+  {
+   "shift_register": 0,
+   "loaded_word": "0xa5c30f69",
+   "frames": [
+    "0x00001820",
+    "0x00001821",
+    "0x00001822",
+    "0x00001823"
+   ],
+   "word": 40,
+   "bits": "15 down to 0",
+   "arrangement": "the odd addresses, in order, as it is"
+  },
+  {
+   "shift_register": 1,
+   "loaded_word": "0x0f1e2d3c",
+   "frames": [
+    "0x00001820",
+    "0x00001821",
+    "0x00001822",
+    "0x00001823"
+   ],
+   "word": 40,
+   "bits": "31 down to 16",
+   "arrangement": "the odd addresses, in order, as it is"
+  },
+  {
+   "shift_register": 2,
+   "loaded_word": "0x13579bdf",
+   "frames": [
+    "0x00001820",
+    "0x00001821",
+    "0x00001822",
+    "0x00001823"
+   ],
+   "word": 41,
+   "bits": "15 down to 0",
+   "arrangement": "the odd addresses, in order, as it is"
+  },
+  {
+   "shift_register": 3,
+   "loaded_word": "0xfedcba98",
+   "frames": [
+    "0x00001820",
+    "0x00001821",
+    "0x00001822",
+    "0x00001823"
+   ],
+   "word": 41,
+   "bits": "31 down to 16",
+   "arrangement": "the odd addresses, in order, as it is"
+  }
+ ],
+ "says": "found: each of the loaded words once, all in one group of four frames and in one arrangement"
+}

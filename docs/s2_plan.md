@@ -45,7 +45,10 @@ owner's rule of 2026-11-23 it is not due before the board: once before S2 is gra
 before the first write (section 35). **S2.3 has been on the board (2026-11-23) and is
 complete: every cell of the RAM has one bit, the 256 are the places S2.2 found, and each
 is confirmed by a run of its own (section 36).** S2.4 is proposed in full in section 37
-and waits for the owner's word on its nine points; S2.5 is not proposed in full yet.
+and agreed, all nine points as recommended (section 38). Its part 0, the prediction, is
+made and stored: the four loaded words are found, once each, in words 40 and 41 of the
+frames `0x00001820`–`0x00001823` (section 38). The rest of its host side is being built;
+nothing of S2.4 has been on a board. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3210,3 +3213,74 @@ Part 2:
    *(Recommended.)*
 9. **Block type 1 is not read.** If nothing follows in block type 0 the chain halts and
    that is reported. *(Recommended.)*
+
+## 38. Decisions on S2.4 (owner, 2026-11-23), and part 0: the prediction
+
+The owner: all nine points of section 37 as recommended, and begin.
+
+1. The form: the prediction, then all of block type 0 in three states, then the code run and
+   the singles.
+2. The prediction is committed before the first run and decides nothing.
+3. No new image; the sets of S2.4 allow the shift; a new image, should one be needed, is
+   asked for first.
+4. The base of the singles is the loaded content.
+5. The pairs: one short run for bit 5, recorded and never failed.
+6. A table may have one bit a cell or two, each a named outcome; anything else is no table.
+   *(See below: what part 0 turned up bears on this point, and I ask the owner about it
+   before the table is built.)*
+7. The description is a document of our own (`srl_map_v1`).
+8. Two words, one for each part on the board.
+9. Block type 1 is not read.
+
+### Part 0: what the search says
+
+`host/s2_4_predict.py`, run on the stored results; its word is
+`evidence/s2_4_prediction_2026-11-23/prediction.json`, with a note beside it. **Found: each
+of the four loaded words once, all in one group of four frames and in one arrangement** —
+words 40 and 41 of the frames `0x00001820` to `0x00001823`, register k a half word there
+(0: word 40 low, 1: word 40 high, 2: word 41 low, 3: word 41 high), the word at the odd
+addresses, in order, as it is. 712,656 places were looked at; 0.016 hits were to be
+expected by chance; there are four and no fifth.
+
+The count of places is less than the 780,000 section 37 gave: that was every frame, and a
+group needs four next to each other.
+
+So the prediction part 1 will be held against is: the shift registers' bits are there, and
+output a of a register is at the place S2.3's rule gives address 2 a + 1.
+
+### Seen afterwards — set down before the board, and not part of what was fixed
+
+1. **The even addresses hold the opposite of the word moved up by one**, with a one at
+   address 0. If that is what it looks like, then after shifts even address 2 j (j ≥ 1)
+   reads the opposite of odd address 2 j − 1: outputs 0 to 30 have two bits each, one of
+   them inverted, and output 31 has one. A second prediction, of what moves; what even
+   address 0 follows I do not predict.
+2. **These four frames are the ones after whose reads S2.2 saw bit 5** (`0x0000181e` and
+   `0x00001821`, three frames each; section 28 could not explain it). A second pointer to
+   the same place.
+3. Both groups of four — the RAM's and this one — are the last four frames of their
+   column. With a fifth frame the same bits would have a second name in the family
+   searched (the odd addresses of one group are the even ones of the next); there is none.
+
+### What this means for point 6, and a question
+
+Point 6 allows a table with one bit for every cell or two for every cell. If the first
+observation above holds on the board, neither is so: 31 outputs of a register with two bits
+(one inverted), one with one, and a bit at even address 0 that follows something. By the
+point as agreed the chain would then halt with no table — rightly by its letter, and for
+nothing: the structure would be plain.
+
+I propose to ask instead, of the code run: every candidate follows exactly one cell, as it
+is or inverted; every cell has at least one bit that follows it as it is; and the table says
+for each cell which bits and which way. A candidate that follows no cell, or a cell without
+a bit as it is, is still no table. The singles then hold a cell to all of its bits. **This
+changes a point the owner agreed, and is not built until the owner says.** Everything else
+of the host side does not depend on it.
+
+### In numbers
+
+- **Tests**: 1,011 (seventeen new, of the prediction).
+- **Mutants**: 1,361, none stale — 25 new (`predict4`), all killed in a first look against
+  the prediction's tests; one survived the first try (a record of the reference frame was
+  passed by for two reasons at once, and no test had either alone) and has a test now.
+- Nothing under `prober/` was touched; no serial port was opened.

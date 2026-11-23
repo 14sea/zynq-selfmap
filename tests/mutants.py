@@ -38,6 +38,7 @@ CENSUS = "host/s1_census.py"
 JUDGE_S2 = "host/s2_judge.py"
 JUDGE8, SHARES8, CHAIN8 = "host/s2_2_judge.py", "host/s2_2_shares.py", "host/s2_2_chain.py"
 STATES9, JUDGE9, TABLE9, CHAIN9 = "host/s2_3_states.py", "host/s2_3_judge.py", "host/s2_3_table.py", "host/s2_3_chain.py"
+PREDICT4 = "host/s2_4_predict.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -1446,6 +1447,32 @@ MUTANTS = [
     (STATES9, "states9: the chain of S2.2 is looked for in another file than the one beside the candidates", 'CHAIN_OF_S2_2 = CANDIDATES.parent / "chain.json"', 'CHAIN_OF_S2_2 = CANDIDATES.parent / "candidates.json"'),
     (RUN, "run s2.3: the sets of S2.3 are not told what CTL0 read in S2.2", '    if "chain_before" in STAGES[stage]:', '    if False:'),
     (RUN, "run s2.3: the set of the singles is not told what CTL0 read in S2.2", '"candidates": s2_3_states.CANDIDATES, "chain_before": s2_3_states.CHAIN_OF_S2_2},', '"candidates": s2_3_states.CANDIDATES},', 1),
+    # ---- S2.4, part 0 (section 37): the prediction made from stored results
+    (PREDICT4, "predict4: the frames of a memory are counted from its highest", "rules.append([(places[a][0] - low, places[a][2] - half) for a in range(DEPTH)])", "rules.append([(low + GROUP - 1 - places[a][0], places[a][2] - half) for a in range(DEPTH)])"),
+    (PREDICT4, "predict4: memories under two rules give the first one's", "    if not rules or any(r != rules[0] for r in rules):", "    if not rules:"),
+    (PREDICT4, "predict4: a rule that does not fill four frames by sixteen bits is taken", "    if sorted(rules[0]) != [(f, b) for f in range(GROUP) for b in range(HALF)]:", "    if False:"),
+    (PREDICT4, "predict4: a memory in two words of its frames is taken", " or len({w for _, w, _ in places.values()}) != 1:", ":"),
+    (PREDICT4, "predict4: a memory of fewer places than 64 is taken", "        if sorted(places) != list(range(DEPTH)) or", "        if False or"),
+    (PREDICT4, "predict4: the second state is held for the third", "where = out if state == 0 else again if state == 2 else None", "where = out if state == 0 else again if state == 1 else None"),
+    (PREDICT4, "predict4: a frame that read otherwise the third time is taken as loaded", "return {far: frame for far, frame in out.items() if again[far] == frame}", "return {far: frame for far, frame in out.items()}"),
+    (PREDICT4, "predict4: the reference frame is taken for a read of the list", "            if kind != 0 or op >= OP_CTL0 or m == NONE:", "            if op >= OP_CTL0 or m == NONE:"),
+    (PREDICT4, "predict4: the result of a run that stopped is read", "        if status != 1 or rec_words != REC or", "        if rec_words != REC or"),
+    (PREDICT4, "predict4: a result that is cut short is read", " or len(words) != hdr + n * REC:", ":"),
+    (PREDICT4, "predict4: a frame read twice in a state is taken the second time", "                    if far + j in where:\n                        raise ValueError", "                    if False:\n                        raise ValueError"),
+    (PREDICT4, "predict4: states that did not read the same frames are taken", "    if sorted(out) != sorted(again):", "    if False:"),
+    (PREDICT4, "predict4: no stored run is no fault", "    if not runs:\n        raise ValueError", "    if False:\n        raise ValueError"),
+    (PREDICT4, "predict4: the frames are taken a word early", "frame = tuple(r[DATA + FRAME * (j + 1): DATA + FRAME * (j + 2)])", "frame = tuple(r[DATA + FRAME * (j + 1) - 1: DATA + FRAME * (j + 2) - 1])"),
+    (PREDICT4, "predict4: the even addresses are the odd ones", '"the even addresses": lambda j: [2 * j],', '"the even addresses": lambda j: [2 * j + 1],'),
+    (PREDICT4, "predict4: the upper addresses are the lower ones", '"the upper 32 addresses": lambda j: [32 + j],', '"the upper 32 addresses": lambda j: [j],'),
+    (PREDICT4, "predict4: reversed is in order", '"reversed": lambda j: WORD - 1 - j}', '"reversed": lambda j: j}'),
+    (PREDICT4, "predict4: inverted is as it is", "        value |= (((word >> j) & 1) ^ inverted) << a", "        value |= ((word >> j) & 1) << a"),
+    (PREDICT4, "predict4: only the lower half of a word is looked at", "            for half in (0, HALF):", "            for half in (0,):"),
+    (PREDICT4, "predict4: the last word of a frame is not looked at", "        for w in range(FRAME):\n            for half", "        for w in range(FRAME - 1):\n            for half"),
+    (PREDICT4, "predict4: four frames with a gap are a group", "        if not all(far + f in frames for f in range(GROUP)):\n            continue", "        if not all(far + f in frames or far + f + 1 in frames for f in range(GROUP)):\n            continue"),
+    (PREDICT4, "predict4: a word found twice is found simply", "    if all(len(b) == 1 for b in by) and", "    if all(len(b) >= 1 for b in by) and"),
+    (PREDICT4, "predict4: words found in two groups of frames are found simply", ' and len({(tuple(h["frames"]), h["arrangement"]) for h in hits}) == 1:', ' and len({h["arrangement"] for h in hits}) == 1:'),
+    (PREDICT4, "predict4: words found in two arrangements are found simply", ' and len({(tuple(h["frames"]), h["arrangement"]) for h in hits}) == 1:', ' and len({tuple(h["frames"]) for h in hits}) == 1:'),
+    (PREDICT4, "predict4: nothing found is said to be found", '    if not hits:\n        return "not found"', '    if False:\n        return "not found"'),
 ]
 
 

@@ -1460,10 +1460,10 @@ def read(out: str) -> tuple[bool, str]:
     "OK (skipped=1)" and the like, or "FAILED (...)". (2026-11-21: a test that is skipped where there is no git — as
     in the scratch copies here — made the line "OK (skipped=1)", which was read as no result at all: a mutant that
     survived was still called SURVIVED, but the unmutated tree and the restored copies were not seen to pass.)"""
-    ran = re.search(r"^Ran (\d+) tests", out, re.M)
-    res = re.findall(r"^(OK(?: \(.*\))?|FAILED.*)$", out, re.M)
+    ran = re.findall(r"^Ran (\d+) tests", out, re.M)     # the last of them, as of the result's lines: a test that runs a suite of
+    res = re.findall(r"^(OK(?: \(.*\))?|FAILED.*)$", out, re.M)   # its own and shows what it said has such lines before the suite's own
     failed = sorted(set(re.findall(r"^(?:FAIL|ERROR): (\w+)", out, re.M)))
-    n = int(ran.group(1)) if ran else 0
+    n = int(ran[-1]) if ran else 0
     summary = f"Ran {n} {res[-1] if res else 'no result'}; {len(failed)} test(s): {', '.join(f[5:48] for f in failed[:2])}"
     return n > 0 and bool(res) and res[-1].startswith("FAILED"), summary
 

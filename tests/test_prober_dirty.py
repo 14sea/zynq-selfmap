@@ -25,8 +25,9 @@ class OnMemoryThatHoldsSomething(unittest.TestCase):
                 r = subprocess.run([sys.executable, "-B", "-m", "unittest", f"tests.{name}"], cwd=ROOT, capture_output=True, text=True,
                                    env=dict(os.environ, SM_DIRTY="1"))
                 ran = re.search(r"^Ran (\d+) tests?", r.stderr, re.M)
-                self.assertTrue(ran and int(ran.group(1)) > 0, r.stderr[-400:])
-                self.assertEqual((r.returncode, r.stderr.strip().splitlines()[-1]), (0, "OK"), r.stderr[-1200:])
+                said = "\n".join("  | " + line for line in r.stderr[-1200:].splitlines())   # set in: none of it reads as a line of the suite this test is in
+                self.assertTrue(ran and int(ran.group(1)) > 0, said)
+                self.assertEqual((r.returncode, r.stderr.strip().splitlines()[-1]), (0, "OK"), said)
 
     def test_these_files_do_start_the_twin_with_the_environment_they_are_run_in(self) -> None:
         """What the test above rests on: none of them takes SM_DIRTY away before it starts the twin."""

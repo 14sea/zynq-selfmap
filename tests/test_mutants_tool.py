@@ -57,6 +57,28 @@ class WhatTheToolReads(unittest.TestCase):
         self.assertEqual((killed, summary), (False, "Ran 5 OK; 0 test(s): "))
 
 
+class ASuiteThatShowsAnotherSuite(unittest.TestCase):
+    """2026-11-23: tests/test_prober_dirty.py runs the twin tests of the older stages once more and, when they fail,
+    shows what they said. That has a "Ran 38 tests" of its own before the suite's; the tool took the first, found it
+    was not the count of the unmutated tree, and called eight mutants that tests had killed BROKEN."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.m = tool()
+
+    def test_the_count_is_the_suite_s_own_which_is_the_last(self) -> None:
+        out = (f"F..\n======\nFAIL: test_inner (tests.test_x.X.test_inner)\n{BAR}\nAssertionError: 1 != 0 : ...\n{BAR}\nRan 38 tests in 0.4s\n\nFAILED (failures=6)\n"
+               f"\n{BAR}\nRan 987 tests in 300.2s\n\nFAILED (failures=1, skipped=1)\n")
+        self.assertEqual(self.m.read(out), (True, "Ran 987 FAILED (failures=1, skipped=1); 1 test(s): inner"))
+        inner_only = f"{BAR}\nRan 38 tests in 0.4s\n\nFAILED (failures=6)\n"
+        self.assertEqual(self.m.read(inner_only)[1][:7], "Ran 38 ")
+
+    def test_that_test_sets_in_what_it_shows(self) -> None:
+        text = (ROOT / "tests" / "test_prober_dirty.py").read_text()
+        self.assertIn('"  | " + line for line in r.stderr[-1200:].splitlines()', text)
+        self.assertEqual(text.count("r.stderr[-"), 1, "nothing of the other suite's words is shown as it came")
+
+
 class WhereAStoppedRunGoesOn(unittest.TestCase):
     """A run that was stopped (2026-11-22: by the session, the machine short of memory) goes on from where its record
     ends: the record's lines are in the list's order, so the count of them is the place."""

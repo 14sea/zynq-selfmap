@@ -1,0 +1,331 @@
+# tests/mutants.py on a selection of its list (the mutants of S2.3: s9, states9, judge9, table9, chain9, run s2.3; the 13 older ones written again for stage 9; the 12 of chain8 for the reset before a run), SM_MUTANT_JOBS=8
+# started 2026-11-23T07:02:57Z on d7b62d2901c09a7c80cce2fdc8dde9afe20a649a, working tree clean: 0 changed file(s)
+# 324 of the 1326 mutants of the list, by name
+unmutated: Ran 987 OK (skipped=1); 0 test(s): 
+KILLED   stage 3 takes the choice of the wait too                       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_other_stages_wait_as_they_always_did
+KILLED   the walk does not take the choice of the wait                  Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_loop_that_does_not_exist_is_refused_befor, the_count_on_the_stack_while_a_transfer_is_
+BROKEN   s2: stage 6 does not take the choice of the wait               Ran 38 FAILED (failures=6, skipped=1); 4 test(s): a_block_that_is_not_of_this_form_is_refused, the_block_s_other_words
+BROKEN   s2: a refused access is made all the same                      Ran 38 FAILED (failures=4, skipped=1); 4 test(s): an_address_outside_the_envelope_is_not_touc, an_envelope_that_leaves_registers_out
+BROKEN   s2: the log says a write was a read                            Ran 38 FAILED (failures=197, errors=34, skipped=1); 144 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_comes_on_with_the_all_one_state_
+KILLED   run s2: S2.1 does not look at the SLCR or the design before go Ran 987 FAILED (failures=4, errors=5, skipped=1); 6 test(s): s2_1_a_design_that_answers_with_another_wor, s2_1_a_design_that_does_not_answer_stops_th
+BROKEN   s8: a transfer begins by clearing the error bits, as in every other stage Ran 57 FAILED (failures=37, errors=15, skipped=1); 17 test(s): an_error_bit_met_before_a_transfer_begins_i, an_error_bit_that_appears_after_a_transfer_
+BROKEN   s8: every stage clears the done bits alone when a transfer begins Ran 22 FAILED (failures=24, skipped=1); 13 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+BROKEN   s8: its log is as long as stage 7's                            Ran 57 FAILED (failures=70, errors=22, skipped=1); 70 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_comes_on_with_the_all_one_state_
+BROKEN   s8: it does not take the choice of the wait                    Ran 57 FAILED (failures=3, skipped=1); 3 test(s): a_block_that_is_not_of_this_form_is_refused, the_twin_tests_of_the_other_stages_pass_on_
+BROKEN   s8: the console says stage 2 for stage 8                       Ran 57 FAILED (failures=70, errors=10, skipped=1); 29 test(s): a_block_that_is_not_of_this_form_is_refused, a_list_of_candidates_does_not_outlive_the_c
+KILLED   run s2.2: the design is not asked at the prompt before a run of stage 8 Ran 987 FAILED (failures=2, errors=2, skipped=1); 4 test(s): a_share_of_the_made_up_device, the_design_that_does_not_answer_at_the_prom
+KILLED   run s2.2: a run without a share is taken                       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_is_refused
+KILLED   s9: the version of the block is not looked at                  Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_refused_block_is_answered_the_same_whatev, the_block_s_other_words
+KILLED   s9: an empty list is taken                                     Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_list_of_reads_that_is_not_one, gates_refused_parameters_and_reads_that_fai
+KILLED   s9: a list longer than the result area holds is taken          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_result_that_would_not_lie_in_its_area
+KILLED   s9: no poll limit is taken                                     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_block_s_other_words
+KILLED   s9: any poll limit is taken                                    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_block_s_other_words
+KILLED   s9: more stack beneath the reads is taken                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_block_s_other_words
+KILLED   s9: a PL envelope that begins below the design is taken        Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_block_s_other_words
+KILLED   s9: a PL envelope the wrong way round is taken                 Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_pl_envelope_the_wrong_way_round_is_refuse
+KILLED   s9: a PL envelope that ends above the design is taken          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_block_s_other_words
+KILLED   s9: a read of more than three frames is taken from the list    Ran 987 FAILED (failures=2, skipped=1); 1 test(s): a_list_of_reads_that_is_not_one
+KILLED   s9: an address below the envelope is taken from the list       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_of_reads_that_is_not_one
+KILLED   s9: an address above the envelope is taken from the list       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_of_reads_that_is_not_one
+KILLED   s9: a read that runs past the envelope is taken from the list  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_of_reads_that_is_not_one
+KILLED   s9: one word more than the list has is looked at               Ran 987 FAILED (failures=107, errors=44, skipped=1); 116 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: no CTRL gate                                               Ran 987 FAILED (failures=2, skipped=1); 2 test(s): of_two_gates_that_fail_the_first_is_the_one, the_gates_are_stage_eights
+KILLED   s9: no SEU_EN gate                                             Ran 987 FAILED (failures=5, skipped=1); 4 test(s): gates_refused_parameters_and_reads_that_fai, of_two_gates_that_fail_the_first_is_the_one
+KILLED   s9: no loopback gate                                           Ran 987 FAILED (failures=3, skipped=1); 3 test(s): more_of_the_header_and_the_gates, of_two_gates_that_fail_the_first_is_the_one
+KILLED   s9: the loopback gate takes the place of the gate before it    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): of_two_gates_that_fail_the_first_is_the_one
+KILLED   s9: no PCFG_DONE gate                                          Ran 987 FAILED (failures=2, skipped=1); 2 test(s): of_two_gates_that_fail_the_first_is_the_one, the_gates_are_stage_eights
+KILLED   s9: the PCFG_DONE gate takes the place of the gate before it   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): of_two_gates_that_fail_the_first_is_the_one
+KILLED   s9: no data-cache gate                                         Ran 987 FAILED (failures=2, skipped=1); 2 test(s): of_two_gates_that_fail_the_first_is_the_one, the_gates_are_stage_eights
+KILLED   s9: the data-cache gate takes the place of the gate before it  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): of_two_gates_that_fail_the_first_is_the_one
+KILLED   s9: the SLCR is read although a gate before it fails           Ran 987 FAILED (failures=3, skipped=1); 3 test(s): gates_refused_parameters_and_reads_that_fai, more_of_the_header_and_the_gates
+KILLED   s9: no SLCR gate                                               Ran 987 FAILED (failures=6, skipped=1); 3 test(s): gates_refused_parameters_and_reads_that_fai, of_two_gates_that_fail_the_first_is_the_one
+KILLED   s9: the SLCR gate names the last word whichever differs        Ran 987 FAILED (failures=4, skipped=1); 2 test(s): of_two_gates_that_fail_the_first_is_the_one, the_gates_are_stage_eights
+KILLED   s9: a failing gate does not stop the run                       Ran 987 FAILED (failures=19, skipped=1); 5 test(s): gates_refused_parameters_and_reads_that_fai, more_of_the_header_and_the_gates
+KILLED   s9: a reference frame that cannot be read at first does not stop the run Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_log_in_a_run_that_never_came_to_the_desig, a_reference_frame_that_cannot_be_read_or_th
+KILLED   s9: the identification register is not held to its word        Ran 987 FAILED (failures=2, skipped=1); 2 test(s): the_identification_is_the_probers_own_quest, the_other_ways_the_design_may_fail_are_stop
+KILLED   s9: a design that failed before the first state is not a stop  Ran 987 FAILED (failures=2, skipped=1); 2 test(s): the_identification_is_the_probers_own_quest, the_other_ways_the_design_may_fail_are_stop
+KILLED   s9: the first read of CTL0 reads the address register          Ran 987 FAILED (failures=50, errors=21, skipped=1); 63 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: the last read of CTL0 reads the address register           Ran 987 FAILED (failures=40, errors=21, skipped=1); 57 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: the read of CTL0 reads a frame as well                     Ran 987 FAILED (failures=53, errors=21, skipped=1); 65 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: a read of the list does not say which state it was made in Ran 987 FAILED (failures=44, errors=21, skipped=1); 60 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: every read of the list is of one frame                     Ran 987 FAILED (failures=55, errors=21, skipped=1); 67 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_cell_s_bit_changed_in_one_state_is_no_lon
+KILLED   s9: the register is not looked at after the first reading of the reference frame Ran 987 FAILED (failures=48, errors=21, skipped=1); 60 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: the register is not looked at after the first read of CTL0 Ran 987 FAILED (failures=47, errors=21, skipped=1); 60 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: the register is not looked at after the last read of CTL0  Ran 987 FAILED (failures=39, errors=21, skipped=1); 56 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: the register is not looked at after the last reading of the reference frame Ran 987 FAILED (failures=39, errors=21, skipped=1); 56 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: CTL0 is not read after the last state                      Ran 987 FAILED (failures=53, errors=23, skipped=1); 72 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: a reference frame that changed is not a stop               Ran 987 FAILED (failures=4, skipped=1); 4 test(s): a_reference_frame_that_cannot_be_read_or_th, gates_refused_parameters_and_reads_that_fai
+KILLED   s9: counts that cannot be are taken                            Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_list_longer_than_a_list_may_be_is_refused, a_result_that_would_not_lie_in_its_area
+KILLED   s9: a run's word beyond the image's bound is taken             Ran 987 FAILED (failures=5, skipped=1); 1 test(s): the_runs_word_cannot_go_beyond_the_images_b
+KILLED   s9: a result that would not lie in its area is begun           Ran 987 FAILED (errors=1, skipped=1); 1 test(s): a_result_that_would_not_lie_in_its_area
+KILLED   s9: a word the stage has no use for may be set                 Ran 987 FAILED (failures=14, skipped=1); 2 test(s): a_refused_block_is_answered_the_same_whatev, the_words_the_stage_has_no_use_for_must_be_
+KILLED   s9: entries after the end of the last state are taken          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_form_of_the_list
+KILLED   s9: a mark of any value is taken                               Ran 987 FAILED (failures=3, skipped=1); 1 test(s): the_form_of_the_list
+KILLED   s9: a mark with an offset is taken                             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_form_of_the_list
+KILLED   s9: the registers of the list are not looked at before the run Ran 987 FAILED (failures=13, errors=537, skipped=1); 347 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   s9: a write of the list is asked about as a read               Ran 987 FAILED (failures=7, skipped=1); 2 test(s): a_refused_block_is_answered_the_same_whatev, a_write_to_a_register_the_run_may_not_write
+KILLED   s9: a reading that is only recorded may carry a value          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_form_of_the_list
+KILLED   s9: a list of other than the block's number of states is taken Ran 987 FAILED (failures=1, skipped=1); 1 test(s): fewer_states_in_the_list_than_the_block_say
+KILLED   s9: a list that ends inside a state is taken                   Ran 987 FAILED (failures=2, skipped=1); 2 test(s): the_count_of_entries_is_the_blocks, the_form_of_the_list
+KILLED   s9: every write of the list writes zero                        Ran 987 FAILED (failures=79, errors=32, skipped=1); 99 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: a reading is not held to what the list says                Ran 987 FAILED (failures=11, skipped=1); 7 test(s): a_ram_that_did_not_hold_fails_the_run_and_t, a_reading_after_the_frames_that_is_not_what
+KILLED   s9: a reading that is only recorded is held to zero            Ran 987 FAILED (failures=82, errors=31, skipped=1); 100 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: a wrong reading after the frames is said to be before them Ran 987 FAILED (failures=5, skipped=1); 4 test(s): a_ram_that_did_not_hold_fails_the_run_and_t, a_reading_after_the_frames_that_is_not_what
+KILLED   s9: a wrong reading before the frames is said to be after them Ran 987 FAILED (failures=3, skipped=1); 2 test(s): a_reading_before_the_frames_that_is_not_wha, what_the_twin_says_no_to_fails_through_the_
+KILLED   s9: a reading that was not as the list says does not stop the run Ran 987 FAILED (failures=10, skipped=1); 6 test(s): a_ram_that_did_not_hold_fails_the_run_and_t, a_reading_after_the_frames_that_is_not_what
+KILLED   s9: the frames are read after the state's end as well          Ran 987 FAILED (failures=57, errors=23, skipped=1); 74 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: the frames are read at the state's end, not at its mark    Ran 987 FAILED (failures=12, skipped=1); 9 test(s): a_code_run_that_is_not_a_passing_run_halts_, a_ram_that_did_not_hold_fails_the_run_and_t
+KILLED   s9: the run's word of what it may write is not asked           Ran 987 FAILED (failures=4, skipped=1); 2 test(s): a_refused_block_is_answered_the_same_whatev, a_write_to_a_register_the_run_may_not_write
+KILLED   s9: a list shorter than its marks is taken                     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_count_of_entries_is_the_blocks
+KILLED   s9: a list longer than its room is taken                       Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_list_longer_than_a_list_may_be_is_refused, the_count_of_entries_is_the_blocks
+KILLED   s9: more states than the stage takes are taken                 Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_result_that_would_not_lie_in_its_area
+KILLED   s9: no state at all is taken                                   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): no_state_at_all_is_no_run
+KILLED   s9: the log has no room for the identification                 Ran 987 FAILED (failures=151, errors=31, skipped=1); 117 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: the records begin where a log of half the length would end Ran 987 FAILED (failures=139, errors=41, skipped=1); 115 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: the entries are taken a word apart                         Ran 987 FAILED (failures=107, errors=44, skipped=1); 116 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: the value of an entry is its first word                    Ran 987 FAILED (failures=107, errors=44, skipped=1); 116 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+BROKEN   s9: stage 9 is run as stage 8                                  Ran 978 FAILED (failures=79, errors=123, skipped=1); 118 test(s): Class, a_bit_that_changes_and_follows_no_cell_is_i
+KILLED   s9: a transfer begins by clearing the error bits, as in the stages before 8 Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_run_that_stopped_at_a_status_with_one_thi, nothing_is_written_but_the_transfers_own_wo
+KILLED   s9: its read of CTL0 reads the address register                Ran 987 FAILED (failures=48, errors=21, skipped=1); 61 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   s9: it does not take the choice of the wait                    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_block_s_other_words
+KILLED   s9: the console says stage 8 for stage 9                       Ran 987 FAILED (failures=71, errors=9, skipped=1); 37 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_description_does_not_outlive_the_chain_it
+KILLED   s9: its log is as long as stage 7's                            Ran 987 FAILED (failures=59, errors=27, skipped=1); 82 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   s9: an address the run may not have is given all the same      Ran 987 FAILED (failures=8, errors=537, skipped=1); 345 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   states9: a cell's number counts the memories from one          Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_cell_s_number, in_a_code_state_every_cell_holds_that_bit_o
+KILLED   states9: a code state has the next bit of the number           Ran 987 FAILED (failures=3, skipped=1); 3 test(s): in_a_code_state_every_cell_holds_that_bit_o, states_that_are_not_those_of_a_run_of_the_s
+KILLED   states9: a complement is the code state itself                 Ran 987 FAILED (failures=34, errors=22, skipped=1); 52 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: a single sets its cell in every memory                Ran 987 FAILED (failures=25, errors=2, skipped=1); 27 test(s): a_cell_whose_single_was_not_made_is_decoded, a_description_does_not_outlive_the_chain_it
+KILLED   states9: a single sets the cell at the next address            Ran 987 FAILED (failures=4, skipped=1); 4 test(s): a_failing_run_of_the_singles_and_a_bit_that, a_run_of_singles_goes_through
+KILLED   states9: the code run has no base at its end                   Ran 987 FAILED (failures=15, skipped=1); 15 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: the complement comes before its code state            Ran 987 FAILED (failures=31, errors=22, skipped=1); 49 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: a run of the singles takes the cells of the next run  Ran 987 FAILED (failures=18, errors=5, skipped=1); 23 test(s): a_cell_whose_single_was_not_made_is_decoded, a_description_does_not_outlive_the_chain_it
+KILLED   states9: any number is a run of the singles                    Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_single_sets_one_cell, what_is_refused
+KILLED   states9: the RAM is not read back before the frames            Ran 987 FAILED (failures=57, errors=23, skipped=1); 75 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: the RAM is not read back after the frames             Ran 987 FAILED (failures=58, errors=23, skipped=1); 76 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: the counter is not read after the frames              Ran 987 FAILED (failures=50, errors=21, skipped=1); 67 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   states9: the design's count of writes is only recorded         Ran 987 FAILED (failures=5, skipped=1); 5 test(s): a_list_that_does_not_read_the_ram_back_or_t, readings_the_list_only_records_are_held_by_
+KILLED   states9: the shift registers are not read after a state        Ran 987 FAILED (failures=51, errors=21, skipped=1); 68 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   states9: the shift registers are not read before the first state Ran 987 FAILED (failures=7, errors=1, skipped=1); 8 test(s): a_list_of_accesses_that_did_not_arrive_whol, a_plan_fills_in_both_lists_and_what_follows
+KILLED   states9: the shift registers' readings are only recorded       Ran 987 FAILED (failures=3, skipped=1); 3 test(s): the_other_ways_the_design_may_fail_are_stop, the_shift_registers_and_the_count_are_readi
+KILLED   states9: a reading of the RAM is only recorded                 Ran 987 FAILED (failures=12, skipped=1); 10 test(s): a_code_run_that_is_not_a_passing_run_halts_, a_later_state_is_written_only_where_it_diff
+KILLED   states9: every state is written whole                          Ran 987 FAILED (failures=9, errors=1, skipped=1); 10 test(s): a_later_state_is_written_only_where_it_diff, a_list_of_accesses_that_did_not_arrive_whol
+KILLED   states9: a later state is written where it is the same, not where it differs Ran 987 FAILED (failures=75, errors=28, skipped=1); 98 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: the shift registers are read by shifting them         Ran 987 FAILED (failures=107, errors=34, skipped=1); 111 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: a list longer than the prober takes is made           Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_or_a_result_too_large_is_not_made
+KILLED   states9: the list has addresses, not offsets                   Ran 987 FAILED (failures=106, errors=44, skipped=1); 115 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: what a list writes is said to be less                 Ran 987 FAILED (failures=64, errors=39, skipped=1); 89 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   states9: the planned log has no identification                 Ran 987 FAILED (failures=55, errors=11, skipped=1); 54 test(s): a_bit_that_follows_all_ones_and_not_the_pat, a_cell_s_bit_changed_in_one_state_is_no_lon
+KILLED   states9: candidates in two columns are read as the first       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): candidates_in_two_columns_or_none_give_no_r
+KILLED   states9: the singles read the whole column                     Ran 987 FAILED (failures=5, errors=3, skipped=1); 8 test(s): a_failing_run_of_the_singles_and_a_bit_that, a_list_or_a_result_too_large_is_not_made
+KILLED   states9: the singles read only the first frame's read          Ran 987 FAILED (failures=4, skipped=1); 4 test(s): a_plan_fills_in_both_lists_and_what_follows, the_dry_run_lists_both_transfers_and_their_
+KILLED   states9: a result too large for its area is planned            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_or_a_result_too_large_is_not_made
+KILLED   states9: the code run reads what the singles read              Ran 987 FAILED (failures=14, errors=1, skipped=1); 15 test(s): a_bit_that_follows_all_ones_and_not_the_pat, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   judge9: the header's length is not held to the echoed counts   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge9: a plan of another length is taken                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_plan_with_words_after_its_two_lists
+KILLED   judge9: a planned list the prober would refuse is taken        Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_plan_of_another_length_or_form
+KILLED   judge9: a mark that is not the one due is taken in the plan    Ran 987 FAILED (failures=2, skipped=1); 1 test(s): the_judge_s_own_question_of_a_list_is_the_p
+KILLED   judge9: a write the run may not make is taken in the plan      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_judge_s_own_question_of_a_list_is_the_p
+KILLED   judge9: a plan that ends inside a state is taken               Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_judge_s_own_question_of_a_list_is_the_p
+KILLED   judge9: a wrong reading before the frames implies the stop of one after them Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_reading_before_the_frames_that_is_not_wha, the_log_of_accesses_to_the_design
+KILLED   judge9: a wrong reading after the frames implies the stop of one before them Ran 987 FAILED (failures=4, skipped=1); 3 test(s): a_ram_that_did_not_hold_fails_the_run_and_t, a_reading_after_the_frames_that_differs_is_
+KILLED   judge9: a write the run's word does not allow passes in the log Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge9: a shift in the log passes                              Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge9: an access that is not the one due passes               Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge9: a value written that is not the one due passes         Ran 987 FAILED (failures=2, skipped=1); 2 test(s): another_list_of_accesses_than_the_prober_ma, the_log_of_accesses_to_the_design
+KILLED   judge9: a reading the list holds to a value is not held        Ran 987 FAILED (failures=9, skipped=1); 7 test(s): a_ram_that_did_not_hold_fails_the_run_and_t, a_reading_after_the_frames_that_differs_is_
+KILLED   judge9: a log that ends early passes                           Ran 987 FAILED (failures=1, skipped=1); 1 test(s): accesses_after_the_run_must_have_ended_and_
+KILLED   judge9: the RAM need not be read back at every address         Ran 987 FAILED (errors=1, skipped=1); 1 test(s): a_list_that_does_not_read_the_ram_back_or_t
+KILLED   judge9: the RAM may read back otherwise after the frames       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_that_does_not_read_the_ram_back_or_t
+KILLED   judge9: the counter may stand still                            Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_counter_that_stands_still_is_the_judge_s_, a_failing_run_of_the_singles_and_a_bit_that
+KILLED   judge9: the design's count of writes is not held to the log    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): readings_the_list_only_records_are_held_by_
+KILLED   judge9: the count of writes is held to one state's             Ran 987 FAILED (failures=41, errors=21, skipped=1); 58 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   judge9: the shift registers are not held to the design's words Ran 987 FAILED (failures=1, skipped=1); 1 test(s): readings_the_list_only_records_are_held_by_
+KILLED   judge9: the shift registers need not be read after the frames  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_that_does_not_read_the_ram_back_or_t
+KILLED   judge9: any states are a run of the step                       Ran 987 FAILED (failures=2, skipped=1); 2 test(s): sixty_six_states_that_are_no_run_of_the_sin, states_that_are_not_those_of_a_run_of_the_s
+KILLED   judge9: the singles are taken for the code run                 Ran 987 FAILED (failures=1, skipped=1); 1 test(s): sixty_six_states_that_are_no_run_of_the_sin
+KILLED   judge9: a run of the singles is said to be the one before it   Ran 987 FAILED (failures=23, errors=2, skipped=1); 25 test(s): a_cell_whose_single_was_not_made_is_decoded, a_description_does_not_outlive_the_chain_it
+KILLED   judge9: the list of reads need not be the plan's               Ran 987 FAILED (failures=2, skipped=1); 2 test(s): candidates_elsewhere_than_where_the_run_rea, lists_that_are_not_the_plan_s
+KILLED   judge9: the list of accesses need not be the plan's            Ran 987 FAILED (failures=2, skipped=1); 2 test(s): lists_that_are_not_the_plan_s, readings_the_list_only_records_are_held_by_
+KILLED   judge9: the run's word need not be what its lists write        Ran 987 FAILED (failures=1, skipped=1); 1 test(s): lists_that_are_not_the_plan_s
+KILLED   judge9: without the census and S2.2's finding the lists are not asked about Ran 987 FAILED (failures=1, skipped=1); 1 test(s): without_the_census_what_s2_2_found_or_the_d
+KILLED   judge9: a bit is said to follow a cell in a run that did not complete Ran 987 FAILED (failures=1, skipped=1); 1 test(s): no_bit_is_said_to_follow_a_cell_in_a_run_th
+KILLED   judge9: a cell whose row is constant is a row to follow        Ran 987 FAILED (failures=24, errors=2, skipped=1); 26 test(s): a_cell_whose_single_was_not_made_is_decoded, a_description_does_not_outlive_the_chain_it
+KILLED   judge9: cells the states do not tell apart are not said        Ran 987 FAILED (failures=1, skipped=1); 1 test(s): states_that_are_not_those_of_a_run_of_the_s
+KILLED   judge9: a bit follows the first of several cells with its row  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): states_that_are_not_those_of_a_run_of_the_s
+KILLED   judge9: a bit that follows a cell inverted is irregular        Ran 987 FAILED (failures=2, errors=2, skipped=1); 4 test(s): cells_shown_inverted_follow_and_are_said_to, inverted_cells_are_in_the_table_as_inverted
+KILLED   judge9: a bit that follows a cell inverted is said to follow it as written Ran 987 FAILED (failures=2, errors=2, skipped=1); 4 test(s): cells_shown_inverted_follow_and_are_said_to, inverted_cells_are_in_the_table_as_inverted
+KILLED   judge9: irregular bits do not fail the run                     Ran 987 FAILED (failures=6, skipped=1); 6 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   judge9: a bit is given the cell with the opposite row          Ran 987 FAILED (failures=26, errors=21, skipped=1); 43 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   judge9: the memory of a cell is its address                    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_clean_code_run_passes_and_every_bit_that_
+KILLED   judge9: the layout of the singles is the code run's            Ran 987 FAILED (failures=15, errors=1, skipped=1); 16 test(s): a_description_does_not_outlive_the_chain_it, a_directory_for_the_table_without_the_table
+KILLED   judge9: the log's room is counted without the identification   Ran 987 FAILED (failures=73, errors=30, skipped=1); 88 test(s): a_bit_that_changes_and_follows_no_cell_is_i, a_bit_that_follows_all_ones_and_not_the_pat
+KILLED   table9: a run that did not pass is closed                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): only_a_passing_code_run_is_closed
+KILLED   table9: a run of the singles is closed as the code run         Ran 987 FAILED (failures=1, skipped=1); 1 test(s): only_a_passing_code_run_is_closed
+KILLED   table9: a cell with no bit is no problem                       Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_cell_with_no_bit_or_with_two_gives_no_tab, a_code_run_that_gives_no_table_halts_the_ch
+KILLED   table9: a cell with several bits is no problem                 Ran 987 FAILED (errors=1, skipped=1); 1 test(s): a_cell_with_two_bits_gives_no_table_even_wh
+KILLED   table9: a place S2.2 did not find is no problem                Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   table9: a place of S2.2 that follows no cell is no problem     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   table9: a place shown the other way than in S2.2 is no problem Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_places_must_be_those_s2_2_found_and_sho
+KILLED   table9: the table is given although something is wrong         Ran 987 FAILED (failures=3, errors=1, skipped=1); 4 test(s): a_cell_with_no_bit_or_with_two_gives_no_tab, a_cell_with_two_bits_gives_no_table_even_wh
+KILLED   table9: the table says every place is as written               Ran 987 FAILED (failures=2, skipped=1); 2 test(s): inverted_cells_are_in_the_table_as_inverted, the_transition_written_for_an_inverted_plac
+KILLED   table9: the code run is held as a run of the singles           Ran 987 FAILED (errors=1, skipped=1); 1 test(s): what_is_not_a_run_of_the_singles_or_not_a_t
+KILLED   table9: a failing run of the singles is held to the table      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_failing_run_of_the_singles_and_a_bit_that
+KILLED   table9: a table that lacks cells is taken                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_is_not_a_run_of_the_singles_or_not_a_t
+KILLED   table9: a single is held to the cells of the first run         Ran 987 FAILED (failures=13, errors=1, skipped=1); 14 test(s): a_cell_whose_single_was_not_made_is_decoded, a_description_does_not_outlive_the_chain_it
+KILLED   table9: a single that changes another place than the table's confirms Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_cell_whose_single_was_not_made_is_decoded, a_table_that_has_two_cells_the_wrong_way_ro
+KILLED   table9: a single that changes several places confirms if the table's is among them Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_failing_run_of_the_singles_and_a_bit_that, a_single_that_changes_two_bits_or_none_is_a
+KILLED   table9: a single shown the other way than the table has it confirms Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_single_shown_the_other_way_than_the_table
+KILLED   table9: a contradiction is listed and is no problem            Ran 987 FAILED (failures=1, errors=2, skipped=1); 3 test(s): a_failing_run_of_the_singles_and_a_bit_that, a_single_that_changes_two_bits_or_none_is_a
+KILLED   table9: a bit that follows a cell of another run is no problem Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_failing_run_of_the_singles_and_a_bit_that
+KILLED   table9: a contradicted cell is written as confirmed            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_cell_whose_single_was_not_made_is_decoded
+KILLED   table9: a cell with no single is written as confirmed          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_cell_whose_single_was_not_made_is_decoded
+KILLED   table9: the code states of an entry are those in which the cell was clear Ran 987 FAILED (failures=2, skipped=1); 2 test(s): the_description_written_out, the_records_an_entry_names_are_the_records_
+KILLED   table9: an entry's records are those of the first read of the list Ran 987 FAILED (errors=1, skipped=1); 1 test(s): the_records_an_entry_names_are_the_records_
+KILLED   table9: an entry's records count no reference frame and no CTL0 Ran 987 FAILED (errors=1, skipped=1); 1 test(s): the_records_an_entry_names_are_the_records_
+KILLED   table9: the single of an entry is the state before it          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_records_an_entry_names_are_the_records_
+KILLED   table9: the transition observed is the same for an inverted place Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_transition_written_for_an_inverted_plac
+KILLED   table9: the build's word is written as a finding's             Ran 987 FAILED (errors=3, skipped=1); 3 test(s): a_cell_whose_single_was_not_made_is_decoded, five_runs_and_the_step_is_closed
+KILLED   chain9: the first single is the code run again                 Ran 987 FAILED (failures=13, errors=1, skipped=1); 13 test(s): a_description_does_not_outlive_the_chain_it, a_directory_for_the_table_without_the_table
+KILLED   chain9: the singles begin with the second share                Ran 987 FAILED (failures=6, skipped=1); 6 test(s): a_run_of_another_kind_or_share_in_a_run_s_p, a_run_of_the_singles_over_the_made_up_devic
+KILLED   chain9: the list of accesses in RAM is not asked about         Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_list_o
+KILLED   chain9: a checksum of the list of accesses after the start stands for one before it Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_a_run_s_record_must_show_of_the_list_o
+KILLED   chain9: a run of another kind or share is taken in a run's place Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_run_of_another_kind_or_share_in_a_run_s_p
+KILLED   chain9: a run of another stage is taken                        Ran 987 FAILED (errors=1, skipped=1); 1 test(s): what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: a code run that gives no table does not halt the chain Ran 987 FAILED (errors=1, skipped=1); 1 test(s): a_code_run_that_gives_no_table_halts_the_ch
+KILLED   chain9: a stored table is not held to the code run             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_table_that_is_stored_is_held_to_the_code_
+KILLED   chain9: singles without a stored table are taken               Ran 987 FAILED (errors=1, skipped=1); 1 test(s): singles_without_a_table_and_a_table_without
+KILLED   chain9: a table without a code run is taken                    Ran 987 FAILED (errors=1, skipped=1); 1 test(s): singles_without_a_table_and_a_table_without
+KILLED   chain9: a single is not held to the table                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_single_that_contradicts_the_table_halts_t
+KILLED   chain9: the table's directory is a run set aside               Ran 987 FAILED (failures=1, skipped=1); 1 test(s): directories_that_are_no_runs_are_set_aside_
+KILLED   chain9: more run directories than runs are taken               Ran 987 FAILED (failures=1, skipped=1); 1 test(s): gaps_and_too_many_and_what_is_not_a_directo
+KILLED   chain9: sets that declare different images are taken           Ran 987 FAILED (errors=1, skipped=1); 1 test(s): sets_that_do_not_declare_the_same_image_and
+KILLED   chain9: the table is written over                              Ran 987 FAILED (failures=23, errors=5, skipped=1); 17 test(s): a_description_does_not_outlive_the_chain_it, a_directory_for_the_table_without_the_table
+KILLED   chain9: the table is not written                               Ran 987 FAILED (failures=21, errors=5, skipped=1); 15 test(s): a_description_does_not_outlive_the_chain_it, a_directory_for_the_table_without_the_table
+KILLED   chain9: a single is started before the code run is committed   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): no_single_is_started_before_the_code_run_an
+KILLED   chain9: a single is started before the table is committed      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): no_single_is_started_before_the_code_run_an
+KILLED   chain9: a description that no longer stands is left            Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_description_does_not_outlive_the_chain_it, a_table_s_directory_that_is_a_link_or_a_fil
+KILLED   chain9: the chain's file has the table in it                   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): five_runs_and_the_step_is_closed
+KILLED   chain9: the description is of the first two singles            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): five_runs_and_the_step_is_closed
+KILLED   run s2.3: the design is not asked at the prompt before a run of stage 9 Ran 987 FAILED (failures=1, errors=1, skipped=1); 2 test(s): the_code_run_over_the_made_up_device, the_dry_run_lists_both_transfers_and_their_
+KILLED   run s2.3: the list of accesses is not sent                     Ran 987 FAILED (failures=19, errors=11, skipped=1); 25 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   run s2.3: the list of accesses in RAM is not held to the list  Ran 987 FAILED (errors=1, skipped=1); 1 test(s): a_list_of_accesses_that_did_not_arrive_whol
+KILLED   run s2.3: the list of accesses is sent where the list of reads is Ran 987 FAILED (failures=19, errors=14, skipped=1); 25 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   run s2.3: the judge is not given the list of accesses          Ran 987 FAILED (failures=20, errors=9, skipped=1); 24 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   run s2.3: the code run may be given a share                    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_is_refused
+KILLED   run s2.3: a run of the singles may be without a share          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_is_refused
+KILLED   run s2.3: the block does not say how many states               Ran 987 FAILED (failures=20, errors=9, skipped=1); 24 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   run s2.3: the block does not say what the run may write        Ran 987 FAILED (failures=20, errors=9, skipped=1); 24 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   run s2.3: the block counts one entry fewer than the list has   Ran 987 FAILED (failures=20, errors=9, skipped=1); 24 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   run s2.3: the record does not say which run it is              Ran 987 FAILED (failures=12, errors=11, skipped=1); 21 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_description_does_not_outlive_the_chain_it
+KILLED   run s2.3: the judge is not given what S2.2 found               Ran 987 FAILED (failures=2, errors=2, skipped=1); 4 test(s): a_plan_fills_in_both_lists_and_what_follows, the_dry_run_lists_both_transfers_and_their_
+KILLED   run s2.3: the singles' set is run without a plan               Ran 987 FAILED (failures=3, skipped=1); 3 test(s): the_dry_run_lists_both_transfers_and_their_, the_run_script_s_own_dry_run_says_what_a_ru
+KILLED   run s2.3: what the result must have is counted with the other kind's header Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_plan_fills_in_both_lists_and_what_follows
+KILLED   judge9: any magic passes                                       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge9: a buffer of another length than its header says passes Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge9: reserved header words may hold anything                Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge9: the echoed parameters need not be the planned ones     Ran 987 FAILED (failures=2, skipped=1); 2 test(s): another_parameter_block_than_the_one_planne, the_echoed_parameters
+KILLED   judge9: the PL block needs no magic                            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_pl_block_s_form
+KILLED   judge9: any echoed block is a block of the stage               Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_echoed_parameters
+KILLED   judge9: a word the stage has no use for may be set             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_echoed_parameters
+KILLED   judge9: the list is not held to the census                     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_list_of_reads_that_reads_an_address_twice
+KILLED   judge9: the CTRL gate is not judged                            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: the SEU_EN gate is not judged                          Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_gate_readings
+KILLED   judge9: the loopback gate is not judged                        Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: the PCFG_DONE gate is not judged                       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: the data-cache gate is not judged                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: the SLCR gate is not judged                            Ran 987 FAILED (failures=2, skipped=1); 2 test(s): more_of_the_header_and_the_gates, the_gate_readings
+KILLED   judge9: SLCR words may be recorded behind a failing gate       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: a gate stop need not be at the gate the readings fail  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: a run that went on past a failing gate passes          Ran 987 FAILED (failures=2, skipped=1); 2 test(s): more_of_the_header_and_the_gates, the_gate_readings
+KILLED   judge9: a final status without PCFG_DONE passes                Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge9: a final status with an error bit passes                Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_the_header_and_the_gates
+KILLED   judge9: a record of four frames passes                         Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: a read outside the envelope passes                     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: the guard's word is not looked at                      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge9: words after the data may hold anything                 Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge9: the streams are not held to the pinned ones            Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_record_s_own_words, more_of_a_record_s_own_words
+KILLED   judge9: the streams are not held to read-only                  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: a frame read's status in an operation that reads nothing passes Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: polls above the limit pass                             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: the count of sentinel words is not checked             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: the unread flag is not checked                         Ran 987 FAILED (failures=1, skipped=1); 1 test(s): more_of_a_record_s_own_words
+KILLED   judge9: a record's code is not derived again                   Ran 987 FAILED (failures=5, skipped=1); 5 test(s): a_record_s_own_words, a_run_that_stopped_at_a_status_with_one_thi
+KILLED   judge9: a short read is not seen in the data                   Ran 987 FAILED (failures=3, skipped=1); 3 test(s): a_run_that_stopped_at_a_status_with_one_thi, gates_refused_parameters_and_reads_that_fai
+KILLED   judge9: a pad that is not zero is not seen                     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge9: the address register is not held to the census         Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge9: the address register is held to one place less         Ran 987 FAILED (failures=49, errors=21, skipped=1); 60 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   judge9: CTL0 may read differently before and after             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): ctl0_read_differently_before_and_after
+KILLED   judge9: bit 5 shown and no clearing recorded passes            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_status_after_a_read_and_the_clearing_of
+KILLED   judge9: a clearing recorded where bit 5 did not show passes    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_status_after_a_read_and_the_clearing_of
+KILLED   judge9: the status after a read is held to nothing             Ran 987 FAILED (failures=4, skipped=1); 4 test(s): a_run_that_stopped_at_a_status_with_one_thi, gates_refused_parameters_and_reads_that_fai
+KILLED   judge9: what the register reads after the clearing is held to nothing Ran 987 FAILED (failures=2, skipped=1); 2 test(s): the_status_after_a_read_and_the_clearing_of, the_status_after_the_reads_that_are_not_of_
+KILLED   judge9: a clearing after a read that failed by itself passes   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_run_that_stopped_at_a_status_with_one_thi
+KILLED   judge9: a clearing after a status that was amiss passes        Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_run_that_stopped_at_a_status_with_one_thi, the_status_after_the_reads_that_are_not_of_
+KILLED   judge9: a code of 0x23 that nothing shows is taken though bit 5 was cleared Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_run_that_stopped_at_a_status_with_one_thi, the_status_after_the_reads_that_are_not_of_
+KILLED   judge9: the word of the clearing is read in a read that is not of the list Ran 987 FAILED (failures=38, errors=21, skipped=1); 55 test(s): a_cell_whose_single_was_not_made_is_decoded, a_cell_with_no_bit_or_with_two_gives_no_tab
+KILLED   judge9: bit 5 after a read that is not of the list must have been cleared Ran 987 FAILED (failures=2, skipped=1); 2 test(s): bit_5_is_reported_and_is_not_a_failure, the_status_after_the_reads_that_are_not_of_
+KILLED   judge9: bit 5 is not reported                                  Ran 987 FAILED (failures=2, skipped=1); 2 test(s): bit_5_is_reported_and_is_not_a_failure, the_status_after_the_reads_that_are_not_of_
+KILLED   judge9: a bit 5 that did not clear is not reported             Ran 987 FAILED (failures=2, skipped=1); 2 test(s): bit_5_is_reported_and_is_not_a_failure, the_status_after_the_reads_that_are_not_of_
+KILLED   judge9: accesses after the end of the sequence pass            Ran 987 FAILED (failures=1, skipped=1); 1 test(s): accesses_after_the_run_must_have_ended_and_
+KILLED   judge9: the PL block's code is not held to its log             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge9: where the PL block says it stopped is not checked      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_log_of_accesses_to_the_design
+KILLED   judge9: a log in a run that never came to the design passes    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_log_in_a_run_that_never_came_to_the_desig
+KILLED   judge9: a record that is not the one due passes                Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_record_s_own_words, more_of_a_record_s_own_words
+KILLED   judge9: missing records pass                                   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): records_missing_and_records_too_many
+KILLED   judge9: records after the end of the schedule pass             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): records_missing_and_records_too_many
+KILLED   judge9: the header's status is not held to the records         Ran 987 FAILED (failures=4, skipped=1); 4 test(s): a_reading_after_the_frames_that_differs_is_, the_header
+KILLED   judge9: the header's count of anomalies is not held to the records Ran 987 FAILED (failures=2, skipped=1); 2 test(s): more_of_the_header_and_the_gates, the_header
+KILLED   judge9: the header's stop record is not held to the records    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_header
+KILLED   judge9: a health flag on a read that has none passes           Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_record_s_own_words, more_of_a_record_s_own_words
+KILLED   judge9: the final reference flag is not held to the data       Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_record_s_own_words
+KILLED   judge9: a read that fails is taken for a failure of the interface whatever its code Ran 987 FAILED (failures=1, skipped=1); 1 test(s): gates_refused_parameters_and_reads_that_fai
+KILLED   judge9: a design that did not answer does not end the schedule Ran 987 FAILED (failures=10, skipped=1); 8 test(s): a_code_run_that_is_not_a_passing_run_halts_, a_list_that_does_not_read_the_ram_back_or_t
+KILLED   judge9: no words for the shift registers and nothing said      Ran 987 FAILED (failures=1, skipped=1); 1 test(s): without_the_words_the_shift_registers_are_l
+KILLED   judge9: a run that did not complete passes                     Ran 987 FAILED (failures=14, skipped=1); 8 test(s): a_code_run_that_is_not_a_passing_run_halts_, a_ram_that_did_not_hold_fails_the_run_and_t
+KILLED   judge9: anomalous reads pass                                   Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_run_that_stopped_at_a_status_with_one_thi, more_of_the_header_and_the_gates
+KILLED   chain9: a run whose reply showed a restart is taken            Ran 987 FAILED (errors=1, skipped=1); 1 test(s): what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: a run in which the prober was not started is taken     Ran 987 FAILED (errors=1, skipped=1); 1 test(s): what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: a run the run script stopped is taken                  Ran 987 FAILED (errors=1, skipped=1); 1 test(s): what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: a run the run script failed is taken                   Ran 987 FAILED (failures=1, errors=1, skipped=1); 2 test(s): a_run_that_stopped_or_left_nothing_behind_h, what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: a run whose card copy was not verified is taken        Ran 987 FAILED (errors=1, skipped=1); 1 test(s): what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: a stored result that is not the board's is taken       Ran 987 FAILED (failures=2, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain9: the list of accesses kept beside a run is not looked at Ran 987 FAILED (failures=2, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain9: a run that could not be started is not marked so       Ran 987 FAILED (failures=9, skipped=1); 4 test(s): a_console_that_fails_before_a_run_holds_the, a_runner_that_could_not_begin_holds_the_cha
+KILLED   chain9: a runner that could not begin ends the driver with an exception Ran 987 FAILED (errors=7, skipped=1); 2 test(s): a_console_that_fails_before_a_run_holds_the, a_runner_that_could_not_begin_holds_the_cha
+KILLED   s9: the log is cleared only after the block is taken           Ran 987 FAILED (errors=105, skipped=1); 32 test(s): a_list_of_reads_that_is_not_one, a_list_that_does_not_read_the_ram_back_or_t
+KILLED   s9: of the log one word is left as it lay                      Ran 987 FAILED (errors=109, skipped=1); 34 test(s): a_list_longer_than_a_list_may_be_is_refused, a_list_of_reads_that_is_not_one
+KILLED   chain9: a directory for the table without the table lets a single start Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_directory_for_the_table_without_the_table
+KILLED   chain9: a table that is a link or a directory is read as the table Ran 987 FAILED (failures=2, errors=1, skipped=1); 1 test(s): a_directory_for_the_table_without_the_table
+KILLED   chain9: a link that leads nowhere in the table's place is nothing Ran 987 FAILED (errors=1, skipped=1); 1 test(s): a_link_that_leads_nowhere_in_the_table_s_pl
+KILLED   chain9: a run made under another CTL0 is taken                 Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_run_made_under_another_ctl0_halts_the_cha
+KILLED   chain8: a console that cannot be opened ends the driver with an exception Ran 987 FAILED (errors=2, skipped=1); 2 test(s): a_console_that_cannot_be_opened_holds_the_c, a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: a console that fails on the way ends the driver with an exception Ran 987 FAILED (errors=5, skipped=1); 2 test(s): a_close_that_fails_does_not_stand_in_the_pl, a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: a close that fails ends the driver with an exception   Ran 987 FAILED (errors=4, skipped=1); 2 test(s): a_close_that_fails_does_not_stand_in_the_pl, a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: a close that fails stands in the place of what failed before Ran 987 FAILED (failures=3, skipped=1); 2 test(s): a_close_that_fails_does_not_stand_in_the_pl, a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: a close that fails alone is passed by                  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: the log is left open                                   Ran 987 FAILED (failures=7, skipped=1); 3 test(s): a_close_that_fails_does_not_stand_in_the_pl, a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: the port is left open                                  Ran 987 FAILED (failures=7, skipped=1); 3 test(s): a_close_that_fails_does_not_stand_in_the_pl, a_console_that_fails_before_a_run_holds_the
+KILLED   chain8: a line that failed is taken for one that gave no fresh prompt Ran 987 FAILED (failures=8, skipped=1); 3 test(s): a_close_that_fails_does_not_stand_in_the_pl, a_console_that_cannot_be_opened_holds_the_c
+KILLED   chain8: a reset that gave no fresh prompt is followed by a run Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_line_that_answers_and_gives_no_fresh_prom
+KILLED   chain8: the board is not asked for its status after the reset  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_line_that_answers_and_gives_no_fresh_prom
+KILLED   chain8: the board's own line after the reset is not asked for  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_line_that_answers_and_gives_no_fresh_prom
+KILLED   chain8: the runner starts a run without the reset              Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_console_that_cannot_be_opened_holds_the_c
+KILLED   chain9: the runner starts a run without the reset              Ran 987 FAILED (failures=6, skipped=1); 1 test(s): a_console_that_fails_before_a_run_holds_the
+KILLED   chain9: a table's directory that is a link or a file is taken  Ran 987 FAILED (failures=2, skipped=1); 2 test(s): a_link_that_leads_nowhere_in_the_table_s_pl, a_table_s_directory_that_is_a_link_or_a_fil
+KILLED   chain9: a link to a directory is a table's directory           Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_table_s_directory_that_is_a_link_or_a_fil
+KILLED   chain9: a file in the table's place is a table's directory     Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_table_s_directory_that_is_a_link_or_a_fil
+KILLED   chain9: what held the chain is not written to its file         Ran 987 FAILED (errors=8, skipped=1); 3 test(s): a_console_that_fails_before_a_run_holds_the, no_single_is_started_before_the_code_run_an
+KILLED   chain9: the command ends without a code when a run could not be started Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_command_ends_with_a_code_when_a_run_cou
+KILLED   chain9: a link to a directory counts as a run                  Ran 987 FAILED (failures=1, skipped=1); 1 test(s): a_link_where_a_run_is_to_be_is_no_run
+KILLED   chain9: the run script's dry run is taken to refuse nothing    Ran 987 FAILED (failures=1, skipped=1); 1 test(s): the_run_script_s_own_dry_run_says_what_a_ru
+KILLED   chain9: a record that is not a record is read as one           Ran 987 FAILED (errors=2, skipped=1); 1 test(s): what_a_run_s_record_must_say_of_the_run
+KILLED   chain9: the image is not kept with the runs                    Ran 987 FAILED (errors=1, skipped=1); 1 test(s): five_runs_and_the_step_is_closed
+KILLED   chain9: a run the judge fails is taken                         Ran 987 FAILED (failures=2, skipped=1); 1 test(s): a_code_run_that_is_not_a_passing_run_halts_
+KILLED   chain9: the stored verdict need not be the judge's             Ran 987 FAILED (failures=1, skipped=1); 1 test(s): what_is_stored_is_judged_again_and_must_be_
+KILLED   chain9: run directories with a gap are taken                   Ran 987 FAILED (failures=1, skipped=1); 1 test(s): gaps_and_too_many_and_what_is_not_a_directo
+KILLED   chain9: a run with problems does not halt the chain            Ran 987 FAILED (failures=10, errors=16, skipped=1); 13 test(s): a_code_run_that_gives_no_table_halts_the_ch, a_code_run_that_is_not_a_passing_run_halts_
+KILLED   chain9: the description is not written out                     Ran 987 FAILED (failures=2, errors=1, skipped=1); 3 test(s): a_description_does_not_outlive_the_chain_it, a_table_s_directory_that_is_a_link_or_a_fil
+KILLED   chain9: it goes on after the last run it was allowed           Ran 987 FAILED (failures=9, errors=3, skipped=1); 12 test(s): a_directory_for_the_table_without_the_table, a_link_that_leads_nowhere_in_the_table_s_pl
+restored: Ran 987 OK (skipped=1); 0 test(s):  (8 copies)
+324 mutants, 9 survived
+# ended 2026-11-23T12:43:34Z rc=1

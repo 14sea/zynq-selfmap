@@ -33,13 +33,13 @@ next to each other; every other bit is still; reading does not disturb the RAM; 
 status showed after two reads that are not of those frames (section 28).** **S2.3 is
 proposed in full in section 29 and agreed, all eight points as recommended (section 30).
 Its host side is built and waits for the owner's review (section 31): a new stage of the
-prober and so a new image, the judge, the table, the chain. Its mutants have had a first
-look and none survives it; the tool has not run them, and the complete set has not been
-run for the new image. A review of it found five things, all reproduced and mended
-(section 32) — one of them in the prober, so the image is new again. A review of that
-found three small things more, mended without a new image, and I found one of my own
-while preparing the mutants: a mutant could lead a test to the board's console
-(section 33). Nothing of S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
+prober and so a new image, the judge, the table, the chain. A review of it found five
+things, all reproduced and mended (section 32) — one of them in the prober, so the image
+is new again. A review of that found three small things more, mended without a new
+image, and I found one of my own while preparing the mutants: a mutant could lead a test
+to the board's console (section 33). The tool has run the 324 mutants of S2.3 and none survives (section 33,
+at its end); the complete set has not been run for the new image. Nothing of S2.3 has
+been on a board.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2745,5 +2745,55 @@ starts a run without the reset") would have done the same by a shorter way.
   directory.
 - **By the tool, for the record** (the owner, 2026-11-23: after this mending): the mutants
   of S2.3 and those written or written again since the last complete set — 324 of the
-  1,326. Its record goes to `evidence/host_checks/` when it has ended, and what it found
-  is added here.
+  1,326. What it found is below.
+
+### The tool's run on the mutants of S2.3 (2026-11-23)
+
+The 324: the 299 of S2.3 (`s9`, `states9`, `judge9`, `table9`, `chain9`, `run s2.3`), the
+13 older ones written again for stage 9, the 12 of `chain8` for the reset before a run.
+Eight at a time, with the lock set, 07:02Z to 12:43Z on `d7b62d2`
+(`evidence/host_checks/mutants_2026-11-23_s2_3.txt`): **315 killed, none survived, none
+stale, 9 BROKEN.** The nine again, 12:48Z to 13:10Z on `6939cad`
+(`evidence/host_checks/mutants_2026-11-23_s2_3_again.txt`): **all nine killed**, each
+with the baseline's 989 tests run. So of the 324 none survives.
+
+The nine were two faults of mine, neither in the prober nor in a host program:
+
+- **Eight: the tool read the wrong count.** `tests/test_prober_dirty.py` (section 32)
+  runs the twin tests of the other stages in a process of their own and, when they fail,
+  shows what they printed — a line `Ran 38 tests` among it. The tool took the *first*
+  `Ran N` of a suite's output for the suite's count, saw 38 (or 57, or 22) where the
+  baseline has 987, and said BROKEN of mutants whose suites had run whole and failed.
+  The tool now takes the last such line, which is the suite's own, and the test shows
+  what it quotes indented; both are held by tests (`2b34a0b`). The tool's rule was right
+  to refuse: a count it cannot trust is no kill.
+- **One: a class left the count.** `s9: stage 9 is run as stage 8` — 978 tests, not 987.
+  `StageNine` made its run of the twin in `setUpClass`; since section 32 that run is on
+  memory that holds something, under this mutant the twin ends with code 4 — the check
+  section 32 gave it, a result that holds a word nobody wrote — and the class's nine
+  tests were not run at all (reproduced on `d7b62d2`: `setUpClass` raises on the twin's
+  exit status 4). So section 32 brought it in; the first looks ran only the test files
+  concerned and do not hold the count, and could not see it. Section 27 had already
+  recorded the same fault in another class (`WithAShare`). The run is now made inside
+  the first test that asks for it (`once()`): if it cannot be made, every test that
+  needs it fails and none leaves the count (`6939cad`).
+
+What this run does and does not say:
+
+- The 315 were killed on `d7b62d2` with 987 tests; they were not run again on `6939cad`.
+  The two commits between change the tool's reading, the indenting of quoted output, one
+  test class's fixture, and add two tests of the tool — no prober source, no host
+  program, and no assertion is taken away.
+- It is the run for the record of S2.3's own mutants. It is **not** the complete set:
+  the other 1,002 mutants have not been run against the image of section 32
+  (`8bf3799c…`), and by the owner's rule of 2026-11-17 that set is due before the image
+  first goes on a board.
+- Other test files still make things in `setUpClass` and are left as they are. No other
+  class makes a run of the twin on memory that holds something there: the stage-9 runs
+  are made by `Run` of `tests/test_prober_s2_3.py`, used in that file and in
+  `tests/test_s2_3_host.py`, neither of which has a `setUpClass` now, and
+  `tests/test_prober_dirty.py` makes its runs inside its tests. Whether a class loses
+  its tests under some mutant outside these 324 is for the complete set to show, as it
+  did on 2026-11-22 (section 27).
+
+Tests now: 989. Mutants: 1,326, none stale. Image unchanged.

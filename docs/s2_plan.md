@@ -57,7 +57,9 @@ reproduced and mended (section 43). **Part 2 has been on the board (2026-11-23) 
 complete: each of the 256 places follows one output, as it is or inverted, and every
 output is confirmed in all of its places; the table is what was said beforehand (section
 44). With it S2.4 is done**, on the image of section 32. S2.5 is proposed in full in
-section 45 and waits for the owner's word on its ten points; nothing of it is built.
+section 45 and agreed, all ten points as recommended (section 46). Its design, `s2b`, is
+built and simulated (section 46); the rest of its host side is not built yet, and nothing
+of it has been on a board.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4032,3 +4034,80 @@ rule, that is what is written.
    singles). **The owner reviews before the board**, as for S2.4. *(Recommended.)*
 10. **After S2.5: the complete set of mutants, once, and then the grading of S2** — both
     the owner's to call (section 35). Nothing is graded before.
+
+## 46. Decisions on S2.5 (owner, 2026-11-23), and the design `s2b` as built
+
+The owner: all ten points of section 45 as recommended, and begin.
+
+1. One whole column of sites and one site in each other column numbered 10 or above: 110
+   sites.
+2. The columns numbered below 10 stay out.
+3. RAM only.
+4. Predictions first, committed before the first run, both forms of the word rule carried.
+5. The registers of `s2b` at the eight offsets of `s2a`; no new image unless building
+   shows the need, and then it is asked for first.
+6. Every memory loaded with a word of its own; part 1 reads the frames as loaded.
+7. Part 2 in full: the code run and the singles at every site at once.
+8. Storing `s2b.bit` on the card needs the owner's word once.
+9. Three words on the board; the owner reviews before the board.
+10. After S2.5: the complete set of mutants once, then the grading — both the owner's to
+    call.
+
+### The design, as built (`pl/s2b/`)
+
+- **The sites and the words come from one program** (`make_s2b.py`), which writes the
+  constraints, the build script's table and the description from the rule of section 45:
+  site 0 to 99 is `SLICE_X16Y0` to `SLICE_X16Y99`; site 100 to 109 is `SLICE_X10Y7`,
+  `X12Y44`, `X20Y81`, `X24Y18`, `X28Y55`, `X30Y92`, `X32Y29`, `X34Y66`, `X38Y3`, `X42Y40`.
+  Memory k of site s is loaded with the word of the number 4 s + k + 1, by four lines of
+  arithmetic that the source and the program both have; 440 words, no two alike, none near
+  all zero or all one. A test holds the files to the program and the words to the
+  arithmetic written out a third time.
+- **The registers**, at the offsets of `s2a`: `0x00` the identification (`0x53324231`);
+  `0x04` the site — its number, and a bit that sends a write to every site; `0x08` the
+  counter; `0x0c` the address; `0x10` the data — a write goes into memory k of the site
+  named or of every site, a read gives the four outputs of the site named; `0x14` nothing;
+  `0x18` a reading over all sites at the address set: for each memory, whether a site
+  holds a one, whether every site does, and the parity; `0x1c` the count of writes. The
+  design takes writes at `0x04`, `0x0c` and `0x10` only — three of the five offsets the
+  image may write. So point 5 holds as far as the design goes: **no new image**.
+- **The bench** (`tb_s2b.v`, with Vivado's model of the memory): every memory is loaded
+  with its word and reads it back through its site's number; a write to one site changes
+  one bit of one memory and nothing at any other site; a write to every site reaches every
+  site; the reading over all sites is what the models hold; a number that names no site
+  writes nothing and reads zero; every transfer is answered. 2,461 checks. Six copies of
+  the register file with one thing wrong each fail it, and it ends by itself.
+- **The build** (Vivado 2025.2, on this machine; `build_s2b.tcl`, which is `s2a`'s with the
+  table read from a file): exactly 440 memory primitives, each on its site, the four of a
+  site on four different positions; routed; setup slack 0.576 ns and hold 0.165 ns at the
+  10 ns the design is held to (the board's clock is 20 ns). The bitstream is 2,083,859
+  bytes, sha256 `7f0e1af8…7a12`; its copy in git is
+  `evidence/s2_5_build_2026-11-23/s2b.bit`, and the staging program knows it as its third
+  design. **It has not been on a board, and it is not on the card.**
+- At every one of the 110 sites Vivado put the four memories on the positions D, A, B, C
+  in the order of their numbers — as it did at the one site of `s2a`. That is the build's
+  word; part 0 uses it and the device will say.
+
+### Learnt in building
+
+The first build was refused — by the build script's own second check, as it is meant to.
+Vivado had made copies of the address register for its 2,640 loads and given the four
+memories of a site different copies; four memories share a slice only on one write
+address, so it could place one memory a site and scattered the rest. The address is now
+one register that may not be copied. In `s2a`, with eight loads, the question never
+arose.
+
+### In numbers
+
+- **Tests**: 1,120, all passing (fourteen new, of the design; the staging program's tests
+  know three designs).
+- **Mutants**: 1,536, none stale; none new — the design's files are held by the bench, the
+  build script's checks and the tests, as `s2a`'s are.
+- Nothing under `prober/` was touched; no serial port was opened.
+
+### Not built yet
+
+Part 0, the predictions; the twin's model of this design; the sets, the states and both
+lists; the design's side of the judge; the search for the loaded words; the closings; the
+two chains; the description and the rule; tests, mutants, a rehearsal of storing. Then
+the owner's review; the card and the board on the owner's word.

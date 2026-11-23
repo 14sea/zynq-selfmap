@@ -1,0 +1,1824 @@
+{
+ "schema": "probe_design",
+ "schema_version": 1,
+ "name": "s2b",
+ "what": "the probe design of S2.5 (docs/s2_plan.md, sections 45 and 46): LUT RAM at 110 sites behind eight registers on M_AXI_GP0, every memory loaded with a word of its own",
+ "base": "0x40000000",
+ "id": "0x53324231",
+ "registers": {
+  "ID": {
+   "offset": "0x00",
+   "read": "the fixed word",
+   "write": "ignored"
+  },
+  "SITE": {
+   "offset": "0x04",
+   "read": "what was last written: the site number (bits 6..0) and whether a write goes to every site (bit 8)",
+   "write": "which site a read of RAM_DATA answers for and a write of RAM_DATA goes to; bit 8: to every site"
+  },
+  "COUNT": {
+   "offset": "0x08",
+   "read": "a counter of FCLK0, free running",
+   "write": "ignored"
+  },
+  "RAM_ADDR": {
+   "offset": "0x0c",
+   "read": "the address, six bits",
+   "write": "the address of every memory, for reading and for writing"
+  },
+  "RAM_DATA": {
+   "offset": "0x10",
+   "read": "the four outputs at that address of the site SITE names, bit k from memory k",
+   "write": "one write of bit k into memory k at that address \u2014 of the site SITE names, or of every site"
+  },
+  "NONE": {
+   "offset": "0x14",
+   "read": "zero",
+   "write": "ignored"
+  },
+  "CHECK": {
+   "offset": "0x18",
+   "read": "at that address, over all sites, for memory k: bit k \u2014 a site holds a one; bit 4+k \u2014 every site holds a one; bit 8+k \u2014 the parity of what the sites hold",
+   "write": "ignored"
+  },
+  "WRITES": {
+   "offset": "0x1c",
+   "read": "writes of RAM_DATA since the design was loaded (bits 15..0)",
+   "write": "ignored"
+  }
+ },
+ "ram": {
+  "primitive": "RAM64X1S",
+  "depth": 64,
+  "memories_a_site": 4,
+  "loaded_with": "memory k of site s: init_of(4 s + k + 1) of pl/s2b/s2b_regs.v, 64 bits, bit a the content of address a",
+  "sites": [
+   {
+    "site": 0,
+    "name": "SLICE_X16Y0",
+    "cells": [
+     "regs/at[0].ram0",
+     "regs/at[0].ram1",
+     "regs/at[0].ram2",
+     "regs/at[0].ram3"
+    ],
+    "init": [
+     "0xca009717f87d8879",
+     "0x6c3247d3eded6346",
+     "0xeab1569b9465d5e7",
+     "0x97bcd714b71ff9f7"
+    ]
+   },
+   {
+    "site": 1,
+    "name": "SLICE_X16Y1",
+    "cells": [
+     "regs/at[1].ram0",
+     "regs/at[1].ram1",
+     "regs/at[1].ram2",
+     "regs/at[1].ram3"
+    ],
+    "init": [
+     "0xff058924c700a2a6",
+     "0x7be2226c616fcedd",
+     "0x6328ff6ba7dc5b6b",
+     "0xeed1f595b0fab6ea"
+    ]
+   },
+   {
+    "site": 2,
+    "name": "SLICE_X16Y2",
+    "cells": [
+     "regs/at[2].ram0",
+     "regs/at[2].ram1",
+     "regs/at[2].ram2",
+     "regs/at[2].ram3"
+    ],
+    "init": [
+     "0x558da6f3e4aa5c95",
+     "0xbd6359b5318c6508",
+     "0xf77ab350c0354a54",
+     "0xcff55e7d9df5e166"
+    ]
+   },
+   {
+    "site": 3,
+    "name": "SLICE_X16Y3",
+    "cells": [
+     "regs/at[3].ram0",
+     "regs/at[3].ram1",
+     "regs/at[3].ram2",
+     "regs/at[3].ram3"
+    ],
+    "init": [
+     "0xd1ec960d1c2aa377",
+     "0x85aa464423646bfd",
+     "0x24665c33f3faf7bb",
+     "0xb5d504cf6cee6878"
+    ]
+   },
+   {
+    "site": 4,
+    "name": "SLICE_X16Y4",
+    "cells": [
+     "regs/at[4].ram0",
+     "regs/at[4].ram1",
+     "regs/at[4].ram2",
+     "regs/at[4].ram3"
+    ],
+    "init": [
+     "0xcc8d735d088ac3a3",
+     "0x519ac31c2eae1999",
+     "0xfd37a4d10accd79d",
+     "0x3a1efad80cdda5eb"
+    ]
+   },
+   {
+    "site": 5,
+    "name": "SLICE_X16Y5",
+    "cells": [
+     "regs/at[5].ram0",
+     "regs/at[5].ram1",
+     "regs/at[5].ram2",
+     "regs/at[5].ram3"
+    ],
+    "init": [
+     "0x84e11a9bb95d2de9",
+     "0xc72680454ca25784",
+     "0xe84252b4b191d584",
+     "0x5f4304679fa56788"
+    ]
+   },
+   {
+    "site": 6,
+    "name": "SLICE_X16Y6",
+    "cells": [
+     "regs/at[6].ram0",
+     "regs/at[6].ram1",
+     "regs/at[6].ram2",
+     "regs/at[6].ram3"
+    ],
+    "init": [
+     "0xba02ac701b531646",
+     "0x63317388db402325",
+     "0x4954169c4d298e88",
+     "0xb1d401bedb554095"
+    ]
+   },
+   {
+    "site": 7,
+    "name": "SLICE_X16Y7",
+    "cells": [
+     "regs/at[7].ram0",
+     "regs/at[7].ram1",
+     "regs/at[7].ram2",
+     "regs/at[7].ram3"
+    ],
+    "init": [
+     "0xba33cfdb7d46a7f1",
+     "0x0824ffd4c43ac31d",
+     "0x7f69cc4f31df4937",
+     "0x12297ed4dd72c1f3"
+    ]
+   },
+   {
+    "site": 8,
+    "name": "SLICE_X16Y8",
+    "cells": [
+     "regs/at[8].ram0",
+     "regs/at[8].ram1",
+     "regs/at[8].ram2",
+     "regs/at[8].ram3"
+    ],
+    "init": [
+     "0x229e24230e627aad",
+     "0x714c0060d5b847d5",
+     "0xd82beff7eca5e4ab",
+     "0x628dcda679c35765"
+    ]
+   },
+   {
+    "site": 9,
+    "name": "SLICE_X16Y9",
+    "cells": [
+     "regs/at[9].ram0",
+     "regs/at[9].ram1",
+     "regs/at[9].ram2",
+     "regs/at[9].ram3"
+    ],
+    "init": [
+     "0xd14c1e3c90c0cb5e",
+     "0xa0eebed9ac357288",
+     "0x7ecfe821c415a401",
+     "0x33963d1db9fd9902"
+    ]
+   },
+   {
+    "site": 10,
+    "name": "SLICE_X16Y10",
+    "cells": [
+     "regs/at[10].ram0",
+     "regs/at[10].ram1",
+     "regs/at[10].ram2",
+     "regs/at[10].ram3"
+    ],
+    "init": [
+     "0x45dced1569eff4d3",
+     "0xb041aa6b281cfef6",
+     "0xf175d485dde4a321",
+     "0x667e1a3055908f0b"
+    ]
+   },
+   {
+    "site": 11,
+    "name": "SLICE_X16Y11",
+    "cells": [
+     "regs/at[11].ram0",
+     "regs/at[11].ram1",
+     "regs/at[11].ram2",
+     "regs/at[11].ram3"
+    ],
+    "init": [
+     "0xc88f480f46616195",
+     "0xd084a5686323ab08",
+     "0x0e21e8b802169699",
+     "0xd75edb0756921cd9"
+    ]
+   },
+   {
+    "site": 12,
+    "name": "SLICE_X16Y12",
+    "cells": [
+     "regs/at[12].ram0",
+     "regs/at[12].ram1",
+     "regs/at[12].ram2",
+     "regs/at[12].ram3"
+    ],
+    "init": [
+     "0xea8e1e0eef60e7d9",
+     "0x740558e136a62c8d",
+     "0x6056e08585993560",
+     "0xc662e711b680464b"
+    ]
+   },
+   {
+    "site": 13,
+    "name": "SLICE_X16Y13",
+    "cells": [
+     "regs/at[13].ram0",
+     "regs/at[13].ram1",
+     "regs/at[13].ram2",
+     "regs/at[13].ram3"
+    ],
+    "init": [
+     "0x2533d938d8e730b3",
+     "0xab80ff70a37bcf58",
+     "0x10047ef5dd81a37c",
+     "0x63a8037cb6aa812a"
+    ]
+   },
+   {
+    "site": 14,
+    "name": "SLICE_X16Y14",
+    "cells": [
+     "regs/at[14].ram0",
+     "regs/at[14].ram1",
+     "regs/at[14].ram2",
+     "regs/at[14].ram3"
+    ],
+    "init": [
+     "0x7e2ccea6123b3a69",
+     "0x8d4071ef03aaa1bb",
+     "0x206a0119f06ee9f4",
+     "0xf7712d716f4d54e3"
+    ]
+   },
+   {
+    "site": 15,
+    "name": "SLICE_X16Y15",
+    "cells": [
+     "regs/at[15].ram0",
+     "regs/at[15].ram1",
+     "regs/at[15].ram2",
+     "regs/at[15].ram3"
+    ],
+    "init": [
+     "0xacc6d7c12e0538c2",
+     "0xfed3989e63be926e",
+     "0x1a27d5c42446eed5",
+     "0x0b7a2b7195cd553f"
+    ]
+   },
+   {
+    "site": 16,
+    "name": "SLICE_X16Y16",
+    "cells": [
+     "regs/at[16].ram0",
+     "regs/at[16].ram1",
+     "regs/at[16].ram2",
+     "regs/at[16].ram3"
+    ],
+    "init": [
+     "0x99dd8774252ca193",
+     "0x453c48461cc4f55a",
+     "0x3692d0f40f049201",
+     "0xe29800c1ab708fab"
+    ]
+   },
+   {
+    "site": 17,
+    "name": "SLICE_X16Y17",
+    "cells": [
+     "regs/at[17].ram0",
+     "regs/at[17].ram1",
+     "regs/at[17].ram2",
+     "regs/at[17].ram3"
+    ],
+    "init": [
+     "0xc11fd31dab6203e6",
+     "0x977f0db6fe631b0e",
+     "0xb4db5ab9343d2740",
+     "0xc51b9b4cf386aeca"
+    ]
+   },
+   {
+    "site": 18,
+    "name": "SLICE_X16Y18",
+    "cells": [
+     "regs/at[18].ram0",
+     "regs/at[18].ram1",
+     "regs/at[18].ram2",
+     "regs/at[18].ram3"
+    ],
+    "init": [
+     "0x1420cc1d62670042",
+     "0x89bf6a400aa6c084",
+     "0x3099c715dde5c968",
+     "0x41dd7db2586ae510"
+    ]
+   },
+   {
+    "site": 19,
+    "name": "SLICE_X16Y19",
+    "cells": [
+     "regs/at[19].ram0",
+     "regs/at[19].ram1",
+     "regs/at[19].ram2",
+     "regs/at[19].ram3"
+    ],
+    "init": [
+     "0x8480a4de015e562d",
+     "0xfd9fd043882b4803",
+     "0x286e5b09651ef808",
+     "0x80054c7394d2044d"
+    ]
+   },
+   {
+    "site": 20,
+    "name": "SLICE_X16Y20",
+    "cells": [
+     "regs/at[20].ram0",
+     "regs/at[20].ram1",
+     "regs/at[20].ram2",
+     "regs/at[20].ram3"
+    ],
+    "init": [
+     "0xaccd84ed9dd7571a",
+     "0x8bb9da2ad3dfe9a6",
+     "0x630c89bc11dfdef9",
+     "0x47aa829f77102ba5"
+    ]
+   },
+   {
+    "site": 21,
+    "name": "SLICE_X16Y21",
+    "cells": [
+     "regs/at[21].ram0",
+     "regs/at[21].ram1",
+     "regs/at[21].ram2",
+     "regs/at[21].ram3"
+    ],
+    "init": [
+     "0x6aeaf695afa523fe",
+     "0xfbc47b42a2e6940a",
+     "0x8a62a786f7e20e2f",
+     "0xccfc3460ab211e16"
+    ]
+   },
+   {
+    "site": 22,
+    "name": "SLICE_X16Y22",
+    "cells": [
+     "regs/at[22].ram0",
+     "regs/at[22].ram1",
+     "regs/at[22].ram2",
+     "regs/at[22].ram3"
+    ],
+    "init": [
+     "0xe29bd259711191f6",
+     "0xa9f76257b42b3163",
+     "0x9a2c25bfd2e83e79",
+     "0x6061923ee4529047"
+    ]
+   },
+   {
+    "site": 23,
+    "name": "SLICE_X16Y23",
+    "cells": [
+     "regs/at[23].ram0",
+     "regs/at[23].ram1",
+     "regs/at[23].ram2",
+     "regs/at[23].ram3"
+    ],
+    "init": [
+     "0x41bf6606aa8e0afe",
+     "0xdb9c18ddeecff926",
+     "0xb6bba7e3533340c9",
+     "0x553d2b4475435e31"
+    ]
+   },
+   {
+    "site": 24,
+    "name": "SLICE_X16Y24",
+    "cells": [
+     "regs/at[24].ram0",
+     "regs/at[24].ram1",
+     "regs/at[24].ram2",
+     "regs/at[24].ram3"
+    ],
+    "init": [
+     "0x371ea411d0cc00cd",
+     "0x94748389bcb65aee",
+     "0x15c38b611ada45ef",
+     "0xc03bcb67621005f6"
+    ]
+   },
+   {
+    "site": 25,
+    "name": "SLICE_X16Y25",
+    "cells": [
+     "regs/at[25].ram0",
+     "regs/at[25].ram1",
+     "regs/at[25].ram2",
+     "regs/at[25].ram3"
+    ],
+    "init": [
+     "0x1ae90b00623564b0",
+     "0x672d36408fa9a7c3",
+     "0x21897891327db143",
+     "0x4c1e158fb2b43de2"
+    ]
+   },
+   {
+    "site": 26,
+    "name": "SLICE_X16Y26",
+    "cells": [
+     "regs/at[26].ram0",
+     "regs/at[26].ram1",
+     "regs/at[26].ram2",
+     "regs/at[26].ram3"
+    ],
+    "init": [
+     "0x05e6474e877492da",
+     "0xf0e727a7e8699f68",
+     "0xa3e46a4813763c9e",
+     "0x165a464d38810044"
+    ]
+   },
+   {
+    "site": 27,
+    "name": "SLICE_X16Y27",
+    "cells": [
+     "regs/at[27].ram0",
+     "regs/at[27].ram1",
+     "regs/at[27].ram2",
+     "regs/at[27].ram3"
+    ],
+    "init": [
+     "0xfe36c4e49167d30c",
+     "0xf83a17904fcab75b",
+     "0x2219b5889a5a5112",
+     "0x9f81209e5968cafb"
+    ]
+   },
+   {
+    "site": 28,
+    "name": "SLICE_X16Y28",
+    "cells": [
+     "regs/at[28].ram0",
+     "regs/at[28].ram1",
+     "regs/at[28].ram2",
+     "regs/at[28].ram3"
+    ],
+    "init": [
+     "0x3307a0d0d7bf943c",
+     "0xbbb1e4b94ea52bee",
+     "0x4fcac0a4a413b17a",
+     "0xc1005914fbbadf75"
+    ]
+   },
+   {
+    "site": 29,
+    "name": "SLICE_X16Y29",
+    "cells": [
+     "regs/at[29].ram0",
+     "regs/at[29].ram1",
+     "regs/at[29].ram2",
+     "regs/at[29].ram3"
+    ],
+    "init": [
+     "0x6adf6e2054dbd880",
+     "0x002c49a0bcc2fe33",
+     "0x9cdb77941cf17c96",
+     "0xae3aa250e3677a8d"
+    ]
+   },
+   {
+    "site": 30,
+    "name": "SLICE_X16Y30",
+    "cells": [
+     "regs/at[30].ram0",
+     "regs/at[30].ram1",
+     "regs/at[30].ram2",
+     "regs/at[30].ram3"
+    ],
+    "init": [
+     "0x28cacab9f7b299dd",
+     "0x31bec92813d20a97",
+     "0x883387e11fb70307",
+     "0xbcff78aaeb418333"
+    ]
+   },
+   {
+    "site": 31,
+    "name": "SLICE_X16Y31",
+    "cells": [
+     "regs/at[31].ram0",
+     "regs/at[31].ram1",
+     "regs/at[31].ram2",
+     "regs/at[31].ram3"
+    ],
+    "init": [
+     "0xa03f1b589e5ef540",
+     "0xdacf20bd43687b66",
+     "0xb20f2c67ee24056d",
+     "0xbd73cc18e7202e4d"
+    ]
+   },
+   {
+    "site": 32,
+    "name": "SLICE_X16Y32",
+    "cells": [
+     "regs/at[32].ram0",
+     "regs/at[32].ram1",
+     "regs/at[32].ram2",
+     "regs/at[32].ram3"
+    ],
+    "init": [
+     "0x754f8a3c3c645140",
+     "0xf313565665d465d1",
+     "0x90a20074a6249f1a",
+     "0x62a9aa31b27ff5c0"
+    ]
+   },
+   {
+    "site": 33,
+    "name": "SLICE_X16Y33",
+    "cells": [
+     "regs/at[33].ram0",
+     "regs/at[33].ram1",
+     "regs/at[33].ram2",
+     "regs/at[33].ram3"
+    ],
+    "init": [
+     "0x3f28f6ddcebee14d",
+     "0x2c7de955bc6c82f6",
+     "0xb029173fb9991fcd",
+     "0xc530018256e11f56"
+    ]
+   },
+   {
+    "site": 34,
+    "name": "SLICE_X16Y34",
+    "cells": [
+     "regs/at[34].ram0",
+     "regs/at[34].ram1",
+     "regs/at[34].ram2",
+     "regs/at[34].ram3"
+    ],
+    "init": [
+     "0xea691e43058fab6e",
+     "0x6966d402bd9d75f4",
+     "0x375a8daa267aa005",
+     "0x2efe1b6cfcc6361c"
+    ]
+   },
+   {
+    "site": 35,
+    "name": "SLICE_X16Y35",
+    "cells": [
+     "regs/at[35].ram0",
+     "regs/at[35].ram1",
+     "regs/at[35].ram2",
+     "regs/at[35].ram3"
+    ],
+    "init": [
+     "0xdee0135c516e6f1d",
+     "0x828f87ab83437c59",
+     "0xd693fe6c33ea8e5f",
+     "0x8a373698e70d5d94"
+    ]
+   },
+   {
+    "site": 36,
+    "name": "SLICE_X16Y36",
+    "cells": [
+     "regs/at[36].ram0",
+     "regs/at[36].ram1",
+     "regs/at[36].ram2",
+     "regs/at[36].ram3"
+    ],
+    "init": [
+     "0xf375af4ff4ee818a",
+     "0x2841983ac4ce0084",
+     "0xc0c658fc1634600b",
+     "0xfaa60249fc9557c1"
+    ]
+   },
+   {
+    "site": 37,
+    "name": "SLICE_X16Y37",
+    "cells": [
+     "regs/at[37].ram0",
+     "regs/at[37].ram1",
+     "regs/at[37].ram2",
+     "regs/at[37].ram3"
+    ],
+    "init": [
+     "0x4019504f46865976",
+     "0x61338e2bbbcb92d1",
+     "0xaccc52ad5779ec76",
+     "0x9c93cd9caffcfcd8"
+    ]
+   },
+   {
+    "site": 38,
+    "name": "SLICE_X16Y38",
+    "cells": [
+     "regs/at[38].ram0",
+     "regs/at[38].ram1",
+     "regs/at[38].ram2",
+     "regs/at[38].ram3"
+    ],
+    "init": [
+     "0xb0f4cd8debfc8a70",
+     "0x21da1bf52a67fe13",
+     "0x8ae54e5eb0848ae1",
+     "0xfb3fa08610569006"
+    ]
+   },
+   {
+    "site": 39,
+    "name": "SLICE_X16Y39",
+    "cells": [
+     "regs/at[39].ram0",
+     "regs/at[39].ram1",
+     "regs/at[39].ram2",
+     "regs/at[39].ram3"
+    ],
+    "init": [
+     "0x537e5728caebf9d9",
+     "0x3803e3daa2e2a5d8",
+     "0xfbfe5ffa2693d1d9",
+     "0x000a98e629a4089a"
+    ]
+   },
+   {
+    "site": 40,
+    "name": "SLICE_X16Y40",
+    "cells": [
+     "regs/at[40].ram0",
+     "regs/at[40].ram1",
+     "regs/at[40].ram2",
+     "regs/at[40].ram3"
+    ],
+    "init": [
+     "0xa8edb2ce09c9dd9b",
+     "0x599b09da3baeae34",
+     "0xb2d58985f31e6f82",
+     "0x304c868c8080e194"
+    ]
+   },
+   {
+    "site": 41,
+    "name": "SLICE_X16Y41",
+    "cells": [
+     "regs/at[41].ram0",
+     "regs/at[41].ram1",
+     "regs/at[41].ram2",
+     "regs/at[41].ram3"
+    ],
+    "init": [
+     "0x28b8053799927d1e",
+     "0xc619137823bfbdf2",
+     "0x9401a882ecc18549",
+     "0x767c330617096172"
+    ]
+   },
+   {
+    "site": 42,
+    "name": "SLICE_X16Y42",
+    "cells": [
+     "regs/at[42].ram0",
+     "regs/at[42].ram1",
+     "regs/at[42].ram2",
+     "regs/at[42].ram3"
+    ],
+    "init": [
+     "0x3e0dada50f89b228",
+     "0xbcfd1af33662b025",
+     "0x562a1b9253f878dd",
+     "0xf788f68445cd2814"
+    ]
+   },
+   {
+    "site": 43,
+    "name": "SLICE_X16Y43",
+    "cells": [
+     "regs/at[43].ram0",
+     "regs/at[43].ram1",
+     "regs/at[43].ram2",
+     "regs/at[43].ram3"
+    ],
+    "init": [
+     "0xddfc1c7faf28811e",
+     "0x2d9e2144d69f7216",
+     "0xf7a23d0926890f1a",
+     "0x99f868c056423c2c"
+    ]
+   },
+   {
+    "site": 44,
+    "name": "SLICE_X16Y44",
+    "cells": [
+     "regs/at[44].ram0",
+     "regs/at[44].ram1",
+     "regs/at[44].ram2",
+     "regs/at[44].ram3"
+    ],
+    "init": [
+     "0x84441961f6a11f84",
+     "0xc537a4b3e22323ed",
+     "0x8530cec921bc6a1e",
+     "0x3b15f27600ad541e"
+    ]
+   },
+   {
+    "site": 45,
+    "name": "SLICE_X16Y45",
+    "cells": [
+     "regs/at[45].ram0",
+     "regs/at[45].ram1",
+     "regs/at[45].ram2",
+     "regs/at[45].ram3"
+    ],
+    "init": [
+     "0x738572b2fd5d464c",
+     "0xf3b092eb5ddd8fae",
+     "0x7d88cab116f64cdd",
+     "0x98f43e22bdbed489"
+    ]
+   },
+   {
+    "site": 46,
+    "name": "SLICE_X16Y46",
+    "cells": [
+     "regs/at[46].ram0",
+     "regs/at[46].ram1",
+     "regs/at[46].ram2",
+     "regs/at[46].ram3"
+    ],
+    "init": [
+     "0x7a150b69856e2913",
+     "0x42d7137ab190acd3",
+     "0x6ac1e7ab1022d6c3",
+     "0x76907927f11cd088"
+    ]
+   },
+   {
+    "site": 47,
+    "name": "SLICE_X16Y47",
+    "cells": [
+     "regs/at[47].ram0",
+     "regs/at[47].ram1",
+     "regs/at[47].ram2",
+     "regs/at[47].ram3"
+    ],
+    "init": [
+     "0x52937a962815eb70",
+     "0x13f6c4fcf40070f1",
+     "0x88ae45674f158e03",
+     "0x69d29df534334d56"
+    ]
+   },
+   {
+    "site": 48,
+    "name": "SLICE_X16Y48",
+    "cells": [
+     "regs/at[48].ram0",
+     "regs/at[48].ram1",
+     "regs/at[48].ram2",
+     "regs/at[48].ram3"
+    ],
+    "init": [
+     "0xc629b85d0b16945f",
+     "0x466e61c8aae44eb9",
+     "0x2ebd6bd04ff1e770",
+     "0x011a20b76f70b830"
+    ]
+   },
+   {
+    "site": 49,
+    "name": "SLICE_X16Y49",
+    "cells": [
+     "regs/at[49].ram0",
+     "regs/at[49].ram1",
+     "regs/at[49].ram2",
+     "regs/at[49].ram3"
+    ],
+    "init": [
+     "0x877a1b21712a144f",
+     "0xeadf5e2fd1c7dcfa",
+     "0x4e96054948904ab5",
+     "0x26f70c0447cb8edf"
+    ]
+   },
+   {
+    "site": 50,
+    "name": "SLICE_X16Y50",
+    "cells": [
+     "regs/at[50].ram0",
+     "regs/at[50].ram1",
+     "regs/at[50].ram2",
+     "regs/at[50].ram3"
+    ],
+    "init": [
+     "0x19f30bda4f33bfd0",
+     "0xf52a5d6efbb79877",
+     "0x5bcdaabbc23f97e3",
+     "0x8db2b3ee605cbb51"
+    ]
+   },
+   {
+    "site": 51,
+    "name": "SLICE_X16Y51",
+    "cells": [
+     "regs/at[51].ram0",
+     "regs/at[51].ram1",
+     "regs/at[51].ram2",
+     "regs/at[51].ram3"
+    ],
+    "init": [
+     "0x365fa3e9d541ed3f",
+     "0x1b440ac75f8a739a",
+     "0xac3ab0366a047d42",
+     "0x5794728d4dad441e"
+    ]
+   },
+   {
+    "site": 52,
+    "name": "SLICE_X16Y52",
+    "cells": [
+     "regs/at[52].ram0",
+     "regs/at[52].ram1",
+     "regs/at[52].ram2",
+     "regs/at[52].ram3"
+    ],
+    "init": [
+     "0x04c116d3e852abc1",
+     "0xb24c03d290469333",
+     "0x184c1a166da949c6",
+     "0x884dc483c64f93d4"
+    ]
+   },
+   {
+    "site": 53,
+    "name": "SLICE_X16Y53",
+    "cells": [
+     "regs/at[53].ram0",
+     "regs/at[53].ram1",
+     "regs/at[53].ram2",
+     "regs/at[53].ram3"
+    ],
+    "init": [
+     "0x7e361324efadfafa",
+     "0x07211bfe7928889b",
+     "0x42238af442565b78",
+     "0x04e5a63f7e7ed7f4"
+    ]
+   },
+   {
+    "site": 54,
+    "name": "SLICE_X16Y54",
+    "cells": [
+     "regs/at[54].ram0",
+     "regs/at[54].ram1",
+     "regs/at[54].ram2",
+     "regs/at[54].ram3"
+    ],
+    "init": [
+     "0x59aa904d1cb4bc17",
+     "0xbbc5d1354042c4bc",
+     "0x8f7506e0dab2f4a8",
+     "0x96f3a4561a358319"
+    ]
+   },
+   {
+    "site": 55,
+    "name": "SLICE_X16Y55",
+    "cells": [
+     "regs/at[55].ram0",
+     "regs/at[55].ram1",
+     "regs/at[55].ram2",
+     "regs/at[55].ram3"
+    ],
+    "init": [
+     "0x9c4d98cae8092ccc",
+     "0xeab2e04667de4eab",
+     "0xbb13d9f119880335",
+     "0xfe5a88aa54e23229"
+    ]
+   },
+   {
+    "site": 56,
+    "name": "SLICE_X16Y56",
+    "cells": [
+     "regs/at[56].ram0",
+     "regs/at[56].ram1",
+     "regs/at[56].ram2",
+     "regs/at[56].ram3"
+    ],
+    "init": [
+     "0x637b57dae5858bf8",
+     "0x7ee813d9b7987a01",
+     "0x360135c89dbd9d31",
+     "0x7763c9739d4a57dd"
+    ]
+   },
+   {
+    "site": 57,
+    "name": "SLICE_X16Y57",
+    "cells": [
+     "regs/at[57].ram0",
+     "regs/at[57].ram1",
+     "regs/at[57].ram2",
+     "regs/at[57].ram3"
+    ],
+    "init": [
+     "0x3cb0cda780330ba0",
+     "0x9f958149482762f5",
+     "0x2bbdf518503111cd",
+     "0x6927dff01c52d332"
+    ]
+   },
+   {
+    "site": 58,
+    "name": "SLICE_X16Y58",
+    "cells": [
+     "regs/at[58].ram0",
+     "regs/at[58].ram1",
+     "regs/at[58].ram2",
+     "regs/at[58].ram3"
+    ],
+    "init": [
+     "0xa47f60fe8ace47dd",
+     "0xd5bedc40a9b7b100",
+     "0x8eceae1faf0a576e",
+     "0x1931657960ec0a5f"
+    ]
+   },
+   {
+    "site": 59,
+    "name": "SLICE_X16Y59",
+    "cells": [
+     "regs/at[59].ram0",
+     "regs/at[59].ram1",
+     "regs/at[59].ram2",
+     "regs/at[59].ram3"
+    ],
+    "init": [
+     "0x018eb5b6103b5019",
+     "0x528fc16152dbd765",
+     "0xb357be7c0d9c1e71",
+     "0x5c7544a0c6cef51a"
+    ]
+   },
+   {
+    "site": 60,
+    "name": "SLICE_X16Y60",
+    "cells": [
+     "regs/at[60].ram0",
+     "regs/at[60].ram1",
+     "regs/at[60].ram2",
+     "regs/at[60].ram3"
+    ],
+    "init": [
+     "0x883e7a730e572798",
+     "0x38bcc33b864c65f3",
+     "0x459333edc2a57e44",
+     "0x637d925027a4152e"
+    ]
+   },
+   {
+    "site": 61,
+    "name": "SLICE_X16Y61",
+    "cells": [
+     "regs/at[61].ram0",
+     "regs/at[61].ram1",
+     "regs/at[61].ram2",
+     "regs/at[61].ram3"
+    ],
+    "init": [
+     "0x50787f1fc532bfe8",
+     "0x10670fc33f6e060f",
+     "0xc19a73fef4f1361b",
+     "0x92d7c38c3daa34be"
+    ]
+   },
+   {
+    "site": 62,
+    "name": "SLICE_X16Y62",
+    "cells": [
+     "regs/at[62].ram0",
+     "regs/at[62].ram1",
+     "regs/at[62].ram2",
+     "regs/at[62].ram3"
+    ],
+    "init": [
+     "0x265c9c2ef8e17ddd",
+     "0x407e36b03cbdea80",
+     "0xb68975a33bddc342",
+     "0x9cc56f43af8bd8f5"
+    ]
+   },
+   {
+    "site": 63,
+    "name": "SLICE_X16Y63",
+    "cells": [
+     "regs/at[63].ram0",
+     "regs/at[63].ram1",
+     "regs/at[63].ram2",
+     "regs/at[63].ram3"
+    ],
+    "init": [
+     "0x4fa2e6d84b94a507",
+     "0x641e58cedc480ada",
+     "0xadf0a975723cd428",
+     "0x7ae79830ce405c9a"
+    ]
+   },
+   {
+    "site": 64,
+    "name": "SLICE_X16Y64",
+    "cells": [
+     "regs/at[64].ram0",
+     "regs/at[64].ram1",
+     "regs/at[64].ram2",
+     "regs/at[64].ram3"
+    ],
+    "init": [
+     "0x7d101a0362fe0578",
+     "0x0377e6b091205048",
+     "0x606dd6797f153160",
+     "0xe626acadcba8cba3"
+    ]
+   },
+   {
+    "site": 65,
+    "name": "SLICE_X16Y65",
+    "cells": [
+     "regs/at[65].ram0",
+     "regs/at[65].ram1",
+     "regs/at[65].ram2",
+     "regs/at[65].ram3"
+    ],
+    "init": [
+     "0xaf314e7aa413789d",
+     "0x086b2eb06566106c",
+     "0xe2a6e4086ef5d6fd",
+     "0xac7a822b0dd63dc9"
+    ]
+   },
+   {
+    "site": 66,
+    "name": "SLICE_X16Y66",
+    "cells": [
+     "regs/at[66].ram0",
+     "regs/at[66].ram1",
+     "regs/at[66].ram2",
+     "regs/at[66].ram3"
+    ],
+    "init": [
+     "0xd00934ec9284bcef",
+     "0x7e51edbb9d7dc29b",
+     "0x7c3c644a59fbb31b",
+     "0x71d4a4e351f673a5"
+    ]
+   },
+   {
+    "site": 67,
+    "name": "SLICE_X16Y67",
+    "cells": [
+     "regs/at[67].ram0",
+     "regs/at[67].ram1",
+     "regs/at[67].ram2",
+     "regs/at[67].ram3"
+    ],
+    "init": [
+     "0xefbe1163cd14fa2c",
+     "0x60522e7e73323f9a",
+     "0xe9baf1eaae69794c",
+     "0x49b84a720d3f6913"
+    ]
+   },
+   {
+    "site": 68,
+    "name": "SLICE_X16Y68",
+    "cells": [
+     "regs/at[68].ram0",
+     "regs/at[68].ram1",
+     "regs/at[68].ram2",
+     "regs/at[68].ram3"
+    ],
+    "init": [
+     "0x89fac303d585c6e3",
+     "0x7b51b1bc87e3e1af",
+     "0x2361fd8c2f76660e",
+     "0x9225ef7254f9c6d7"
+    ]
+   },
+   {
+    "site": 69,
+    "name": "SLICE_X16Y69",
+    "cells": [
+     "regs/at[69].ram0",
+     "regs/at[69].ram1",
+     "regs/at[69].ram2",
+     "regs/at[69].ram3"
+    ],
+    "init": [
+     "0xfdcb349ba3fc4f37",
+     "0x46e634f979c375ee",
+     "0x6d168c4ff950b2f1",
+     "0x362d507ef77810e7"
+    ]
+   },
+   {
+    "site": 70,
+    "name": "SLICE_X16Y70",
+    "cells": [
+     "regs/at[70].ram0",
+     "regs/at[70].ram1",
+     "regs/at[70].ram2",
+     "regs/at[70].ram3"
+    ],
+    "init": [
+     "0xc98d0dd54e19837d",
+     "0x7d186e264119b01d",
+     "0x1604c1a8584b3bd2",
+     "0xab9e848b8be05916"
+    ]
+   },
+   {
+    "site": 71,
+    "name": "SLICE_X16Y71",
+    "cells": [
+     "regs/at[71].ram0",
+     "regs/at[71].ram1",
+     "regs/at[71].ram2",
+     "regs/at[71].ram3"
+    ],
+    "init": [
+     "0xcd765369470ecdbd",
+     "0x6c8044468b578259",
+     "0x4509e6be9f8583c8",
+     "0xbaede2654db459b4"
+    ]
+   },
+   {
+    "site": 72,
+    "name": "SLICE_X16Y72",
+    "cells": [
+     "regs/at[72].ram0",
+     "regs/at[72].ram1",
+     "regs/at[72].ram2",
+     "regs/at[72].ram3"
+    ],
+    "init": [
+     "0x3f96058371a498f3",
+     "0xbf1c784393073b00",
+     "0xb93776db41663ea9",
+     "0x0fdb77e2f9df60d7"
+    ]
+   },
+   {
+    "site": 73,
+    "name": "SLICE_X16Y73",
+    "cells": [
+     "regs/at[73].ram0",
+     "regs/at[73].ram1",
+     "regs/at[73].ram2",
+     "regs/at[73].ram3"
+    ],
+    "init": [
+     "0x4ac6e1a1792b023d",
+     "0x280c272ee2c57089",
+     "0x9c8e4a72dfd366bc",
+     "0xb4a44bff9defdb36"
+    ]
+   },
+   {
+    "site": 74,
+    "name": "SLICE_X16Y74",
+    "cells": [
+     "regs/at[74].ram0",
+     "regs/at[74].ram1",
+     "regs/at[74].ram2",
+     "regs/at[74].ram3"
+    ],
+    "init": [
+     "0x4c191115de8cc92d",
+     "0x3f8ae80b15a81020",
+     "0x3f7ff2f3cead2399",
+     "0x9a9835fc484d2a51"
+    ]
+   },
+   {
+    "site": 75,
+    "name": "SLICE_X16Y75",
+    "cells": [
+     "regs/at[75].ram0",
+     "regs/at[75].ram1",
+     "regs/at[75].ram2",
+     "regs/at[75].ram3"
+    ],
+    "init": [
+     "0x816c91632d986927",
+     "0x18f0ecc90ca08fa6",
+     "0xac399366888ecae0",
+     "0x1158b4dd929bfc9c"
+    ]
+   },
+   {
+    "site": 76,
+    "name": "SLICE_X16Y76",
+    "cells": [
+     "regs/at[76].ram0",
+     "regs/at[76].ram1",
+     "regs/at[76].ram2",
+     "regs/at[76].ram3"
+    ],
+    "init": [
+     "0xe052f55c7b81885c",
+     "0x0869104fda9c65fc",
+     "0x7c567659b4d166fb",
+     "0x030c7f57376cced2"
+    ]
+   },
+   {
+    "site": 77,
+    "name": "SLICE_X16Y77",
+    "cells": [
+     "regs/at[77].ram0",
+     "regs/at[77].ram1",
+     "regs/at[77].ram2",
+     "regs/at[77].ram3"
+    ],
+    "init": [
+     "0x5a4f47216ab8bb2d",
+     "0xedfbb6617c53d956",
+     "0x37d56ff132336aaf",
+     "0xb5d7887a4660cec3"
+    ]
+   },
+   {
+    "site": 78,
+    "name": "SLICE_X16Y78",
+    "cells": [
+     "regs/at[78].ram0",
+     "regs/at[78].ram1",
+     "regs/at[78].ram2",
+     "regs/at[78].ram3"
+    ],
+    "init": [
+     "0xfec9d808dd095380",
+     "0x6654f5be3644b625",
+     "0x7c9f4954bf13ed0e",
+     "0x572ef57d62ec7979"
+    ]
+   },
+   {
+    "site": 79,
+    "name": "SLICE_X16Y79",
+    "cells": [
+     "regs/at[79].ram0",
+     "regs/at[79].ram1",
+     "regs/at[79].ram2",
+     "regs/at[79].ram3"
+    ],
+    "init": [
+     "0x927e94487d8f5be5",
+     "0xf7fcbff54d27a3b3",
+     "0x84d88b97a77e7498",
+     "0xe73c5f94b4617f6c"
+    ]
+   },
+   {
+    "site": 80,
+    "name": "SLICE_X16Y80",
+    "cells": [
+     "regs/at[80].ram0",
+     "regs/at[80].ram1",
+     "regs/at[80].ram2",
+     "regs/at[80].ram3"
+    ],
+    "init": [
+     "0x0d0cb0841423d74d",
+     "0x6ab437d528fce97f",
+     "0xf7b5fc328d372279",
+     "0xb33613b4775d5c68"
+    ]
+   },
+   {
+    "site": 81,
+    "name": "SLICE_X16Y81",
+    "cells": [
+     "regs/at[81].ram0",
+     "regs/at[81].ram1",
+     "regs/at[81].ram2",
+     "regs/at[81].ram3"
+    ],
+    "init": [
+     "0xb8a995093850443c",
+     "0x4cd240d2cf458cdc",
+     "0x0df3c91b23ca51bc",
+     "0x60990d190101c329"
+    ]
+   },
+   {
+    "site": 82,
+    "name": "SLICE_X16Y82",
+    "cells": [
+     "regs/at[82].ram0",
+     "regs/at[82].ram1",
+     "regs/at[82].ram2",
+     "regs/at[82].ram3"
+    ],
+    "init": [
+     "0xcb8ffc958c8ce244",
+     "0x389738375ac3c865",
+     "0xbeda291d577aa11e",
+     "0xa50af9296e47a43d"
+    ]
+   },
+   {
+    "site": 83,
+    "name": "SLICE_X16Y83",
+    "cells": [
+     "regs/at[83].ram0",
+     "regs/at[83].ram1",
+     "regs/at[83].ram2",
+     "regs/at[83].ram3"
+    ],
+    "init": [
+     "0xcc72ad0030cec49d",
+     "0x28035104d9830a92",
+     "0x960f2ff5b79badea",
+     "0x05d13844c73b9cac"
+    ]
+   },
+   {
+    "site": 84,
+    "name": "SLICE_X16Y84",
+    "cells": [
+     "regs/at[84].ram0",
+     "regs/at[84].ram1",
+     "regs/at[84].ram2",
+     "regs/at[84].ram3"
+    ],
+    "init": [
+     "0x80221dcae6b6f713",
+     "0x7c1b5b4a1f136450",
+     "0x1296fd367c3eac4d",
+     "0x79fa35e76cc5604b"
+    ]
+   },
+   {
+    "site": 85,
+    "name": "SLICE_X16Y85",
+    "cells": [
+     "regs/at[85].ram0",
+     "regs/at[85].ram1",
+     "regs/at[85].ram2",
+     "regs/at[85].ram3"
+    ],
+    "init": [
+     "0x759cdf66286858c3",
+     "0xc52d095cce89cfc2",
+     "0xf657f7a5b73a4092",
+     "0xef11ed098b9a5029"
+    ]
+   },
+   {
+    "site": 86,
+    "name": "SLICE_X16Y86",
+    "cells": [
+     "regs/at[86].ram0",
+     "regs/at[86].ram1",
+     "regs/at[86].ram2",
+     "regs/at[86].ram3"
+    ],
+    "init": [
+     "0x1f9e39ad93b9e78c",
+     "0xd4d10b36317831f4",
+     "0xaf49eba6e20b2255",
+     "0x42637051b461d6f5"
+    ]
+   },
+   {
+    "site": 87,
+    "name": "SLICE_X16Y87",
+    "cells": [
+     "regs/at[87].ram0",
+     "regs/at[87].ram1",
+     "regs/at[87].ram2",
+     "regs/at[87].ram3"
+    ],
+    "init": [
+     "0x1cad6697e1737c5a",
+     "0xef447a134d121e35",
+     "0xae54a4e0e1ec038f",
+     "0x1b17ff4984635691"
+    ]
+   },
+   {
+    "site": 88,
+    "name": "SLICE_X16Y88",
+    "cells": [
+     "regs/at[88].ram0",
+     "regs/at[88].ram1",
+     "regs/at[88].ram2",
+     "regs/at[88].ram3"
+    ],
+    "init": [
+     "0xfe4a5fb1c0ae1d58",
+     "0x088832c2ed423f08",
+     "0xd170ee091eaf05e2",
+     "0x8a6f4966c44647da"
+    ]
+   },
+   {
+    "site": 89,
+    "name": "SLICE_X16Y89",
+    "cells": [
+     "regs/at[89].ram0",
+     "regs/at[89].ram1",
+     "regs/at[89].ram2",
+     "regs/at[89].ram3"
+    ],
+    "init": [
+     "0x21c3f25ed0aae34b",
+     "0xf188cb5bb89182f5",
+     "0xad35c11762a10fd0",
+     "0x762be4ec015aa83c"
+    ]
+   },
+   {
+    "site": 90,
+    "name": "SLICE_X16Y90",
+    "cells": [
+     "regs/at[90].ram0",
+     "regs/at[90].ram1",
+     "regs/at[90].ram2",
+     "regs/at[90].ram3"
+    ],
+    "init": [
+     "0xb633b9089292f239",
+     "0x8d8a5a9ab71f152f",
+     "0x4215f16ce3e20a70",
+     "0xa6b96d44df064d07"
+    ]
+   },
+   {
+    "site": 91,
+    "name": "SLICE_X16Y91",
+    "cells": [
+     "regs/at[91].ram0",
+     "regs/at[91].ram1",
+     "regs/at[91].ram2",
+     "regs/at[91].ram3"
+    ],
+    "init": [
+     "0x2b6b124f94bf66dd",
+     "0xba69dccf49882e5e",
+     "0x23ea697b02ef948b",
+     "0x0a1995e96d632ee6"
+    ]
+   },
+   {
+    "site": 92,
+    "name": "SLICE_X16Y92",
+    "cells": [
+     "regs/at[92].ram0",
+     "regs/at[92].ram1",
+     "regs/at[92].ram2",
+     "regs/at[92].ram3"
+    ],
+    "init": [
+     "0x60d6d468db3495fe",
+     "0xb3825e41a85974ec",
+     "0xb40bb32df4703379",
+     "0x2c2d9c2b2f59f920"
+    ]
+   },
+   {
+    "site": 93,
+    "name": "SLICE_X16Y93",
+    "cells": [
+     "regs/at[93].ram0",
+     "regs/at[93].ram1",
+     "regs/at[93].ram2",
+     "regs/at[93].ram3"
+    ],
+    "init": [
+     "0x38a46b79fdc477a3",
+     "0x7c03448c6ea80c05",
+     "0xbc9fabe6c588c72e",
+     "0xac7939bc878700ab"
+    ]
+   },
+   {
+    "site": 94,
+    "name": "SLICE_X16Y94",
+    "cells": [
+     "regs/at[94].ram0",
+     "regs/at[94].ram1",
+     "regs/at[94].ram2",
+     "regs/at[94].ram3"
+    ],
+    "init": [
+     "0xdaf01e3cb50be1a2",
+     "0x7d580ed26caa0757",
+     "0xb695433cb9546eb0",
+     "0xe745d1660b979cb5"
+    ]
+   },
+   {
+    "site": 95,
+    "name": "SLICE_X16Y95",
+    "cells": [
+     "regs/at[95].ram0",
+     "regs/at[95].ram1",
+     "regs/at[95].ram2",
+     "regs/at[95].ram3"
+    ],
+    "init": [
+     "0x4b0556336a3f2af1",
+     "0xd0b4d23c7ce8aebd",
+     "0x795b7ebced55c3fc",
+     "0x7a24b11fa28c37e0"
+    ]
+   },
+   {
+    "site": 96,
+    "name": "SLICE_X16Y96",
+    "cells": [
+     "regs/at[96].ram0",
+     "regs/at[96].ram1",
+     "regs/at[96].ram2",
+     "regs/at[96].ram3"
+    ],
+    "init": [
+     "0x8266cafbef373add",
+     "0x4babb828fcc88595",
+     "0x9a3f4ddb7db0ad1f",
+     "0x650ddd3690f499ad"
+    ]
+   },
+   {
+    "site": 97,
+    "name": "SLICE_X16Y97",
+    "cells": [
+     "regs/at[97].ram0",
+     "regs/at[97].ram1",
+     "regs/at[97].ram2",
+     "regs/at[97].ram3"
+    ],
+    "init": [
+     "0x39b288589717e192",
+     "0x35abf145ead60fbc",
+     "0x0ddf4cc614ba471e",
+     "0xc18c88db38369e1c"
+    ]
+   },
+   {
+    "site": 98,
+    "name": "SLICE_X16Y98",
+    "cells": [
+     "regs/at[98].ram0",
+     "regs/at[98].ram1",
+     "regs/at[98].ram2",
+     "regs/at[98].ram3"
+    ],
+    "init": [
+     "0x1765ea5b8cd987f5",
+     "0xb573ab79bcf6afec",
+     "0x9fd80c9b3b083367",
+     "0x951703cb0602e8a8"
+    ]
+   },
+   {
+    "site": 99,
+    "name": "SLICE_X16Y99",
+    "cells": [
+     "regs/at[99].ram0",
+     "regs/at[99].ram1",
+     "regs/at[99].ram2",
+     "regs/at[99].ram3"
+    ],
+    "init": [
+     "0xb8acabac0c7f7c9e",
+     "0x755d24375daca186",
+     "0x5fde557ba01a18ab",
+     "0x261f31adf942dac2"
+    ]
+   },
+   {
+    "site": 100,
+    "name": "SLICE_X10Y7",
+    "cells": [
+     "regs/at[100].ram0",
+     "regs/at[100].ram1",
+     "regs/at[100].ram2",
+     "regs/at[100].ram3"
+    ],
+    "init": [
+     "0x4b557218a239f5ae",
+     "0xf33e5f21395812ec",
+     "0x8d0532299a99c55d",
+     "0x90d43011aaf45ffa"
+    ]
+   },
+   {
+    "site": 101,
+    "name": "SLICE_X12Y44",
+    "cells": [
+     "regs/at[101].ram0",
+     "regs/at[101].ram1",
+     "regs/at[101].ram2",
+     "regs/at[101].ram3"
+    ],
+    "init": [
+     "0x4adb0ae13e4f495b",
+     "0x76f39ce4263afc8d",
+     "0x935eb446ca50d0e7",
+     "0x1b6567ddc0b976a3"
+    ]
+   },
+   {
+    "site": 102,
+    "name": "SLICE_X20Y81",
+    "cells": [
+     "regs/at[102].ram0",
+     "regs/at[102].ram1",
+     "regs/at[102].ram2",
+     "regs/at[102].ram3"
+    ],
+    "init": [
+     "0xb95b5d142b834723",
+     "0x85981a0b43a487a7",
+     "0x6c76a80657da5823",
+     "0x3688158ebf14e734"
+    ]
+   },
+   {
+    "site": 103,
+    "name": "SLICE_X24Y18",
+    "cells": [
+     "regs/at[103].ram0",
+     "regs/at[103].ram1",
+     "regs/at[103].ram2",
+     "regs/at[103].ram3"
+    ],
+    "init": [
+     "0x3be0fabea49cff25",
+     "0x3f9c8e35b3e114dd",
+     "0x5865dfcb72824392",
+     "0x965012e2a2227fc4"
+    ]
+   },
+   {
+    "site": 104,
+    "name": "SLICE_X28Y55",
+    "cells": [
+     "regs/at[104].ram0",
+     "regs/at[104].ram1",
+     "regs/at[104].ram2",
+     "regs/at[104].ram3"
+    ],
+    "init": [
+     "0x076fa7b811dc5047",
+     "0x09822da7d0a55783",
+     "0x66ffa34895b62855",
+     "0x7d70d9dc3965f81e"
+    ]
+   },
+   {
+    "site": 105,
+    "name": "SLICE_X30Y92",
+    "cells": [
+     "regs/at[105].ram0",
+     "regs/at[105].ram1",
+     "regs/at[105].ram2",
+     "regs/at[105].ram3"
+    ],
+    "init": [
+     "0x990bfec74c26b4a4",
+     "0x3098342cdb52938c",
+     "0xeed9cc16d3ccf0a7",
+     "0x109b89068c9f27a8"
+    ]
+   },
+   {
+    "site": 106,
+    "name": "SLICE_X32Y29",
+    "cells": [
+     "regs/at[106].ram0",
+     "regs/at[106].ram1",
+     "regs/at[106].ram2",
+     "regs/at[106].ram3"
+    ],
+    "init": [
+     "0xcea96660380b21a7",
+     "0xe3935411c0a487ad",
+     "0x8ccdf8329a612927",
+     "0x0e4237fcf2511136"
+    ]
+   },
+   {
+    "site": 107,
+    "name": "SLICE_X34Y66",
+    "cells": [
+     "regs/at[107].ram0",
+     "regs/at[107].ram1",
+     "regs/at[107].ram2",
+     "regs/at[107].ram3"
+    ],
+    "init": [
+     "0xff2e52b671884ebd",
+     "0x9d1fe8209df44b38",
+     "0x2d5645631a25280a",
+     "0x09cb4c7efcfdafe8"
+    ]
+   },
+   {
+    "site": 108,
+    "name": "SLICE_X38Y3",
+    "cells": [
+     "regs/at[108].ram0",
+     "regs/at[108].ram1",
+     "regs/at[108].ram2",
+     "regs/at[108].ram3"
+    ],
+    "init": [
+     "0x8f9477248a1b12ab",
+     "0xb355209a3969782e",
+     "0x578ffe4ecb06bb03",
+     "0x5eb2d033a9bcfb21"
+    ]
+   },
+   {
+    "site": 109,
+    "name": "SLICE_X42Y40",
+    "cells": [
+     "regs/at[109].ram0",
+     "regs/at[109].ram1",
+     "regs/at[109].ram2",
+     "regs/at[109].ram3"
+    ],
+    "init": [
+     "0xed011750f720c583",
+     "0x1eea0dc0b565e950",
+     "0xc69cc09b3a32beda",
+     "0x46c01ae55f4c547b"
+    ]
+   }
+  ],
+  "positions": "not constrained, as in s2a: which memory is on which LUT position of its site is in the build's record (pl/s2b/build.json)"
+ },
+ "sites_chosen": "every site of the column of sites numbered 16, and one site in each other column of SLICEM sites numbered 10 or above, at row (7 + 37 i) mod 100 for the i-th of them: a rule fixed in section 45 before anything was built. No site of a column numbered below 10 (section 12, point 5).",
+ "clock": {
+  "source": "FCLK0 as the boot loader leaves it (50 MHz on 17A6), through a BUFG",
+  "constrained_period_ns": 10.0
+ }
+}

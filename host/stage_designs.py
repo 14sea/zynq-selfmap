@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The two PL designs, put where the run script and the tests look for them — docs/s2_plan.md, section 24.
+"""The PL designs, put where the run script and the tests look for them — docs/s2_plan.md, section 24.
 
     stage_designs.py            stage what is missing in build/pl/ and say what was done
 
@@ -9,6 +9,7 @@ each design has a copy that is in git, and a record of its hash that is not that
     design        the copy in git                           the hash it is held to
     carrier.bit   imported/fabricmap/carrier.bit            imported/fabricmap/IMPORT.json
     s2a.bit       evidence/s2_1_17A6_2026-11-20/s2a.bit     pl/s2a/build.json
+    s2b.bit       evidence/s2_5_build_2026-11-23/s2b.bit    pl/s2b/build.json
 
 A design that is missing in build/pl/ is written there once its copy has the recorded hash and length; a copy that
 has not is refused and nothing is written. A design that is already there is left as it is, whatever it is: the run
@@ -30,10 +31,13 @@ def designs(root: Path = ROOT) -> list[dict]:
     """Each design: where it is staged, its copy in git, and the hash and length its record gives."""
     imported = json.loads((root / "imported" / "fabricmap" / "IMPORT.json").read_text())["files"]["carrier.bit"]
     built = json.loads((root / "pl" / "s2a" / "build.json").read_text())["bitstream"]
+    built_b = json.loads((root / "pl" / "s2b" / "build.json").read_text())["bitstream"]
     return [{"name": "carrier.bit", "staged": root / "build" / "pl" / "carrier.bit", "copy": root / "imported" / "fabricmap" / "carrier.bit",
              "sha256": imported["sha256"], "bytes": imported["bytes"], "record": "imported/fabricmap/IMPORT.json"},
             {"name": "s2a.bit", "staged": root / "build" / "pl" / "s2a.bit", "copy": root / "evidence" / "s2_1_17A6_2026-11-20" / "s2a.bit",
-             "sha256": built["sha256"], "bytes": built["bytes"], "record": "pl/s2a/build.json"}]
+             "sha256": built["sha256"], "bytes": built["bytes"], "record": "pl/s2a/build.json"},
+            {"name": "s2b.bit", "staged": root / "build" / "pl" / "s2b.bit", "copy": root / "evidence" / "s2_5_build_2026-11-23" / "s2b.bit",
+             "sha256": built_b["sha256"], "bytes": built_b["bytes"], "record": "pl/s2b/build.json"}]
 
 
 def stage(root: Path = ROOT) -> list[str]:

@@ -1,4 +1,4 @@
-"""The two PL designs and their copies in git — host/stage_designs.py, docs/s2_plan.md, section 24.
+"""The PL designs and their copies in git — host/stage_designs.py, docs/s2_plan.md, section 24.
 
 Found by review (2026-11-21): build/ is not in git, the tests read both designs from it, and a clean copy of the
 repository could run almost none of them. Each design now has a copy in git, a record of its hash that is not that
@@ -28,9 +28,10 @@ def sha(path: Path) -> str:
 
 class TheCopiesInGit(unittest.TestCase):
     def test_each_copy_is_the_file_its_record_names_and_the_file_the_sets_declare(self) -> None:
-        carrier, s2a = stage_designs.designs()
-        self.assertEqual((carrier["name"], s2a["name"]), ("carrier.bit", "s2a.bit"))
-        for d in (carrier, s2a):
+        carrier, s2a, s2b = stage_designs.designs()
+        self.assertEqual((carrier["name"], s2a["name"], s2b["name"]), ("carrier.bit", "s2a.bit", "s2b.bit"))
+        self.assertEqual(len({carrier["sha256"], s2a["sha256"], s2b["sha256"]}), 3, "three designs, three files")
+        for d in (carrier, s2a, s2b):
             self.assertEqual((sha(d["copy"]), d["copy"].stat().st_size), (d["sha256"], d["bytes"]), d["name"])
         # the carrier: the hash the known frames were read under (zynq-psmap's record), which every set with the carrier declares
         known = json.loads((ROOT / "data" / "known_frames_17A6.json").read_text())["pl_design"]
@@ -43,12 +44,14 @@ class TheCopiesInGit(unittest.TestCase):
             self.assertEqual(s1a_run.pl_file({"pl_design": declared}), d["staged"], stage)
 
     def test_the_copies_are_tracked_and_the_staged_files_are_not(self) -> None:
-        asked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "--", "imported", "evidence/s2_1_17A6_2026-11-20", "build"], capture_output=True, text=True)
+        asked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "--", "imported", "evidence/s2_1_17A6_2026-11-20", "evidence/s2_5_build_2026-11-23", "build"],
+                               capture_output=True, text=True)
         tracked = asked.stdout.split()
         if asked.returncode or not tracked:
             self.skipTest("not a git checkout (an archive, or a copy made for a mutant): nothing to ask")
         self.assertIn("imported/fabricmap/carrier.bit", tracked)
         self.assertIn("evidence/s2_1_17A6_2026-11-20/s2a.bit", tracked)
+        self.assertIn("evidence/s2_5_build_2026-11-23/s2b.bit", tracked)
         self.assertFalse([f for f in tracked if f.startswith("build/")])
 
     def test_what_is_staged_here_is_what_the_copies_hold(self) -> None:
@@ -78,21 +81,25 @@ class Staging(unittest.TestCase):
 
     def setUp(self) -> None:
         self.root = Path(scratch_dirs.mkdtemp(prefix="smstage_"))
-        self.files = {"carrier.bit": b"the carrier" * 7, "s2a.bit": b"the probe design" * 5}
+        self.files = {"carrier.bit": b"the carrier" * 7, "s2a.bit": b"the probe design" * 5, "s2b.bit": b"the second probe design" * 3}
         (self.root / "imported" / "fabricmap").mkdir(parents=True)
         (self.root / "pl" / "s2a").mkdir(parents=True)
+        (self.root / "pl" / "s2b").mkdir(parents=True)
         (self.root / "evidence" / "s2_1_17A6_2026-11-20").mkdir(parents=True)
+        (self.root / "evidence" / "s2_5_build_2026-11-23").mkdir(parents=True)
+        (self.root / "evidence" / "s2_5_build_2026-11-23" / "s2b.bit").write_bytes(self.files["s2b.bit"])
         (self.root / "imported" / "fabricmap" / "carrier.bit").write_bytes(self.files["carrier.bit"])
         (self.root / "evidence" / "s2_1_17A6_2026-11-20" / "s2a.bit").write_bytes(self.files["s2a.bit"])
         record = lambda data: {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}   # noqa: E731
         (self.root / "imported" / "fabricmap" / "IMPORT.json").write_text(json.dumps({"files": {"carrier.bit": record(self.files["carrier.bit"])}}))
         (self.root / "pl" / "s2a" / "build.json").write_text(json.dumps({"bitstream": record(self.files["s2a.bit"])}))
+        (self.root / "pl" / "s2b" / "build.json").write_text(json.dumps({"bitstream": record(self.files["s2b.bit"])}))
         self.staged = {name: self.root / "build" / "pl" / name for name in self.files}
 
     def test_what_is_missing_is_staged_and_said(self) -> None:
         done = stage_designs.stage(self.root)
         self.assertEqual({n: p.read_bytes() for n, p in self.staged.items()}, self.files)
-        self.assertEqual([line.split(":")[0] for line in done], ["carrier.bit", "s2a.bit"])
+        self.assertEqual([line.split(":")[0] for line in done], ["carrier.bit", "s2a.bit", "s2b.bit"])
         self.assertTrue(all("staged from" in line for line in done), done)
         self.assertTrue(all("already staged, left as it is" in line for line in stage_designs.stage(self.root)))
 
@@ -122,7 +129,7 @@ class Staging(unittest.TestCase):
 
     def test_the_command(self) -> None:
         p = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "stage_designs.py")], capture_output=True, text=True)
-        self.assertEqual((p.returncode, [ln.split(":")[0] for ln in p.stdout.splitlines()]), (0, ["carrier.bit", "s2a.bit"]))
+        self.assertEqual((p.returncode, [ln.split(":")[0] for ln in p.stdout.splitlines()]), (0, ["carrier.bit", "s2a.bit", "s2b.bit"]))
 
 
 if __name__ == "__main__":

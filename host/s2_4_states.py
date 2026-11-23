@@ -16,9 +16,12 @@ The runs (section 37):
 
     find, share 0 to 7   one share of the census's addresses of block type 0 (S2.2's shares, as they are), in three
                          states: all zero, all one, all zero
-    code                 sixteen states over the column the candidates lie in: as loaded, with nothing shifted; the
-                         seven code states, each followed by its complement (in code state j, cell n holds bit j of
-                         n); and the loaded words shifted in again
+    code                 seventeen states over the column the candidates lie in: as loaded, with nothing shifted;
+                         all zero; the seven code states, each followed by its complement (in code state j, cell n
+                         holds bit j of n); and the loaded words shifted in again. The all-zero state is what tells a
+                         bit that follows a cell from one that follows another cell inverted: over the code states
+                         and their complements alone, cell n inverted reads as cell 127 - n does, and what the cells
+                         are loaded with does not part them all
     singles, run 0 or 1  66 states over the reads that deliver the frames with candidates: the loaded content as it
                          is, then with each of 64 cells alone the other way, then the loaded content shifted in again
 
@@ -47,7 +50,7 @@ REGISTERS, DEPTH = 4, 32
 CELLS = REGISTERS * DEPTH                              # 128
 CODE_BITS = 7                                          # a cell's number has seven bits
 SINGLE_RUNS, SINGLES_A_RUN = 2, 64
-FIND_SHARES = 8                                        # the shares of the census, as S2.2 made them
+FIND_SHARES = 8                                        # the shares of the device's census, as S2.2 made them: what main prints, and what a test holds
 RAM_DEPTH = 64
 MAX_STATES = 80                                        # what the stage takes (prober/sm.h)
 
@@ -87,6 +90,14 @@ def shifted(before: list[int], word: int) -> list[int]:
     return [word & 0xF] + before[:-1]
 
 
+def shares(census: dict, design: dict) -> list[list[tuple[int, int]]]:
+    """The shares of the census's addresses of block type 0, a run of part 1 for each: S2.2's shares, as s2_2_shares
+    makes them. `design` is what is known of the device; a test gives its made-up device, which is small, fewer reads
+    a run ("reads_a_run") so that it has more shares than one. On the device nothing gives that, and the limit is the
+    stage's."""
+    return s2_2_shares.shares(census, design.get("reads_a_run", s2_2_shares.LIST_MAX))
+
+
 def find_run() -> list[dict]:
     return [{"name": "all zero", "kind": "uniform", "bit": 0, "srl": uniform(0), "shifted": True},
             {"name": "all one", "kind": "uniform", "bit": 1, "srl": uniform(1), "shifted": True},
@@ -94,8 +105,9 @@ def find_run() -> list[dict]:
 
 
 def code_run(loaded: list[int]) -> list[dict]:
-    """The sixteen states of the code run, each with what it is."""
-    out = [{"name": "as loaded", "kind": "loaded", "srl": list(loaded), "shifted": False}]
+    """The seventeen states of the code run, each with what it is."""
+    out = [{"name": "as loaded", "kind": "loaded", "srl": list(loaded), "shifted": False},
+           {"name": "all zero", "kind": "uniform", "bit": 0, "srl": uniform(0), "shifted": True}]
     for j in range(CODE_BITS):
         out.append({"name": f"code {j}", "kind": "code", "bit": j, "complement": False, "srl": code(j), "shifted": True})
         out.append({"name": f"code {j} complement", "kind": "code", "bit": j, "complement": True, "srl": code(j, True), "shifted": True})
@@ -155,9 +167,7 @@ def plan(kind: str, share: int | None, design: dict, census: dict, candidates: d
     part 1."""
     loaded = st9.srl_words(design)
     if kind == "find":
-        every = s2_2_shares.shares(census)
-        if len(every) != FIND_SHARES:
-            raise ValueError(f"the census gives {len(every)} shares, not the {FIND_SHARES} the step is planned for")
+        every = shares(census, design)
         if share is None or not 0 <= share < len(every):
             raise ValueError(f"a run of part 1 is of one share of {len(every)}: which?")
         states, reads = find_run(), every[share]

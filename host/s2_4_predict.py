@@ -145,6 +145,20 @@ def search(frames: dict[int, tuple[int, ...]], the_rule: list[tuple[int, int]], 
     return places, hits
 
 
+def places(prediction: dict) -> dict[tuple[int, int, int], tuple[int, int, bool]]:
+    """The prediction as places: (frame address, word, bit) -> (shift register, which bit of its loaded word — which
+    is the output of that number, as the design's record has it — inverted?). From the stored prediction alone."""
+    the_rule = [(r["frame_above_the_lowest"], r["bit_of_the_half_word"]) for r in prediction["rule"]]
+    named = dict(arrangements())
+    out: dict[tuple[int, int, int], tuple[int, int, bool]] = {}
+    for h in prediction["hits"]:
+        low, half = int(h["frames"][0], 16), int(h["bits"].split()[-1])
+        for a, j, inverted in named[h["arrangement"]]:
+            f, b = the_rule[a]
+            out[(low + f, h["word"], half + b)] = (h["shift_register"], j, bool(inverted))
+    return out
+
+
 def says(hits: list[dict], n_words: int) -> str:
     if not hits:
         return "not found"

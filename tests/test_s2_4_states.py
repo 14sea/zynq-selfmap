@@ -35,7 +35,7 @@ class TheStates(unittest.TestCase):
         self.assertEqual([st.cell(LOADED, st.number(k, a)) for k in range(4) for a in range(32)], [(WORDS[k] >> a) & 1 for k in range(4) for a in range(32)])
 
     def test_the_code_states_tell_every_cell_from_every_other(self) -> None:
-        states = [x["srl"] for x in st.code_run(LOADED)][1:-1]
+        states = [x["srl"] for x in st.code_run(LOADED)][2:-1]
         self.assertEqual(len(states), 14)
         rows = {n: tuple(st.cell(s, n) for s in states) for n in range(128)}
         self.assertEqual(len(set(rows.values())), 128)
@@ -44,6 +44,22 @@ class TheStates(unittest.TestCase):
         self.assertEqual([word_of(st.code(0), k) for k in range(4)], [0xAAAAAAAA] * 4)
         self.assertEqual([word_of(st.code(5), k) for k in range(4)], [0, 0xFFFFFFFF, 0, 0xFFFFFFFF], "bit 5 of a cell's number: which register, its low bit")
         self.assertEqual([word_of(st.code(6, True), k) for k in range(4)], [0xFFFFFFFF, 0xFFFFFFFF, 0, 0])
+
+    def test_no_run_s_states_let_a_cell_inverted_pass_for_another_cell(self) -> None:
+        """Over the code states and their complements alone, cell n inverted reads as cell 127 - n does; and what the
+        cells are loaded with parts only some such pairs. The all-zero state of the code run parts them all: no cell's
+        row of values, inverted, is a row of any cell. The same holds in a run of the singles and in part 1."""
+        def mirrored(states: list[list[int]]) -> list[int]:
+            rows = {n: tuple(st.cell(s, n) for s in states) for n in range(128)}
+            moving = {row for row in rows.values() if len(set(row)) > 1}        # a cell that holds the same in every state is followed by no bit that moves
+            return [n for n, row in rows.items() if row in moving and tuple(1 - v for v in row) in moving]
+        code = [x["srl"] for x in st.code_run(LOADED)]
+        self.assertEqual(mirrored(code[2:-1]), list(range(128)), "the code states and complements alone: every cell has such a twin")
+        without = mirrored([code[0]] + code[2:])
+        self.assertTrue(0 < len(without) < 128, "with the loaded content before and after, some still have")
+        self.assertEqual(mirrored(code), [], "with the all-zero state none has")
+        for states in (st.find_run(), st.single_run(LOADED, 0), st.single_run(LOADED, 1)):
+            self.assertEqual(mirrored([x["srl"] for x in states]), [])
 
     def test_a_single_is_the_loaded_content_with_one_cell_the_other_way(self) -> None:
         for n in (0, 31, 32, 77, 127):
@@ -64,7 +80,8 @@ class TheStates(unittest.TestCase):
     def test_the_runs(self) -> None:
         self.assertEqual([(x["name"], x["srl"], x["shifted"]) for x in st.find_run()], [("all zero", [0] * 32, True), ("all one", [15] * 32, True), ("all zero", [0] * 32, True)])
         code = st.code_run(LOADED)
-        self.assertEqual([x["name"] for x in code], ["as loaded"] + [f"code {j}{c}" for j in range(7) for c in ("", " complement")] + ["loaded again"])
+        self.assertEqual([x["name"] for x in code], ["as loaded", "all zero"] + [f"code {j}{c}" for j in range(7) for c in ("", " complement")] + ["loaded again"])
+        self.assertEqual((code[1]["srl"], code[1]["shifted"]), ([0] * 32, True))
         self.assertEqual([(x["srl"], x["shifted"]) for x in (code[0], code[-1])], [(LOADED, False), (LOADED, True)], "the same content, once loaded and once shifted in")
         self.assertEqual({x["shifted"] for x in code[1:]}, {True})
         singles = [st.single_run(LOADED, r) for r in range(2)]
@@ -100,8 +117,8 @@ class TheLists(unittest.TestCase):
         self.assertEqual([v for k, a, v in first if a == REG["SRL_DATA"]], LOADED * 2, "read back as loaded, before the frames and after")
         self.assertIn((st.A_EXPECT, REG["WRITES"], 0), first)
         counts = [v for k, a, v in e if a == REG["WRITES"]]
-        self.assertEqual(counts, [(32 * i) << 16 for i in range(16)], "fifteen states of thirty-two shifts after it")
-        self.assertEqual(sum(1 for k, a, _ in e if k == st.A_WRITE and a == REG["SRL_DATA"]), 15 * 32)
+        self.assertEqual(counts, [(32 * i) << 16 for i in range(17)], "sixteen states of thirty-two shifts after it")
+        self.assertEqual(sum(1 for k, a, _ in e if k == st.A_WRITE and a == REG["SRL_DATA"]), 16 * 32)
         self.assertEqual(st9.may_write(e, DESIGN), 1 << 0x0C | 1 << 0x14 | 1 << 0x18, "the two address registers and the shift registers' data: inside the image's bound")
         self.assertEqual(st9.may_write(e, DESIGN) & ~T.BOUND, 0)
 
@@ -114,7 +131,7 @@ class TheLists(unittest.TestCase):
         self.assertEqual([st.plan("find", s, DESIGN, CENSUS)["result_words"] for s in (0, 3, 7)], [254052, 256932, 121572])
         code = st.plan("code", None, DESIGN, CENSUS, CANDIDATES)
         self.assertEqual((len(code["states"]), code["reads"], len(code["entries"]), code["result_words"]),
-                         (16, [(0x1800 + 3 * i, 3) for i in range(12)], 2864, 99826))
+                         (17, [(0x1800 + 3 * i, 3) for i in range(12)], 3029, 105912))
         for r in range(2):
             p = st.plan("singles", r, DESIGN, CENSUS, CANDIDATES)
             self.assertEqual((len(p["states"]), p["reads"], len(p["entries"]), p["result_words"]), (66, [(0x181E, 3), (0x1821, 3)], 11114, 87326))
@@ -124,13 +141,7 @@ class TheLists(unittest.TestCase):
                                        ("code", None, None, "what part 1 found is not given"), ("singles", None, CANDIDATES, "which"),
                                        ("singles", 2, CANDIDATES, "no run 2"), ("singles", 0, None, "what part 1 found is not given"), ("pairs", None, CANDIDATES, "no run of the kind")):
             self.assertRaisesRegex(ValueError, why, st.plan, kind, share, DESIGN, CENSUS, cand)
-        fewer = dict(CENSUS, entries=CENSUS["entries"][:2000])
-        try:
-            n = len(s2_2_shares.shares(fewer))
-        except ValueError:
-            n = None
-        if n is not None and n != 8:
-            self.assertRaisesRegex(ValueError, "not the 8 the step is planned for", st.plan, "find", 0, DESIGN, fewer)
+        self.assertEqual((len(s2_2_shares.shares(CENSUS)), st.FIND_SHARES), (8, 8), "the device's census gives the eight shares S2.2 read")
 
     def test_a_list_or_a_result_too_long_for_the_stage_is_refused(self) -> None:
         many = [dict(st.find_run()[1]) for _ in range(81)]

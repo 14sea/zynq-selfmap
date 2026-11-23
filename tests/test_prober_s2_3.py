@@ -75,7 +75,7 @@ def params(n_list: int, n_states: int, n_acc: int, **over) -> list[int]:
 
 class Run:
     def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, list_words=None,
-                 clean: bool = False, **over) -> None:
+                 clean: bool = False, srl_cells=None, **over) -> None:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
         tmp = Path(scratch_dirs.mkdtemp(prefix="smtwin9_"))
         self.states = few(st.code_run(), 4) if states is None else states
@@ -93,8 +93,11 @@ class Run:
         (tmp / "acc.txt").write_text("\n".join(f"{x:x}" for x in self.acc) + "\n")
         (tmp / "rammap.txt").write_text("".join("%d %d %x %d %d %d\n" % c for c in self.cells))
         env = dict(os.environ)
-        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS", "SM_DIRTY"):
+        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS", "SM_DIRTY", "SM_SRLMAP"):
             env.pop(name, None)
+        if srl_cells is not None:                       # S2.4: where outputs of the shift registers show, in the form of the RAM's places
+            (tmp / "srlmap.txt").write_text("".join("%d %d %x %d %d %d\n" % c for c in srl_cells))
+            env["SM_SRLMAP"] = str(tmp / "srlmap.txt")
         if not clean:                                   # memory that holds something, as on a board: the twin writes out no result of which
             env["SM_DIRTY"] = "1"                       # a word was never written (review of 5936a8e). Every run here is made so.
         env["SM_FAR_RULE"] = "skip"

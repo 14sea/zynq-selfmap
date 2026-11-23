@@ -386,6 +386,13 @@ class Image(unittest.TestCase):
                 e22, stage=f"S2.3, which bit is which cell — {what}", params=[f"{w:08x}" for w in p23],
                 pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
                            "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
+        # S2.4 (sections 37 and 38): the same stage and the same image. A set of S2.4 is the set of S2.3 word for word —
+        # what parts them, the word that allows the shift, is among the four the run script fills in with the plan.
+        for name, what in (("s2_4f", "part 1: one share of block type 0 in three states of the shift registers"),):
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(
+                e22, stage=f"S2.4, the shift registers — {what}", params=[f"{w:08x}" for w in p23],
+                pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
+                           "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
         # No part of the memory map bounds the image: it is loaded at 0x02000000 and the next thing above it is the PL
         # design at 0x04000000. The bound is a guard against an image that has grown by accident; it was 16 KiB until
         # stage 8 (16,360 bytes) came within 24 bytes of it.

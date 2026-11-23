@@ -47,8 +47,10 @@ complete: every cell of the RAM has one bit, the 256 are the places S2.2 found, 
 is confirmed by a run of its own (section 36).** S2.4 is proposed in full in section 37
 and agreed, all nine points as recommended (section 38). Its part 0, the prediction, is
 made and stored: the four loaded words are found, once each, in words 40 and 41 of the
-frames `0x00001820`–`0x00001823` (section 38). The rest of its host side is being built;
-nothing of S2.4 has been on a board. S2.5 is not proposed in full yet.
+frames `0x00001820`–`0x00001823` (section 38). **The host side of its part 1 — where the
+shift registers' bits are — is built and waits for the owner's review (section 39)**; no
+new image. Part 2 is built when part 1 has been on the board. Nothing of S2.4 has been on
+a board. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3226,8 +3228,7 @@ The owner: all nine points of section 37 as recommended, and begin.
 4. The base of the singles is the loaded content.
 5. The pairs: one short run for bit 5, recorded and never failed.
 6. A table may have one bit a cell or two, each a named outcome; anything else is no table.
-   *(See below: what part 0 turned up bears on this point, and I ask the owner about it
-   before the table is built.)*
+   *(Changed by the owner on the same day, after part 0 — see below, and section 39.)*
 7. The description is a document of our own (`srl_map_v1`).
 8. Two words, one for each part on the board.
 9. Block type 1 is not read.
@@ -3275,7 +3276,8 @@ is or inverted; every cell has at least one bit that follows it as it is; and th
 for each cell which bits and which way. A candidate that follows no cell, or a cell without
 a bit as it is, is still no table. The singles then hold a cell to all of its bits. **This
 changes a point the owner agreed, and is not built until the owner says.** Everything else
-of the host side does not depend on it.
+of the host side does not depend on it. *(The owner, 2026-11-23: changed as proposed here;
+and the owner reviews before the board.)*
 
 ### The states and the lists (`host/s2_4_states.py`), and point 3 shown on the twin
 
@@ -3312,3 +3314,127 @@ The sets of S2.4 in the run script and what makes them; the twin's frames that s
 shift registers' cells; the judge; the closing of part 1 into candidates and of the code
 run into the table; the chain's driver; the description and its schema; the pairs; the
 rehearsal of storing. Then the owner's review, and the board on the owner's word.
+
+## 39. S2.4, part 1 as built (2026-11-23; host side, nothing on a board yet)
+
+For the owner's review before the board. What was decided since section 38, what is built,
+where it departs from the proposal, and what the board run would be.
+
+### Decided since section 38
+
+- **Point 6, as section 38 proposed to change it** (owner, 2026-11-23): of the code run it
+  is asked that every candidate follows exactly one cell, as it is or inverted, and that
+  every cell has at least one bit that follows it as it is; the table says for each cell
+  which bits and which way; a candidate that follows no cell, or a cell without a bit as it
+  is, is no table. The singles hold a cell to all of its bits.
+- **The owner reviews before the board.**
+
+### Built in two halves, and why
+
+Part 1 — the eight runs that find where the bits are — is built whole: the set, the judge,
+the chain, the closing into candidates. Part 2 is not: its plan is made from the candidates
+part 1 finds, as S2.3's was made from S2.2's, and its table takes the form point 6 now has.
+What part 2 shares with part 1 is built and tested already — the states of the code run and
+of the singles, their lists, and the judge, which judges all three kinds of run. Still to
+build for part 2: the closing of the code run into the table, the holding of the singles,
+the chain's driver, the description `srl_map_v1`, the pairs. I propose part 1 goes on the
+board on its own word, as section 38's point 8 has it, and part 2 is built on what it
+shows.
+
+### What is built
+
+- **The twin** (`prober/twin_hal.c`, not part of the image): `SM_SRLMAP`, where outputs of
+  the shift registers show in the frames it delivers — the RAM's form, an output at any
+  number of places, inverted or not. **The image is the one of section 32, byte for byte**
+  (`8bf3799c…`); the image's own test holds that.
+- **A seam in the stage's judge** (`host/s2_3_judge.py`, two places). Everything a run of
+  stage 9 is held to whatever its states are — the header, the gates, every record from its
+  raw words, the streams, the status after every read, the log against the list of
+  accesses, the schedule — is S2.3's judging, and S2.4 uses it as it is. Then another
+  step's side is asked (`rest`). The one thing that judge refuses and this step does — a
+  shift — is refused only where no other step's side is given. Without `rest` it is the
+  judge of S2.3 word for word: the five stored runs of S2.3 are judged again by the audit
+  and are what their stored verdicts say.
+- **The design's side of S2.4** (`host/s2_4_judge.py`). What the four registers hold is
+  worked out from what the design loads and every shift of the log, and never taken from
+  the plan; every reading of an output is held to that. All 32 outputs read before the
+  frames and after, with no shift between: reading did not disturb them. The RAM never
+  written, read zero wherever read, and read whole before the first frames and after the
+  last. The counter went on. The design's count is the log's shifts. Which run of the step
+  it is, by its states; both lists and the word of what the run may write held to that
+  run's plan. The finding: every bit still, following (as it is or inverted), or irregular
+  — and a run with an irregular bit fails.
+- **The set `s2_4f`** in the run script (`host/s1a_run.py`, `host/s2_4f_judge.py`): the set
+  of S2.3 word for word; the plan of a share fills in the four words, among them the one
+  that allows the shift. `--share 0` to `7`.
+- **The chain of part 1** (`host/s2_4_chain.py`): one run a share, each judged again from
+  its raw words before it is relied on; the first run alone, and no second before the first
+  is committed; the closing into `candidates.json`. What it names is in its head: outcomes
+  1 to 5 of section 37, 4 and 5 halting; and, failing nothing, where a frame reads
+  otherwise than S2.2 stored it at a place that is no candidate, where bit 5 showed, and
+  whether the prediction of part 0 was a hit.
+
+### Where this departs from the proposal — for the reviewer
+
+1. **The code run has seventeen states, not sixteen: an all-zero state was added.** Found
+   on the twin, before any board. Over the code states and their complements, cell n shown
+   inverted reads exactly as cell 127 − n does; what the cells are loaded with parts only
+   some such pairs (56 of the 128 cells; 72 are left open). With inverted bits now expected
+   (section 38), the first code run on the twin called 70 inverted bits "following"
+   another cell. With one state in which every cell holds zero, no cell inverted is any
+   cell. The judge now asks this of every run — states under which a cell inverted would
+   pass for another fail the run — and a test shows it on the states first proposed. S2.3
+   had the same weakness in principle and was not hit by it: its base state was all zero.
+2. **The first run is held to the CTL0 of S2.2's runs, and every later run to the first.**
+   Not in section 37. It is section 34's rule for the same reason: the frames this step is
+   held against, and the prediction, were read under that word. Two more ways for the
+   chain to halt; I ask the reviewer to look at them as such.
+3. **Outcomes 2 and 3 are worded for the changed point 6**: "more follow than there are
+   outputs: so many as they are, so many inverted" (candidates, the chain complete), and
+   "fewer follow as they are than there are outputs" (reported, the chain complete, the
+   owner decides on part 2) — as section 37 had 3.
+4. **The first all-zero state is what is held against S2.2's frames** (outcome 7), and only
+   by the chain, on the device: a run's judge does not need those frames.
+
+### A rehearsal of storing, as section 36 asked
+
+A test makes a run with the device's own plan — the last share of the real census, 82
+reads — on the pretend board, and takes it again the way the audit of stored evidence takes
+every stored run: the plan made again from what the record says, the result judged from
+its raw words. What comes out is what was stored. So the audit knows a run of S2.4.
+
+What will have to be raised when real runs are stored, and is known beforehand: the audit's
+counts, by eight. And the list of runs that show a status bit outside the usual word: S2.2
+saw bit 5 after the two reads that deliver `0x00001820`–`0x00001823`, in all three states;
+if this step sees it there too, the run of share 3 joins that list.
+
+### Held by no mutant, and said
+
+- In part 2, a bit whose readings fit several cells that the states do not tell apart: such
+  a run fails for that already; a mutant there changes only what a failing run's finding
+  lists.
+- The chain's command beyond a look at an empty directory.
+- The clause that halts a chain told of no CTL0 at all when a passing run has none either
+  (as in section 34).
+
+### In numbers
+
+- **Tests**: 1,063, all passing. New since section 38's count: the judge, the set and the
+  chain of part 1 on the twin and the pretend board (38), and the all-zero state.
+- **Mutants**: 1,457, none stale — 64 new for part 1 (the seam, the design's side, the set,
+  the chain), all killed in a first look against the tests of S2.4 and S2.3. Two survived
+  the first try: one test asked for words the stage's judge also says (it asks for the
+  whole sentence now), and the mutant named above, taken out. One of my own slips on the
+  way: the new mutants first took a name the list already had (`JUDGE4`) and made 55 old
+  mutants stale; the check of anchors showed it and nothing was run so. **The tool has not
+  run them**; by section 35 that is not due before the board.
+- **Image**: unchanged. **No serial port was opened.**
+
+### The board run, when the owner says
+
+A precheck as before S2.3. Then `host/s2_4_chain.py --dir evidence/s2_4_17A6_<date> --go
+--max-new 1`: the run of share 0 alone, stored and committed as it stands. Then `--go` for
+the other seven, about seven and a half minutes each. A halt is reported and nothing is
+run again. What the prediction says will be seen in the run of share 3: 128 bits following
+as they are in the frames `0x00001821` and `0x00001823`, and, if the note beside the
+prediction is right, about as many inverted in `0x00001820` and `0x00001822` — outcome 2.

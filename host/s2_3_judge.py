@@ -138,10 +138,16 @@ def stretches(entries: list[tuple[int, int, int]]) -> list[tuple[int, int]]:
     return cuts
 
 
-def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
+def judge(words: list[int], known: dict | None, planned: list[int], rest=None) -> dict:
     """`planned`: the 32 words of the parameter block, after them the words of the list of reads, after them the words
     of the list of accesses. `known`: the facts of the probe design (pl/s2a/design.json) and, under "census" and
-    "candidates", the census and what S2.2 found."""
+    "candidates", the census and what S2.2 found.
+
+    `rest`: for another step that runs the same stage (S2.4, host/s2_4_judge.py). Everything a run of the stage is held
+    to whatever its states are — the header, the gates, every record from its raw words, the log against the list of
+    accesses, the schedule and what it implies — is judged here as for S2.3; then `rest` is given what was found and
+    says the rest: what the design's own readings show, which run it is, the finding, the verdict. Without it, this is
+    the judge of S2.3 as it was, word for word."""
     out: dict = {"problems": [], "records": []}
     bad = out["problems"].append
     planned_par = list(planned[:32])
@@ -360,7 +366,8 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
         if word & 2 or not par[24] <= addr <= par[25] or not 0 <= off < PL_SPAN or (write and not par[19] >> off & 1):
             bad(f"PL access {i}: {'write to' if write else 'read of'} {addr:#010x} is outside what the run may touch")
         if write and off == SRL_DATA_OFF:
-            bad(f"PL access {i}: a write to the shift registers' data — a shift")
+            if rest is None:                             # no run of S2.3 shifts; a step that does holds its shifts to its own plan
+                bad(f"PL access {i}: a write to the shift registers' data — a shift")
     walked = {"at": 0}
 
     def stretch(begin: int, end: int) -> int:
@@ -468,6 +475,11 @@ def judge(words: list[int], known: dict | None, planned: list[int]) -> dict:
             bad(f"the PL block's code is {plb[2]:#x} ({PL_CODES.get(plb[2], 'unknown')}); its log implies {pl_implied:#x} ({PL_CODES[pl_implied]})")
         if plb[3] != (len(log) if plb[2] else 0xFFFFFFFF):
             bad(f"the PL block says it stopped at access {plb[3]:#x}; with {len(log)} accesses and code {plb[2]:#x} that is not so")
+
+    if rest is not None:
+        return rest({"out": out, "known": known, "par": par, "status": status, "anomalies": anomalies, "plb": plb, "log": log, "cuts": cuts,
+                     "passes_made": passes_made, "n_states": n_states, "n_list": n_list, "reads": reads, "entries": entries, "recs": recs,
+                     "ctl0_seen": ctl0_seen})
 
     # ---- what the design said of itself, from the log and only as far as it goes: the states, the counter, the shift
     #      registers, the count of writes

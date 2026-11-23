@@ -120,9 +120,9 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # what S2.2 found (with_plan below; s2_3_states.plan). The two kinds have two layouts: the header of a
           # stage-9 result is as long as the run's list of accesses makes it.
           "s2_3c": {"judge": s2_3c_judge, "expected": ROOT / "build" / "prober" / "expected_s2_3c.json", "known": ROOT / "pl" / "s2a" / "design.json",
-                    "census": s2_2_shares.CENSUS, "candidates": s2_3_states.CANDIDATES},
+                    "census": s2_2_shares.CENSUS, "candidates": s2_3_states.CANDIDATES, "chain_before": s2_3_states.CHAIN_OF_S2_2},
           "s2_3s": {"judge": s2_3s_judge, "expected": ROOT / "build" / "prober" / "expected_s2_3s.json", "known": ROOT / "pl" / "s2a" / "design.json",
-                    "census": s2_2_shares.CENSUS, "candidates": s2_3_states.CANDIDATES},
+                    "census": s2_2_shares.CENSUS, "candidates": s2_3_states.CANDIDATES, "chain_before": s2_3_states.CHAIN_OF_S2_2},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -185,6 +185,8 @@ def known_for(stage: str) -> dict:
         known = dict(known, census=json.loads(STAGES[stage]["census"].read_text()))
     if "candidates" in STAGES[stage]:                # S2.3: what S2.2 found, as its chain wrote it
         known = dict(known, candidates=json.loads(STAGES[stage]["candidates"].read_text()))
+    if "chain_before" in STAGES[stage]:              # and what CTL0 read in the runs that found it: the chain of S2.3 holds its code run to it
+        known = dict(known, ctl0_in_s2_2=s2_3_states.ctl0_in_s2_2(json.loads(STAGES[stage]["chain_before"].read_text())))
     return known
 
 

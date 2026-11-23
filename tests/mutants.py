@@ -1435,6 +1435,17 @@ MUTANTS = [
     (CHAIN9, 'chain9: a run with problems does not halt the chain', '        if r["problems"]:', '        if False:'),
     (CHAIN9, 'chain9: the description is not written out', '        if a["state"] == "complete":', '        if False:'),
     (CHAIN9, 'chain9: it goes on after the last run it was allowed', '        if a["state"] != "go on" or (max_new is not None and added >= max_new):', '        if a["state"] != "go on":'),
+    # ---- section 34: the code run is held to what CTL0 read in the runs of S2.2
+    (CHAIN9, "chain9: a code run made under another CTL0 than S2.2's is taken", '        if not r["problems"] and k == 0 and (not known.get("ctl0_in_s2_2") or r.get("ctl0") != known["ctl0_in_s2_2"]):', '        if False:'),
+    (CHAIN9, "chain9: the singles are held to S2.2's CTL0 and the code run is not", ' and k == 0 and (not known.get("ctl0_in_s2_2")', ' and k > 0 and (not known.get("ctl0_in_s2_2")'),
+    (CHAIN9, "chain9: the closing does not say what CTL0 read in S2.2", ', "ctl0_in_s2_2": known.get("ctl0_in_s2_2"),', ','),
+    (STATES9, "states9: a chain of S2.2 that is not complete gives its CTL0", '    if chain.get("state") != "complete":\n        raise ValueError("the chain of S2.2', '    if False:\n        raise ValueError("the chain of S2.2'),
+    (STATES9, "states9: of two values of CTL0 in S2.2 the first is taken", ' or len(values) != 1 or not isinstance(values[0], str)', ' or len(values) < 1 or not isinstance(values[0], str)'),
+    (STATES9, "states9: what is not a word is taken for S2.2's CTL0", ' or not re.fullmatch(r"0x[0-9a-f]{8}", values[0]):', ':'),
+    (STATES9, "states9: a word of seven digits or nine is taken for S2.2's CTL0", 'r"0x[0-9a-f]{8}", values[0]', 'r"0x[0-9a-f]+", values[0]'),
+    (STATES9, "states9: the chain of S2.2 is looked for in another file than the one beside the candidates", 'CHAIN_OF_S2_2 = CANDIDATES.parent / "chain.json"', 'CHAIN_OF_S2_2 = CANDIDATES.parent / "candidates.json"'),
+    (RUN, "run s2.3: the sets of S2.3 are not told what CTL0 read in S2.2", '    if "chain_before" in STAGES[stage]:', '    if False:'),
+    (RUN, "run s2.3: the set of the singles is not told what CTL0 read in S2.2", '"candidates": s2_3_states.CANDIDATES, "chain_before": s2_3_states.CHAIN_OF_S2_2},', '"candidates": s2_3_states.CANDIDATES},', 1),
 ]
 
 

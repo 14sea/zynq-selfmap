@@ -38,8 +38,10 @@ things, all reproduced and mended (section 32) — one of them in the prober, so
 is new again. A review of that found three small things more, mended without a new
 image, and I found one of my own while preparing the mutants: a mutant could lead a test
 to the board's console (section 33). The tool has run the 324 mutants of S2.3 and none survives (section 33,
-at its end); the complete set has not been run for the new image. Nothing of S2.3 has
-been on a board.** S2.4 and S2.5 are not proposed in full yet.
+at its end). The owner then decided that the code run is held to the CTL0 S2.2's runs
+read, and a run under another halts the chain there (section 34; host side only, the
+image is the same). The complete set has not been run for the new image. Nothing of
+S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2629,7 +2631,8 @@ the check when I wrote this chain from S2.2's; it was in the file I started from
   at that run**, not at the end: nothing more is run on a board whose register changed.
 - Not done, and said: the chain does not hold its CTL0 to the value S2.2's runs read
   (`0x00000501`). `candidates.json` does not carry it. What it would guard is caught another
-  way — the table must be exactly S2.2's 256 places — but not by name.
+  way — the table must be exactly S2.2's 256 places — but not by name. *(Done since: section
+  34. And "caught another way" was too much said — see there.)*
 
 ### 5. (low) A console that fails ended the driver in an exception
 
@@ -2797,3 +2800,81 @@ What this run does and does not say:
   did on 2026-11-22 (section 27).
 
 Tests now: 989. Mutants: 1,326, none stale. Image unchanged.
+
+## 34. The code run is held to the CTL0 of S2.2's runs (owner, 2026-11-23)
+
+Section 32 left this open and said so; the owner took it up and decided it, before anything
+of S2.3 has been on a board — a condition for halting counts only if it is set down before
+the run it would halt.
+
+### What was open
+
+S2.3 is built on S2.2's 256 candidates, and those were found with CTL0 reading `0x00000501`
+at all 16 readings (section 28). S2.3's chain held each run's two readings to each other
+(the judge) and the singles to the code run (section 32). Nothing held the code run to
+S2.2. Two cases:
+
+| | as it was | now |
+|---|---|---|
+| CTL0 is another value and readback of the RAM is not what it was | no table of S2.2's 256 places comes out: the chain halts at the code run, and says "table" | halts at the code run, and says CTL0 |
+| CTL0 is another value and the frames read as before | **the chain completes and writes `ram_map.json`** | halts at the code run |
+
+Section 32 said the thing "is caught another way". That is true of the first row only. The
+second is a description made of candidates found under one value of the register and a
+table decoded under another, with nothing to show it but a field of `chain.json`. I do not
+think it likely — the same board, the same card, the same design, whose file is held to its
+hash — but on the same board with the same design a CTL0 that reads otherwise says that
+something before the prober was not as it was, and that is worth a stop.
+
+### The three points, as decided
+
+1. **The whole word is compared**, not bit 8. No program is told what a bit of CTL0 means:
+   the word the device gave on 2026-11-22 against the word it gives now.
+2. **The value is read from S2.2's own chain file**
+   (`evidence/s2_2_17A6_2026-11-22/chain.json`, its closing's `ctl0`), which lies beside
+   `candidates.json` — no constant in a program, and `candidates.json`, the evidence of a
+   closed step, is not touched. It is taken only from a complete chain whose closing has
+   exactly one value that is a word as the judge writes it (`0x` and eight digits);
+   anything else gives none, and then nothing of S2.3 can be planned or run.
+3. **Another value halts the chain at the code run.** That run is made (it reads; it writes
+   nothing but through the design's registers), its judge has nothing against it, and the
+   chain halts on it by the register's name *before the run is closed*: no table is taken
+   from it, none is written, no single is started. A halt is the owner's to decide, as
+   every halt is. Section 7's "CTL0 differs — a finding, not a failure" was said of another
+   case: there the design had been changed and the question was open. Here the design is
+   the same and a step rests on the other.
+
+### As built
+
+- `host/s2_3_states.py`: `CHAIN_OF_S2_2` and `ctl0_in_s2_2(chain)`.
+- `host/s1a_run.py`: both sets of S2.3 name that file (`chain_before`), and `known_for`
+  gives what it says as `known["ctl0_in_s2_2"]` — where it already gives the candidates.
+  The run script itself does nothing with it: a run is judged as a run.
+- `host/s2_3_chain.py`: in `assess`, for run00, before `close_code`. A chain that is told
+  of no value halts there too. The closing of a complete chain says both — what its runs
+  read and what S2.2's read.
+- What is left for a look by hand at such a halt: the run is stored whole, and
+  `host/s2_3_table.py <verdict.json> <candidates.json>` closes it and prints the closing,
+  so whether the 256 places would have come out can be seen without the chain going on.
+
+One clause is held by no mutant and I say which: `not known.get("ctl0_in_s2_2") or …`
+guards the case that the chain is told of no value *and* a passing run has none either. No
+passing run lacks the value, so I can make no test in which the clause alone decides; a
+chain told of no value halts by the comparison (tested: no key, and an empty one).
+
+Not done, and said: `ram_map.json` itself does not say under which CTL0 it was found;
+`chain.json` beside it does. That would be a change to the description's form, and was
+not part of this decision.
+
+### In numbers
+
+- **Tests**: 992, all passing in a clean environment. New: the chain with a board that
+  reads `0x00000401` in every run (one run made, a passing run, halted, no table, nothing
+  run again); the code run alone is what is held to S2.2; what is taken from S2.2's file
+  and what is refused. One part of section 32's test changed with the rule: a code run
+  under another value now halts at run00, where it used to halt at run01.
+- **Mutants**: 1,336, none stale — ten new (three of the chain, five of the reading of
+  S2.2's file, two of the run script's sets). A first look, against the test file of
+  S2.3's host side: ten of ten killed. The tool has not run them; the complete set, which
+  is next, has them.
+- **Image**: unchanged (`8bf3799c…`, section 32). Nothing under `prober/` was touched.

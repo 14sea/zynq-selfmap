@@ -47,11 +47,12 @@ def candidates_of(cells) -> dict:
 
 
 CELLS = T.ram_map()                                   # the 256 cells, in three frames of the first column of the made-up device
-KNOWN = dict(DESIGN, census=T8.census(), candidates=candidates_of(CELLS))
+CTL0 = "0x00000501"                                  # what the pretend device's CTL0 reads, and what the made-up S2.2 is said to have read
+KNOWN = dict(DESIGN, census=T8.census(), candidates=candidates_of(CELLS), ctl0_in_s2_2=CTL0)
 
 
 def known_for(cells) -> dict:
-    return dict(DESIGN, census=T8.census(), candidates=candidates_of(cells))
+    return dict(DESIGN, census=T8.census(), candidates=candidates_of(cells), ctl0_in_s2_2=CTL0)
 
 
 def plan(kind: str, share: int | None = None, known: dict = KNOWN) -> dict:
@@ -169,6 +170,22 @@ class States(unittest.TestCase):
         self.assertEqual(s2_2_shares.list_problems(s2_2_shares.layout(CENSUS), col), [])
         self.assertEqual(st.column_reads(KNOWN["census"], KNOWN["candidates"]), COLUMN_READS)
         self.assertEqual(st.candidate_reads(KNOWN["census"], KNOWN["candidates"]), [(0xA03, 3)])
+
+    def test_what_ctl0_read_in_s2_2_is_taken_from_that_chain_s_own_file(self) -> None:
+        """Section 34: one value, of a complete chain, the word as it was written there; anything else gives none. And
+        the file is the one beside the candidates, and both sets of S2.3 are told what it says."""
+        self.assertEqual(st.CHAIN_OF_S2_2, st.CANDIDATES.parent / "chain.json")
+        stored = json.loads(st.CHAIN_OF_S2_2.read_text())
+        self.assertEqual((st.ctl0_in_s2_2(stored), stored["candidates_file"], stored["closing"]["candidates"]), ("0x00000501", "there", 256))
+        self.assertEqual([s1a_run.known_for(stage)["ctl0_in_s2_2"] for stage in ("s2_3c", "s2_3s")], ["0x00000501"] * 2)
+        self.assertNotIn("ctl0_in_s2_2", s1a_run.known_for("s2_2"), "a set that is built on nothing of S2.2's is told nothing of it")
+        good = {"state": "complete", "closing": {"ctl0": ["0x00000401"]}}
+        self.assertEqual(st.ctl0_in_s2_2(good), "0x00000401", "whatever the word is: it is not held to anything here")
+        self.assertRaisesRegex(ValueError, "not a complete chain", st.ctl0_in_s2_2, dict(good, state="halted"))
+        self.assertRaisesRegex(ValueError, "not a complete chain", st.ctl0_in_s2_2, {"closing": good["closing"]})
+        for values in ([], ["0x00000501", "0x00000401"], None, "0x00000501", [0x501], ["501"], ["0x501"], ["0x0000050G"], ["0x00000501\n"], ["0X00000501"]):
+            self.assertRaisesRegex(ValueError, "does not have one value of CTL0", st.ctl0_in_s2_2, {"state": "complete", "closing": {"ctl0": values}})
+        self.assertRaisesRegex(ValueError, "does not have one value of CTL0", st.ctl0_in_s2_2, {"state": "complete"})
 
     def test_candidates_in_two_columns_or_none_give_no_reads(self) -> None:
         two = candidates_of(CELLS[:200] + [(a, m, 0xA80, w, b, i) for a, m, _, w, b, i in CELLS[200:]])
@@ -1242,9 +1259,34 @@ class Chain(unittest.TestCase):
         self.assertFalse((self.root / "ram_map.json").exists())
         self.calls.clear()
         self.assertEqual((self.drive()["state"], self.calls), ("halted", []), "and nothing is run again")
-        self.setUp()
-        a = self.drive(runner=lambda k, out: (other if k == 0 else plain)(k, out), max_new=2)
-        self.assertEqual((a["state"], self.calls, a["why"]), ("halted", [0, 1], ["run01: CTL0 read 0x00000501 in this run and 0x00000401 in the code run"]))
+
+    def test_a_code_run_made_under_another_ctl0_than_s2_2_s_halts_the_chain_before_a_table_is_taken(self) -> None:
+        """Section 34 (the owner, 2026-11-23). The candidates were found under one value of CTL0, in S2.2's runs. A
+        chain whose five runs all read another agreed with itself, gave the same 256 places and ended in a
+        description: now its code run halts it — by the register's name, before the table, and nothing more is run."""
+        other = self.runner(env={"SM_CREG": "ctl0:00000401"})
+        a = self.drive(runner=other)
+        self.assertEqual((a["state"], self.calls), ("halted", [0]))
+        self.assertEqual([(r["judge"], r["ctl0"], r["decision"]) for r in a["runs"]], [("PASS", "0x00000401", "halt")], "the run itself passes its judge")
+        self.assertEqual(a["why"], ["run00: CTL0 read 0x00000401 in the code run and 0x00000501 in the runs of S2.2, in which the candidates were found"])
+        self.assertNotIn("table", a); self.assertNotIn("closing_of_the_code_run", a)
+        self.assertFalse((self.root / "table").exists(), "no table is written from it")
+        self.assertFalse((self.root / "ram_map.json").exists())
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["why"], a["why"], "and the chain's file says why")
+        self.calls.clear()
+        self.assertEqual((self.drive()["state"], self.calls), ("halted", []), "and nothing is run again, by a board that reads as S2.2's did either")
+
+    def test_the_singles_are_not_what_is_held_to_s2_2_and_a_chain_told_of_no_value_does_not_begin(self) -> None:
+        """The code run alone is held to S2.2's value; a single is held to the code run (the test above the last). And
+        a chain that is not told what S2.2 read — no value, or an empty one — takes no code run for good."""
+        a = self.drive()
+        self.assertEqual((a["state"], a["closing"]["ctl0"], a["closing"]["ctl0_in_s2_2"]), ("complete", [CTL0], CTL0))
+        for said, known in (("None", {k: v for k, v in KNOWN.items() if k != "ctl0_in_s2_2"}), ("", dict(KNOWN, ctl0_in_s2_2="")),
+                            ("0x00000401", dict(KNOWN, ctl0_in_s2_2="0x00000401"))):
+            b = s2_3_chain.assess(self.root, self.bases, known)
+            self.assertEqual((b["state"], len(b["runs"]), b["runs"][0]["decision"]), ("halted", 1, "halt"), said)
+            self.assertEqual(b["why"][0], f"run00: CTL0 read 0x00000501 in the code run and {said} in the runs of S2.2, in which the candidates were found")
+            self.assertNotIn("table", b, said)
 
     def test_a_console_that_fails_before_a_run_holds_the_chain_and_says_so_in_its_file(self) -> None:
         """Review of 5936a8e: the serial adapter could not be opened, the exception ended the driver, and chain.json

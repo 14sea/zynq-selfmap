@@ -34,6 +34,7 @@ an address but which column of the census it lies in.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -43,6 +44,7 @@ import s2_2_shares  # noqa: E402
 
 DESIGN = ROOT / "pl" / "s2a" / "design.json"
 CANDIDATES = ROOT / "evidence" / "s2_2_17A6_2026-11-22" / "candidates.json"   # what S2.2 found, as its chain wrote it
+CHAIN_OF_S2_2 = CANDIDATES.parent / "chain.json"      # that chain's own file, beside them: its closing has what CTL0 read in its runs
 MEMORIES, DEPTH = 4, 64
 CELLS = MEMORIES * DEPTH                               # 256
 CODE_BITS = 8                                          # a cell's number has eight bits
@@ -173,6 +175,19 @@ def planned_log(entries: list[tuple[int, int, int]], design: dict) -> list[tuple
     reg = registers(design)
     return ([(reg["ID"], False, int(design["id"], 16))]
             + [(addr, kind == A_WRITE, None if kind == A_READ else value) for kind, addr, value in entries if kind != A_MARK])
+
+
+def ctl0_in_s2_2(chain: dict) -> str:
+    """What CTL0 read in the runs in which S2.2 found its candidates, as that chain's file has it: the one value of
+    its closing. S2.3 is built on those candidates, and its code run is held to this word (section 34) — the whole
+    word as the device gave it; what a bit of it means is asked nowhere. A chain that is not complete, or whose
+    closing has no value, or more than one, or something that is not a word, gives none."""
+    values = (chain.get("closing") or {}).get("ctl0")
+    if chain.get("state") != "complete":
+        raise ValueError("the chain of S2.2 is not a complete chain: it has no CTL0 to hold a run to")
+    if not isinstance(values, list) or len(values) != 1 or not isinstance(values[0], str) or not re.fullmatch(r"0x[0-9a-f]{8}", values[0]):
+        raise ValueError(f"the closing of S2.2's chain does not have one value of CTL0: {values!r}")
+    return values[0]
 
 
 def candidate_frames(candidates: dict) -> list[int]:

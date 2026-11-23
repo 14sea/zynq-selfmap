@@ -24,6 +24,10 @@ A run of the singles is held to the table (s2_3_table.hold_singles): for each of
 set, exactly the place the table has for it differs from the base. A contradiction halts the chain there; what the
 other singles of that run said is in the chain's file. So does a run in which CTL0 read otherwise than in the code
 run: each run's judge holds that register to itself only, and the table and its confirmations are one finding.
+And the code run itself is held to what CTL0 read in the runs of S2.2 (known["ctl0_in_s2_2"], from that chain's
+own file): the candidates this step is built on were found under that word, and a code run made under another
+halts the chain there, before a table is taken from it (section 34). The whole word is compared, as the device
+gave it; no bit of it is given a meaning here.
 
 Anything else halts it too, and nothing is run again: a run directory that does not hold a passing run stays where it
 is until someone has looked and moved it.
@@ -214,6 +218,9 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
         r = read_run(root / name, k, exp, known, held)
         v = r.pop("verdict", None)
         out["runs"].append(r)
+        if not r["problems"] and k == 0 and (not known.get("ctl0_in_s2_2") or r.get("ctl0") != known["ctl0_in_s2_2"]):
+            # asked before the code run is closed: no table is taken from a run made under another CTL0 than S2.2's (section 34)
+            r["problems"].append(f"CTL0 read {r.get('ctl0')} in the code run and {known.get('ctl0_in_s2_2')} in the runs of S2.2, in which the candidates were found")
         if not r["problems"] and k == 0:                 # the code run, closed
             closing = s2_3_table.close_code(v, known["candidates"])
             out["closing_of_the_code_run"] = {key: val for key, val in closing.items() if key != "table"}
@@ -253,7 +260,7 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
     confirmed = sorted(n for r in out["runs"][1:] for n in r["confirmed"])
     out["closing"] = {"cells": s2_3_states.CELLS, "confirmed": len(confirmed), "contradictions": 0,
                       "outcome": "1 and 9: the table of the code run, and every cell confirmed by its single",
-                      "ctl0": sorted({r["ctl0"] for r in out["runs"] if r.get("ctl0")}),
+                      "ctl0": sorted({r["ctl0"] for r in out["runs"] if r.get("ctl0")}), "ctl0_in_s2_2": known.get("ctl0_in_s2_2"),
                       "bit_5": {r["dir"]: r["bit_5_shown_after_records"] for r in out["runs"] if r.get("bit_5_shown_after_records")}}
     if confirmed != list(range(s2_3_states.CELLS)):
         return halted(f"the singles confirm {len(confirmed)} cell(s), not every cell once")

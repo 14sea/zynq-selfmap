@@ -40,8 +40,9 @@ image, and I found one of my own while preparing the mutants: a mutant could lea
 to the board's console (section 33). The tool has run the 324 mutants of S2.3 and none survives (section 33,
 at its end). The owner then decided that the code run is held to the CTL0 S2.2's runs
 read, and a run under another halts the chain there (section 34; host side only, the
-image is the same). The complete set has not been run for the new image. Nothing of
-S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
+image is the same). The complete set has not been run for the new image, and by the
+owner's rule of 2026-11-23 it is not due before the board: once before S2 is graded, and
+before the first write (section 35). Nothing of S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2876,5 +2877,63 @@ not part of this decision.
 - **Mutants**: 1,336, none stale — ten new (three of the chain, five of the reading of
   S2.2's file, two of the run script's sets). A first look, against the test file of
   S2.3's host side: ten of ten killed. The tool has not run them; the complete set, which
-  is next, has them.
+  is next, has them. *(The complete set was begun and stopped: section 35. The ten have
+  had the first look only.)*
 - **Image**: unchanged (`8bf3799c…`, section 32). Nothing under `prober/` was touched.
+
+## 35. When the complete set of mutants is run (owner, 2026-11-23)
+
+The rule of 2026-11-17 was: after a change the mutants of what changed; the complete set on
+a substantive change of the prober or a judge, and before a new image first goes on a
+board. The owner asked what a complete run proves, whether it is needed, and how many more
+there would be. What I answered, and what was decided.
+
+### What the record says
+
+- A mutant that survives has nearly always been one of **new code, in the first run of the
+  new mutants**: three of the 98 of S2.0 (section 13), two of the first part of S2.2
+  (section 21), one of the chain of S2.2 (section 27, whose mutants had not all been run
+  till then); the same in S1b. Those runs are the short ones.
+- **The complete set run again over mutants already killed** has ended "all killed, none
+  survived" time after time (315, 320, 354, 390, 433, 478, 481, 523, 711; 1,015 with the
+  one just named).
+- What a complete run has found besides is faults of the tests' own build — a class that
+  leaves the count, a count misread. Today's two (section 33) showed in the run of the
+  324 that belong to S2.3.
+- Faults of the programs themselves were found, these two days, by review: eight in two
+  rounds (sections 32 and 33). No mutant finds a check that was never written.
+- The list grows — 609 on 11-19, 1,015 on 11-22, 1,336 now — and a complete run is about a
+  day of this machine, during which the board is not used. By the old rule I counted six
+  to nine more of them to the end of the project.
+
+### The rule now
+
+1. **After every change**: the whole suite; the mutants of what changed; and review, as
+   before. Nothing of this is new.
+2. **Stages that only read (S2, S3)**: with point 1 an image may go on the board. No
+   complete set for each new image.
+3. **Before a stage is graded** (the end of S2; before S6): the complete set once. Grading
+   is done once and opens the book: a judge found too loose after it cannot be mended
+   closed-book. Before it, it can — the results are stored as the board gave them and a
+   mended judge judges them again, mostly without the board. And grading asks only for
+   the table: what else S2 says of the device (that readback leaves the RAM as it was,
+   what the status bits do) rests on the judges alone.
+4. **Before the first write to configuration memory (S4)**: the complete set, or at the
+   least every mutant of the prober and of what guards a write. What a wrong write does,
+   it does before anything is graded.
+
+The owner's first thought was "on the board when the logic is right, grade at the end of
+S2, and come back to the tests if something is wrong". Points 3 and 4 are where I asked
+for more than that, and why; the owner took the rule as written here.
+
+### What follows for S2.3
+
+- The complete set begun today at 13:35Z on `e7b21e4` was **stopped at 13:57Z on the
+  owner's word**: 16 judged, 16 killed
+  (`evidence/host_checks/mutants_2026-11-23_complete_stopped.txt`). It says nothing of
+  the set and is kept as what was run.
+- For the image of section 32 there is, then: the suite (992 tests); the tool's run on
+  the 324 mutants of S2.3, none surviving (section 33); a first look at the ten of
+  section 34, all killed; two rounds of review. **Not** run against this image by the
+  tool: the other 1,002, and the ten of section 34. They are due with point 3.
+- The board is still the owner's word, step by step.

@@ -1,0 +1,20 @@
+# SM_MUTANT_JOBS=8 python3 tests/mutants.py   (the complete set: every mutant of the list, for the image of section 32 and the host side as section 34 left it)
+# started 2026-11-23T13:35:34Z on e7b21e4c4d1d012e46d2397966ccef419e9d81b6, working tree clean: 0 changed file(s); SELFMAP_NO_BOARD=1; 20 processors, Python 3.12.3
+unmutated: Ran 992 OK (skipped=1); 0 test(s): 
+KILLED   the generator sends WCFG                                       Ran 992 FAILED (failures=1018, errors=280, skipped=1); 566 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_that_changes_and_follows_no_cell_is_i
+KILLED   the guard accepts any CMD value                                Ran 992 FAILED (failures=2, skipped=1); 2 test(s): every_forbidden_command_is_refused, the_c_guard_never_accepts_what_the_python_r
+KILLED   the guard ignores the envelope                                 Ran 992 FAILED (failures=8, skipped=1); 5 test(s): both_readers_accept_what_the_generator_make, one_fdro_read_per_frame_address
+KILLED   the guard allows any read length                               Ran 992 FAILED (failures=3, skipped=1); 2 test(s): a_multi_frame_read_must_stay_inside_the_env, the_pad_alone_and_no_read_at_all
+KILLED   no clear before a command                                      Ran 992 FAILED (failures=346, errors=108, skipped=1); 162 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_that_halted_is_summarized_as_far_as
+KILLED   the clear is not verified                                      Ran 992 FAILED (failures=6, skipped=1); 4 test(s): a_stale_status_bit_stops_before_anything_is, an_interface_stop_is_saved_whole_then_judge
+KILLED   the clear also clears PCFG_DONE                                Ran 992 FAILED (failures=346, errors=108, skipped=1); 162 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_that_halted_is_summarized_as_far_as
+KILLED   PCFG_DONE not checked before queuing                           Ran 992 FAILED (failures=9, skipped=1); 4 test(s): any_interface_failure_stops_at_that_command, pcfg_done_found_clear_before_a_command_mean
+KILLED   PCFG_DONE not checked while polling                            Ran 992 FAILED (failures=17, skipped=1); 4 test(s): for_every_fault_and_shape_the_judge_rederiv, for_every_fault_the_judge_rederives_exactly
+KILLED   SRC and DST written in the wrong order                         Ran 992 FAILED (failures=22, skipped=1); 4 test(s): every_dma_command_is_clear_verify_program_i, five_commands_per_operation_each_cleared_ve
+KILLED   the wait is on DMA_DONE, not D_P_DONE                          Ran 992 FAILED (failures=363, errors=2, skipped=1); 83 test(s): a_card_copy_of_the_wrong_size_is_not_used, a_chain_that_halted_is_summarized_as_far_as
+KILLED   error bits are not checked                                     Ran 992 FAILED (failures=97, skipped=1); 16 test(s): a_failure_on_the_very_first_read_is_reporte, a_result_that_still_says_the_reference_fram
+KILLED   the poll limit is ignored below 5000                           Ran 992 FAILED (failures=30, errors=539, skipped=1); 354 test(s): a_block_type_of_a_few_frames_is_an_answer, a_card_copy_of_the_wrong_size_is_not_used
+KILLED   no data-cache gate                                             Ran 992 FAILED (failures=4, skipped=1); 4 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_must_show_that_gate_failing
+KILLED   stage 2: no data-cache gate                                    Ran 992 FAILED (failures=11, skipped=1); 6 test(s): a_failed_gate_sends_nothing, for_every_fault_the_judge_rederives_what_th
+KILLED   no loopback gate                                               Ran 992 FAILED (failures=4, skipped=1); 4 test(s): a_failed_gate_sends_nothing_and_writes_no_r, a_gate_stop_on_the_board_is_saved_too
+# stopped by me at 2026-11-23T13:57Z on the owner's word (docs/s2_plan.md, section 35): 16 judged, 16 killed; the eight in work were not judged; the scratch copies were removed by hand

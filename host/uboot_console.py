@@ -5,6 +5,10 @@ LOG = os.environ.get("SELFMAP_CONSOLE_LOG", "build/console.log")
 PROMPT = re.compile(rb"(?:zynq-uboot|Zynq)> \Z")
 class UB:
     def __init__(self):
+        # Every session with the board begins here. The mutant tool runs each suite with SELFMAP_NO_BOARD set: a mutant can
+        # take away the check that keeps a test from the board's runner, and the adapter may be attached (docs/s2_plan.md, section 33).
+        if os.environ.get("SELFMAP_NO_BOARD"):
+            raise serial.SerialException("the console is not opened here: SELFMAP_NO_BOARD is set")
         self.s = serial.Serial(DEV, 115200, timeout=0.1); self.log = open(LOG, "ab")
     def _rd(self, t):
         end = time.time() + t; buf = b""

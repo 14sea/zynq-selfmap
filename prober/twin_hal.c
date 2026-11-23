@@ -67,9 +67,10 @@
  * VIOLATION — no set of S2.3 allows it — unless SM_SHIFTS=allowed says the test means it.
  *
  * SM_DIRTY=1 (review of 5936a8e): memory holds something when the prober starts, as on a board, where the result of
- * the run before lies where this run's will. Every word then holds a word of its own, and a result of which a word
- * still holds it — a word the result's length takes in and nothing wrote — is not written out: the twin says STALE
- * and ends with 4.
+ * the run before lies where this run's will. Every word then holds a word of its own, and a result that takes in a
+ * word neither the prober nor the engine wrote in this run is not written out: the twin says STALE and ends with 4.
+ * Which words were written is kept, not read off what they hold: a frame may hold any word, also the one that lay
+ * there (review of ce77a49).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,6 +81,7 @@
 #define DDR_WORDS  0x00100000u                         /* 4 MiB */
 #define DIRTY(i)   (0xD1E70000u | ((uint32_t)(i) & 0xFFFFu))   /* SM_DIRTY: what a word holds that nothing has written */
 static uint32_t ddr[DDR_WORDS];
+static unsigned char wrote[DDR_WORDS];                    /* SM_DIRTY: the words the prober or the engine has written in this run */
 static uint32_t reg_ctrl = 0x4E00E07Fu, reg_mctrl = 0x30800100u, reg_sts = 0x50021004u, reg_status = 0x40000A30u;
 static uint32_t dma_src, dma_dst, dma_slen, sctlr = 0x08C51879u;   /* data cache off, as after U-Boot's `dcache off` */
 static unsigned n_dma, n_read_dma, n_far_read; static int done_pending, drop_on_next_clear, late_err, late_drop, far_skips, far_skips_data_only;
@@ -236,15 +238,15 @@ static void dma_execute(uint32_t dlen)
         if (dlen == 1u) {                                                     /* a register read */
             n_far_read++;
             if (fault_at("farshort", n_far_read)) n = 0u;
-            for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
+            for (i = 0; i < n && q_at < q_n; i++) { ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++]; wrote[(a - DDR_BASE) / 4u + i] = 1; }
             if (n && fault_at("farflip", n_far_read)) ddr[(a - DDR_BASE) / 4u] ^= 0x00000004u;
         } else {
             n_read_dma++;
             if (fault_at("ramdisturb", n_read_dma)) pl_ram[9] ^= 0x4u;
             if (fault_at("bit5", n_read_dma)) reg_sts |= STS_SEU_ERR;
             if (fault_at("short", n_read_dma)) n = dlen > 150u ? 150u : dlen / 2u;
-            for (i = 0; i < n && q_at < q_n; i++) ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++];
-            if (fault_at("padnz", n_read_dma)) ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u;
+            for (i = 0; i < n && q_at < q_n; i++) { ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++]; wrote[(a - DDR_BASE) / 4u + i] = 1; }
+            if (fault_at("padnz", n_read_dma)) { ddr[(a - DDR_BASE) / 4u + 7u] = 0x00000100u; wrote[(a - DDR_BASE) / 4u + 7u] = 1; }
             if (fault_at("flip", n_read_dma)) ddr[(a - DDR_BASE) / 4u + FRAME_WORDS + 3u] ^= 0x00010000u;
             if (fault_at("flip3", n_read_dma) && dlen >= 4u * FRAME_WORDS) ddr[(a - DDR_BASE) / 4u + 3u * FRAME_WORDS + 3u] ^= 0x00010000u;
         }
@@ -361,6 +363,7 @@ void hal_mem_wr(uint32_t a, uint32_t v)
     if (!(in(a, RESULT_ADDR, RESULT_MAX_WORDS) || in(a, CMD_BUF, STREAM_WORDS) || in(a, DST_BUF, DATA2_WORDS)))
         { printf("VIOLATION memory write %08x\n", a); wild(); return; }
     ddr[(a - DDR_BASE) / 4u] = v;
+    wrote[(a - DDR_BASE) / 4u] = 1;
 }
 
 uint32_t hal_cpu(int which) { wait_over(); return which == CPU_SCTLR ? sctlr : 0xC0DE0000u | (uint32_t)which; }
@@ -479,7 +482,7 @@ int main(int argc, char **argv)
         if (total < HDR_WORDS || total > RESULT_MAX_WORDS) total = HDR_WORDS;
         if (getenv("SM_DIRTY")) {                       /* a result that holds a word nothing wrote is not handed out */
             unsigned long stale = 0;
-            for (i = 0; i < total; i++) if (ddr[i] == DIRTY(i)) stale++;
+            for (i = 0; i < total; i++) if (!wrote[i]) stale++;
             if (stale) { fprintf(stderr, "STALE %lu of the %lu words of the result were never written\n", stale, (unsigned long)total); return 4; }
         }
         f = fopen(argv[4], "wb");

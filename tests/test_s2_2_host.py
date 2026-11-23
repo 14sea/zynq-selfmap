@@ -1034,6 +1034,53 @@ class Chain(unittest.TestCase):
         stored = json.loads((self.root / "chain.json").read_text())
         self.assertEqual((stored["state"], stored["held"], stored["blocked"], (self.root / "run00").exists()), ("go on", a["held"], True, False))
 
+    def test_a_close_that_fails_does_not_stand_in_the_place_of_what_failed_before(self) -> None:
+        """Review of ce77a49: the read failed, the port's close failed too — the close was what was told, and the
+        log was left open."""
+        closed: list[str] = []
+
+        class Thing:
+            def __init__(self, name: str, fails: bool) -> None:
+                self.name, self.fails = name, fails
+
+            def close(self) -> None:
+                closed.append(self.name)
+                if self.fails:
+                    raise OSError(9, "Bad file descriptor")
+
+        class Port:
+            def __init__(self) -> None:
+                self.s, self.log = Thing("port", True), Thing("log", False)
+
+            def interrupt(self):
+                raise OSError(5, "Input/output error")
+        with self.assertRaises(RuntimeError) as held:
+            s2_2_chain.came_up_fresh(Port, "run03")
+        self.assertEqual(str(held.exception), "before run03: the console failed — OSError: [Errno 5] Input/output error; the run script was not started")
+        self.assertEqual(closed, ["port", "log"])
+
+    def test_a_line_that_answers_and_gives_no_fresh_prompt_starts_no_run_either(self) -> None:
+        class Port:
+            def __init__(self, reply: bytes = b"", sts: bytes = b"") -> None:
+                self.s = self.log = self
+                self.reply, self.sts, self.sent, self.closed = reply, sts, [], 0
+
+            def close(self) -> None:
+                self.closed += 1
+
+            def interrupt(self):
+                return b"", True
+
+            def cmd(self, line: str, timeout: int):
+                self.sent.append(line)
+                return (self.reply, True) if line == "reset" else (self.sts, True)
+        fresh = Port(b"U-Boot ...\nEbang EBAZ4203\nZynq> ", b"f800700c: 0a802000\nZynq> ")
+        s2_2_chain.came_up_fresh(lambda: fresh, "run00")
+        self.assertEqual((fresh.sent, fresh.closed), (["reset", "md.l f800700c 1"], 2))
+        for port in (Port(b"Zynq> ", b"f800700c: 0a802000\nZynq> "), Port(b"Ebang EBAZ4203\nZynq> ", b"f800700c: 50033004\nZynq> ")):
+            self.assertRaisesRegex(RuntimeError, "^before run00: reset did not give the usual fresh prompt; nothing was run$", s2_2_chain.came_up_fresh, lambda: port, "run00")
+            self.assertEqual(port.closed, 2)
+
     def test_the_command_ends_with_a_code_when_a_run_could_not_be_started(self) -> None:
         import contextlib, io
         build = s1a_run.IMAGE

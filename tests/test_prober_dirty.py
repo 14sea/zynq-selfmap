@@ -36,11 +36,13 @@ class OnMemoryThatHoldsSomething(unittest.TestCase):
             self.assertTrue("env = dict(os.environ)" in text or re.search(r"from test_prober_\w+ import .*\bRun\b", text), name)
 
     def test_the_twin_does_end_with_a_code_for_a_result_of_which_a_word_was_never_written(self) -> None:
-        """The check itself, asked of the twin: its stale-word count is made over the whole result, with the pattern
-        the memory was filled with."""
+        """The check itself, asked of the twin's text: memory is filled, and the count is made over the whole result of
+        the words that were not written — kept as they are written, not read off what a word holds (review of ce77a49;
+        a frame word that equals what lay there is in tests/test_prober_s2_3.py)."""
         text = (ROOT / "prober" / "twin_hal.c").read_text()
         self.assertEqual(text.count("ddr[i] = DIRTY(i);"), 1)
-        self.assertEqual(text.count("for (i = 0; i < total; i++) if (ddr[i] == DIRTY(i)) stale++;"), 1)
+        self.assertEqual(text.count("for (i = 0; i < total; i++) if (!wrote[i]) stale++;"), 1)
+        self.assertEqual(text.count("DIRTY("), 2, "the pattern is written and defined, and compared nowhere")
         self.assertIn("if (stale) {", text)
 
 

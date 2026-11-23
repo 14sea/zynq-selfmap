@@ -1406,9 +1406,23 @@ MUTANTS = [
     (CHAIN9, "chain9: a table that is a link or a directory is read as the table", '                if stored_table.is_file() and not stored_table.is_symlink():', '                if stored_table.exists():'),
     (CHAIN9, "chain9: a link that leads nowhere in the table's place is nothing", '    return p.is_symlink() or p.exists()', '    return p.exists()'),
     (CHAIN9, 'chain9: a run made under another CTL0 is taken', '        if not r["problems"] and k > 0 and r.get("ctl0") != out["runs"][0].get("ctl0"):', '        if False:'),
-    (CHAIN9, 'chain9: a console that fails ends the driver with an exception', '        except s1a_run.TRANSPORT as e:', '        except ZeroDivisionError as e:'),
-    (CHAIN9, 'chain9: a line that failed is left open', '            finally:\n                u.s.close(); u.log.close()', '            finally:\n                pass'),
-    (CHAIN8, 'chain8: a console that fails ends the driver with an exception', '        except s1a_run.TRANSPORT as e:', '        except ZeroDivisionError as e:'),
+    # ---- review of ce77a49 (section 33): the reset before a run is one function for both chains
+    (CHAIN8, 'chain8: a console that cannot be opened ends the driver with an exception', '\n    except s1a_run.TRANSPORT as e:', '\n    except ZeroDivisionError as e:'),
+    (CHAIN8, 'chain8: a console that fails on the way ends the driver with an exception', '\n        except s1a_run.TRANSPORT as e:', '\n        except ZeroDivisionError as e:'),
+    (CHAIN8, 'chain8: a close that fails ends the driver with an exception', '\n            except s1a_run.TRANSPORT as e:', '\n            except ZeroDivisionError as e:'),
+    (CHAIN8, 'chain8: a close that fails stands in the place of what failed before', '                if failed is None:\n                    failed = e', '                failed = e'),
+    (CHAIN8, 'chain8: a close that fails alone is passed by', '                if failed is None:\n                    failed = e', '                pass'),
+    (CHAIN8, 'chain8: the log is left open', '        for thing in (u.s, u.log):', '        for thing in (u.s,):'),
+    (CHAIN8, 'chain8: the port is left open', '        for thing in (u.s, u.log):', '        for thing in (u.log,):'),
+    (CHAIN8, 'chain8: a line that failed is taken for one that gave no fresh prompt', '    if failed is not None:\n        raise RuntimeError(f"before {name}: the console failed', '    if False:\n        raise RuntimeError(f"before {name}: the console failed'),
+    (CHAIN8, 'chain8: a reset that gave no fresh prompt is followed by a run', '    if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:', '    if False:'),
+    (CHAIN8, 'chain8: the board is not asked for its status after the reset', 'b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:', 'b"Ebang EBAZ4203" not in reply:'),
+    (CHAIN8, "chain8: the board's own line after the reset is not asked for", 'b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:', 'b"a802000" not in sts:'),
+    (CHAIN8, 'chain8: the runner starts a run without the reset', '        came_up_fresh(UB, out.name)\n', '        pass\n'),
+    (CHAIN9, 'chain9: the runner starts a run without the reset', '        came_up_fresh(UB, out.name)                      # the reset', '        pass                      # the reset'),
+    (CHAIN9, "chain9: a table's directory that is a link or a file is taken", '    if named(root / TABLE_DIR) and ((root / TABLE_DIR).is_symlink() or not (root / TABLE_DIR).is_dir()):', '    if False:'),
+    (CHAIN9, "chain9: a link to a directory is a table's directory", '((root / TABLE_DIR).is_symlink() or not (root / TABLE_DIR).is_dir()):', '(not (root / TABLE_DIR).is_dir()):'),
+    (CHAIN9, "chain9: a file in the table's place is a table's directory", '((root / TABLE_DIR).is_symlink() or not (root / TABLE_DIR).is_dir()):', '((root / TABLE_DIR).is_symlink()):'),
     (CHAIN9, 'chain9: what held the chain is not written to its file', '            (root / "chain.json").write_text(json.dumps(brief(a), indent=1) + "\\n")\n            return a\n        out.mkdir(exist_ok=True)', '            return a\n        out.mkdir(exist_ok=True)'),
     (CHAIN9, 'chain9: the command ends without a code when a run could not be started', ' and not state.get("blocked") else 1', ' else 1'),
     (CHAIN9, 'chain9: a link to a directory counts as a run', 'if p.is_dir() and not p.is_symlink() and RUN_DIR.match(p.name))', 'if p.is_dir() and RUN_DIR.match(p.name))'),
@@ -1424,6 +1438,10 @@ MUTANTS = [
 ]
 
 
+# No suite run here may reach a board, whatever a mutant made of the code: host/uboot_console.py opens no console where
+# this is set, and what a suite starts inherits it (section 33 of the S2 plan).
+NO_BOARD = {"SELFMAP_NO_BOARD": "1"}
+
 NEEDS_FREE = 8 << 30                                 # bytes free where the scratch copies go, or nothing is started
 
 
@@ -1431,7 +1449,7 @@ def suite(tree: Path) -> tuple[bool, str]:
     tmp = tree.parent / "tmp"                            # whatever a run of the suite leaves behind goes with it, also if it was cut short
     shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
     try:
-        r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True, env={**os.environ, "TMPDIR": str(tmp)})
+        r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True, env={**os.environ, **NO_BOARD, "TMPDIR": str(tmp)})
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return read(r.stdout + r.stderr)

@@ -36,8 +36,10 @@ Its host side is built and waits for the owner's review (section 31): a new stag
 prober and so a new image, the judge, the table, the chain. Its mutants have had a first
 look and none survives it; the tool has not run them, and the complete set has not been
 run for the new image. A review of it found five things, all reproduced and mended
-(section 32) — one of them in the prober, so the image is new again. Nothing of S2.3 has
-been on a board.** S2.4 and S2.5 are not proposed in full yet.
+(section 32) — one of them in the prober, so the image is new again. A review of that
+found three small things more, mended without a new image, and I found one of my own
+while preparing the mutants: a mutant could lead a test to the board's console
+(section 33). Nothing of S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2675,3 +2677,73 @@ at the one place I had not mended (5). The first and third are of another kind �
 that asked about a directory where it meant a file, and a result's length taken from a
 block before the block was taken. A length that comes from the input is the thing to look
 for in the next stage that has one.
+
+## 33. Review of `ce77a49` (2026-11-23): three small findings, mended; and a lock between the mutants and the board
+
+The same reviewer looked at section 32's mending: a copy fresh from git, with no `build/`,
+passes all 980 tests, and each of the five holds. It found three things more, all low.
+**Each was reproduced here first.** All three are accepted. **Nothing under `prober/sm_*`
+changed: the image is section 32's** (19,244 bytes, `8bf3799c…2a8b`).
+
+### 1. (low) A complete chain was still complete with `table/` a link
+
+The directory moved away and a link to it put in its place: the table is read through the
+link, and git — which refuses such a link — is asked only before a single. Reproduced: the
+chain complete, `ram_map.json` written again. Now **what has the name `table` must be a
+directory of the chain's own**, asked whenever the chain is looked at; a link (also one to
+a directory, also one that leads nowhere) or a file halts it, complete or not.
+
+### 2. (low) The twin called a written word stale when it held what had lain there
+
+Section 32's check told an unwritten word by its content. A frame word that equals the
+filling of its own place — reproduced with one — made the twin end with STALE for a run
+that was complete. **The twin now keeps which words were written** (by the prober, or by
+the engine delivering a transfer) and counts the words of the result that were not; the
+filling is only what an unwritten word would show. A fault of the model, not of the
+prober: but a check that can be wrong one way is not believed the other way either.
+
+### 3. (low) A close that failed took the place of what had failed before
+
+In the runner of both chains: the read failed, closing the port failed too, the reason
+written was the close's, and the log was not closed. The reset before a run is now **one
+function for both chains** (`came_up_fresh`, in `host/s2_2_chain.py`): the port and the log
+are each closed whatever the other says, and the first thing that failed is the one that
+is told. A close that fails alone is told as well, and no run is started.
+
+### 4. (mine) A mutant could lead a test to the board
+
+Found while listing the mutants for this section, not by the review. The chains' tests of
+the command (`--go` with an image that is not the set's) are kept from the board's runner
+by one check, `ready`. A mutant that takes that check away — there is one in the list
+since section 26, "a run is started though the build's image is not the set's" — lets
+that test go on to the real runner: it opens the board's console, sends a `reset`, and if
+the board answers as usual, starts the run script with `--go` from the scratch copy. With
+the adapter attached, **a run of the mutant tool could have made a run on the board that
+nobody asked for.** The two mutants I had just written for this section ("the runner
+starts a run without the reset") would have done the same by a shorter way.
+
+- **The lock**: where `SELFMAP_NO_BOARD` is set, `host/uboot_console.py` opens no console
+  — and every session with the board begins there, which a test now holds. The mutant
+  tool sets it for every suite it runs, and what a suite starts inherits it.
+- **What I can say of the runs already made.** Section 27's record has that mutant killed
+  with the command's test ending in *an error* — an exception, which is what a port that
+  is not there gives; a console that answered would have ended in a failed comparison
+  instead. Section 24 notes the adapter had not been attached since 2026-11-20, and the
+  set was run before the board was attached for S2.2. That is consistent with no board
+  having been reached; the record cannot prove it. The first looks of 2026-11-22 and 23
+  ran no mutant of that kind (the chain of S2.3 has no copy of it; today's ran with the
+  console replaced in the tests concerned).
+- The owner's rule stands beside the lock and is not replaced by it: no mutants while the
+  board is in use.
+
+### In numbers
+
+- **Tests**: 987, all passing in a clean environment, and with the lock set.
+- **Mutants**: 1,326, none stale. Three of section 32's were on lines that are now one
+  function; they are written again for it, with thirteen more — the three ways the line
+  can fail, what is told, what is closed, the fresh prompt's two signs, the table's
+  directory.
+- **By the tool, for the record** (the owner, 2026-11-23: after this mending): the mutants
+  of S2.3 and those written or written again since the last complete set — 324 of the
+  1,326. Its record goes to `evidence/host_checks/` when it has ended, and what it found
+  is added here.

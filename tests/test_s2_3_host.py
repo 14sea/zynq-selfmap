@@ -1201,11 +1201,33 @@ class Chain(unittest.TestCase):
         (self.root / "table").symlink_to(self.root / "nowhere")
         a = self.drive()
         self.assertEqual((a["state"], self.calls), ("halted", [0]))
-        self.assertIn("run00: table/ is stored and the table (table.json) is not in it", a["why"])
+        self.assertEqual(a["why"], ["what has the name table is not a directory of the chain's own (a link, or a file)"])
         self.setUp()
         self.root.mkdir(parents=True)
         (self.root / "table").symlink_to(self.root / "nowhere")
-        self.assertEqual(self.assess()["why"], ["a table is stored and no code run"])
+        self.assertEqual(self.assess()["why"], ["what has the name table is not a directory of the chain's own (a link, or a file)"])
+
+    def test_a_table_s_directory_that_is_a_link_or_a_file_halts_the_chain_also_when_it_is_complete(self) -> None:
+        """Review of ce77a49: the directory moved away and a link to it put in its place. git is asked about table/
+        before a single only; a chain that was complete stayed complete, and its description was written again."""
+        self.assertEqual(self.drive()["state"], "complete")
+        moved = self.root.parent / "moved"
+        (self.root / "table").rename(moved)
+        (self.root / "table").symlink_to(moved)
+        self.assertTrue((self.root / "table" / "table.json").is_file(), "the same bytes are read through the link")
+        said: list[str] = []
+        self.calls.clear()
+        a = self.drive(say=said.append)
+        self.assertEqual((a["state"], self.calls, a["runs"]), ("halted", [], []))
+        self.assertEqual(a["why"], ["what has the name table is not a directory of the chain's own (a link, or a file)"])
+        self.assertFalse((self.root / "ram_map.json").exists())
+        self.assertIn("ram_map.json taken away: the chain is not complete as it is stored now", said)
+        (self.root / "table").unlink()
+        (self.root / "table").write_text("no directory\n")
+        self.assertEqual(self.assess()["why"], a["why"])
+        (self.root / "table").unlink()
+        moved.rename(self.root / "table")
+        self.assertEqual((self.drive()["state"], (self.root / "ram_map.json").exists()), ("complete", True), "as it was, it stands again")
 
     def test_a_run_made_under_another_ctl0_halts_the_chain_there(self) -> None:
         """Review of 5936a8e. CTL0 reads as another value all through one run of the singles: that run's judge has
@@ -1231,21 +1253,30 @@ class Chain(unittest.TestCase):
         opened: list[object] = []
 
         class Port:
-            def __init__(self, fails_at: str) -> None:
-                self.fails_at, self.closed = fails_at, 0
-                self.s = self.log = self
+            def __init__(self, fails_at: str, close_fails: bool = False) -> None:
+                self.fails_at, self.closed, self.close_fails = fails_at, [], close_fails
+                self.s, self.log = self, Log(self)
                 opened.append(self)
 
             def close(self) -> None:
-                self.closed += 1
+                self.closed.append("port")
+                if self.close_fails:
+                    raise OSError(9, "Bad file descriptor")
 
             def interrupt(self):
                 if self.fails_at == "interrupt":
                     raise OSError(5, "Input/output error")
-                return b"", True
+                return b"", self.fails_at != "nowhere"       # "nowhere": no prompt, and nothing raised
 
             def cmd(self, line: str, timeout: int):
                 raise termios_error("(5, 'Input/output error')")
+
+        class Log:
+            def __init__(self, port: Port) -> None:
+                self.port = port
+
+            def close(self) -> None:
+                self.port.closed.append("log")
 
         import termios
         termios_error = termios.error
@@ -1255,8 +1286,14 @@ class Chain(unittest.TestCase):
         keep_log = os.environ.get("SELFMAP_CONSOLE_LOG")
         self.addCleanup(setattr, uboot_console, "UB", uboot_console.UB)
         self.addCleanup(lambda: os.environ.pop("SELFMAP_CONSOLE_LOG", None) if keep_log is None else os.environ.__setitem__("SELFMAP_CONSOLE_LOG", keep_log))
-        for ub, words, closed in ((no_port, "SerialException: [Errno 2] could not open port", None), (lambda: Port("interrupt"), "OSError: [Errno 5] Input/output error", 2),
-                                  (lambda: Port("cmd"), "error: (5, 'Input/output error')", 2)):
+        both = ["port", "log"]
+        for ub, words, closed in ((no_port, "SerialException: [Errno 2] could not open port", None), (lambda: Port("interrupt"), "OSError: [Errno 5] Input/output error", both),
+                                  (lambda: Port("cmd"), "error: (5, 'Input/output error')", both),
+                                  # review of ce77a49: the close fails as well — what failed first is told, and the log is closed all the same
+                                  (lambda: Port("interrupt", close_fails=True), "OSError: [Errno 5] Input/output error", both),
+                                  (lambda: Port("cmd", close_fails=True), "error: (5, 'Input/output error')", both),
+                                  # nothing failed but the close: that is told, and no run is started on a line that would not close
+                                  (lambda: Port("nowhere", close_fails=True), "OSError: [Errno 9] Bad file descriptor", both)):
             with self.subTest(words):
                 self.setUp(); opened.clear()
                 uboot_console.UB = ub

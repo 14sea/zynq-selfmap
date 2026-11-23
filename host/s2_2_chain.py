@@ -409,6 +409,38 @@ def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = Non
         added += 1
 
 
+def came_up_fresh(UB, name: str) -> None:
+    """A U-Boot `reset` before the run called `name`, and the usual fresh prompt after it — or a RuntimeError that
+    says why no run was started, which the driver writes into the chain's file. What the line itself can raise (it
+    could not be opened, or went away) is the run script's own list of it. The port and the log are both closed,
+    whatever closing the first of them says, and **the first thing that failed is the one that is told**: a close
+    that fails after a read that failed does not stand in its place (reviews of 5936a8e and ce77a49)."""
+    failed: BaseException | None = None
+    reply = sts = b""
+    ok = ok2 = ok3 = False
+    try:
+        u = UB()
+    except s1a_run.TRANSPORT as e:
+        failed = e
+    else:
+        try:
+            _, ok = u.interrupt()
+            reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
+            sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
+        except s1a_run.TRANSPORT as e:
+            failed = e
+        for thing in (u.s, u.log):
+            try:
+                thing.close()
+            except s1a_run.TRANSPORT as e:
+                if failed is None:
+                    failed = e
+    if failed is not None:
+        raise RuntimeError(f"before {name}: the console failed — {type(failed).__name__}: {failed}; the run script was not started") from failed
+    if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:
+        raise RuntimeError(f"before {name}: reset did not give the usual fresh prompt; nothing was run")
+
+
 def board_runner(root: Path):
     """One run on the board: a U-Boot `reset` (as before every run so far), then the run script."""
     import os
@@ -416,18 +448,7 @@ def board_runner(root: Path):
     from uboot_console import UB
 
     def run(share: int, out: Path) -> None:
-        try:
-            u = UB()
-            try:
-                _, ok = u.interrupt()
-                reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
-                sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
-            finally:
-                u.s.close(); u.log.close()
-        except s1a_run.TRANSPORT as e:                   # the line itself failed (it could not be opened, or went away): held, and said
-            raise RuntimeError(f"before {out.name}: the console failed — {type(e).__name__}: {e}; the run script was not started") from e
-        if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:
-            raise RuntimeError(f"before {out.name}: reset did not give the usual fresh prompt; nothing was run")
+        came_up_fresh(UB, out.name)
         r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", STAGE, "--share", str(share), "--go", "--out", str(out)],
                            capture_output=True, text=True)
         (root / f"{out.name}.out").write_text(r.stdout + r.stderr)

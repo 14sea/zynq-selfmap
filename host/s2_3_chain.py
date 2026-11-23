@@ -51,7 +51,7 @@ import s2_2_chain  # noqa: E402
 import s2_3_judge  # noqa: E402
 import s2_3_states  # noqa: E402
 import s2_3_table  # noqa: E402
-from s2_2_chain import KEPT_IMAGE, RUN_DIR, committed, crc, declared, ready  # noqa: E402,F401
+from s2_2_chain import KEPT_IMAGE, RUN_DIR, came_up_fresh, committed, crc, declared, ready  # noqa: E402,F401
 
 CODE, SINGLES = "s2_3c", "s2_3s"
 RUNS = 1 + s2_3_states.SINGLE_RUNS                    # the code run, and the runs of the singles
@@ -200,6 +200,9 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
     out["made_with"] = {k: v for k, v in held.items() if k != "problems"}
     table = None
     stored_table = root / TABLE_DIR / TABLE
+    if named(root / TABLE_DIR) and ((root / TABLE_DIR).is_symlink() or not (root / TABLE_DIR).is_dir()):
+        # asked whenever the chain is looked at, also when it is complete: git is asked only before a single (review of ce77a49)
+        return halted(f"what has the name {TABLE_DIR} is not a directory of the chain's own (a link, or a file)")
     if named(root / TABLE_DIR) and not names:
         return halted("a table is stored and no code run")
     for k, name in enumerate(names):
@@ -345,18 +348,7 @@ def board_runner(root: Path):
 
     def run(k: int, out: Path) -> None:
         stage, share = run_of(k)
-        try:
-            u = UB()
-            try:
-                _, ok = u.interrupt()
-                reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
-                sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
-            finally:
-                u.s.close(); u.log.close()
-        except s1a_run.TRANSPORT as e:                   # the line itself failed (it could not be opened, or went away): held, and said
-            raise RuntimeError(f"before {out.name}: the console failed — {type(e).__name__}: {e}; the run script was not started") from e
-        if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:
-            raise RuntimeError(f"before {out.name}: reset did not give the usual fresh prompt; nothing was run")
+        came_up_fresh(UB, out.name)                      # the reset before the run, as S2.2's chain makes it
         r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, *([] if share is None else ["--share", str(share)]),
                             "--go", "--out", str(out)], capture_output=True, text=True)
         (root / f"{out.name}.out").write_text(r.stdout + r.stderr)

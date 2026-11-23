@@ -430,6 +430,21 @@ class OnMemoryThatHoldsSomething(unittest.TestCase):
         self.assertNotEqual(Run(clean=True).words[3562 + FARBLK + 6], 0, "that word is written, by every run")
 
 
+    def test_a_frame_word_that_is_what_lay_in_its_place_is_a_word_like_any_other(self) -> None:
+        """Review of ce77a49: the twin told a word nothing wrote by what it held, so a frame that holds that very
+        word in that very place was called stale. It keeps now which words were written."""
+        at = Run(clean=True).hb + DATA + FRAME + 5     # record 0: the reference frame after its pad frame, word 5
+        keep = FRAMES[REF][5]
+        self.assertEqual(Run(clean=True).words[at], keep, "that is where the word lands")
+        FRAMES[REF][5] = 0xD1E70000 | (at & 0xFFFF)   # what SM_DIRTY fills that place with (prober/twin_hal.c, DIRTY)
+        try:
+            dirty, clean = Run(), Run(clean=True)
+        finally:
+            FRAMES[REF][5] = keep
+        self.assertEqual((dirty.rc, dirty.status, dirty.words[at]), (0, 1, 0xD1E70000 | (at & 0xFFFF)))
+        self.assertEqual((clean.rc, clean.words[at]), (0, dirty.words[at]))
+
+
 class WhereItStops(unittest.TestCase):
     def test_a_reading_before_the_frames_that_is_not_what_the_list_says(self) -> None:
         """The twin's RAM has a bit that never sets (address 5, memory 2). The first state that wants it set is read

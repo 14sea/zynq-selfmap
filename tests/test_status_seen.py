@@ -95,6 +95,37 @@ class OverTheStoredRuns(unittest.TestCase):
         others = [f for f in status_seen.verdicts(d) if f.parent.name != "run03"]
         self.assertEqual((len(others), [f for f in others if status_seen.seen(json.loads(f.read_text()))["bits"]]), (7, []))
 
+    def test_the_singles_of_s2_3_show_it_exactly_where_the_one_set_cell_is_read(self) -> None:
+        """S2.3 on 2026-11-23 (docs/s2_plan.md, section 36). In a state with one cell of the RAM set, bit 5 shows after
+        the read that delivers the frame in which that cell's bit lies, and not after the other read: 256 states, 512
+        reads, no exception. With no cell set (the base states) it does not show; nor anywhere in the code run, whose
+        states have none, 32 or 64 cells set in a frame. It is cleared each time and does not come back by itself."""
+        d = ROOT / "evidence" / "s2_3_17A6_2026-11-23"
+        frame = {e["cell"]: int(e["address"].split("/")[0], 16) for e in json.loads((d / "ram_map.json").read_text())["entries"]}
+        shown = lambda r: bool(int(r["int_sts_after"], 16) & 0x20)
+        with_it = without = 0
+        for k in (1, 2, 3, 4):
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            names = v["run"]["states"]
+            self.assertEqual((names[0], names[-1], names[1:-1]), ("base", "base", [f"single {n}" for n in range(64 * (k - 1), 64 * k)]))
+            for r in v["records"]:
+                if r["far"] not in ("0x0040121e", "0x00401221"):             # the reference frame and CTL0
+                    self.assertFalse(shown(r), (k, r["index"])); continue
+                self.assertEqual(r["frames"], 3)
+                if names[r["state"]] == "base":
+                    self.assertFalse(shown(r), (k, r["index"])); continue
+                cell = int(names[r["state"]].split()[1])
+                delivers = int(r["far"], 16) <= frame[cell] < int(r["far"], 16) + 3
+                self.assertEqual(shown(r), delivers, (k, r["index"], cell))
+                with_it += delivers; without += not delivers
+                if delivers:
+                    self.assertEqual((r["int_sts"][0], r["int_sts_after"], r["int_sts_after_clearing_bit_5"], r["code"]), ("50033004", "50033024", "50033004", "0x0"))
+            (b,) = status_seen.seen(v)["bits"]
+            self.assertEqual((b["bit"], b["stayed_once_it_showed"], b["in_the_last_word"]), (5, False, False))
+        self.assertEqual((with_it, without), (256, 256))
+        code = json.loads((d / "run00" / "verdict.json").read_text())
+        self.assertEqual((len(code["records"]), [r["index"] for r in code["records"] if shown(r)], status_seen.seen(code)["bits"]), (220, [], []))
+
     def test_the_chain_over_block_type_1(self) -> None:
         d = ROOT / "evidence" / "s1b4_17A6_2026-11-18"
         got = {f.parent.name: status_seen.seen(json.loads(f.read_text())) for f in status_seen.verdicts(d)}

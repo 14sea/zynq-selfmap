@@ -11,7 +11,7 @@ when the step before it has answered. The points for the owner are in section 11
 the owner decided in section 12. **No board run happens without the owner's word for that
 step.**
 
-**Where S2 stands (2026-11-22).** The host side of S2.0 and S2.1 is built (section 13). A
+**Where S2 stands (2026-11-23).** The host side of S2.0 and S2.1 is built (section 13). A
 review of it found one fault in the run script, and a review of the mending two more; all
 three are mended (sections 14 and 15). The complete set of mutants has been run, and the
 mutants of the run script on the script as it is now (section 16). **S2.0 has been on the
@@ -42,7 +42,9 @@ at its end). The owner then decided that the code run is held to the CTL0 S2.2's
 read, and a run under another halts the chain there (section 34; host side only, the
 image is the same). The complete set has not been run for the new image, and by the
 owner's rule of 2026-11-23 it is not due before the board: once before S2 is graded, and
-before the first write (section 35). Nothing of S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
+before the first write (section 35). **S2.3 has been on the board (2026-11-23) and is
+complete: every cell of the RAM has one bit, the 256 are the places S2.2 found, and each
+is confirmed by a run of its own (section 36).** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2937,3 +2939,83 @@ for more than that, and why; the owner took the rule as written here.
   section 34, all killed; two rounds of review. **Not** run against this image by the
   tool: the other 1,002, and the ten of section 34. They are due with point 3.
 - The board is still the owner's word, step by step.
+
+## 36. S2.3 on the board (2026-11-23): complete — which bit is which cell, 256 of 256 confirmed
+
+The account in full, with the runs and their numbers, is
+`evidence/s2_3_17A6_2026-11-23/RESULT.md`. Here: what was done, what it says against what
+section 29 named beforehand, and what was learnt on the way.
+
+### What was done
+
+On the owner's word, in two steps. The precheck and the code run alone (14:06–14:11 UTC);
+the run stored and committed as it stood (`528f339`); then, on the word "run after run, and
+call when something is wrong or it is done", the four runs of the singles (14:17–14:33 UTC),
+stored and committed as they stood (`ace68a0`). Five runs, five passes, no halt, nothing set
+aside, no piece of a result pulled twice. The image of section 32 on a board for the first
+time, under the rule of section 35.
+
+### What it says
+
+- **Outcome 1 of the code run**: every cell of the RAM has exactly one bit; the 256 bits are
+  the places S2.2 found; none inverted; every other bit of the column — 116,096 — still
+  through eighteen states.
+- **Outcome 9 with the singles**: each of the 256 cells set alone changes exactly the place
+  the table has for it and no other bit read. 256 confirmed, no contradiction.
+- **CTL0 `0x00000501`** in all five runs: the value of S2.2's runs, to which section 34 holds
+  the code run. That check was passed on its first day.
+- The RAM read back through the design as written before and after every pass (18 in the
+  code run, 66 in each run of the singles); the shift registers held what was loaded and
+  were not shifted.
+- **The table as a rule.** A memory is a half word (16 bits) of word 61 or 62 in each of the
+  four frames `0x00401220`–`0x00401223`. For every memory alike: address bit 0 moves the
+  place one frame up, bit 3 two frames down, bits 1, 2, 4 and 5 move it 1, 2, 4 and 8 bits
+  down the word. The 256 entries follow from four first places and these six moves, and a
+  test holds them to that. Which pin of a LUT an address bit is, the device did not show.
+
+This answers question 7 of section 1 for the LUT RAM, at one site. The description is
+`ram_map.json`, in this project's own form (section 30, point 4), labelled closed-book.
+
+### Not asked for: where bit 5 shows
+
+With one cell set, bit 5 of the status showed after the read that delivers the frame in
+which that cell's bit lies and not after the other read: 256 states, 512 reads, no
+exception. Not in the base states; not anywhere in the code run, where a frame has none, 32
+or 64 cells set. Cleared each time, and it did not come back. A test holds this
+(`tests/test_status_seen.py`). The result note has a guess at what it is, marked as general
+knowledge and used by no program. What S2.2 saw of bit 5 at two other reads (section 28) is
+not explained by it.
+
+It may be worth a proposal of its own before S2.4: if the bit says "this frame is one bit
+away from what was loaded", it is a second witness that costs nothing. I have not looked
+into it further.
+
+### Learnt on the way: two tests of the stored evidence did not know S2.3
+
+Neither is a fault of the runs; both showed when the runs were stored, and are in the
+commits that stored them:
+
+- `tests/test_evidence_audit.py` judges every stored run again. It did not make the plan of
+  a run of S2.3 (both lists are made at run time), judged the code run without it and
+  called it invalid. It now makes the plan as the run script does; judged again from their
+  raw words, the five runs are what their stored verdicts say.
+- `tests/test_status_seen.py` pins which stored runs show a status bit outside the usual
+  word. The four runs of the singles do; the list has them now, and a test of its own says
+  what they show.
+
+The first of these I should have met before the board: a run of the twin stored under
+`evidence/` in a scratch copy would have shown it. Noted for S2.4.
+
+### In numbers
+
+- **Tests**: 994, all passing (two new: the stored chain of S2.3 assessed again from its raw
+  words, with the table as a rule; where bit 5 showed).
+- **Mutants**: 1,336, none stale; none new. Nothing under `prober/` or `host/` was changed.
+- **Stored runs**: 201, of which 195 have a result of their own; 155 pass.
+
+### What is next, and whose word it needs
+
+- S2.4 (the shift registers) and S2.5 (other sites) are not proposed in full. By section 30,
+  point 5, S2.4 may need no new image.
+- Before S2 is graded: the complete set of mutants, once (section 35).
+- Nothing was written to configuration memory, and `SEU_EN` was not set.

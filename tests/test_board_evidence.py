@@ -781,6 +781,71 @@ class StoredBoardResults(unittest.TestCase):
             again |= {s["far"] for _, v in verdicts if v.get("verdict") == "PASS" for s in v.get("walk") or []}
         self.assertEqual(len(again & {x["far"] for x in c["entries"]}), 2146, "addresses of the census walked on more than one occasion")
 
+    def test_the_chain_that_says_which_bit_is_which_cell(self) -> None:
+        """S2.3, 2026-11-23: the code run and the four runs of the singles, assessed again here from the raw words of
+        their results, against the sets and the image kept with the runs: complete — every cell of the RAM has one
+        bit, the 256 are the places S2.2 found, and each is confirmed by its single. CTL0 as in S2.2's runs. What was
+        written beside the runs is what the programs give now. Nothing was graded."""
+        import s1a_run, s2_3_chain, stage_designs, status_seen
+        d = ROOT / "evidence" / "s2_3_17A6_2026-11-23"
+        bases = {stage: json.loads((d / f"expected_{stage}.json").read_text()) for stage in ("s2_3c", "s2_3s")}
+        self.assertEqual({hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest()} | {b["image_sha256"] for b in bases.values()},
+                         {"8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b"})
+        self.assertEqual([hashlib.sha256((d / f"run{k:02d}" / "result.bin").read_bytes()).hexdigest() for k in range(5)],
+                         ["a223f26bf0cfb7fead6dac1afd3005111a12944757e754eb94fa6c5812380e8f", "8c62dddc212d5918b09d2645b864298f03fa2ace5bc2d05c8caea4b55dafc303",
+                          "e652487d2a4f6a3ba29276c688e71ffb0d030222d6f1b5ac61639e1ede9689f5", "175a665a36913a79f31495d16687559b817b60ff2990af00795ca40635ea6622",
+                          "dab79ae454d950582accbb1dc3ed0b5ec48439016b886f8ad283e6958f6b79bc"])
+        known = s1a_run.known_for("s2_3c")
+        self.assertEqual(known["ctl0_in_s2_2"], "0x00000501")
+        stage_designs.stage()                           # the chain holds the staged design to the sets
+        a = s2_3_chain.assess(d, bases, known)
+        self.assertEqual((a["state"], len(a["runs"]), a["set_aside"]), ("complete", 5, []))
+        self.assertEqual([(r["judge"], r["ctl0"], r["decision"], r["states"], r["reads"], r["bits"]) for r in a["runs"]],
+                         [("PASS", "0x00000501", "go on", 18, 12, {"still": 116096, "follow": 256, "follow_inverted": 0, "irregular": 0})]
+                         + [("PASS", "0x00000501", "complete" if k == 3 else "go on", 66, 2, {"still": 19328, "follow": 64, "follow_inverted": 0, "irregular": 0}) for k in range(4)])
+        code = a["closing_of_the_code_run"]
+        self.assertEqual((code["problems"], code["cells_with_one_bit"], code["cells_with_no_bit"], code["cells_with_several_bits"], code["inverted"], code["outcome"][:2]),
+                         ([], 256, [], [], 0, "1:"))
+        self.assertEqual((code["places_s2_2_did_not_have"], code["places_of_s2_2_that_follow_no_cell"], code["places_shown_the_other_way_than_in_s2_2"], code["candidates_of_s2_2"]),
+                         ([], [], [], 256))
+        self.assertEqual([(r.get("confirmed"), r.get("contradictions")) for r in a["runs"]], [(None, None)] + [(list(range(64 * k, 64 * k + 64)), []) for k in range(4)])
+        c = a["closing"]
+        self.assertEqual((c["confirmed"], c["contradictions"], c["ctl0"], c["ctl0_in_s2_2"], c["outcome"][:8]), (256, 0, ["0x00000501"], "0x00000501", "1 and 9:"))
+        # ---- what was written beside the runs is what the programs give now
+        self.assertEqual(json.loads(json.dumps(s2_3_chain.brief(a))), json.loads((d / "chain.json").read_text()))
+        self.assertEqual(json.loads(json.dumps(a["table"])), json.loads((d / "table" / "table.json").read_text()))
+        doc = json.loads((d / "ram_map.json").read_text())
+        self.assertEqual(json.loads(json.dumps(s2_3_chain.ram_map_file(a, bases, known))), doc)
+        self.assertEqual((hashlib.sha256((d / "table" / "table.json").read_bytes()).hexdigest(), hashlib.sha256((d / "ram_map.json").read_bytes()).hexdigest()),
+                         ("e0f6513e5c53a3cb570ab6383759130f11c54d4fa8f3d4cacbc6ce47de1814d0", "1c858207974cbe87e36a2c17e4e76618189b24c9e5ed058d00f3daa3831c741a"))
+        self.assertEqual((doc["counts"], doc["label"]), ({"confirmed": 256, "decoded": 0, "contradiction": 0}, "closed-book"))
+        # ---- the table read as a rule (the account, section 36): where address 0 of each memory lies, and how each bit
+        # of the address moves the place — by frames, by bits of the word. The 256 follow from these and nothing else.
+        place = {(e["memory"], e["ram_address"]): tuple(int(x, 0) for x in e["address"].split("/")) for e in doc["entries"]}
+        first = {0: (0x00401222, 62, 31), 1: (0x00401222, 61, 15), 2: (0x00401222, 61, 31), 3: (0x00401222, 62, 15)}
+        moves = {0: (1, 0), 1: (0, -1), 2: (0, -2), 3: (-2, 0), 4: (0, -4), 5: (0, -8)}
+        for (memory, address), at in place.items():
+            far, word, bit = first[memory]
+            self.assertEqual(at, (far + sum(moves[i][0] for i in range(6) if address >> i & 1), word, bit + sum(moves[i][1] for i in range(6) if address >> i & 1)), (memory, address))
+        self.assertEqual(len(place), 256)
+        # ---- the five runs: whole, saved, pulled; the RAM as written after every pass; nothing shifted
+        for k in range(5):
+            rec = json.loads((d / f"run{k:02d}" / "run.json").read_text())
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"], rec["return_code"], rec["pull"]["repeated"]),
+                             ("PASS", [], [], True, "50033004", "0x0", []), k)
+            self.assertEqual(rec["board_crc32"], rec["host_crc32"], k)
+            self.assertEqual((v["header"]["anomalies"], {r["code"] for r in v["records"]}, len(v["records"])), (0, {"0x0"}, 220 if k == 0 else 136), k)
+            self.assertEqual((v["pl"]["code"], v["pl"]["passes_the_ram_held_through"], v["pl"]["writes_counted"], v["pl"]["id"]),
+                             ("0x0", 18 if k == 0 else 66, {"ram": 960 if k == 0 else 192, "shifts": 0}, "0x53324131"), k)
+            self.assertEqual(v["pl"]["shift_registers_hold"], ["0xa5c30f69", "0x0f1e2d3c", "0x13579bdf", "0xfedcba98"], k)
+        listed = json.loads((d / "status_seen.json").read_text())
+        seen = [status_seen.seen(json.loads(f.read_text())) for f in status_seen.verdicts(d)]
+        self.assertEqual(([{k: r[k] for k in ("status_words", "bits")} for r in listed["by_run"]], listed["bits"], [s["status_words"] for s in seen]),
+                         (seen, [5], [1102] + [682] * 4))
+        self.assertEqual([(Path(r["run"]).name, [(b["bit"], b["words_with_it"]) for b in r["bits"]]) for r in listed["by_run"]],
+                         [("run00", [])] + [(f"run{k:02d}", [(5, 256)]) for k in range(1, 5)])
+
     def test_the_chain_over_the_three_states_of_the_ram(self) -> None:
         """S2.2, 2026-11-22: eight runs, one of each share of block type 0, each in the three states of the design's RAM.
         The chain is assessed again here from the raw words of its results, against the set and the image kept with

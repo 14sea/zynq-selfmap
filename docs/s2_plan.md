@@ -56,7 +56,8 @@ which output — is built (section 42) and has had a first review: two things fo
 reproduced and mended (section 43). **Part 2 has been on the board (2026-11-23) and is
 complete: each of the 256 places follows one output, as it is or inverted, and every
 output is confirmed in all of its places; the table is what was said beforehand (section
-44). With it S2.4 is done**, on the image of section 32. S2.5 is not proposed in full yet.
+44). With it S2.4 is done**, on the image of section 32. S2.5 is proposed in full in
+section 45 and waits for the owner's word on its ten points; nothing of it is built.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3852,3 +3853,182 @@ chosen for it; I do not propose it now.
   table by the rule, the two places before any shift, bit 5 state by state).
 - **Mutants**: 1,536, none stale; none new. Nothing under `prober/` or `host/` was changed.
 - **Stored runs**: 213, of which 207 have a result of their own; 167 pass.
+
+## 45. Step S2.5 — other sites: proposal (2026-11-23)
+
+Asked for by the owner after S2.4 closed. Nothing of this is built. Section 8 outlined the
+step in four lines and section 12 (point 9) gave a leaning; this is the whole.
+
+### What is asked
+
+S2.3 and S2.4 say, of one site each, which bit is which cell. S2.5 asks **how that carries
+from site to site**: is a memory laid out the same way at another site; and where, in the
+frame addresses the device names, does a site of a given name lie? Section 8 said what
+the answer may claim: measured for the sites probed, and for the others at most a rule
+that the probed ones obey.
+
+### What two sites already say
+
+| | the RAM (`SLICE_X16Y30`) | the shift registers (`SLICE_X34Y70`) |
+|---|---|---|
+| frames | `0x00401220`–`0x00401223` | `0x00001820`–`0x00001823` |
+| in the census | bottom half, column 36, its last four frames of 36 | top half, column 48, its last four of 36 |
+| words | 61 and 62 | 40 and 41 |
+| by the build's record of positions | A: word 61 low half, B: 61 high, C: 62 low, D: 62 high | A: word 40 low, B: 40 high, C: 41 low, D: 41 high |
+| within a half word | the six moves of S2.3 | the same six moves |
+
+Two points are not a rule. But they are enough to say beforehand what a rule would look
+like, and that is what part 0 does. Read with the census alone — no document, no database:
+
+- **The column.** Block type 0 has 41 columns of 36 frames in each half. Counted among
+  those alone, column 36 is the 28th and column 48 the 37th: nine apart, where the two
+  sites' column numbers, 16 and 34, are eighteen apart. If two numbers of sites share a
+  column of frames, site column X lies in the (19 + X/2)-th such column, counted from 0 —
+  and the highest number of a site column the part has, 43, then lands on the last of the
+  41, which nothing forced.
+- **The half and the word.** Row 30 is in the bottom half and row 70 in the top; if 50
+  rows make a half, they are rows 30 and 20 of theirs. Row 20 has words 40 and 41, row 30
+  has 61 and 62: two words a row, and one word more somewhere between rows 20 and 30.
+- **The position within the site.** As the table's fourth row has it, alike at both.
+
+### The design `s2b`
+
+A second design, ours, built as `s2a` was (Vivado 2025.2, which is on this machine; the
+build's record; the bitstream an opaque file known by its hash).
+
+- **LUT RAM at 110 sites**: every site of one column of sites — `SLICE_X16Y0` to
+  `SLICE_X16Y99`, the known site among them — and one site in each of the ten other
+  columns of SLICEM sites numbered 10 or above (10, 12, 20, 24, 28, 30, 32, 34, 38, 42),
+  each at a row fixed here by a rule and not by where I expect anything: row
+  (7 + 37 i) mod 100 for the i-th of them. 440 memories of 64, 28,160 cells. No shift
+  register.
+- **The four columns numbered below 10 are left out**, by section 12, point 5: an earlier
+  project measured sites there and I may know addresses of them. The rule of part 0
+  speaks of them too; nothing here tests it there.
+- **Every memory is loaded with a word of its own**, 64 bits, fixed in the source by a
+  rule from the site's and the memory's numbers — so that each can be told from every
+  other in a frame read before anything is written.
+- **The registers are the eight of `s2a`, at the same places, and the prober may write
+  the same five** — so that the image of section 32 runs this design too. Their meaning
+  changes: a site number (which site a read answers for; which site a write goes to), a
+  mode (a write goes to that site alone, or to every site), the address, the data, a
+  count of writes, the counter, the identification — another word than `s2a`'s — and one
+  new reading: for the address set, over all sites, whether the four memories hold alike
+  and the parity of what they hold, so that "every site still holds this state" is two
+  lists of 64 readings and not 110 times that.
+- A bench as `s2a` has; the build script refuses anything but exactly these 440
+  memories on exactly these sites.
+
+### The step in three parts
+
+**Part 0 — predictions, on the host alone.** For each of the 440 memories, from the
+site's name, the build's record of its position and the three rules above: the four
+frames, the word, the half, and the place of each of its 64 cells. Two forms of the word
+rule are carried, since two points cannot choose: the extra word lies between rows 24 and
+25 (the middle), or elsewhere between 20 and 30. Committed before the first run; it
+decides nothing.
+
+**Part 1 — where they are: all of block type 0, in three states.** The eight shares
+again; in each run the states **as loaded, all one, all zero**. As loaded, every memory's
+own word is in the frames, and is searched for as S2.4's part 0 searched — in every group
+of four frames, every word, both halves, under the rule of S2.3 — without the prediction.
+Then all one and all zero, written to every site at once: the bits that follow are the
+candidates, and there should be 28,160. About an hour.
+
+What part 1 says by itself: where each memory is and that it is laid out by the six
+moves (its own word found whole, 64 bits of 64); that those places follow a write; that
+nothing else in block type 0 does.
+
+**Part 2 — which is which, site by site.** Over the reads that deliver the candidates
+(by the prediction 24 reads; the plan is made from what part 1 finds):
+
+- *the code run*, as S2.3's: the base, eight code states and their complements, written
+  to every site at once. Every candidate must spell a cell's number; with part 1 a place
+  then has its site (from the loaded word) and its cell (from the code), each found
+  without the other. One run, about eight minutes.
+- *the singles*, every site at once: with cell n set at all 110 sites, exactly the 110
+  places the table has for it differ from the base. 256 states; by the stage's room 13
+  runs, about an hour and a half.
+
+### What may come out, said beforehand
+
+Part 1:
+
+1. **28,160 bits follow, each memory's word is found once, and every memory is where part
+   0 said**, under one of the two forms of the word rule.
+2. **All found, and some not where part 0 said.** Not a failure: which of the three rules
+   does not hold, and for which sites, is the finding.
+3. **A memory's word is not found** though 64 of its bits follow: at that site a memory
+   is not laid out by the six moves. Reported; part 2 decodes it without the rule.
+4. **Fewer or more than 28,160 follow**, or a bit follows that belongs to no memory's
+   word: reported as found; the owner decides on part 2.
+5. Nothing follows, or the memories do not read back: a halt.
+6. The interface fails, a prompt is lost: as in every step.
+
+Part 2:
+
+7. **Every cell of every site has exactly one bit, the bits are the candidates, and each
+   is the cell its place in the loaded word says.** The tables.
+8. A site where code and loaded word disagree, a cell with no bit or several: no table
+   for that site; the chain says which and halts.
+9. **Each single changes exactly its 110 places.** Confirmed. Otherwise a contradiction
+   and a halt at that run.
+
+### What is written out
+
+One description for all sites, in the form of `ram_map_v1` with the site added to an
+entry, and beside it **the rule the probed sites obey** — column, half, word, position,
+the six moves — set down as a rule: with the sites it was measured at, the sites it was
+not, and no claim for the latter beyond "the rule says". If the sites do not obey one
+rule, that is what is written.
+
+### What has to be built
+
+- The design and its bench, its build, its record; the bitstream stored on the card.
+- **No new image**, if the registers can be kept to the eight offsets as planned; a new
+  one, should it be needed, is asked for first.
+- The twin: many sites of RAM, each cell at a place a test chooses; the new readings.
+- The host: the predictions; the states and both lists; the design's side of the judge
+  (through the seam of section 39); the search for the loaded words; the closings; the
+  two chains; the description and the rule.
+- Tests, the mutants of what is new, a rehearsal of storing. This is more than S2.4 was.
+
+### What S2.5 cannot show
+
+- Anything of the 1,390 SLICEM sites it does not probe, beyond the rule.
+- The four columns left out; shift registers at other sites; ordinary LUTs (S5).
+- Another die.
+
+### For the owner
+
+1. **How far: one whole column and one site in each other column numbered 10 or above —
+   110 sites.** *(Recommended: the column gives the word rule a hundred points and both
+   halves, the others give the column rule ten more. The other ways: the column alone —
+   then the column rule rests on two points; or many more sites — the design and the runs
+   grow with them, and the rule is tested no better.)*
+2. **The columns numbered below 10 stay out**, as section 12, point 5 has it.
+   *(Recommended.)*
+3. **RAM only; no shift register at another site.** *(Recommended: S2.4 showed a register
+   laid out by the same six moves as a memory; a second register site would cost a
+   second kind of state for little. Said as a limit.)*
+4. **Predictions first**, committed before the first run, both forms of the word rule
+   carried, deciding nothing. *(Recommended.)*
+5. **The registers of `s2b` at the eight offsets of `s2a`, so that no new image is
+   needed**; a new image, should building show the need, is asked for first.
+   *(Recommended.)*
+6. **Every memory loaded with a word of its own**, and part 1 reads the frames as loaded
+   before anything is written. *(Recommended: it is what lets a place be given its site
+   without trusting the prediction, and it is the method S5 means to use — here it can be
+   held against writes through user logic at 110 sites.)*
+7. **Part 2 in full: the code run and the singles at every site at once.** *(Recommended;
+   about an hour and three quarters of board time, unattended. The other way: the code
+   run only — every place then has confidence 1, decoded and not confirmed; I would not,
+   for what an hour and a half buys.)*
+8. **Storing `s2b.bit` on the card is a write to the card** and needs the owner's word
+   once, as on 2026-11-20. *(Recommended over sending two megabytes by YMODEM before each
+   of some twenty runs.)*
+9. **Three words on the board**: the card; part 1 (its first run alone and committed,
+   then the rest); part 2 (the code run alone and committed with the tables, then the
+   singles). **The owner reviews before the board**, as for S2.4. *(Recommended.)*
+10. **After S2.5: the complete set of mutants, once, and then the grading of S2** — both
+    the owner's to call (section 35). Nothing is graded before.

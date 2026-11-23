@@ -86,9 +86,10 @@ class TheStates(unittest.TestCase):
         self.assertEqual({x["shifted"] for x in code[1:]}, {True})
         singles = [st.single_run(LOADED, r) for r in range(2)]
         self.assertEqual([[x["name"] for x in run] for run in singles],
-                         [["as loaded"] + [f"single {n}" for n in range(64 * r, 64 * r + 64)] + ["loaded again"] for r in range(2)])
+                         [["loaded"] + [f"single {n}" for n in range(64 * r, 64 * r + 64)] + ["loaded again"] for r in range(2)])
         self.assertEqual(sorted(x["cell"] for run in singles for x in run if x["kind"] == "single"), list(range(128)))
-        self.assertEqual([(run[0]["shifted"], run[1]["shifted"], run[-1]["shifted"]) for run in singles], [(False, True, True)] * 2)
+        self.assertEqual([{x["shifted"] for x in run} for run in singles], [{True}] * 2, "every state of the singles is made by shifts: section 42")
+        self.assertEqual([x["shifted"] for x in code], [False] + [True] * 16, "only the code run begins before any shift")
         for r in (-1, 2):
             self.assertRaisesRegex(ValueError, "no run", st.single_run, LOADED, r)
 
@@ -134,12 +135,13 @@ class TheLists(unittest.TestCase):
                          (17, [(0x1800 + 3 * i, 3) for i in range(12)], 3029, 105912))
         for r in range(2):
             p = st.plan("singles", r, DESIGN, CENSUS, CANDIDATES)
-            self.assertEqual((len(p["states"]), p["reads"], len(p["entries"]), p["result_words"]), (66, [(0x181E, 3), (0x1821, 3)], 11114, 87326))
+            self.assertEqual((len(p["states"]), p["reads"], len(p["entries"]), p["result_words"]), (66, [(0x181E, 3), (0x1821, 3)], 11146, 87390))
 
     def test_what_is_no_run_of_the_step_gives_no_plan(self) -> None:
         for kind, share, cand, why in (("find", None, None, "which"), ("find", 8, None, "which"), ("find", -1, None, "which"), ("code", 0, CANDIDATES, "one run"),
                                        ("code", None, None, "what part 1 found is not given"), ("singles", None, CANDIDATES, "which"),
-                                       ("singles", 2, CANDIDATES, "no run 2"), ("singles", 0, None, "what part 1 found is not given"), ("pairs", None, CANDIDATES, "no run of the kind")):
+                                       ("singles", 2, CANDIDATES, "no run 2"), ("singles", 0, None, "what part 1 found is not given"), ("thirds", None, CANDIDATES, "no run of the kind"),
+                                       ("pairs", 0, CANDIDATES, "the run of the pairs is one run"), ("pairs", None, None, "what part 1 found is not given")):
             self.assertRaisesRegex(ValueError, why, st.plan, kind, share, DESIGN, CENSUS, cand)
         self.assertEqual((len(s2_2_shares.shares(CENSUS)), st.FIND_SHARES), (8, 8), "the device's census gives the eight shares S2.2 read")
 

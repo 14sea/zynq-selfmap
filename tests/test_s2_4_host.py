@@ -363,9 +363,12 @@ class ARunOfTheDeviceSPlan(unittest.TestCase):
         r = cmd("find", "7")
         self.assertEqual((r.returncode, json.loads(r.stdout)), (0, json.loads((out / "verdict.json").read_text())), r.stderr)
         self.assertEqual(cmd("find", "6").returncode, 1, "judged against another share's plan it does not pass")
-        for args in (("code",), ("singles", "0"), ("find",), ("find", "x"), ("find", "7", "8"), ()):
+        for args in (("find",), ("find", "x"), ("find", "7", "8"), (), ("code", "0"), ("singles",), ("pairs", "1"), ("thirds",)):
             r = cmd(*args)
             self.assertEqual((r.returncode, r.stderr, "s2_4_judge.py <result.bin> find <share>" in r.stdout), (2, "", True), args)
+        for args in (("code",), ("singles", "0"), ("pairs",)):       # the kinds of part 2 have their sets now: this result is judged as one, and is none
+            r = cmd(*args)
+            self.assertEqual((r.returncode, r.stderr, json.loads(r.stdout)["verdict"] != "PASS"), (1, "", True), args)
         r = cmd("find", "8")
         self.assertEqual((r.returncode, r.stderr), (2, ""), r.stdout)
         self.assertIn("no plan for that run", r.stdout)

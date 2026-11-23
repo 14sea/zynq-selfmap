@@ -2,9 +2,9 @@
 """Judge the result of a run of S2.4 — docs/s2_plan.md, sections 37 and 38.
 
     s2_4_judge.py <result.bin> find <share>       a run of part 1: one share of block type 0 in three states
-
-(The judge itself judges a code run and a run of the singles as well, and is tested on them; the command takes them
-when part 2 has its sets in the run script, which it has not yet.)
+    s2_4_judge.py <result.bin> code               the code run
+    s2_4_judge.py <result.bin> singles <run>      a run of the singles
+    s2_4_judge.py <result.bin> pairs              the run of the pairs
 
 A run of S2.4 is a run of stage 9, the stage S2.3 was made with, and everything a run of that stage is held to
 whatever its states are is judged by the judge of S2.3 (s2_3_judge.judge, which this one calls): the header, the
@@ -30,6 +30,14 @@ it reads as that cell holds in every state — as it is or inverted; or it is ir
 holds the same in a state, so a bit that follows follows them all alike, and no cell is named: those bits are the
 candidates. A run with an irregular bit fails.
 
+**What a bit follows is asked over the states that were made by shifts.** A run of part 2 begins with the registers
+as loaded, nothing shifted yet. The frames S2.2 stored — the registers as loaded, never shifted — have, at one place
+of each register, a one whatever the register's first output was loaded with, where after shifts (part 1) that place
+follows inverted (section 42). So a bit that follows a cell over every shifted state may read otherwise in the state
+before any shift than that cell's loaded content gives: it is then set down ("otherwise_as_loaded") and the run does
+not fail for it. Only a bit that follows a cell may: one that is the same in every shifted state and another before
+any shift follows nothing, and is irregular.
+
 No database is read and nothing is graded. Nothing here is general knowledge of the device family."""
 from __future__ import annotations
 
@@ -45,14 +53,15 @@ import s2_3_states as st9  # noqa: E402
 import s2_4_states as st  # noqa: E402
 from s2_3_judge import CTL0_BITS, ERR_MASK, FIXED, FRAME, HDR0, PCFG_DONE, PL_BASE, PL_CODES, REC, RESULT_MAX_WORDS, STAGE  # noqa: E402,F401
 
-SETS = {"find": "s2_4f"}                               # the kinds of run that have a set in the run script, which the command needs
+SETS = {"find": "s2_4f", "code": "s2_4c", "singles": "s2_4s", "pairs": "s2_4p"}   # the kinds of run, each with its set in the run script
+TAKES_A_SHARE = ("find", "singles")                    # of which these are one run of several
 
 
 def runs_of_the_step(loaded: list[int]) -> list[tuple[str, int | None, list[dict]]]:
     """Every run the step has, by its states: (kind, which run of that kind — None where the states do not say, the
     states). A run of part 1 has the same states whichever share it reads."""
     return ([("find", None, st.find_run()), ("code", None, st.code_run(loaded))]
-            + [("singles", r, st.single_run(loaded, r)) for r in range(st.SINGLE_RUNS)])
+            + [("singles", r, st.single_run(loaded, r)) for r in range(st.SINGLE_RUNS)] + [("pairs", None, st.pairs_run(loaded))])
 
 
 def design_side(c: dict) -> dict:
@@ -164,7 +173,7 @@ def design_side(c: dict) -> dict:
             if states == [x["srl"] for x in its_states]:
                 run, named = {"kind": kind, "share": which}, its_states
         if named is None:
-            bad("the states the shift registers read back as are not those of a run of part 1, of the code run or of a run of the singles")
+            bad("the states the shift registers read back as are not those of a run of part 1, of the code run, of a run of the singles or of the pairs")
         elif not known or "census" not in known:
             bad("the census was not given: the lists cannot be held to the plan of the run")
         else:
@@ -192,9 +201,13 @@ def design_side(c: dict) -> dict:
     finding: dict = {"states_read_whole": len(states), "frames": 0, "bits": {"still": 0, "follow": 0, "follow_inverted": 0, "irregular": 0},
                      "follows": [], "irregular": [], "cells_not_told_apart": [], "cells_not_told_from_another_inverted": []}
     if whole and named is not None:
-        rows: dict[tuple, list[int]] = {}                # a row of values over the states -> the cells that have it
+        made = [i for i, x in enumerate(named) if x["shifted"]]          # the states made by shifts: what a bit follows is asked over these
+        before = [i for i, x in enumerate(named) if not x["shifted"]]    # the registers as loaded, nothing shifted yet
+        if before:                                       # said only of a run that has such a state: the code run. A run of part 1 has none, and
+            finding["otherwise_as_loaded"] = []          # its verdict is what it was when part 1 was stored
+        rows: dict[tuple, list[int]] = {}                # a row of values over the shifted states -> the cells that have it
         for cell in range(st.CELLS):
-            row = tuple(st.cell(state, cell) for state in states)
+            row = tuple(st.cell(states[i], cell) for i in made)
             if len(set(row)) > 1:
                 rows.setdefault(row, []).append(cell)
         if run["kind"] != "find":                        # in part 1 no cell is told from another, and none is meant to be
@@ -224,7 +237,8 @@ def design_side(c: dict) -> dict:
                 for b in range(32):
                     if not moved >> b & 1:
                         continue
-                    row = tuple(x >> b & 1 for x in ws)
+                    every = tuple(x >> b & 1 for x in ws)
+                    row = tuple(every[i] for i in made)
                     where = {"far": f"{far:#010x}", "word": w, "bit": b}
                     for inverted, key in ((False, row), (True, tuple(1 - v for v in row))):
                         cells = rows.get(key, [])
@@ -234,10 +248,14 @@ def design_side(c: dict) -> dict:
                                 finding["follows"].append(dict(where, inverted=inverted))
                             else:
                                 finding["follows"].append(dict(where, cell=cells[0], register=cells[0] // st.DEPTH, output=cells[0] % st.DEPTH, inverted=inverted))
+                                for i in before:         # before any shift: does it read as that cell's loaded content gives?
+                                    gives = st.cell(states[i], cells[0]) ^ int(inverted)
+                                    if every[i] != gives:
+                                        finding["otherwise_as_loaded"].append(dict(where, cell=cells[0], inverted=inverted, state=i, reads=every[i], the_cell_gives=gives))
                             break
                     else:
                         finding["bits"]["irregular"] += 1
-                        finding["irregular"].append(dict(where, readings="".join(str(v) for v in row)))
+                        finding["irregular"].append(dict(where, readings="".join(str(v) for v in every)))
         if finding["bits"]["irregular"]:
             bad(f"{finding['bits']['irregular']} bit(s) changed and follow no cell of the shift registers: irregular")
     out["finding"] = finding
@@ -263,17 +281,17 @@ def layout_hdr(kind: str) -> int:
     registers alone, so every run of a kind has the same."""
     design = json.loads(st.DESIGN.read_text())
     loaded = st9.srl_words(design)
-    states = {"find": st.find_run, "code": lambda: st.code_run(loaded), "singles": lambda: st.single_run(loaded, 0)}[kind]()
+    states = {"find": st.find_run, "code": lambda: st.code_run(loaded), "singles": lambda: st.single_run(loaded, 0), "pairs": lambda: st.pairs_run(loaded)}[kind]()
     return HDR0 + FIXED + 2 * len(st9.planned_log(st.accesses(states, design), design))
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 4 or argv[2] not in SETS or not argv[3].isdigit():
+    if len(argv) < 3 or argv[2] not in SETS or len(argv) != (4 if argv[2] in TAKES_A_SHARE else 3) or not all(x.isdigit() for x in argv[3:]):
         print(__doc__); return 2
     import s1a_run
     stage = SETS[argv[2]]
     try:
-        exp = s1a_run.with_plan(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), int(argv[3]))
+        exp = s1a_run.with_plan(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), int(argv[3]) if len(argv) == 4 else None)
     except ValueError as e:
         print(f"no plan for that run: {e}"); return 2
     words = s2_3_judge.load(Path(argv[1]))

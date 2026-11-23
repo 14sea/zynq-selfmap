@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "srl_map 1 \u2014 which bit of configuration memory is which output of a probe design's shift registers",
+  "description": "zynq-selfmap, S2.4 (docs/s2_plan.md, sections 37 to 41). Written by host/s2_4_table.py from the verdicts of stored runs. Modelled on ram_map_v1 (the same words for confidence and state, the same form of address, the records an entry rests on) with two differences: an entry is a place, and a cell may have several \u2014 some of them inverted; and a cell is an output of a shift register as user logic addresses it, of which nothing says which stage of a primitive it is. Closed-book: nothing in a document of this form comes from a database or from a bitstream.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "label",
+    "what",
+    "design",
+    "numbering",
+    "cells",
+    "confidence",
+    "runs",
+    "counts",
+    "places",
+    "entries"
+  ],
+  "properties": {
+    "schema": {
+      "const": "srl_map"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "label": {
+      "const": "closed-book"
+    },
+    "what": {
+      "type": "string"
+    },
+    "design": {
+      "type": "string",
+      "description": "the probe design whose shift registers these are (its name in its own record, pl/<name>/design.json)"
+    },
+    "numbering": {
+      "type": "string",
+      "description": "how a cell's number is made from the design's side"
+    },
+    "cells": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "0",
+        "1",
+        "2"
+      ],
+      "properties": {
+        "0": {
+          "type": "string"
+        },
+        "1": {
+          "type": "string"
+        },
+        "2": {
+          "type": "string"
+        }
+      }
+    },
+    "runs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "singles"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/run"
+        },
+        "singles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dir",
+              "share",
+              "result_sha256"
+            ],
+            "properties": {
+              "dir": {
+                "type": "string"
+              },
+              "share": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "result_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "confirmed",
+        "decoded",
+        "contradiction"
+      ],
+      "properties": {
+        "confirmed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decoded": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "contradiction": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "description": "entries by their state"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "address",
+          "cell",
+          "register",
+          "output",
+          "inverted",
+          "confidence",
+          "state",
+          "observed_transition",
+          "evidence"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{8}/[0-9]+/[0-9]+$",
+            "description": "frame address / word / bit"
+          },
+          "cell": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "register": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "output": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "inverted": {
+            "type": "boolean",
+            "description": "the place reads the opposite of what the output holds"
+          },
+          "confidence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "state": {
+            "enum": [
+              "decoded",
+              "confirmed",
+              "contradiction"
+            ]
+          },
+          "observed_transition": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "output_0",
+              "output_1"
+            ],
+            "properties": {
+              "output_0": {
+                "enum": [
+                  0,
+                  1
+                ]
+              },
+              "output_1": {
+                "enum": [
+                  0,
+                  1
+                ]
+              }
+            },
+            "description": "what the place read with the output holding a zero and holding a one"
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code_states",
+              "code_records",
+              "single"
+            ],
+            "properties": {
+              "code_states": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "description": "the states of the code run in which the output held a one"
+              },
+              "code_records": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "description": "the records of the code run that hold the frame as read in those states"
+              },
+              "single": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "run",
+                      "state",
+                      "record"
+                    ],
+                    "properties": {
+                      "run": {
+                        "type": "string"
+                      },
+                      "state": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "record": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                ],
+                "description": "the run of the singles, the state and the record in which that cell alone was the other way; null where no single was made"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "decoded"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "confidence": {
+                  "const": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "confirmed"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "confidence": {
+                  "const": 2
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "contradiction"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "confidence": {
+                  "const": 0
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "as_the_build_placed_them": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "what",
+        "site",
+        "registers"
+      ],
+      "properties": {
+        "what": {
+          "type": "string"
+        },
+        "site": {
+          "type": "string"
+        },
+        "registers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "the build's word of where it put each register; not a finding"
+    },
+    "places": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "how many entries there are: a cell may have more than one"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dir",
+        "result_sha256"
+      ],
+      "properties": {
+        "dir": {
+          "type": "string"
+        },
+        "result_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  }
+}

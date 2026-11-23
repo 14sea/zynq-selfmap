@@ -22,10 +22,20 @@ The runs (section 37):
                          bit that follows a cell from one that follows another cell inverted: over the code states
                          and their complements alone, cell n inverted reads as cell 127 - n does, and what the cells
                          are loaded with does not part them all
-    singles, run 0 or 1  66 states over the reads that deliver the frames with candidates: the loaded content as it
-                         is, then with each of 64 cells alone the other way, then the loaded content shifted in again
+    singles, run 0 or 1  66 states over the reads that deliver the frames with candidates: the loaded content,
+                         shifted in; then with each of 64 cells alone the other way; then the loaded content again
+    pairs                six states over the same reads, for bit 5 of the status alone (section 38, point 5): the
+                         loaded content, shifted in; then with two, two, three and four cells the other way (PAIRS);
+                         then the loaded content again. Which frames those cells' bits lie in is not known here: the
+                         chain sets it down from the table afterwards
 
-Every state but one that is "as loaded" is made by 32 shifts, whatever the four held before. In every state all 32
+Only the code run has a state in which nothing has been shifted yet, and it is its first. A place of a register may
+read otherwise then than after shifts (s2_4_judge; section 42); in the code run every cell changes over the shifted
+states, so such a place still follows its cell there and is told from one that follows nothing. In a run of the
+singles half the cells never change, and a place of one of those that read otherwise before any shift would be a bit
+that moves and follows nothing: so those runs begin with the loaded content shifted in.
+
+Every state but the first of the code run, "as loaded", is made by 32 shifts, whatever the four held before. In every state all 32
 outputs are read back and held to the state before the frames are read and again after; the counter is read on both
 sides; the design's count of writes must be the shifts made so far and no write to the RAM. The RAM, which this step
 never writes, is read at all 64 addresses before the first state's frames and after the last state's, and must read
@@ -46,6 +56,10 @@ import s2_3_states as st9  # noqa: E402
 from s2_3_states import A_EXPECT, A_MARK, A_READ, A_WRITE, ACC_MAX, MARK_END, MARK_FRAMES, RESULT_MAX_WORDS  # noqa: E402,F401
 
 DESIGN = ROOT / "pl" / "s2a" / "design.json"
+PART_1 = ROOT / "evidence" / "s2_4_17A6_2026-11-23"   # the chain of part 1, as it was stored
+CANDIDATES = PART_1 / "candidates.json"                # what part 1 found, as its chain wrote it
+CHAIN_OF_PART_1 = PART_1 / "chain.json"                # and that chain's own file: its closing has what CTL0 read in its runs
+PAIRS = ((0, 1), (0, 4), (0, 1, 2), (0, 1, 2, 3))      # the cells turned the other way together in the states of the pairs
 REGISTERS, DEPTH = 4, 32
 CELLS = REGISTERS * DEPTH                              # 128
 CODE_BITS = 7                                          # a cell's number has seven bits
@@ -119,8 +133,23 @@ def single_run(loaded: list[int], r: int) -> list[dict]:
     if not 0 <= r < SINGLE_RUNS:
         raise ValueError(f"there is no run {r} of the singles")
     cells = range(SINGLES_A_RUN * r, SINGLES_A_RUN * (r + 1))
-    return ([{"name": "as loaded", "kind": "loaded", "srl": list(loaded), "shifted": False}]
+    return ([{"name": "loaded", "kind": "loaded", "srl": list(loaded), "shifted": True}]
             + [{"name": f"single {n}", "kind": "single", "cell": n, "srl": single(loaded, n), "shifted": True} for n in cells]
+            + [{"name": "loaded again", "kind": "loaded", "srl": list(loaded), "shifted": True}])
+
+
+def several(loaded: list[int], cells: tuple[int, ...]) -> list[int]:
+    """The loaded content with those cells the other way."""
+    out = list(loaded)
+    for n in cells:
+        out = single(out, n)
+    return out
+
+
+def pairs_run(loaded: list[int]) -> list[dict]:
+    """The six states of the run of the pairs."""
+    return ([{"name": "loaded", "kind": "loaded", "srl": list(loaded), "shifted": True}]
+            + [{"name": "cells " + ", ".join(str(n) for n in cells), "kind": "several", "cells": list(cells), "srl": several(loaded, cells), "shifted": True} for cells in PAIRS]
             + [{"name": "loaded again", "kind": "loaded", "srl": list(loaded), "shifted": True}])
 
 
@@ -171,13 +200,17 @@ def plan(kind: str, share: int | None, design: dict, census: dict, candidates: d
         if share is None or not 0 <= share < len(every):
             raise ValueError(f"a run of part 1 is of one share of {len(every)}: which?")
         states, reads = find_run(), every[share]
-    elif kind in ("code", "singles"):
+    elif kind in ("code", "singles", "pairs"):
         if candidates is None:
             raise ValueError("what part 1 found is not given: there is nothing to read the states over")
         if kind == "code":
             if share is not None:
                 raise ValueError("the code run is one run")
             states, reads = code_run(loaded), st9.column_reads(census, candidates)
+        elif kind == "pairs":
+            if share is not None:
+                raise ValueError("the run of the pairs is one run")
+            states, reads = pairs_run(loaded), st9.candidate_reads(census, candidates)
         else:
             if share is None:
                 raise ValueError("a run of singles is one of two: which?")
@@ -203,7 +236,13 @@ def main(argv: list[str]) -> int:
         print(f"part 1, share {share}: {len(p['states'])} states, {len(p['entries'])} entries ({len(p['log'])} accesses), {len(p['reads'])} reads a state "
               f"({p['reads'][0][0]:#010x} .. {p['reads'][-1][0] + p['reads'][-1][1] - 1:#010x}), may write {p['may_write']:#010x}, "
               f"result {p['result_words']} words ({4 * p['result_words']} bytes)")
-    print("part 2 (the code run, the singles) is planned over what part 1 finds: not known yet")
+    candidates = json.loads(CANDIDATES.read_text())
+    for kind, share in [("code", None)] + [("singles", r) for r in range(SINGLE_RUNS)] + [("pairs", None)]:
+        p = plan(kind, share, design, census, candidates)
+        name = {"code": "the code run", "singles": f"singles, run {share}", "pairs": "the pairs"}[kind]
+        print(f"part 2, {name}: {len(p['states'])} states, {len(p['entries'])} entries ({len(p['log'])} accesses), {len(p['reads'])} reads a state "
+              f"({p['reads'][0][0]:#010x} .. {p['reads'][-1][0] + p['reads'][-1][1] - 1:#010x}), may write {p['may_write']:#010x}, "
+              f"result {p['result_words']} words ({4 * p['result_words']} bytes)")
     return 0
 
 

@@ -388,7 +388,10 @@ class Image(unittest.TestCase):
                            "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
         # S2.4 (sections 37 and 38): the same stage and the same image. A set of S2.4 is the set of S2.3 word for word —
         # what parts them, the word that allows the shift, is among the four the run script fills in with the plan.
-        for name, what in (("s2_4f", "part 1: one share of block type 0 in three states of the shift registers"),):
+        for name, what in (("s2_4f", "part 1: one share of block type 0 in three states of the shift registers"),
+                           ("s2_4c", "part 2, the code run: seventeen states over the column of part 1's candidates"),
+                           ("s2_4s", "part 2, a run of the singles: sixty-six states over the reads that deliver the frames with candidates"),
+                           ("s2_4p", "part 2, the pairs: six states over the same reads, for bit 5 of the status")):
             (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(
                 e22, stage=f"S2.4, the shift registers — {what}", params=[f"{w:08x}" for w in p23],
                 pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",

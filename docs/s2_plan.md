@@ -51,8 +51,9 @@ frames `0x00001820`–`0x00001823` (section 38). **The host side of its part 1 �
 shift registers' bits are — is built (section 39) and has had a first review: three
 things found, all reproduced and mended (section 40)**; no new image. **Part 1 has been on the board (2026-11-23) and is complete: 256 bits follow
 the shift registers, 128 as they are and 128 inverted, in the four frames the prediction
-named; the prediction is a hit (section 41).** Part 2 — which place is which output — is
-not built yet. S2.5 is not proposed in full yet.
+named; the prediction is a hit (section 41).** The host side of part 2 — which place is
+which output — is built and waits for the owner's review (section 42); still no new
+image. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3576,3 +3577,130 @@ in S2.2?), the same content shifted in (does it still?), and one output the othe
   candidates by the rule, the prediction a hit, bit 5 after no record).
 - **Mutants**: 1,464, none stale; none new. Nothing under `prober/` or `host/` was changed.
 - **Stored runs**: 209, of which 203 have a result of their own; 163 pass.
+
+## 42. S2.4, part 2 as built (2026-11-23; host side, nothing of it on a board yet)
+
+For the owner's review before the board. What is built, where it departs from sections 37
+to 39, what I say beforehand that the board will show, and what the run would be.
+
+### What is built
+
+- **The sets** `s2_4c` (the code run), `s2_4s` (a run of the singles, `--share 0` or `1`)
+  and `s2_4p` (the pairs) in the run script, each the set of S2.3 word for word, planned
+  over the candidates part 1 stored (`evidence/s2_4_17A6_2026-11-23/candidates.json`) and
+  told what CTL0 read in part 1's runs. The judge's command takes all four kinds now.
+- **The table** (`host/s2_4_table.py`): the code run closed by point 6 as the owner changed
+  it — every candidate of part 1 follows exactly one cell, as it is or inverted, and no
+  other bit follows one; every cell has a bit that follows it as it is. One thing more is
+  asked: a place follows its cell the same way it followed the uniform states in part 1.
+  The table has, for each cell, its places and which way each shows it, and says how many
+  cells have how many of which. The singles are held to it: with a cell alone the other
+  way, exactly its places differ — all of them, each the same way.
+- **The description** (`schemas/srl_map_v1.schema.json`): modelled on the RAM's, an entry a
+  place — 256 of them if the table is as part 1 suggests — each with its cell, which way,
+  its confidence and the records it rests on.
+- **The chain** (`host/s2_4_chain2.py`): run00 the code run, alone, held to the CTL0 of
+  part 1's runs; the table written once; no single before run00 and the table are
+  committed; run01 and run02 the singles; run03 the pairs; `srl_map.json` when every cell
+  is confirmed.
+- **The twin**: a place that shows what was last shifted into a register, and a fixed
+  value before any shift (below). Not part of the image, which is unchanged
+  (`8bf3799c…`).
+
+### Where this departs — for the reviewer
+
+1. **What a bit follows is asked over the states that were made by shifts.** This is the
+   one that matters, and it comes from data already stored. The frames S2.2 stored — the
+   registers as loaded, never shifted — have a one at even address 0 of all four
+   registers. Part 1 showed that place following inverted. The registers are loaded with
+   words whose first bits are 1, 0, 1, 0. So if that place follows output 0 inverted, then
+   before any shift it reads otherwise than that for registers 0 and 2. Asked over every
+   state, the code run — whose first state is "as loaded" — would have failed on two
+   irregular bits, and the chain would have halted on something that could be read off
+   the evidence beforehand.
+
+   So: a bit that follows a cell over every shifted state and reads otherwise in the state
+   before any shift than its cell's loaded content gives is in the table, **is set down**
+   (`otherwise_as_loaded`, and beside the table), and does not fail the run. Nothing else
+   may: a bit that is the same in every shifted state and another before any shift follows
+   nothing and is irregular, as before. Tests hold both.
+2. **The singles and the pairs begin with the loaded content shifted in, not as loaded.**
+   Only the code run has a state before any shift. In a run of the singles half the cells
+   never change; a place of one of those that read otherwise before any shift would move
+   and follow nothing — found on the twin, with the place of point 1 modelled. The base of
+   a single is still the loaded content (point 4 of section 38); it is shifted in.
+3. **The pairs turn fixed cells** — 0 and 1; 0 and 4; 0, 1, 2; 0, 1, 2, 3 — and not cells
+   "taken from the table by a rule" (section 37): the run script then needs no table. How
+   many bits of which frame each state changes is set down from the table afterwards.
+   Nothing the pairs show fails the run or the chain but what fails any run, and another
+   CTL0.
+4. **The code run is held to the CTL0 of part 1's runs**, the later runs to the code run:
+   the rule of section 34 once more.
+
+(That the code run has seventeen states is in section 39.)
+
+### Said beforehand
+
+Three things, the first fixed before part 1 and the other two set down then as seen
+afterwards; a fourth is new and is a guess.
+
+1. Output a of a register is at the place of address 2 a + 1 (the prediction of part 0;
+   part 1 showed those 128 places follow as they are, not which output each is).
+2. The place of even address 2 j follows output j − 1, inverted, for j from 1 to 31 (the
+   note of section 38).
+3. So the table would have 120 cells with one place as it is and one inverted, and the
+   four outputs 31 with one place and no inverted.
+4. **A guess**: the place of even address 0 follows output 0, inverted, once anything has
+   been shifted in — it shows what was last shifted in — and reads one before any shift.
+   Then the four outputs 0 have two inverted places; and `0x00001822/40/15` and
+   `0x00001822/41/15` (registers 0 and 2) are the two places that read otherwise before
+   any shift, `0x00001822/40/31` and `0x00001822/41/31` are not.
+
+If 4 is wrong the table says what that place follows instead, or the code run fails on it
+and the chain halts — which is then a finding, and the owner's to decide.
+
+And of bit 5, no prediction, but what will be looked at: after the two reads of the four
+frames in the code run's first state (as loaded: where S2.2 saw it), in its last (the same
+content shifted in), in the singles (one cell the other way: by the table two or three
+bits, in two frames), and in the pairs.
+
+### A rehearsal of storing
+
+As for part 1: a code run, a run of the singles and the pairs, each made with the device's
+own plan on the pretend board, are taken again the way the audit takes a stored run and by
+the judge's command; what comes out is what was stored.
+
+### Held by no mutant, and said
+
+- The chain's command beyond a look at an empty directory.
+- The clause that halts a chain told of no CTL0 at all when a passing run has none either.
+
+### In numbers
+
+- **Tests**: 1,101, all passing (35 new: the table, the singles, the description, the
+  pairs, the sets, the chain of four runs, the rehearsal, a place that reads otherwise
+  before any shift).
+- **Mutants**: 1,530, none stale — 66 new for part 2 (the pairs, the sets, the table, the
+  chain, the judge's rule of point 1). A first look at all 134 of S2.4's judge, states,
+  table, sets and chain of part 2, against the tests of S2.4 and S2.3: all killed. One had
+  survived a first try — a contradicted cell written as confirmed in the description —
+  and has a test now. **The tool has not run them** (section 35).
+- **Image**: unchanged. **No serial port was opened.**
+
+### A slip of mine on the way, caught by the audit
+
+The rule of point 1 first added its field, `otherwise_as_loaded`, to the finding of every
+run. The eight verdicts stored for part 1 do not have it; the audit of stored evidence and
+the test that assesses part 1's chain again both failed at once: a stored verdict was no
+longer what the judge says. The field is now written only for a run that has a state
+before any shift — the code run — and the stored runs judge as they did. A mutant holds
+that. It is what those two tests are for, and the second time today that they caught
+something of mine before a board did.
+
+### The board run, when the owner says
+
+A precheck. `host/s2_4_chain2.py --dir evidence/s2_4b_17A6_<date> --go --max-new 1`: the
+code run alone (seventeen states, twelve reads of the column `0x00001800`–`0x00001823`;
+about four minutes), stored and committed with the table. Then `--go`: the two runs of the
+singles and the pairs, about ten minutes together. A halt is reported and nothing is run
+again.

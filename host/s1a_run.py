@@ -57,7 +57,10 @@ import s2_2_shares  # noqa: E402
 import s2_3c_judge  # noqa: E402
 import s2_3s_judge  # noqa: E402
 import s2_4_states  # noqa: E402
+import s2_4c_judge  # noqa: E402
 import s2_4f_judge  # noqa: E402
+import s2_4p_judge  # noqa: E402
+import s2_4s_judge  # noqa: E402
 import s2_3_states  # noqa: E402
 
 EXPECTED = ROOT / "build" / "prober" / "expected.json"
@@ -131,6 +134,13 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # run may write allows the shift, which no set of S2.3 does.
           "s2_4f": {"judge": s2_4f_judge, "expected": ROOT / "build" / "prober" / "expected_s2_4f.json", "known": ROOT / "pl" / "s2a" / "design.json",
                     "census": s2_2_shares.CENSUS, "chain_before": s2_3_states.CHAIN_OF_S2_2, "ram_places": s2_3_states.CANDIDATES},
+          # S2.4, part 2 (sections 37 to 41): which place is which output. s2_4c: the code run, seventeen states over the
+          # column part 1 found the candidates in. s2_4s: one of the two runs of the singles (--share). s2_4p: the run of
+          # the pairs, for bit 5 alone. All three read over what part 1 found, as its chain wrote it, and are told what
+          # CTL0 read in its runs.
+          **{name: {"judge": judge, "expected": ROOT / "build" / "prober" / f"expected_{name}.json", "known": ROOT / "pl" / "s2a" / "design.json",
+                    "census": s2_2_shares.CENSUS, "candidates": s2_4_states.CANDIDATES, "chain_of_part_1": s2_4_states.CHAIN_OF_PART_1}
+             for name, judge in (("s2_4c", s2_4c_judge), ("s2_4s", s2_4s_judge), ("s2_4p", s2_4p_judge))},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
           "rate1": {"judge": s1b0_judge, "expected": ROOT / "build" / "prober" / "expected_rate1.json"},
@@ -172,7 +182,10 @@ P_STAGE, P_PL_LO, P_PL_ID, P_SLCR = 2, 24, 26, 28    # stage 7: the PL envelope'
 SHARES_AT_RUN_TIME = ("s2_2",)                       # the sets whose list of reads is a share of the census, given at run time
 PLANS_AT_RUN_TIME = {"s2_3c": "code", "s2_3s": "singles"}   # the sets of S2.3: both lists are made at run time; a run of the singles is one of four (--share)
 PLANS_AT_RUN_TIME["s2_4f"] = "find"                          # and of S2.4, part 1: a run is of one share of the census's addresses (--share)
-PLANNED_BY = {"s2_4f": s2_4_states}                          # which program makes the plan of a set, where it is not S2.3's
+PLANS_AT_RUN_TIME.update(s2_4c="code", s2_4s="singles", s2_4p="pairs")   # and part 2: a run of the singles is one of two (--share)
+PLANNED_BY = {name: s2_4_states for name in ("s2_4f", "s2_4c", "s2_4s", "s2_4p")}   # which program makes the plan of a set, where it is not S2.3's
+ONE_OF_SEVERAL = {"find": "a run of part 1 is of one share of the census's addresses (--share)", "singles": "a run of the singles is one of four (--share)"}
+ONE_RUN = {"code": "the code run is one run", "pairs": "the run of the pairs is one run"}
 P_ACC_N, P_PL_WRITE = 18, 19                         # stage 9: how many entries the list of accesses has; which registers the run may write
 P_STATES_N, P_LIST_N = 7, 16                         # stage 8: how many states, how many reads the list has
 SLCR_GATES = ((0xF8000900, "LVL_SHFTR_EN"), (0xF8000240, "FPGA_RST_CTRL"), (0xF8000170, "FPGA0_CLK_CTRL"), (0xF800010C, "PLL_STATUS"))
@@ -197,6 +210,8 @@ def known_for(stage: str) -> dict:
         known = dict(known, candidates=json.loads(STAGES[stage]["candidates"].read_text()))
     if "chain_before" in STAGES[stage]:              # and what CTL0 read in the runs that found it: the chain of S2.3 holds its code run to it
         known = dict(known, ctl0_in_s2_2=s2_3_states.ctl0_in_s2_2(json.loads(STAGES[stage]["chain_before"].read_text())))
+    if "chain_of_part_1" in STAGES[stage]:           # S2.4, part 2: what CTL0 read in the runs of part 1, to which its chain holds the code run
+        known = dict(known, ctl0_in_part_1=s2_3_states.ctl0_in_s2_2(json.loads(STAGES[stage]["chain_of_part_1"].read_text())))
     if "ram_places" in STAGES[stage]:                # S2.4: where the RAM's cells are, which no bit of the shift registers may be
         known = dict(known, ram_places=json.loads(STAGES[stage]["ram_places"].read_text()))
     return known
@@ -301,9 +316,8 @@ def with_plan(stage: str, exp: dict, share: int | None, known: dict | None = Non
     if stage not in PLANS_AT_RUN_TIME:
         raise ValueError(f"{stage} has no plan made at run time")
     kind = PLANS_AT_RUN_TIME[stage]
-    if (share is None) != (kind == "code"):
-        raise ValueError("the code run is one run" if kind == "code" else "a run of part 1 is of one share of the census's addresses (--share)"
-                         if kind == "find" else "a run of the singles is one of four (--share)")
+    if (share is None) != (kind in ONE_RUN):
+        raise ValueError(ONE_RUN[kind] if kind in ONE_RUN else "a run of the singles is one of two (--share)" if stage == "s2_4s" else ONE_OF_SEVERAL[kind])
     known = known if known is not None else known_for(stage)
     if stage in PLANNED_BY:
         plan = PLANNED_BY[stage].plan(kind, share, known, known["census"], known.get("candidates"))
@@ -658,7 +672,7 @@ def main() -> int:
     ap.add_argument("--stage", choices=sorted(STAGES), default="s1a")
     ap.add_argument("--start", type=lambda s: int(s, 16), help="hex; only for a set whose starting address is given at run time (s1b2, s1b3, s1b4, s1b5)")
     ap.add_argument("--start-from", default="given on the command line", help="where the starting address was taken from; recorded, not used")
-    ap.add_argument("--share", type=int, help="which share of the census's addresses (s2_2, s2_4f), or which of the four runs of the singles (s2_3s); only for those sets")
+    ap.add_argument("--share", type=int, help="which share of the census's addresses (s2_2, s2_4f), or which run of the singles (s2_3s, s2_4s); only for those sets")
     a = ap.parse_args()
     exp = json.loads(STAGES[a.stage]["expected"].read_text())
     if a.stage in PLANS_AT_RUN_TIME:
@@ -692,7 +706,7 @@ def main() -> int:
         print(f"stage {a.stage}" + (f", starting at {exp['chain']['start']} ({exp['chain']['from']})" if "chain" in exp else "")
               + (f", share {exp['share']['index']} of {exp['share']['of']}: {exp['share']['reads']} reads, {exp['share']['frames']} frames, "
                  f"{exp['share']['first']} .. {exp['share']['last']}" if "share" in exp else "")
-              + (f", {'the code run' if exp['plan']['kind'] == 'code' else ('part 1, share %d' if exp['plan']['kind'] == 'find' else 'the singles, run %d') % exp['plan']['share']}: {exp['plan']['states']} states, "
+              + (f", {ONE_RUN[exp['plan']['kind']].split(' is ')[0] if exp['plan']['kind'] in ONE_RUN else ('part 1, share %d' if exp['plan']['kind'] == 'find' else 'the singles, run %d') % exp['plan']['share']}: {exp['plan']['states']} states, "
                  f"{exp['plan']['entries']} entries in the list of accesses, {exp['plan']['reads']} reads a state, {exp['plan']['first']} .. {exp['plan']['last']}"
                  if "plan" in exp else ""))
         print(f"image {exp['image_sha256']}  ({exp['image_bytes']} bytes)")

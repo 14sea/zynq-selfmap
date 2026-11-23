@@ -53,7 +53,8 @@
  * SM_SRLMAP=<file> says the same of the shift registers' outputs (S2.4, section 37): a line for each place — the
  * output's address, which of the four registers, the frame address (hex), the word, the bit, and 1 if inverted. A
  * frame read then delivers, at each such place, what that output holds at that moment. An output may have several
- * places, or none.
+ * places, or none. A register named 4 to 7 is a place that shows, of register 0 to 3, what was last shifted into it —
+ * its first output — and a zero as long as nothing has been shifted in, whatever the register was loaded with.
  * More faults:
  *   masked                           no place follows its cell: every frame reads as the file of frames has it
  *   ramdisturb@R                     frame read R changes a cell of the RAM
@@ -174,7 +175,8 @@ static const uint32_t *frame(uint32_t far)
         }
     for (i = 0; i < n_srl_places && !fault_on("masked"); i++)                 /* the outputs of the shift registers that show in it */
         if (srl_place[i].far == far) {
-            uint32_t cell = ((pl_srl[srl_place[i].addr] >> srl_place[i].mem) & 1u) ^ srl_place[i].inv;
+            uint32_t cell = (srl_place[i].mem < 4u ? (pl_srl[srl_place[i].addr] >> srl_place[i].mem) & 1u
+                             : pl_srl_shifts ? (pl_srl[0] >> (srl_place[i].mem - 4u)) & 1u : 0u) ^ srl_place[i].inv;
             if (!shown++) memcpy(changed, f, sizeof changed);
             changed[srl_place[i].word] = (changed[srl_place[i].word] & ~(1u << srl_place[i].bit)) | cell << srl_place[i].bit;
         }
@@ -467,7 +469,7 @@ int main(int argc, char **argv)
             FILE *m = fopen(getenv("SM_SRLMAP"), "r"); unsigned long a, b, c, d, e, g;
             if (!m) return 2;
             while (n_srl_places < MAX_PLACES && fscanf(m, "%lu %lu %lx %lu %lu %lu", &a, &b, &c, &d, &e, &g) == 6) {
-                if (a >= SRL_DEPTH || b >= 4u || d >= FRAME_WORDS || e >= 32u || g > 1u) return 2;
+                if (a >= SRL_DEPTH || b >= 8u || d >= FRAME_WORDS || e >= 32u || g > 1u) return 2;
                 srl_place[n_srl_places].addr = (uint32_t)a; srl_place[n_srl_places].mem = (uint32_t)b; srl_place[n_srl_places].far = (uint32_t)c;
                 srl_place[n_srl_places].word = (uint32_t)d; srl_place[n_srl_places].bit = (uint32_t)e; srl_place[n_srl_places].inv = (uint32_t)g; n_srl_places++;
             }

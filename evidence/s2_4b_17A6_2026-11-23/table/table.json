@@ -1,0 +1,2476 @@
+{
+ "schema": "s2_4_table",
+ "schema_version": 1,
+ "label": "closed-book",
+ "what": "which bit of configuration memory follows which output of the probe design's shift registers, and which way, decoded from the code run alone (docs/s2_plan.md, sections 37 to 41). Not yet confirmed by the singles.",
+ "design": "s2a",
+ "outcome": "10: every candidate of part 1 follows exactly one cell, as it is or inverted, and every cell has a bit as it is \u2014 4 cell(s) with 1 as it is, 0 inverted; 120 cell(s) with 1 as it is, 1 inverted; 4 cell(s) with 1 as it is, 2 inverted",
+ "cells": 128,
+ "as_they_are": 128,
+ "inverted": 128,
+ "cells_by_their_places": {
+  "1 as it is, 0 inverted": 4,
+  "1 as it is, 1 inverted": 120,
+  "1 as it is, 2 inverted": 4
+ },
+ "places_that_read_otherwise_as_loaded": [
+  {
+   "far": "0x00001822",
+   "word": 40,
+   "bit": 15,
+   "cell": 0,
+   "inverted": true,
+   "state": 0,
+   "reads": 1,
+   "the_cell_gives": 0
+  },
+  {
+   "far": "0x00001822",
+   "word": 41,
+   "bit": 15,
+   "cell": 64,
+   "inverted": true,
+   "state": 0,
+   "reads": 1,
+   "the_cell_gives": 0
+  }
+ ],
+ "code_run": {
+  "dir": "run00",
+  "result_sha256": "38fed8a343d95dd20b73efcb7aabfb9284905b1548d117e6cfa224f693ac074c"
+ },
+ "table": [
+  {
+   "cell": 0,
+   "register": 0,
+   "output": 0,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 15,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 14,
+     "inverted": true
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 15,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 1,
+   "register": 0,
+   "output": 1,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 14,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 13,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 2,
+   "register": 0,
+   "output": 2,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 13,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 12,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 3,
+   "register": 0,
+   "output": 3,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 12,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 15,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 4,
+   "register": 0,
+   "output": 4,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 15,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 14,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 5,
+   "register": 0,
+   "output": 5,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 14,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 13,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 6,
+   "register": 0,
+   "output": 6,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 13,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 12,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 7,
+   "register": 0,
+   "output": 7,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 12,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 11,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 8,
+   "register": 0,
+   "output": 8,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 11,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 10,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 9,
+   "register": 0,
+   "output": 9,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 10,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 9,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 10,
+   "register": 0,
+   "output": 10,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 9,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 8,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 11,
+   "register": 0,
+   "output": 11,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 8,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 11,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 12,
+   "register": 0,
+   "output": 12,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 11,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 10,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 13,
+   "register": 0,
+   "output": 13,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 10,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 9,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 14,
+   "register": 0,
+   "output": 14,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 9,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 8,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 15,
+   "register": 0,
+   "output": 15,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 8,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 7,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 16,
+   "register": 0,
+   "output": 16,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 7,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 6,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 17,
+   "register": 0,
+   "output": 17,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 6,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 5,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 18,
+   "register": 0,
+   "output": 18,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 5,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 4,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 19,
+   "register": 0,
+   "output": 19,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 4,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 7,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 20,
+   "register": 0,
+   "output": 20,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 7,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 6,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 21,
+   "register": 0,
+   "output": 21,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 6,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 5,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 22,
+   "register": 0,
+   "output": 22,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 5,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 4,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 23,
+   "register": 0,
+   "output": 23,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 4,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 3,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 24,
+   "register": 0,
+   "output": 24,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 3,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 2,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 25,
+   "register": 0,
+   "output": 25,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 2,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 1,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 26,
+   "register": 0,
+   "output": 26,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 1,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 0,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 27,
+   "register": 0,
+   "output": 27,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 0,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 3,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 28,
+   "register": 0,
+   "output": 28,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 3,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 2,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 29,
+   "register": 0,
+   "output": 29,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 2,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 1,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 30,
+   "register": 0,
+   "output": 30,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 1,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 0,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 31,
+   "register": 0,
+   "output": 31,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 0,
+     "inverted": false
+    }
+   ]
+  },
+  {
+   "cell": 32,
+   "register": 1,
+   "output": 0,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 31,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 30,
+     "inverted": true
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 31,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 33,
+   "register": 1,
+   "output": 1,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 30,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 29,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 34,
+   "register": 1,
+   "output": 2,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 29,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 28,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 35,
+   "register": 1,
+   "output": 3,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 28,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 31,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 36,
+   "register": 1,
+   "output": 4,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 31,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 30,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 37,
+   "register": 1,
+   "output": 5,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 30,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 29,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 38,
+   "register": 1,
+   "output": 6,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 29,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 28,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 39,
+   "register": 1,
+   "output": 7,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 28,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 27,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 40,
+   "register": 1,
+   "output": 8,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 27,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 26,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 41,
+   "register": 1,
+   "output": 9,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 26,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 25,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 42,
+   "register": 1,
+   "output": 10,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 25,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 24,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 43,
+   "register": 1,
+   "output": 11,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 24,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 27,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 44,
+   "register": 1,
+   "output": 12,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 27,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 26,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 45,
+   "register": 1,
+   "output": 13,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 26,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 25,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 46,
+   "register": 1,
+   "output": 14,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 25,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 24,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 47,
+   "register": 1,
+   "output": 15,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 24,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 23,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 48,
+   "register": 1,
+   "output": 16,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 23,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 22,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 49,
+   "register": 1,
+   "output": 17,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 22,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 21,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 50,
+   "register": 1,
+   "output": 18,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 21,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 20,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 51,
+   "register": 1,
+   "output": 19,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 20,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 23,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 52,
+   "register": 1,
+   "output": 20,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 23,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 22,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 53,
+   "register": 1,
+   "output": 21,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 22,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 21,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 54,
+   "register": 1,
+   "output": 22,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 21,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 20,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 55,
+   "register": 1,
+   "output": 23,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 20,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 19,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 56,
+   "register": 1,
+   "output": 24,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 19,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 18,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 57,
+   "register": 1,
+   "output": 25,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 18,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 17,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 58,
+   "register": 1,
+   "output": 26,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 17,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 40,
+     "bit": 16,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 59,
+   "register": 1,
+   "output": 27,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 40,
+     "bit": 16,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 19,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 60,
+   "register": 1,
+   "output": 28,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 19,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 18,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 61,
+   "register": 1,
+   "output": 29,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 18,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 17,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 62,
+   "register": 1,
+   "output": 30,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 17,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 40,
+     "bit": 16,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 63,
+   "register": 1,
+   "output": 31,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 40,
+     "bit": 16,
+     "inverted": false
+    }
+   ]
+  },
+  {
+   "cell": 64,
+   "register": 2,
+   "output": 0,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 15,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 14,
+     "inverted": true
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 15,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 65,
+   "register": 2,
+   "output": 1,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 14,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 13,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 66,
+   "register": 2,
+   "output": 2,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 13,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 12,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 67,
+   "register": 2,
+   "output": 3,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 12,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 15,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 68,
+   "register": 2,
+   "output": 4,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 15,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 14,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 69,
+   "register": 2,
+   "output": 5,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 14,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 13,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 70,
+   "register": 2,
+   "output": 6,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 13,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 12,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 71,
+   "register": 2,
+   "output": 7,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 12,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 11,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 72,
+   "register": 2,
+   "output": 8,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 11,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 10,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 73,
+   "register": 2,
+   "output": 9,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 10,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 9,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 74,
+   "register": 2,
+   "output": 10,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 9,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 8,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 75,
+   "register": 2,
+   "output": 11,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 8,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 11,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 76,
+   "register": 2,
+   "output": 12,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 11,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 10,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 77,
+   "register": 2,
+   "output": 13,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 10,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 9,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 78,
+   "register": 2,
+   "output": 14,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 9,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 8,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 79,
+   "register": 2,
+   "output": 15,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 8,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 7,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 80,
+   "register": 2,
+   "output": 16,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 7,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 6,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 81,
+   "register": 2,
+   "output": 17,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 6,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 5,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 82,
+   "register": 2,
+   "output": 18,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 5,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 4,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 83,
+   "register": 2,
+   "output": 19,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 4,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 7,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 84,
+   "register": 2,
+   "output": 20,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 7,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 6,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 85,
+   "register": 2,
+   "output": 21,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 6,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 5,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 86,
+   "register": 2,
+   "output": 22,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 5,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 4,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 87,
+   "register": 2,
+   "output": 23,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 4,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 3,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 88,
+   "register": 2,
+   "output": 24,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 3,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 2,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 89,
+   "register": 2,
+   "output": 25,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 2,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 1,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 90,
+   "register": 2,
+   "output": 26,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 1,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 0,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 91,
+   "register": 2,
+   "output": 27,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 0,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 3,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 92,
+   "register": 2,
+   "output": 28,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 3,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 2,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 93,
+   "register": 2,
+   "output": 29,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 2,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 1,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 94,
+   "register": 2,
+   "output": 30,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 1,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 0,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 95,
+   "register": 2,
+   "output": 31,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 0,
+     "inverted": false
+    }
+   ]
+  },
+  {
+   "cell": 96,
+   "register": 3,
+   "output": 0,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 31,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 30,
+     "inverted": true
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 31,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 97,
+   "register": 3,
+   "output": 1,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 30,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 29,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 98,
+   "register": 3,
+   "output": 2,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 29,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 28,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 99,
+   "register": 3,
+   "output": 3,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 28,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 31,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 100,
+   "register": 3,
+   "output": 4,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 31,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 30,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 101,
+   "register": 3,
+   "output": 5,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 30,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 29,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 102,
+   "register": 3,
+   "output": 6,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 29,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 28,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 103,
+   "register": 3,
+   "output": 7,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 28,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 27,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 104,
+   "register": 3,
+   "output": 8,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 27,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 26,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 105,
+   "register": 3,
+   "output": 9,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 26,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 25,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 106,
+   "register": 3,
+   "output": 10,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 25,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 24,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 107,
+   "register": 3,
+   "output": 11,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 24,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 27,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 108,
+   "register": 3,
+   "output": 12,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 27,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 26,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 109,
+   "register": 3,
+   "output": 13,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 26,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 25,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 110,
+   "register": 3,
+   "output": 14,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 25,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 24,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 111,
+   "register": 3,
+   "output": 15,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 24,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 23,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 112,
+   "register": 3,
+   "output": 16,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 23,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 22,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 113,
+   "register": 3,
+   "output": 17,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 22,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 21,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 114,
+   "register": 3,
+   "output": 18,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 21,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 20,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 115,
+   "register": 3,
+   "output": 19,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 20,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 23,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 116,
+   "register": 3,
+   "output": 20,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 23,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 22,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 117,
+   "register": 3,
+   "output": 21,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 22,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 21,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 118,
+   "register": 3,
+   "output": 22,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 21,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 20,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 119,
+   "register": 3,
+   "output": 23,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 20,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 19,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 120,
+   "register": 3,
+   "output": 24,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 19,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 18,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 121,
+   "register": 3,
+   "output": 25,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 18,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 17,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 122,
+   "register": 3,
+   "output": 26,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 17,
+     "inverted": false
+    },
+    {
+     "far": "0x00001822",
+     "word": 41,
+     "bit": 16,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 123,
+   "register": 3,
+   "output": 27,
+   "places": [
+    {
+     "far": "0x00001823",
+     "word": 41,
+     "bit": 16,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 19,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 124,
+   "register": 3,
+   "output": 28,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 19,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 18,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 125,
+   "register": 3,
+   "output": 29,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 18,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 17,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 126,
+   "register": 3,
+   "output": 30,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 17,
+     "inverted": false
+    },
+    {
+     "far": "0x00001820",
+     "word": 41,
+     "bit": 16,
+     "inverted": true
+    }
+   ]
+  },
+  {
+   "cell": 127,
+   "register": 3,
+   "output": 31,
+   "places": [
+    {
+     "far": "0x00001821",
+     "word": 41,
+     "bit": 16,
+     "inverted": false
+    }
+   ]
+  }
+ ]
+}

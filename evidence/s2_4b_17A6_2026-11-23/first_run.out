@@ -1,0 +1,66 @@
+the table written: table/table.json
+run00: code, 128 bit(s) follow a cell as they are, 128 inverted, 0 irregular — go on
+{
+ "step": "s2_4, part 2",
+ "runs_planned": 4,
+ "set_aside": [],
+ "made_with": {
+  "image_bytes": 19244,
+  "image_crc32": "261627c7",
+  "image_sha256": "8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b",
+  "image_from": "kept with the runs",
+  "design_bytes": 2083859,
+  "design_crc32": "6a1efe06",
+  "design_sha256": "09782815b7420fb3c4aecd7397946295ed735fea2ae8b8060d8d912aecf9df64"
+ },
+ "closing_of_the_code_run": {
+  "problems": [],
+  "cells": 128,
+  "bits_that_follow": 256,
+  "as_they_are": 128,
+  "inverted": 128,
+  "cells_by_their_places": {
+   "1 as it is, 0 inverted": 4,
+   "1 as it is, 1 inverted": 120,
+   "1 as it is, 2 inverted": 4
+  },
+  "cells_without_a_bit_as_it_is": [],
+  "places_part_1_did_not_have": [],
+  "candidates_of_part_1_that_follow_no_cell": [],
+  "places_shown_the_other_way_than_in_part_1": [],
+  "candidates_of_part_1": 256,
+  "bit_5_after_records": [
+   12,
+   13,
+   204,
+   205
+  ],
+  "places_that_read_otherwise_as_loaded": [
+   {
+    "far": "0x00001822",
+    "word": 40,
+    "bit": 15,
+    "cell": 0,
+    "inverted": true,
+    "state": 0,
+    "reads": 1,
+    "the_cell_gives": 0
+   },
+   {
+    "far": "0x00001822",
+    "word": 41,
+    "bit": 15,
+    "cell": 64,
+    "inverted": true,
+    "state": 0,
+    "reads": 1,
+    "the_cell_gives": 0
+   }
+  ],
+  "outcome": "10: every candidate of part 1 follows exactly one cell, as it is or inverted, and every cell has a bit as it is \u2014 4 cell(s) with 1 as it is, 0 inverted; 120 cell(s) with 1 as it is, 1 inverted; 4 cell(s) with 1 as it is, 2 inverted"
+ },
+ "state": "go on",
+ "next_run": 1,
+ "table_sha256": "4b10aef088c315a9c0e2686c56eb85f9f6df623bd37cc8039b6f999242c46690"
+}
+1 run(s) stored of 4; the chain: go on

@@ -145,10 +145,30 @@ def n_records(r: Run) -> int:
     return 4 + r.n_states * len(r.reads)                # the reference frame, CTL0, the reads of every state, CTL0, the reference frame
 
 
+_MADE: dict = {}
+
+
+def once(name: str, make):
+    """What several tests look at, made when the first of them asks and kept for the rest — in a test, not in
+    setUpClass: if it cannot be made, every test that needs it fails, and none is kept from being run. (2026-11-23:
+    the run of `StageNine` was made in setUpClass; with the runs on memory that holds something the twin can end
+    with a code, and under the mutant "stage 9 is run as stage 8" it did — nine tests left the count, and the tool,
+    rightly, did not take that for a kill. Section 27 had the same in another class.)"""
+    if name not in _MADE:
+        try:
+            _MADE[name] = (make(), None)
+        except Exception as e:                           # kept as well: the tests after it fail the same way, at once
+            _MADE[name] = (None, e)
+    value, error = _MADE[name]
+    if error is not None:
+        raise error
+    return value
+
+
 class StageNine(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.r = Run()
+    @property
+    def r(self) -> Run:
+        return once("the run of four states", Run)
 
     def test_it_completes_and_says_so(self) -> None:
         r, n = self.r, n_records(self.r)

@@ -44,7 +44,8 @@ image is the same). The complete set has not been run for the new image, and by 
 owner's rule of 2026-11-23 it is not due before the board: once before S2 is graded, and
 before the first write (section 35). **S2.3 has been on the board (2026-11-23) and is
 complete: every cell of the RAM has one bit, the 256 are the places S2.2 found, and each
-is confirmed by a run of its own (section 36).** S2.4 and S2.5 are not proposed in full yet.
+is confirmed by a run of its own (section 36).** S2.4 is proposed in full in section 37
+and waits for the owner's word on its nine points; S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3019,3 +3020,193 @@ The first of these I should have met before the board: a run of the twin stored 
   point 5, S2.4 may need no new image.
 - Before S2 is graded: the complete set of mutants, once (section 35).
 - Nothing was written to configuration memory, and `SEU_EN` was not set.
+
+## 37. Step S2.4 — the shift registers: proposal (2026-11-23)
+
+Asked for by the owner after S2.3 closed; with what was seen of bit 5 taken into it rather
+than made a step of its own. Nothing of this is built. Section 8 outlined the step in three
+lines; this is the whole.
+
+### What is asked
+
+Question 7 of section 1, its second half: where in configuration memory are the bits of the
+design's four shift registers, which bit holds what was shifted in how many shifts ago, and
+are all 32 of each seen? And, as for the RAM: does reading leave them as they were?
+
+### What is known, and what is not
+
+- The design has four `SRLC32E` behind two registers (`pl/s2a/design.json`): a write to
+  `SRL_DATA` shifts all four by one, bit k of the word into register k; `SRL_ADDR` chooses
+  which of the 32 outputs `SRL_DATA` reads — address a, the bit shifted in a + 1 shifts
+  ago. So **any content can be given to all four by 32 writes**, and read back whole
+  through the design, before the frames are read and after.
+- They were loaded with `0xA5C30F69`, `0x0F1E2D3C`, `0x13579BDF`, `0xFEDCBA98` and have not
+  been shifted in any run so far: in S2.2 and S2.3 their outputs were read and held.
+- **They are on another site than the RAM** (`SLICE_X34Y70`; the RAM is on `SLICE_X16Y30`).
+  Nothing found so far says where that is in configuration memory: one site's place does
+  not give another's. So this step has to find before it can decode, as S2.2 came before
+  S2.3.
+- In S2.2 every bit of block type 0 outside the RAM's 256 was still. The shift registers'
+  bits are among those still bits, holding what was loaded — if they are in block type 0 at
+  all.
+
+### The numbering
+
+Cell 32 k + a is output a of shift register k (k from 0 to 3, a from 0 to 31): 128 cells,
+a number of seven bits. "Output a" is what the design's address register chooses; which
+stage of the primitive that is inside the device is not claimed.
+
+### The step in three parts
+
+**Part 0 — a prediction, on the host alone, before the board is asked.** S2.3 found that a
+memory of the RAM is a half word in each of four frames next to each other, its 64 places
+ordered by six moves. If a shift register is laid out the same way, its loaded word is
+already in the frames S2.2 stored, and can be looked for. The program takes, for every four
+frames next to each other in the census, every word and both halves, the 64 bits the rule
+of S2.3 would make a memory of, and asks whether one of the four loaded words is in them in
+one of these arrangements, fixed here and not afterwards: the 32 bits at the even
+addresses, at the odd ones, or at both; in the lower 32 addresses, the upper, or both;
+each in order or reversed; each as it is or inverted. 24 arrangements, four words, about
+780,000 places: a chance hit is to be expected once in some sixty such searches, so one hit
+means something and four in one group of frames mean a great deal.
+
+What it says is written down and committed **before the first run of part 1**: found (where,
+which arrangement), found more than once, or not found. It decides nothing: part 1 is made
+the same whatever it says, and a test then holds the prediction against what the board
+showed — a hit or a miss, either recorded. It is the first thing in this project that says
+beforehand where something will be, from the device's own data.
+
+**Part 1 — where they are: all of block type 0, in three states.** The eight shares of
+S2.2 again (`s2_2_shares`, as they are: the same reads, so every record has its like in
+S2.2). In each run three states of the shift registers — **all zero, all one, all zero** —
+each made by 32 shifts and read back through the design at all 32 addresses before the
+frames and after them. The bits that follow are the candidates.
+
+About an hour of board time, as S2.2 was: eight runs of about seven and a half minutes.
+Each result fits its area (at most 176 reads a state: 532 records, about 257,000 words of
+262,144).
+
+Two things come with it for nothing:
+
+- In the all-zero states the frames differ from what S2.2 stored exactly at candidates
+  where the loaded word has a one — and nowhere else. A check across two days.
+- Bit 5 is recorded after every read, as always. Here a frame is many bits away from what
+  was loaded, in an arrangement not chosen for its regularity.
+
+**Part 2 — which is which: the code run, the singles, and a short run for bit 5.** As
+S2.3, on the column the candidates lie in (if they lie in one; else on the reads that
+deliver them).
+
+- *The code run*, sixteen states: as loaded, with nothing shifted; the seven code states,
+  each followed by its complement (in code state j, cell n holds bit j of n); and last the
+  loaded words shifted in again. Every state read back through the design before and
+  after. The first and the last state must read alike in every bit: a content that was
+  shifted in is not to be told from the same content loaded.
+- *The singles*, two runs of 64: the base is **the loaded content**, and single n is that
+  content with cell n alone the other way. So each single is one bit away from what was
+  loaded, which is what bit 5 seemed to answer to in S2.3 — there with a base of zero,
+  here with a base that is not.
+- *The pairs*, one short run, for bit 5 alone: the base; two cells of one frame; two cells
+  of two frames; three cells of one frame; four cells of one frame; the base. Which cells
+  those are is taken from the table by a fixed rule (the first that fit, in the table's
+  order). In S2.3 a frame was none, one, 32 or 64 bits away from what was loaded and bit 5
+  showed at one only; this tells "one" from "an odd number" from "any".
+
+About twenty minutes of board time in four runs. Every one fits the stage as it is: at most
+80 states, 32,768 accesses.
+
+### What may come out, said beforehand
+
+Part 1:
+
+1. **128 bits follow** — 32 for each register — none inverted, none restless, every other
+   bit of block type 0 still; the shift registers read back as written before and after
+   every pass. The candidates.
+2. **256 follow**: two bits a cell. Not a failure: candidates, and part 2 says how the two
+   of a cell stand to each other.
+3. **Fewer than 128**, or a number that is neither: some outputs are not seen, or
+   something else follows. Reported as found; the owner decides whether part 2 is made on
+   it.
+4. **Nothing follows.** With CTL0 as it is that is a contradiction to be understood, as
+   section 8 said of the RAM. The chain halts. Block type 1 is not read in search of them
+   without a new word.
+5. **A candidate lies among the RAM's 256 places**, or a bit that was a candidate of S2.2
+   moves: the two memories are not apart as the design says. Halt.
+6. **The shift registers do not read back** what was shifted in, before the frames or
+   after: the prober stops there (it holds every reading to the list). Before: a fault of
+   the design or of the plan. After: reading disturbed them — the answer to the second
+   question, and a halt.
+7. **A frame differs from S2.2's reading of it** elsewhere than at a candidate. Reported;
+   the run does not fail for it.
+8. Bit 5 shows somewhere: recorded, cleared, reported.
+9. The interface fails, a prompt is lost, the design does not answer: as in every step.
+
+Part 2:
+
+10. **Every cell has exactly one bit** (or exactly two, after outcome 2), the bits are the
+    candidates, and the first and last state read alike. The table.
+11. Two cells with the same place, a cell with none, a candidate that follows no cell, a
+    place that follows irregularly: no table; the chain halts and says which.
+12. **Each single changes exactly its place** (or its two): confirmed. Otherwise that
+    entry is a contradiction and the chain halts at that run, as in S2.3.
+13. The pairs: whatever bit 5 does is recorded and reported. No outcome of this run fails
+    it but 6 and 9.
+
+### What has to be built
+
+- **No new image, if the stage holds what I read in its source.** Stage 9 takes its states
+  as a list of accesses and knows none of them; its bound already has the shift registers'
+  data (section 30, point 5), and a set's own word says whether a run may shift. The sets
+  of S2.4 say yes; those of S2.3 still say no. The twin already shifts when a test allows
+  it. If building shows that something is missing after all, that is a new image and a
+  word to the owner before it is made.
+- **The twin** (not part of the image): the shift registers' cells shown in the frames at
+  places a test chooses — one bit a cell or two, and switches for outcomes 3 to 7 and 11.
+- **The host**: the prediction; the states and both lists for the four kinds of run; the
+  judge (what the shift registers hold after each access is worked out again from the log,
+  not taken from the plan); the closing of part 1 into candidates and of the code run into
+  the table; the chain's driver, with the commits between the parts as in S2.3; the
+  description and its schema.
+- **Tests, and the mutants of what is new** (section 35: the suite, those mutants, review;
+  no complete set before the board).
+- **A rehearsal of storing**: a run of the twin stored under `evidence/` in a scratch copy
+  and the whole suite run on it, before the board — what section 36 said I should have
+  done.
+
+### What S2.4 cannot show
+
+- Which stage of the primitive an output is, or which LUT of the slice a register is: the
+  numbering is the design's.
+- Whether these bits are a LUT's truth table, or what a write to them would do: S4.
+- Anything about a shift register that is being shifted while it is read: here it stands
+  still during every read.
+- Other sites: S2.5.
+
+### For the owner
+
+1. **The form: prediction, then all of block type 0 in three states, then the code run and
+   the singles.** *(Recommended. The other way is to trust the prediction and read only
+   where it points — a quarter of an hour instead of an hour and a quarter. I would not:
+   that every other bit of block type 0 is still is half of what part 1 says, and the
+   prediction may find nothing.)*
+2. **The prediction is committed before the first run and decides nothing.** *(Recommended.
+   Or leave it out: it costs an afternoon of host work and no board time.)*
+3. **No new image**; the sets of S2.4 allow the shift, and a new image, should one be
+   needed, is asked for first. *(Recommended.)*
+4. **The base of the singles is the loaded content, not zero.** *(Recommended: it makes
+   every single one bit away from what was loaded, and costs nothing — every state is 32
+   shifts whatever it holds. The other way, a base of zero as in S2.3, keeps the two steps
+   alike and loses that.)*
+5. **The pairs: one short run for bit 5**, recorded and never failed. *(Recommended; about
+   three minutes. Left out, bit 5 is still recorded in every other run.)*
+6. **A table may have one bit a cell or two**, each a named outcome; anything else is no
+   table. *(Recommended. S2.3 asked for exactly one because S2.2 had found exactly as many
+   places as cells; here the number is not known yet.)*
+7. **The description is a document of our own** (`srl_map_v1`), as `ram_map_v1` was, with
+   the design's numbering and no claim about the primitive's stages. *(Recommended.)*
+8. **Two words, one for each part on the board**: part 1 (its first run alone, committed,
+   then the rest); then, after its account, part 2 (the code run alone, committed with the
+   table, then the singles and the pairs). A halt is the owner's, as always.
+   *(Recommended.)*
+9. **Block type 1 is not read.** If nothing follows in block type 0 the chain halts and
+   that is reported. *(Recommended.)*

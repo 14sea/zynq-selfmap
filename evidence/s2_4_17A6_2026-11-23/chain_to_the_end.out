@@ -1,0 +1,53 @@
+run00: share 0, 516 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — go on
+run01: share 1, 516 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — go on
+run02: share 2, 520 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — go on
+run03: share 3, 524 addresses, 128 bit(s) follow, 128 inverted, 0 irregular — go on
+run04: share 4, 508 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — go on
+run05: share 5, 524 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — go on
+run06: share 6, 512 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — go on
+run07: share 7, 244 addresses, 0 bit(s) follow, 0 inverted, 0 irregular — complete
+{
+ "step": "s2_4, part 1",
+ "shares": 8,
+ "set_aside": [],
+ "made_with": {
+  "image_bytes": 19244,
+  "image_crc32": "261627c7",
+  "image_sha256": "8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b",
+  "image_from": "kept with the runs",
+  "design_bytes": 2083859,
+  "design_crc32": "6a1efe06",
+  "design_sha256": "09782815b7420fb3c4aecd7397946295ed735fea2ae8b8060d8d912aecf9df64"
+ },
+ "closing": {
+  "problems": [],
+  "addresses_read": 3864,
+  "outputs_in_the_design": 128,
+  "candidates": 256,
+  "candidates_as_they_are": 128,
+  "candidates_inverted": 128,
+  "outcome": "2: more bits follow than the shift registers have outputs (128): 128 as they are, 128 inverted; every other bit still; the registers held every state",
+  "ctl0": [
+   "0x00000501"
+  ],
+  "ctl0_in_s2_2": "0x00000501",
+  "frames_with_candidates": {
+   "0x00001820": 64,
+   "0x00001821": 64,
+   "0x00001822": 64,
+   "0x00001823": 64
+  },
+  "bit_5": {},
+  "bit_5_still_set_after_clearing": {},
+  "frames_that_read_otherwise_than_in_s2_2_elsewhere": [],
+  "prediction": {
+   "places_named": 128,
+   "candidates_among_them_that_follow_as_named": 128,
+   "says": "hit: every place the prediction names is a candidate that follows the way it names",
+   "not_such": []
+  }
+ },
+ "state": "complete",
+ "candidates_file": "there"
+}
+8 run(s) stored of 8; the chain: complete

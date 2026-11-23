@@ -358,6 +358,19 @@ class ARunOfTheDeviceSPlan(unittest.TestCase):
         self.assertEqual(f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}", stored_rec["board_crc32"])
         import status_seen
         self.assertEqual(status_seen.seen(now)["bits"], [], "and the listing of status bits reads its verdict")
+        # the judge's own command, on the stored result: the kind it has a set for, and nothing else (review of 633875e)
+        cmd = lambda *a: subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s2_4_judge.py"), str(out / "result.bin"), *a], capture_output=True, text=True)  # noqa: E731
+        r = cmd("find", "7")
+        self.assertEqual((r.returncode, json.loads(r.stdout)), (0, json.loads((out / "verdict.json").read_text())), r.stderr)
+        self.assertEqual(cmd("find", "6").returncode, 1, "judged against another share's plan it does not pass")
+        for args in (("code",), ("singles", "0"), ("find",), ("find", "x"), ("find", "7", "8"), ()):
+            r = cmd(*args)
+            self.assertEqual((r.returncode, r.stderr, "s2_4_judge.py <result.bin> find <share>" in r.stdout), (2, "", True), args)
+        r = cmd("find", "8")
+        self.assertEqual((r.returncode, r.stderr), (2, ""), r.stdout)
+        self.assertIn("no plan for that run", r.stdout)
+        r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s2_4f_judge.py"), str(out / "result.bin"), "7"], capture_output=True, text=True)
+        self.assertEqual((r.returncode, json.loads(r.stdout)["verdict"]), (0, "PASS"), r.stderr)
 
 
 def run4(share: int, known: dict | None = None, out: Path | None = None, cells=None, fault: str = "", env: dict | None = None, **quirks):
@@ -609,14 +622,21 @@ class TheChain(unittest.TestCase):
         try:
             s2_4_predict.places = lambda _: {(far, word, bit): (k, a, False) for a, k, far, word, bit, inv in srl_map() if not inv}
             p = s2_4_chain.assess(self.root, self.base, dict(KNOWN, prediction={}))["closing"]["prediction"]
-            self.assertEqual(p, {"places_named": 128, "candidates_as_they_are_among_them": 128,
-                                 "says": "hit: every place the prediction names is a candidate that follows as it is", "not_such": []})
+            self.assertEqual(p, {"places_named": 128, "candidates_among_them_that_follow_as_named": 128,
+                                 "says": "hit: every place the prediction names is a candidate that follows the way it names", "not_such": []})
             s2_4_predict.places = lambda _: {(far + (1 if a == 0 else 0), word, bit): (k, a, False) for a, k, far, word, bit, inv in srl_map() if not inv}
             p = s2_4_chain.assess(self.root, self.base, dict(KNOWN, prediction={}))["closing"]["prediction"]
-            self.assertEqual((p["says"], p["candidates_as_they_are_among_them"], len(p["not_such"])), ("miss: 4 place(s) it names are not such candidates", 124, 4))
+            self.assertEqual((p["says"], p["candidates_among_them_that_follow_as_named"], len(p["not_such"])), ("miss: 4 place(s) it names are not such candidates", 124, 4))
             s2_4_predict.places = lambda _: {(far, word, bit): (k, a, False) for a, k, far, word, bit, inv in srl_map() if inv}
             p = s2_4_chain.assess(self.root, self.base, dict(KNOWN, prediction={}))["closing"]["prediction"]
-            self.assertTrue(p["says"].startswith("miss: 124"), "places that follow inverted are not what it names")
+            self.assertTrue(p["says"].startswith("miss: 124"), "places that follow inverted, named as following as they are")
+            # review of 633875e: the search has inverted arrangements, and a place named as inverted that follows inverted is a hit
+            s2_4_predict.places = lambda _: {(far, word, bit): (k, a, bool(inv)) for a, k, far, word, bit, inv in srl_map()}
+            p = s2_4_chain.assess(self.root, self.base, dict(KNOWN, prediction={}))["closing"]["prediction"]
+            self.assertEqual((p["says"], p["places_named"], p["candidates_among_them_that_follow_as_named"]),
+                             ("hit: every place the prediction names is a candidate that follows the way it names", 252, 252))
+            s2_4_predict.places = lambda _: {(far, word, bit): (k, a, True) for a, k, far, word, bit, inv in srl_map() if inv}
+            self.assertTrue(s2_4_chain.assess(self.root, self.base, dict(KNOWN, prediction={}))["closing"]["prediction"]["says"].startswith("hit:"))
             s2_4_predict.places = lambda _: {(far, word, bit): (k, a, True) for a, k, far, word, bit, inv in srl_map() if not inv}
             p = s2_4_chain.assess(self.root, self.base, dict(KNOWN, prediction={}))["closing"]["prediction"]
             self.assertTrue(p["says"].startswith("miss: 128"), "nor is a place it names as inverted, where the bit follows as it is")

@@ -28,7 +28,8 @@ are or inverted, each a place of its own. What the closing names, by the numbers
 
 and, beside the outcome and failing nothing: where a frame read in the first all-zero state otherwise than S2.2 stored
 it and the place is no candidate (7); after which records bit 5 showed (8); and whether the prediction made before the
-board was asked (s2_4_predict) was a hit — every place it names a candidate that follows as it is — or a miss.
+board was asked (s2_4_predict) was a hit — every place it names a candidate that follows the way it names, as it is or
+inverted — or a miss.
 
 A complete chain writes DIR/candidates.json: the places, closed-book, and nothing about which output a place is. That
 is part 2. Anything that is not as planned halts the chain, and nothing is run again: a run directory that does not
@@ -198,9 +199,9 @@ def close(runs: list[dict], known: dict) -> dict:
     if "prediction" in known:
         said = s2_4_predict.places(known["prediction"])
         got = {(int(c["far"], 16), c["word"], c["bit"]): c["inverted"] for c in found}
-        missed = sorted(p for p in said if got.get(p) is not False or said[p][2])
-        out["prediction"] = {"places_named": len(said), "candidates_as_they_are_among_them": len(said) - len(missed),
-                             "says": ("hit: every place the prediction names is a candidate that follows as it is" if said and not missed
+        missed = sorted(p for p in said if p not in got or got[p] != said[p][2])   # no candidate there, or one that follows the other way than named
+        out["prediction"] = {"places_named": len(said), "candidates_among_them_that_follow_as_named": len(said) - len(missed),
+                             "says": ("hit: every place the prediction names is a candidate that follows the way it names" if said and not missed
                                       else "the prediction names no place" if not said else f"miss: {len(missed)} place(s) it names are not such candidates"),
                              "not_such": [f"{f:#010x}/{w}/{b}" for f, w, b in missed[:16]]}
     return out

@@ -2,7 +2,7 @@
 """S2.4, part 0: the prediction made from stored results (docs/s2_plan.md, section 37): host only."""
 from __future__ import annotations
 
-import hashlib, json, struct, sys, unittest
+import hashlib, json, shutil, struct, sys, unittest, zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,11 +50,27 @@ def result(records: list[tuple], status: int = 1) -> bytes:
     return struct.pack("<%dI" % len(words), *words)
 
 
-def stored(*runs: bytes) -> Path:
+def frames_in_the_first_state(raw: bytes) -> int:
+    w = struct.unpack("<%dI" % (len(raw) // 4), raw)
+    recs = [w[64 + i * P.REC: 64 + (i + 1) * P.REC] for i in range((len(w) - 64) // P.REC)]
+    return sum(r[14] for r in recs if r[1] == 0 and r[12] == 0 and r[15] < P.OP_CTL0 and r[14] != P.NONE)
+
+
+def stored(*runs: bytes, state: str = "complete", read: int | None = None, named: dict | None = None, crc: dict | None = None) -> Path:
+    """Runs stored as a chain stores them, as far as this program reads them: each result with a record that has the
+    board's checksum of it, and beside them the chain's file and its candidates file naming the runs. `read`, `named`,
+    `crc`: what those files say, where a test wants it otherwise than it is."""
     root = Path(scratch_dirs.mkdtemp(prefix="smpredict_"))
+    names = {}
     for k, raw in enumerate(runs):
-        (root / f"run{k:02d}").mkdir()
-        (root / f"run{k:02d}" / "result.bin").write_bytes(raw)
+        d = root / f"run{k:02d}"
+        d.mkdir()
+        (d / "result.bin").write_bytes(raw)
+        (d / "run.json").write_text(json.dumps({"board_crc32": (crc or {}).get(k, f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}")}))
+        names[d.name] = hashlib.sha256(raw).hexdigest()
+    names.update(named or {})
+    (root / "chain.json").write_text(json.dumps({"state": state, "closing": {"addresses_read": sum(frames_in_the_first_state(r) for r in runs) if read is None else read}}))
+    (root / "candidates.json").write_text(json.dumps({"runs": [{"dir": d, "result_sha256": s} for d, s in sorted(names.items()) if s is not None]}))
     return root
 
 
@@ -177,11 +193,62 @@ class TheFramesAsLoaded(unittest.TestCase):
     def test_what_is_not_whole_or_not_plain_gives_nothing(self) -> None:
         a = frame(100)
         good = [(0x10, 0, 0, 1, 0, [a]), (0x10, 0, 2, 1, 0, [a])]
-        self.assertRaisesRegex(ValueError, "no stored run", P.frames_as_loaded, stored())
+        self.assertRaisesRegex(ValueError, "are not the runs its chain names", P.frames_as_loaded, stored())
         self.assertRaisesRegex(ValueError, "not the whole result", P.frames_as_loaded, stored(result(good, status=0x221)))
         self.assertRaisesRegex(ValueError, "not the whole result", P.frames_as_loaded, stored(result(good)[:-4]))
         self.assertRaisesRegex(ValueError, "read twice in one state", P.frames_as_loaded, stored(result(good + [(0x10, 0, 0, 1, 1, [a])])))
         self.assertRaisesRegex(ValueError, "did not read the same frames", P.frames_as_loaded, stored(result(good[:1])))
+
+    def test_only_a_chain_that_stands_by_its_own_files_is_read(self) -> None:
+        """Review of 633875e. The frames are what a later step is held against, and what the prediction was made from:
+        a copy that is not the whole chain, or not what the board gave, gives none."""
+        a = frame(100)
+        good = result([(0x10, 0, 0, 1, 0, [a]), (0x10, 0, 2, 1, 0, [a])])
+        other = result([(0x20, 0, 0, 1, 0, [a]), (0x20, 0, 2, 1, 0, [a])])
+        self.assertEqual(sorted(P.frames_as_loaded(stored(good, other))), [0x10, 0x20])
+        self.assertRaisesRegex(ValueError, "not a complete chain", P.frames_as_loaded, stored(good, state="halted"))
+        self.assertRaisesRegex(ValueError, "not a complete chain", P.frames_as_loaded, stored(good, state="go on"))
+        self.assertRaisesRegex(ValueError, r"are not the runs its chain names: \['run00'\] for \['run00', 'run01'\]", P.frames_as_loaded, stored(good, named={"run01": "0" * 64}))
+        self.assertRaisesRegex(ValueError, r"are not the runs its chain names: \['run00', 'run01'\] for \['run00'\]", P.frames_as_loaded, stored(good, other, named={"run01": None}))
+        self.assertRaisesRegex(ValueError, "run00: the stored result is not the one the chain names", P.frames_as_loaded, stored(good, named={"run00": "1" * 64}))
+        self.assertRaisesRegex(ValueError, "run01: the stored result is not the one the chain names, or not the one whose checksum the board gave",
+                               P.frames_as_loaded, stored(good, other, crc={1: "00000000"}))
+        self.assertRaisesRegex(ValueError, "2 frames were read in the first state; the chain's closing says 3 addresses were read", P.frames_as_loaded, stored(good, other, read=3))
+        for missing in ("chain.json", "candidates.json"):
+            root = stored(good); (root / missing).unlink()
+            self.assertRaisesRegex(ValueError, "no chain that says what its runs are", P.frames_as_loaded, root)
+        root = stored(good); (root / "run00" / "run.json").unlink()
+        self.assertRaisesRegex(ValueError, "run00: the stored result is not the one", P.frames_as_loaded, root)
+        root = stored(good); (root / "chain.json").write_text("[]")
+        self.assertRaisesRegex(ValueError, "no chain that says what its runs are", P.frames_as_loaded, root)
+
+    def test_copies_of_what_s2_2_stored_that_are_not_what_it_stored(self) -> None:
+        """The two the review made: the chain's files with one run of the eight; and one bit of a result changed alike in
+        the first and the third state, the record left as it was."""
+        one = Path(scratch_dirs.mkdtemp(prefix="smpredict_")) / "one"
+        (one / "run00").mkdir(parents=True)
+        for name in ("chain.json", "candidates.json", "run00/result.bin", "run00/run.json"):
+            shutil.copy(P.S2_2 / name, one / name)
+        self.assertRaisesRegex(ValueError, "are not the runs its chain names", P.frames_as_loaded, one)
+        alt = Path(scratch_dirs.mkdtemp(prefix="smpredict_")) / "alt"
+        alt.mkdir()
+        for k in range(8):
+            (alt / f"run{k:02d}").mkdir()
+            for name in ("result.bin", "run.json"):
+                shutil.copy(P.S2_2 / f"run{k:02d}" / name, alt / f"run{k:02d}" / name)
+        for name in ("chain.json", "candidates.json"):
+            shutil.copy(P.S2_2 / name, alt / name)
+        self.assertEqual(len(P.frames_as_loaded(alt)), 3864, "the copy as it is")
+        raw = (alt / "run03" / "result.bin").read_bytes()
+        w = list(struct.unpack("<%dI" % (len(raw) // 4), raw))
+        changed = 0
+        for i in range(w[3]):
+            at = w[7] + i * P.REC
+            if (w[at], w[at + 1]) == (0x181E, 0) and w[at + 12] in (0, 2) and w[at + 15] < P.OP_CTL0:
+                w[at + P.DATA + P.FRAME * 3 + 40] ^= 1; changed += 1          # frame 0x1820, word 40, bit 0: in the first state and in the third
+        self.assertEqual(changed, 2)
+        (alt / "run03" / "result.bin").write_bytes(struct.pack("<%dI" % len(w), *w))
+        self.assertRaisesRegex(ValueError, "run03: the stored result is not the one the chain names, or not the one whose checksum the board gave", P.frames_as_loaded, alt)
 
     def test_the_frames_s2_2_stored(self) -> None:
         frames = P.frames_as_loaded()

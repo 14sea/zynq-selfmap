@@ -48,8 +48,8 @@ is confirmed by a run of its own (section 36).** S2.4 is proposed in full in sec
 and agreed, all nine points as recommended (section 38). Its part 0, the prediction, is
 made and stored: the four loaded words are found, once each, in words 40 and 41 of the
 frames `0x00001820`–`0x00001823` (section 38). **The host side of its part 1 — where the
-shift registers' bits are — is built and waits for the owner's review (section 39)**; no
-new image. Part 2 is built when part 1 has been on the board. Nothing of S2.4 has been on
+shift registers' bits are — is built (section 39) and has had a first review: three
+things found, all reproduced and mended (section 40)**; no new image. Part 2 is built when part 1 has been on the board. Nothing of S2.4 has been on
 a board. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
@@ -3438,3 +3438,64 @@ the other seven, about seven and a half minutes each. A halt is reported and not
 run again. What the prediction says will be seen in the run of share 3: 128 bits following
 as they are in the frames `0x00001821` and `0x00001823`, and, if the note beside the
 prediction is right, about as many inverted in `0x00001820` and `0x00001822` — outcome 2.
+
+## 40. Review of `633875e` (2026-11-23): three findings, all reproduced, all mended
+
+The owner had part 1 reviewed before the board, as said. The review ran the suite in a clean
+copy (1,063 tests), judged the stored evidence again, rebuilt the image to the same bytes
+and the design to the same placements, and found three things. I reproduced each against
+the source before taking it, in scratch copies; none touches a board, the prober or the
+image.
+
+### 1. (medium) The frames S2.2 stored were read from whatever lay there
+
+`s2_4_predict.frames_as_loaded` read every stored run it found and asked nothing of them.
+Reproduced both ways the review made it: a copy holding one run of the eight gave 516
+frames as if they were all 3,864; and with one bit changed alike in the first and the third
+state of a result — so that the two still agreed — the changed frame was taken, though the
+file no longer had the checksum its own record says the board gave.
+
+It matters twice: these frames are what the prediction was made from, and what part 1's
+runs are held against. The evidence as it is stored was not at fault — the tests of the
+stored evidence hold those eight results to their hashes — but this reader held nothing,
+and it is the reader the chain uses.
+
+- **Now only a chain that stands by its own files is read**: `chain.json` says it is
+  complete; `candidates.json` names its runs and the sha256 of each result; the runs stored
+  are those and no other; each result has that sha256 and the crc32 its record says the
+  board gave; and as many frames are read in the first state as the chain's closing says
+  addresses were read. Anything else gives no frames, and so no chain of part 1 is looked
+  at or driven.
+- The prediction as stored is unchanged: made again by the mended reader it is the same
+  file, byte for byte.
+
+### 2. (low) A place predicted as inverted was a miss whatever followed there
+
+The search has inverted arrangements; the closing counted only places that follow as they
+are, so a prediction that named a place as inverted — and was right — would have been
+called a miss. Reproduced with one such place. The stored prediction names 128 places, all
+as they are, so its own verdict on the board would not have been touched; a later one
+could have been.
+
+- **A place is hit if a candidate is there and follows the way the prediction names** — as
+  it is, or inverted. The closing's count is named for that.
+
+### 3. (low) The judge's command offered runs it could not take
+
+`s2_4_judge.py <result> code` and `… singles <run>` ended in a `KeyError`: part 2 has no
+sets in the run script yet, and the command listed them all the same. The judge itself
+judges those runs and is tested on them; it was the command that promised too much.
+
+- **The command takes the kind that has a set — a run of part 1 — and says so**; anything
+  else is its usage and code 2, and a share for which no plan can be made is said plainly.
+  A test runs the command on a stored result.
+
+### In numbers
+
+- **Tests**: 1,065 (two new, of the reader; three widened — the closing's word on a
+  prediction, the judge's command, what the reader refuses).
+- **Mutants**: 1,464, none stale — seven new, three rewritten for the changed line, one
+  whose line was gone written again. A first look at the 40 that touch what was changed:
+  all killed. One slip on the way: the first screening stopped on the mutant whose anchor
+  I had removed, and left eight scratch copies behind, which I took away.
+- **Image**: unchanged. Nothing under `prober/` was touched. No serial port was opened.

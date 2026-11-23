@@ -2,8 +2,9 @@
 """Judge the result of a run of S2.4 — docs/s2_plan.md, sections 37 and 38.
 
     s2_4_judge.py <result.bin> find <share>       a run of part 1: one share of block type 0 in three states
-    s2_4_judge.py <result.bin> code               the code run
-    s2_4_judge.py <result.bin> singles <run>      a run of the singles
+
+(The judge itself judges a code run and a run of the singles as well, and is tested on them; the command takes them
+when part 2 has its sets in the run script, which it has not yet.)
 
 A run of S2.4 is a run of stage 9, the stage S2.3 was made with, and everything a run of that stage is held to
 whatever its states are is judged by the judge of S2.3 (s2_3_judge.judge, which this one calls): the header, the
@@ -44,7 +45,7 @@ import s2_3_states as st9  # noqa: E402
 import s2_4_states as st  # noqa: E402
 from s2_3_judge import CTL0_BITS, ERR_MASK, FIXED, FRAME, HDR0, PCFG_DONE, PL_BASE, PL_CODES, REC, RESULT_MAX_WORDS, STAGE  # noqa: E402,F401
 
-KINDS = ("find", "code", "singles")
+SETS = {"find": "s2_4f"}                               # the kinds of run that have a set in the run script, which the command needs
 
 
 def runs_of_the_step(loaded: list[int]) -> list[tuple[str, int | None, list[dict]]]:
@@ -267,11 +268,14 @@ def layout_hdr(kind: str) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) not in (3, 4) or argv[2] not in KINDS or (argv[2] == "code") != (len(argv) == 3):
+    if len(argv) != 4 or argv[2] not in SETS or not argv[3].isdigit():
         print(__doc__); return 2
     import s1a_run
-    stage = {"find": "s2_4f", "code": "s2_4c", "singles": "s2_4s"}[argv[2]]
-    exp = s1a_run.with_plan(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), int(argv[3]) if len(argv) == 4 else None)
+    stage = SETS[argv[2]]
+    try:
+        exp = s1a_run.with_plan(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), int(argv[3]))
+    except ValueError as e:
+        print(f"no plan for that run: {e}"); return 2
     words = s2_3_judge.load(Path(argv[1]))
     if words is None:
         print("the result is not a whole number of words"); return 2

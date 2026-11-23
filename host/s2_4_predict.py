@@ -25,9 +25,11 @@ No database is read and nothing is graded. Nothing here is general knowledge of 
 S2.3's, the frames are S2.2's, the words are the design's."""
 from __future__ import annotations
 
+import hashlib
 import json
 import struct
 import sys
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,14 +69,34 @@ def rule(ram_map: dict) -> list[tuple[int, int]]:
 def frames_as_loaded(root: Path = S2_2) -> dict[int, tuple[int, ...]]:
     """Every frame the runs stored under `root` read, as it read in the first state — from the raw words of their
     results. In S2.2 the first and the third state are the RAM all zero, which is how it is loaded: a frame is taken
-    only if it read the same in both."""
+    only if it read the same in both.
+
+    Only from a chain that stands by its own files (review of 633875e: a copy with one run of the eight, or with a
+    result that was not the one the board gave, was read as if it were the whole): chain.json says the chain is
+    complete; candidates.json names its runs and the sha256 of each result; the runs stored are those and no other;
+    each result has that sha256 and the crc32 its own record says the board gave; and as many frames are read in the
+    first state as the chain's closing says addresses were read."""
     out: dict[int, tuple[int, ...]] = {}
     again: dict[int, tuple[int, ...]] = {}
+    try:
+        chain = json.loads((root / "chain.json").read_text())
+        named = {r["dir"]: r["result_sha256"] for r in json.loads((root / "candidates.json").read_text())["runs"]}
+        read = chain["closing"]["addresses_read"] if chain.get("state") == "complete" else None
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
+        raise ValueError(f"no chain that says what its runs are and what they read under {root}: {type(e).__name__}: {e}")
+    if read is None:
+        raise ValueError(f"the chain under {root} is not a complete chain")
     runs = sorted(d for d in root.glob("run[0-9][0-9]") if (d / "result.bin").is_file())
-    if not runs:
-        raise ValueError(f"no stored run under {root}")
+    if sorted(d.name for d in runs) != sorted(named) or not runs:
+        raise ValueError(f"the runs stored under {root} are not the runs its chain names: {[d.name for d in runs]} for {sorted(named)}")
     for d in runs:
         raw = (d / "result.bin").read_bytes()
+        try:
+            board = json.loads((d / "run.json").read_text()).get("board_crc32")
+        except (OSError, ValueError, AttributeError):
+            board = None
+        if hashlib.sha256(raw).hexdigest() != named[d.name] or f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}" != board:
+            raise ValueError(f"{d.name}: the stored result is not the one the chain names, or not the one whose checksum the board gave")
         words = struct.unpack("<%dI" % (len(raw) // 4), raw)
         status, n, rec_words, hdr = words[2], words[3], words[6], words[7]
         if status != 1 or rec_words != REC or len(words) != hdr + n * REC:
@@ -93,6 +115,8 @@ def frames_as_loaded(root: Path = S2_2) -> dict[int, tuple[int, ...]]:
                     where[far + j] = frame
     if sorted(out) != sorted(again):
         raise ValueError("the first and the third state did not read the same frames")
+    if len(out) != read:
+        raise ValueError(f"{len(out)} frames were read in the first state; the chain's closing says {read} addresses were read")
     return {far: frame for far, frame in out.items() if again[far] == frame}
 
 

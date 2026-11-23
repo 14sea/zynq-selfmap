@@ -1460,7 +1460,7 @@ MUTANTS = [
     (PREDICT4, "predict4: a result that is cut short is read", " or len(words) != hdr + n * REC:", ":"),
     (PREDICT4, "predict4: a frame read twice in a state is taken the second time", "                    if far + j in where:\n                        raise ValueError", "                    if False:\n                        raise ValueError"),
     (PREDICT4, "predict4: states that did not read the same frames are taken", "    if sorted(out) != sorted(again):", "    if False:"),
-    (PREDICT4, "predict4: no stored run is no fault", "    if not runs:\n        raise ValueError", "    if False:\n        raise ValueError"),
+    (PREDICT4, "predict4: no stored run is no fault", "    if sorted(d.name for d in runs) != sorted(named) or not runs:", "    if sorted(d.name for d in runs) != sorted(named):"),
     (PREDICT4, "predict4: the frames are taken a word early", "frame = tuple(r[DATA + FRAME * (j + 1): DATA + FRAME * (j + 2)])", "frame = tuple(r[DATA + FRAME * (j + 1) - 1: DATA + FRAME * (j + 2) - 1])"),
     (PREDICT4, "predict4: the even addresses are the odd ones", '"the even addresses": lambda j: [2 * j],', '"the even addresses": lambda j: [2 * j + 1],'),
     (PREDICT4, "predict4: the upper addresses are the lower ones", '"the upper 32 addresses": lambda j: [32 + j],', '"the upper 32 addresses": lambda j: [j],'),
@@ -1560,9 +1560,9 @@ MUTANTS = [
     (CHAIN24, "chain s2.4: a frame that reads otherwise at a candidate is listed", "                    if x >> b & 1 and (far + j, w, b) not in mine:", "                    if x >> b & 1:"),
     (CHAIN24, "chain s2.4: a frame S2.2 did not store is passed by", "                out.append({\"far\": f\"{far + j:#010x}\", \"word\": None, \"bit\": None, \"what\": \"a frame S2.2 did not store\"}); continue", "                continue"),
     (CHAIN24, "chain s2.4: the frames of every state are held against what S2.2 stored", "        if kind != 0 or state != 0 or op >= 0x100 or m == 0xF:", "        if kind != 0 or op >= 0x100 or m == 0xF:"),
-    (CHAIN24, "chain s2.4: the prediction is a hit though a place it names follows inverted", "        missed = sorted(p for p in said if got.get(p) is not False or said[p][2])", "        missed = sorted(p for p in said if got.get(p) is None or said[p][2])"),
-    (CHAIN24, "chain s2.4: the prediction is a hit though a place it names is no candidate", "        missed = sorted(p for p in said if got.get(p) is not False or said[p][2])", "        missed = sorted(p for p in said if got.get(p) is True or said[p][2])"),
-    (CHAIN24, "chain s2.4: the prediction is a hit though it names its places as inverted", "        missed = sorted(p for p in said if got.get(p) is not False or said[p][2])", "        missed = sorted(p for p in said if got.get(p) is not False)"),
+    (CHAIN24, "chain s2.4: the prediction is a hit though a place it names follows the other way", "        missed = sorted(p for p in said if p not in got or got[p] != said[p][2])", "        missed = sorted(p for p in said if p not in got)"),
+    (CHAIN24, "chain s2.4: the prediction is a hit though a place it names is no candidate", "        missed = sorted(p for p in said if p not in got or got[p] != said[p][2])", "        missed = sorted(p for p in said if p in got and got[p] != said[p][2])"),
+    (CHAIN24, "chain s2.4: a place the prediction names as inverted is a miss whatever follows there", "        missed = sorted(p for p in said if p not in got or got[p] != said[p][2])", "        missed = sorted(p for p in said if got.get(p) is not False or said[p][2])"),
     (CHAIN24, "chain s2.4: the runner starts a run without the reset", "        came_up_fresh(UB, out.name)\n", "        pass\n"),
     (CHAIN24, "chain s2.4: the image is not kept with the runs", "                (root / KEPT_IMAGE).write_bytes(s1a_run.IMAGE.read_bytes())", "                pass"),
     (CHAIN24, "chain s2.4: it goes on after the last run it was allowed", "        if a[\"state\"] != \"go on\" or (max_new is not None and added >= max_new):", "        if a[\"state\"] != \"go on\":"),
@@ -1571,6 +1571,14 @@ MUTANTS = [
     (CHAIN24, "chain s2.4: a file with the name of a run is passed by", "    if taken:\n        return halted(f\"what has the name of a run", "    if False:\n        return halted(f\"what has the name of a run"),
     (CHAIN24, "chain s2.4: more run directories than shares are taken", "    if len(names) > len(every):", "    if False:"),
     (CHAIN24, "chain s2.4: the candidates file does not say which bits are inverted", "\"candidates_as_they_are\": c[\"candidates_as_they_are\"], \"candidates_inverted\": c[\"candidates_inverted\"], \"outcome\": c[\"outcome\"],\n            \"runs\"", "\"candidates_as_they_are\": c[\"candidates_as_they_are\"], \"outcome\": c[\"outcome\"],\n            \"runs\""),
+    # ---- review of 633875e (section 40)
+    (PREDICT4, "predict4: the frames of a chain that is not complete are taken", "read = chain[\"closing\"][\"addresses_read\"] if chain.get(\"state\") == \"complete\" else None", "read = chain[\"closing\"][\"addresses_read\"]"),
+    (PREDICT4, "predict4: runs other than those the chain names are read", "    if sorted(d.name for d in runs) != sorted(named) or not runs:", "    if not runs:"),
+    (PREDICT4, "predict4: a result that is not the one the chain names is read", "        if hashlib.sha256(raw).hexdigest() != named[d.name] or f\"{zlib.crc32(raw) & 0xFFFFFFFF:08x}\" != board:", "        if f\"{zlib.crc32(raw) & 0xFFFFFFFF:08x}\" != board:"),
+    (PREDICT4, "predict4: a result that does not have the board's checksum is read", "        if hashlib.sha256(raw).hexdigest() != named[d.name] or f\"{zlib.crc32(raw) & 0xFFFFFFFF:08x}\" != board:", "        if hashlib.sha256(raw).hexdigest() != named[d.name]:"),
+    (PREDICT4, "predict4: fewer frames than the chain says it read are taken for all", "    if len(out) != read:\n        raise ValueError", "    if False:\n        raise ValueError"),
+    (JUDGE24, "judge s2.4: the command takes a kind of run that has no set", "    if len(argv) != 4 or argv[2] not in SETS or not argv[3].isdigit():", "    if len(argv) != 4 or not argv[3].isdigit():"),
+    (JUDGE24, "judge s2.4: the command ends in an exception where no plan can be made", "    except ValueError as e:\n        print(f\"no plan for that run: {e}\"); return 2", "    except ZeroDivisionError as e:\n        print(f\"no plan for that run: {e}\"); return 2"),
 ]
 
 

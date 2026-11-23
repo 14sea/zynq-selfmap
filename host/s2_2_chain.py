@@ -416,11 +416,16 @@ def board_runner(root: Path):
     from uboot_console import UB
 
     def run(share: int, out: Path) -> None:
-        u = UB()
-        _, ok = u.interrupt()
-        reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
-        sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
-        u.s.close(); u.log.close()
+        try:
+            u = UB()
+            try:
+                _, ok = u.interrupt()
+                reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
+                sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
+            finally:
+                u.s.close(); u.log.close()
+        except s1a_run.TRANSPORT as e:                   # the line itself failed (it could not be opened, or went away): held, and said
+            raise RuntimeError(f"before {out.name}: the console failed — {type(e).__name__}: {e}; the run script was not started") from e
         if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:
             raise RuntimeError(f"before {out.name}: reset did not give the usual fresh prompt; nothing was run")
         r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", STAGE, "--share", str(share), "--go", "--out", str(out)],

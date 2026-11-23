@@ -13,14 +13,17 @@ asks, and one thing more: the list of accesses.
 **The code run is made alone.** When it is a passing run it is closed into the table (s2_3_table.close_code): every
 cell of the RAM has exactly one bit, and the bits are the places S2.2 found. The table is written to DIR/table/ —
 once; a table that is there is held to what the code run's verdict gives now, and is never written over. If there is
-no table, the chain halts and says which of the outcomes the plan named it is: **no single is run**.
+no table, the chain halts and says which of the outcomes the plan named it is: **no single is run**. Nor is one run
+where DIR/table is there and the table is not in it as a plain file: the driver would never write it there, and the
+chain halts (review of 5936a8e).
 
 **No single is run before the code run and the table are committed to git as they stand** (DIR/run00 and DIR/table).
 Until then the chain is "held", which is not a halt.
 
 A run of the singles is held to the table (s2_3_table.hold_singles): for each of its 64 cells, with that cell alone
 set, exactly the place the table has for it differs from the base. A contradiction halts the chain there; what the
-other singles of that run said is in the chain's file.
+other singles of that run said is in the chain's file. So does a run in which CTL0 read otherwise than in the code
+run: each run's judge holds that register to itself only, and the table and its confirmations are one finding.
 
 Anything else halts it too, and nothing is run again: a run directory that does not hold a passing run stays where it
 is until someone has looked and moved it.
@@ -54,6 +57,11 @@ CODE, SINGLES = "s2_3c", "s2_3s"
 RUNS = 1 + s2_3_states.SINGLE_RUNS                    # the code run, and the runs of the singles
 TABLE_DIR, TABLE = "table", "table.json"
 BUILD_RECORD = ROOT / "pl" / "s2a" / "build.json"
+
+
+def named(p: Path) -> bool:
+    """Something has this name, whatever it is (a link that leads nowhere as well)."""
+    return p.is_symlink() or p.exists()
 
 
 def run_of(k: int) -> tuple[str, int | None]:
@@ -192,7 +200,7 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
     out["made_with"] = {k: v for k, v in held.items() if k != "problems"}
     table = None
     stored_table = root / TABLE_DIR / TABLE
-    if (root / TABLE_DIR).exists() and not names:
+    if named(root / TABLE_DIR) and not names:
         return halted("a table is stored and no code run")
     for k, name in enumerate(names):
         stage, share = run_of(k)
@@ -211,13 +219,15 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
             else:
                 table = closing["table"]
                 out["table"] = table_file(closing, r, known)
-                if stored_table.exists():
+                if stored_table.is_file() and not stored_table.is_symlink():
                     try:
                         same = json.loads(stored_table.read_text()) == json.loads(json.dumps(out["table"]))
                     except (OSError, ValueError):
                         same = False
                     if not same:
                         r["problems"].append("the table stored with the chain is not the table the code run's verdict gives")
+                elif named(root / TABLE_DIR):            # the driver writes the table only where nothing has that name: it would never come
+                    r["problems"].append(f"{TABLE_DIR}/ is stored and the table ({TABLE}) is not in it")
                 elif names[1:]:
                     r["problems"].append("singles are stored and no table is")
         if not r["problems"] and k > 0:                  # a run of the singles, held to the table
@@ -225,6 +235,9 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
             r["confirmed"], r["contradictions"] = hold["confirmed"], hold["contradictions"]
             r["problems"] += hold["problems"]
             r["_for_the_map"] = {"dir": name, "share": share, "result_sha256": r["result_sha256"], "held": hold}
+        if not r["problems"] and k > 0 and r.get("ctl0") != out["runs"][0].get("ctl0"):
+            # each run's judge holds CTL0 to itself, before and after; that the runs were made under one CTL0 is asked here
+            r["problems"].append(f"CTL0 read {r.get('ctl0')} in this run and {out['runs'][0].get('ctl0')} in the code run")
         if r["problems"]:
             r["decision"] = "halt"
             if names[k + 1:]:
@@ -279,7 +292,7 @@ def drive(root: Path, bases: dict, known: dict, runner, max_new: int | None = No
     added = 0
     while True:
         a = assess(root, bases, known)
-        if "table" in a and not (root / TABLE_DIR).exists():     # the code run closed into a table: written once, never over
+        if "table" in a and not named(root / TABLE_DIR):         # the code run closed into a table: written once, never over
             (root / TABLE_DIR).mkdir()
             (root / TABLE_DIR / TABLE).write_text(json.dumps(a["table"], indent=1) + "\n")
             say(f"the table written: {TABLE_DIR}/{TABLE}")
@@ -332,11 +345,16 @@ def board_runner(root: Path):
 
     def run(k: int, out: Path) -> None:
         stage, share = run_of(k)
-        u = UB()
-        _, ok = u.interrupt()
-        reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
-        sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
-        u.s.close(); u.log.close()
+        try:
+            u = UB()
+            try:
+                _, ok = u.interrupt()
+                reply, ok2 = u.cmd("reset", 40) if ok else (b"", False)
+                sts, ok3 = u.cmd("md.l f800700c 1", 10) if ok2 else (b"", False)
+            finally:
+                u.s.close(); u.log.close()
+        except s1a_run.TRANSPORT as e:                   # the line itself failed (it could not be opened, or went away): held, and said
+            raise RuntimeError(f"before {out.name}: the console failed — {type(e).__name__}: {e}; the run script was not started") from e
         if not (ok and ok2 and ok3) or b"Ebang EBAZ4203" not in reply or b"a802000" not in sts:
             raise RuntimeError(f"before {out.name}: reset did not give the usual fresh prompt; nothing was run")
         r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", stage, *([] if share is None else ["--share", str(share)]),

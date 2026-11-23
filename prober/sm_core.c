@@ -1054,7 +1054,10 @@ static uint32_t run_s9(void)
     uint32_t n_list = par(P_LIST_N), n_acc = par(P_ACC_N), limit = par(P_POLL_LIMIT);
 
     tag(); put(" start\r\n");
-    for (i = 0; i < HDR_WORDS + PLB_LOG; i++)
+    /* the header, the PL block and its log. The log's length is the block's word, and a block that is refused is still
+     * answered with a result of that length: so it is cleared here, before the block is looked at, and not after — no
+     * word of a result is one this run did not write (review of 5936a8e). log9() is bounded whatever the block holds. */
+    for (i = 0; i < rbase(); i++)
         res_wr(i, 0u);
     res_wr(H_MAGIC, RESULT_MAGIC);
     res_wr(H_VERSION, 1u);
@@ -1100,8 +1103,6 @@ static uint32_t run_s9(void)
         x = 1u;
     if (x)
         return finish2(S_BAD_PARAMS, 0u, 0u, 0xFFFFFFFFu);
-    for (i = HDR_WORDS + PLB_LOG; i < rbase(); i++)     /* the log, whose length the block gives */
-        res_wr(i, 0u);
 
     /* gates, each read live; the first that fails ends the run with nothing sent and nothing in the PL touched */
     g = hal_rd(DEVCFG_CTRL);    res_wr(H_CTRL, g);

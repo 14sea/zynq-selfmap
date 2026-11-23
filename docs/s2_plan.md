@@ -35,7 +35,9 @@ proposed in full in section 29 and agreed, all eight points as recommended (sect
 Its host side is built and waits for the owner's review (section 31): a new stage of the
 prober and so a new image, the judge, the table, the chain. Its mutants have had a first
 look and none survives it; the tool has not run them, and the complete set has not been
-run for the new image. Nothing of S2.3 has been on a board.** S2.4 and S2.5 are not proposed in full yet.
+run for the new image. A review of it found five things, all reproduced and mended
+(section 32) — one of them in the prober, so the image is new again. Nothing of S2.3 has
+been on a board.** S2.4 and S2.5 are not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2550,3 +2552,126 @@ One of the mutants is the one that took the machine's memory (below); it now end
   singles; whatever it ends in committed as it stands before anything is made of it.
 - The set's file is copied beside the runs before the first run, not after the last (section
   28).
+
+## 32. Review of `5936a8e` (2026-11-23): five findings, all reproduced, all mended; a new image
+
+The owner passed on a review of the host side of S2.3 as section 31 describes it. It
+confirms S2.2's evidence from the raw words and the two builds, and finds five things: one
+high, three medium, one low. **Each was reproduced here before anything was changed**, in
+scratch directories and on the twin; no board was touched. All five are accepted. Finding 3
+is in the prober: **the image of section 31 is superseded** (below).
+
+### 1. (high) A single could be started with no table stored
+
+The chain asks git whether `run00` and `table/` are committed as they stand; it did not ask
+whether the table is in `table/`. Reproduced in a scratch repository: the code run made and
+closed, `table/table.json` taken away and a placeholder put beside it, both directories
+committed — the driver saw a directory by that name (so it wrote no table: written once,
+never over), git had nothing against either directory, and `run01` was made. Only then did
+the chain halt ("singles are stored and no table is"). On a board that is a run of the
+singles made against a table nobody had committed.
+
+- **The chain halts when it is looked at** if something has the name `table` and the table
+  is not in it as a plain file: before git is asked and before anything is sent. A
+  `table.json` that is a link or a directory is not the table; a link that leads nowhere
+  in `table`'s place is something with that name.
+- What was already so stays so: a table that is stored is held to what the code run's
+  verdict gives now, and git is asked about `table/` as a whole. Together: before a single,
+  the table is there, is the one the code run gives, and is committed.
+
+### 2. (medium) A clean copy failed one test, by the order of the tests
+
+`test_the_chain_over_the_three_states_of_the_ram` — mine, of this session — has the chain of
+S2.2 assessed, and the chain holds the staged design to the set; in a copy fresh from git
+nothing has staged `build/pl/s2a.bit` when that test comes. Reproduced in a fresh clone
+(`halted`, 0 runs). The test now stages the designs itself, as the test of the description
+beside it already did. This is section 24's rule ("a clean copy runs every test"), broken by
+a test I added after it and ran only in a tree that had been built.
+
+### 3. (medium) A refused stage-9 block was answered with words the run did not write
+
+Stage 9's result has a log whose length the parameter block gives. The prober cleared the
+header and the fixed part of the PL block, checked the block, and cleared the log only if
+the block was taken; a refused block was still answered with a result of the full length.
+Reproduced with a twin whose memory is not zero when the prober starts: a block refused for
+its version alone gave status `0x500`, no record, and **3,482 words of what had lain there**
+— the reviewer's number. On a board that memory holds the log of the run before, which
+would read as this run's.
+
+- **The log is cleared with the header, before the block is looked at** (`run_s9`): one
+  loop over header, PL block and log. Its length is bounded whatever the block holds
+  (`log9` gives nothing for a count it would not take), so the clearing stays in the
+  result's area.
+- **The twin can start with memory that holds something** (`SM_DIRTY=1`): every word a
+  pattern of its own, and a result of which a word still holds it is not written out — the
+  twin says STALE and ends with a code. **Every test of stage 9 on the twin now runs so**,
+  and results on such memory are held word for word to those on empty memory, for refused
+  blocks, a complete run and runs that stop. (One word of a record differs between any two
+  processes of the twin, memory or no: where a variable lay on the host's stack. It is
+  left out of the comparison and said so.)
+- **The other stages were asked the same** and have nothing of the kind: their twin tests
+  pass unchanged on such memory, and are now run once more that way in every suite
+  (`tests/test_prober_dirty.py`). Stage 9 is the first whose header length depends on the
+  block.
+
+### 4. (medium) Runs under different CTL0 values still ended in a description
+
+Each run's judge holds CTL0 to itself, before and after. S2.2's chain held the runs to each
+other when it closed; S2.3's listed the values it saw and asked nothing. Reproduced: one
+run of the singles with CTL0 reading `0x00000401` on the twin, the others `0x00000501`:
+the chain was complete and `ram_map.json` written. That is a table decoded under one
+setting of the readback mask and confirmed under another, by the register's word. I dropped
+the check when I wrote this chain from S2.2's; it was in the file I started from.
+
+- **A run of the singles in which CTL0 read otherwise than in the code run halts the chain
+  at that run**, not at the end: nothing more is run on a board whose register changed.
+- Not done, and said: the chain does not hold its CTL0 to the value S2.2's runs read
+  (`0x00000501`). `candidates.json` does not carry it. What it would guard is caught another
+  way — the table must be exactly S2.2's 256 places — but not by name.
+
+### 5. (low) A console that fails ended the driver in an exception
+
+When the serial adapter cannot be opened, the board's runner raised pyserial's exception
+through the driver; `chain.json`, written before, said "go on" and nothing of why.
+Reproduced for both chains with the port replaced (the real one was not opened). It is the
+same fault as section 26's third, at the one place that mending did not reach.
+
+- The runner of both chains takes what the line can raise — the run script's own list of
+  it (`TRANSPORT`) — while it opens the console, resets and asks for the status; closes
+  what it opened; and says "the console failed … the run script was not started". The
+  driver holds the chain with that reason in `chain.json`, blocked, as for a board that
+  did not come up fresh.
+
+### What changed, in numbers
+
+- **The image**: 19,244 bytes, sha256 `8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b`,
+  crc32 `261627c7`. Section 31's (`ca2f6b5e…`, 19,248 bytes) was never on a board and is
+  not to be.
+- **Tests**: 980, all passing in a clean environment; ten more than before (four of the chain of S2.3, one
+  of S2.2's, two of stage 9 on memory that holds something, three in the new file).
+- **Mutants**: 1,313, none stale. Three of the chain's were anchored on lines this changed
+  and are anchored again; nine are new, one or two for each mending. **A first look, not
+  the tool's verdict** (scratch copies, the test files of stages 8 and 9 and of the two
+  chains): twelve of twelve killed. A thirteenth I wrote and took out again: "CTL0 is held
+  to the run before, not to the code run". No test can tell the two apart — the chain
+  halts at the first run that differs, so the run before always read what the code run
+  read.
+
+### What the review confirmed, and what is still open
+
+It recomputed S2.2 from the raw words (196 stored runs, 194 with a result, every CRC and
+verdict as recorded), rebuilt the prober to the recorded hash and the design to the same
+placement, and found every mutant's anchor. I have not repeated that here.
+
+Still open, as before this review: the mutants of this work by the tool, then the complete
+set for the image — now this section's image — and then the board, each on the owner's
+word.
+
+### My part in these
+
+Three of the five are things I dropped or left behind while building on S2.2's files: the
+CTL0 check between runs (4), the test that needs a built tree (2), the console's exception
+at the one place I had not mended (5). The first and third are of another kind — a gate
+that asked about a directory where it meant a file, and a result's length taken from a
+block before the block was taken. A length that comes from the input is the thing to look
+for in the next stage that has one.

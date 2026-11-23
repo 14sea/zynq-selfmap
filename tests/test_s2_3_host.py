@@ -1168,6 +1168,107 @@ class Chain(unittest.TestCase):
         (self.root / "table").mkdir(parents=True)
         self.assertEqual(self.assess()["why"], ["a table is stored and no code run"])
 
+    def test_a_directory_for_the_table_without_the_table_starts_no_single(self) -> None:
+        """Review of 5936a8e: run00 and table/ committed, the table itself not in it. The driver writes the table only
+        where nothing has that name, so it would never come; a single was started all the same."""
+        self.drive(max_new=1)
+        f = self.root / "table" / "table.json"
+        kept = f.read_bytes()
+        f.unlink()
+        (self.root / "table" / "README").write_text("the table comes later\n")
+        asked: list[Path] = []
+        a = self.drive(committed=lambda path: asked.append(path) or "")      # git has nothing against either directory
+        self.assertEqual((a["state"], self.calls, asked), ("halted", [0], []))
+        self.assertIn("run00: table/ is stored and the table (table.json) is not in it", a["why"])
+        self.assertFalse(f.exists(), "and it is not written into a directory that was there")
+        self.assertEqual(json.loads((self.root / "chain.json").read_text())["state"], "halted")
+        for what in ("a directory", "a link"):
+            with self.subTest(what):
+                if what == "a directory":
+                    f.mkdir()
+                else:
+                    f.rmdir()
+                    (self.root / "elsewhere.json").write_bytes(kept)
+                    f.symlink_to(self.root / "elsewhere.json")       # the right words, and not a file of the table's directory
+                self.assertIn("run00: table/ is stored and the table (table.json) is not in it", self.drive()["why"])
+                self.assertEqual(self.calls, [0])
+        f.unlink(); f.write_bytes(kept); (self.root / "table" / "README").unlink()
+        self.assertEqual((self.drive(max_new=1)["state"], self.calls), ("go on", [0, 1]), "with the table back as it was written, it goes on")
+
+    def test_a_link_that_leads_nowhere_in_the_table_s_place(self) -> None:
+        self.drive(max_new=1)
+        (self.root / "table" / "table.json").unlink(); (self.root / "table").rmdir()
+        (self.root / "table").symlink_to(self.root / "nowhere")
+        a = self.drive()
+        self.assertEqual((a["state"], self.calls), ("halted", [0]))
+        self.assertIn("run00: table/ is stored and the table (table.json) is not in it", a["why"])
+        self.setUp()
+        self.root.mkdir(parents=True)
+        (self.root / "table").symlink_to(self.root / "nowhere")
+        self.assertEqual(self.assess()["why"], ["a table is stored and no code run"])
+
+    def test_a_run_made_under_another_ctl0_halts_the_chain_there(self) -> None:
+        """Review of 5936a8e. CTL0 reads as another value all through one run of the singles: that run's judge has
+        nothing against it (it holds the reads of a run to each other); the chain has, at that run, and no description
+        is written."""
+        plain, other = self.runner(), self.runner(env={"SM_CREG": "ctl0:00000401"})
+        a = self.drive(runner=lambda k, out: (other if k == 2 else plain)(k, out))
+        self.assertEqual((a["state"], self.calls), ("halted", [0, 1, 2]))
+        self.assertEqual([(r["judge"], r["ctl0"], r["decision"]) for r in a["runs"]],
+                         [("PASS", "0x00000501", "go on"), ("PASS", "0x00000501", "go on"), ("PASS", "0x00000401", "halt")])
+        self.assertEqual(a["why"], ["run02: CTL0 read 0x00000401 in this run and 0x00000501 in the code run"])
+        self.assertFalse((self.root / "ram_map.json").exists())
+        self.calls.clear()
+        self.assertEqual((self.drive()["state"], self.calls), ("halted", []), "and nothing is run again")
+        self.setUp()
+        a = self.drive(runner=lambda k, out: (other if k == 0 else plain)(k, out), max_new=2)
+        self.assertEqual((a["state"], self.calls, a["why"]), ("halted", [0, 1], ["run01: CTL0 read 0x00000501 in this run and 0x00000401 in the code run"]))
+
+    def test_a_console_that_fails_before_a_run_holds_the_chain_and_says_so_in_its_file(self) -> None:
+        """Review of 5936a8e: the serial adapter could not be opened, the exception ended the driver, and chain.json
+        said "go on" and nothing of why."""
+        import serial, uboot_console
+        opened: list[object] = []
+
+        class Port:
+            def __init__(self, fails_at: str) -> None:
+                self.fails_at, self.closed = fails_at, 0
+                self.s = self.log = self
+                opened.append(self)
+
+            def close(self) -> None:
+                self.closed += 1
+
+            def interrupt(self):
+                if self.fails_at == "interrupt":
+                    raise OSError(5, "Input/output error")
+                return b"", True
+
+            def cmd(self, line: str, timeout: int):
+                raise termios_error("(5, 'Input/output error')")
+
+        import termios
+        termios_error = termios.error
+
+        def no_port():
+            raise serial.SerialException("[Errno 2] could not open port /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0")
+        keep_log = os.environ.get("SELFMAP_CONSOLE_LOG")
+        self.addCleanup(setattr, uboot_console, "UB", uboot_console.UB)
+        self.addCleanup(lambda: os.environ.pop("SELFMAP_CONSOLE_LOG", None) if keep_log is None else os.environ.__setitem__("SELFMAP_CONSOLE_LOG", keep_log))
+        for ub, words, closed in ((no_port, "SerialException: [Errno 2] could not open port", None), (lambda: Port("interrupt"), "OSError: [Errno 5] Input/output error", 2),
+                                  (lambda: Port("cmd"), "error: (5, 'Input/output error')", 2)):
+            with self.subTest(words):
+                self.setUp(); opened.clear()
+                uboot_console.UB = ub
+                a = self.drive(runner=s2_3_chain.board_runner(self.root))
+                self.assertEqual((a["state"], a.get("blocked")), ("go on", True))
+                self.assertTrue(a["held"].startswith(f"before run00: the console failed — {words}"), a["held"])
+                self.assertTrue(a["held"].endswith("; the run script was not started"), a["held"])
+                stored = json.loads((self.root / "chain.json").read_text())
+                self.assertEqual((stored["state"], stored["held"], stored["blocked"]), ("go on", a["held"], True))
+                self.assertFalse((self.root / "run00").exists(), "no directory for a run that was not made")
+                self.assertEqual([p.closed for p in opened], [] if closed is None else [closed], "a line that was opened is closed again")
+
     def test_it_goes_on_where_it_stands(self) -> None:
         self.drive(max_new=2)
         self.assertEqual(self.calls, [0, 1])

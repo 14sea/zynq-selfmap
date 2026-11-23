@@ -798,6 +798,8 @@ class StoredBoardResults(unittest.TestCase):
                           "9eafb9fc8cab687b0a4afb3b7ee7c5f696cf622850adb777c074e2b2c69cc69a", "0cb3e7984f635d465434a02f2070ed29ef6ff3d66fb346e8532d710a98781220",
                           "7a48e6cc9337771f0727f41673311b8595e0824edd63d294ced323c7a89c234b", "ecae47d0038ffede621051da91b348635b509068898efef951007bde5b46526b"])
         known = s1a_run.known_for("s2_2")
+        import stage_designs
+        stage_designs.stage()                           # the chain holds the staged design to the set: in a copy fresh from git nothing has staged it yet (review of 5936a8e)
         a = s2_2_chain.assess(d, base, known)
         self.assertEqual((a["state"], len(a["runs"]), a["set_aside"]), ("complete", 8, ["halted_at_run01"]))
         self.assertEqual([(r["share"], r["decision"], r["reads"], r["frames"], len(r["candidates"]), r["restless"], r["ctl0"]) for r in a["runs"]],

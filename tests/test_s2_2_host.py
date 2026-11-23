@@ -1017,6 +1017,23 @@ class Chain(unittest.TestCase):
         stored = json.loads((self.root / "chain.json").read_text())
         self.assertEqual((stored["held"], stored["blocked"], (self.root / "run00").exists()), (a["held"], True, False))
 
+    def test_a_console_that_cannot_be_opened_holds_the_chain_and_says_so_in_its_file(self) -> None:
+        """Review of 5936a8e: the exception ended the driver, and chain.json said "go on" and nothing of why."""
+        import serial, uboot_console
+
+        def no_port():
+            raise serial.SerialException("[Errno 2] could not open port /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0")
+        keep_log = os.environ.get("SELFMAP_CONSOLE_LOG")
+        self.addCleanup(setattr, uboot_console, "UB", uboot_console.UB)
+        self.addCleanup(lambda: os.environ.pop("SELFMAP_CONSOLE_LOG", None) if keep_log is None else os.environ.__setitem__("SELFMAP_CONSOLE_LOG", keep_log))
+        uboot_console.UB = no_port
+        a = self.drive(runner=s2_2_chain.board_runner(self.root))
+        self.assertEqual((a["state"], a.get("blocked")), ("go on", True))
+        self.assertEqual(a["held"], "before run00: the console failed — SerialException: [Errno 2] could not open port "
+                                    "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0; the run script was not started")
+        stored = json.loads((self.root / "chain.json").read_text())
+        self.assertEqual((stored["state"], stored["held"], stored["blocked"], (self.root / "run00").exists()), ("go on", a["held"], True, False))
+
     def test_the_command_ends_with_a_code_when_a_run_could_not_be_started(self) -> None:
         import contextlib, io
         build = s1a_run.IMAGE

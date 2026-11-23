@@ -74,7 +74,8 @@ def params(n_list: int, n_states: int, n_acc: int, **over) -> list[int]:
 
 
 class Run:
-    def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, list_words=None, **over) -> None:
+    def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, list_words=None,
+                 clean: bool = False, **over) -> None:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
         tmp = Path(scratch_dirs.mkdtemp(prefix="smtwin9_"))
         self.states = few(st.code_run(), 4) if states is None else states
@@ -92,8 +93,10 @@ class Run:
         (tmp / "acc.txt").write_text("\n".join(f"{x:x}" for x in self.acc) + "\n")
         (tmp / "rammap.txt").write_text("".join("%d %d %x %d %d %d\n" % c for c in self.cells))
         env = dict(os.environ)
-        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS"):
+        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS", "SM_DIRTY"):
             env.pop(name, None)
+        if not clean:                                   # memory that holds something, as on a board: the twin writes out no result of which
+            env["SM_DIRTY"] = "1"                       # a word was never written (review of 5936a8e). Every run here is made so.
         env["SM_FAR_RULE"] = "skip"
         env["SM_SUCC"], env["SM_SHOWS"] = successors()
         env["SM_LIST"], env["SM_ACC"], env["SM_RAMMAP"] = str(tmp / "list.txt"), str(tmp / "acc.txt"), str(tmp / "rammap.txt")
@@ -395,6 +398,36 @@ class WhatItRefuses(unittest.TestCase):
         self.assertEqual(Run(states=[], entries=empty, n_states=1, reads=longer[:178]).n_records, 4 + 178)
         fits = Run(states=[], entries=empty * 80, n_states=80, reads=reads[:1])
         self.assertEqual((fits.rc, fits.status, fits.n_records), (0, 1, 84))
+
+
+class OnMemoryThatHoldsSomething(unittest.TestCase):
+    """Review of 5936a8e. On a board the result of the run before lies where this run's result will. A block refused
+    for its version alone was answered with a result as long as header, PL block and log — and the log was cleared
+    only after the refusal: 3,482 words of whatever lay there went out as the result of a run that made no access.
+    Every run of this file is made on such memory, and the twin writes no result out that holds a word nothing wrote;
+    here the results are held, word for word, to those on memory that held nothing."""
+
+    def test_a_refused_block_is_answered_the_same_whatever_lay_in_memory(self) -> None:
+        for name, over in (("the version", {"w1": 2}), ("a word the stage has no use for", {"w6": 1}), ("more entries than a list may have", {"w18": 40000}),
+                           ("no state", {"n_states": 0}), ("a write the run may not make", {"w19": 0})):
+            with self.subTest(name):
+                dirty, clean = Run(**over), Run(clean=True, **over)
+                self.assertEqual((dirty.rc, dirty.status, dirty.n_records), (0x500, 0x500, 0))
+                self.assertEqual(dirty.words, clean.words)
+                self.assertEqual((len(dirty.words), dirty.total), (dirty.hdr_words, dirty.hdr_words), "what is reported is what was written out")
+                self.assertFalse(any(dirty.words[64 + FIXED:]), "and of the log nothing: no access was made")
+        r = Run(w1=2)
+        self.assertEqual((r.hdr_words, r.hdr_words - 64 - FIXED), (r.hb, 2 * r.n_log), "the log of a block refused for its version is as long as the block says")
+        self.assertGreater(r.n_log, 1000)
+
+    def test_a_run_that_completes_and_runs_that_stop_are_the_same_too(self) -> None:
+        def but_the_stack(r: Run) -> list[int]:        # the one word of a record that is the twin's own from process to process
+            return [0 if i >= r.hb and (i - r.hb) % REC == FARBLK + 6 else w for i, w in enumerate(r.words)]
+        for fault in ("", "ramstuck", "ramdisturb@9", "seu", "err@3"):
+            with self.subTest(fault or "no fault"):
+                dirty, clean = Run(fault=fault), Run(fault=fault, clean=True)
+                self.assertEqual((dirty.rc, but_the_stack(dirty)), (clean.rc, but_the_stack(clean)))
+        self.assertNotEqual(Run(clean=True).words[3562 + FARBLK + 6], 0, "that word is written, by every run")
 
 
 class WhereItStops(unittest.TestCase):

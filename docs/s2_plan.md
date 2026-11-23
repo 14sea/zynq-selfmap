@@ -58,8 +58,9 @@ complete: each of the 256 places follows one output, as it is or inverted, and e
 output is confirmed in all of its places; the table is what was said beforehand (section
 44). With it S2.4 is done**, on the image of section 32. S2.5 is proposed in full in
 section 45 and agreed, all ten points as recommended (section 46). Its design, `s2b`, is
-built and simulated, and its part 0, the prediction, is made and stored (section 46); the
-rest of its host side is not built yet, and nothing of it has been on a board.
+built and simulated, and its part 0, the prediction, is made and stored (section 46); its
+host side is built and waits for the owner's review (section 47). Nothing of it has been
+on a board, and the design is not on the card.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4135,3 +4136,160 @@ The twin's model of this design; the sets, the states and both
 lists; the design's side of the judge; the search for the loaded words; the closings; the
 two chains; the description and the rule; tests, mutants, a rehearsal of storing. Then
 the owner's review; the card and the board on the owner's word.
+
+## 47. S2.5, the host side as built (2026-11-24), for the owner's review
+
+Nothing of this has been on a board, and `s2b.bit` is not on the card. The image is the
+one of section 32, unchanged; nothing under `prober/` but the twin was touched.
+
+### Two things that are not as section 45 had them
+
+1. **The singles are sixteen runs of sixteen cells, not thirteen runs.** Section 45
+   reckoned the stage's room by records alone. A state also costs accesses: the memories
+   are held to the state at all 64 addresses before the frames and again after, 128
+   accesses each time, and the log of accesses lies in the same result area as the
+   records. With 24 reads a state that leaves room for 21 states a run, not 22; and a
+   last run shorter than the others would have a layout of its own. Sixteen runs of
+   eighteen states — the base, sixteen singles, the base — are all alike and have the
+   layout of the code run's kind. The frame reads are as many as before within one in a
+   hundred (7,344 records against 7,296); three more runs are started.
+2. **No run writes or reads one site alone.** Every write goes to every site at once
+   (the site register's bit 8), and what the sites hold is asked through the design's one
+   reading over all sites: at an address and for each memory, whether a site holds a one,
+   whether every site does, and the parity. For a written state the first two say that
+   all 110 hold it; for the state as loaded all three are what the loaded words give, of
+   which the parity is the one that tells. **Whose memory a place is, is found from the
+   word the memory was loaded with and from nothing else** — as section 45 said of part
+   1; what is new is that the site register's other use, which the design has and the
+   bench tests, is used by no run. Said as a limit: no run shows that the design's number
+   for a site reaches the site the build says; the tie between a word and a site's name
+   is the design's record and the build's.
+
+### What was built
+
+- **The twin** (`prober/twin_hal.c`, `SM_DESIGN=s2b`): the second design behind the eight
+  offsets — the site register, the address, the data into one site or every site, the
+  reading over all sites, the count of writes; 440 words to load, given by a file; and
+  every cell at a place a test chooses (`SM_BMAP`). Three faults of this design: a cell
+  that never takes a one, a site the write to every site does not reach, a cell that
+  changes while the frames are read.
+- **The states and both lists** (`host/s2_5_states.py`). Part 1: as loaded, all one, all
+  zero — 1,044 entries, 1,039 accesses, the same for all eight shares. Part 2: the code
+  run (S2.3's eighteen states) and sixteen runs of the singles, over the reads that
+  deliver a frame with a candidate — every column that has one, read in threes as the
+  shares read it. Under the prediction that is 24 reads: 222,566 words for the code run
+  and 219,110 for a run of the singles, of 262,144. The lists write three offsets
+  (`0x00011010`), inside what the image allows.
+- **Three sets** in the run script (`s2_5f`, `s2_5c`, `s2_5s`): the set of S2.3 with one
+  word changed, the design's identification, and the other design's file, hash and name
+  on the card. A set of part 2 has no run until part 1 is stored: the run script says so
+  and sends nothing.
+- **The judge** (`host/s2_5_judge.py`), through the seam of section 39. What every site
+  holds is worked out from the log alone — at each address what was loaded until a write
+  to every site was made there, then the value written — and every reading over all sites
+  is held to it; a write that is not to every site, a write after a state's frames, a
+  reading of one site, a counter that stands still, a count that is not the writes of the
+  log, a site register that does not say "every site" at a state's end: each fails the
+  run. Which run it is, is found from the states, and both lists are held to that run's
+  plan. The finding: over the written states a bit is still, follows a cell (as it is or
+  inverted) or is irregular. In part 1 no cell is named and with each bit that follows is
+  set down what it read as loaded.
+- **The search** (`host/s2_5_find.py`): the frames a run read as loaded, searched for
+  every one of the 440 words at every four frames next to each other, every word, both
+  halves, by the six moves of S2.3, as it is and inverted. It is given frames, the moves
+  and the words; no prediction and no site's name.
+- **The chain of part 1** (`host/s2_5_chain.py`): eight runs, the first alone and
+  committed, the first held to the CTL0 of S2.2's runs. Its closing names the outcomes of
+  section 45: all found and where the prediction said (1); all found and some elsewhere
+  (2) — it says which memories and where they are; a word not found, or found twice (3);
+  bits that follow and are of no memory found, a memory whose places did not all follow,
+  another number of bits than cells (4); nothing follows, and a halt (5). The prediction
+  is held a memory at a time under each of its ten forms. A complete chain writes
+  `candidates.json`: the places, the memories found, the six moves the search used.
+- **The tables** (`host/s2_5_table.py`). The code run says of a place which cell it
+  follows; part 1 says whose memory it is and, by the moves, which address. They are held
+  against each other site by site: a site has its table only if each of its 256 cells
+  has exactly one bit and that bit is the place of the memory and the address the cell's
+  number says. A site without one halts the chain, and no single is run. A run of the
+  singles is held to the tables: with cell n set at every site, exactly the 110 places
+  the tables have for n differ from the base.
+- **The chain of part 2** (`host/s2_5_chain2.py`): seventeen runs; the code run alone,
+  held to the CTL0 of part 1, closed into the tables, which are written once and never
+  over; no single before the code run and the tables are committed.
+- **The description** (`schemas/ram_map_v2.schema.json`): `ram_map` with the site added
+  to an entry — 28,160 entries. Every site was written alike, so what an entry rests on
+  is said once for each cell and not 110 times: the states of the code run in which it
+  was one, the run and state of its single, and how the record is found from them. It is
+  written an entry a line, about four megabytes.
+- **The rule** (`host/s2_5_rule.py`), read from the tables, the census, the design's
+  record of its sites' names and the build's record of LUT positions — not from the
+  prediction: the six moves, the position, the half, the column, the word. Each part is
+  called a rule only if every site measured obeys it; where they do not, what was
+  measured is set down and the part says so. Where the one word more lies is read from
+  the rows, and left open as far as the rows measured leave it open. It lists the sites
+  it was measured at and counts those it was not (1,390 of this kind): for them it is
+  what the rule says, and nothing here has shown it.
+
+### What tests found while this was built
+
+- The comparison with the prediction went place by place through one table of places. A
+  prediction that names one place for two memories then loses one of them, and the lost
+  one counted as a hit. It now goes a memory at a time.
+- In a run of part 1 a bit that reads zero as loaded, one, zero is exactly what a cell
+  loaded with zero reads. The judge takes it for a candidate, rightly; that it belongs to
+  no memory is for the closing to say, and it does (outcome 4).
+- A mutant that moved every place of every table was not killed but ran out of time:
+  unittest, asked why two tables of 28,160 lines differ, compares them line by line.
+  The tests of this step now hold such things alike without asking for the difference.
+- The rule of the halves asked which half a set of halves "has first" — an order that is
+  not fixed from one run of the program to the next. It asks for the least now.
+- Two of my own expectations of the twin were wrong — which word of a made-up memory two
+  swapped cells change, and how many memories a made-up prediction hits under its other
+  form. The programs were right; the tests now say why.
+
+### Rehearsed
+
+A run of each set with a plan of the device's size, on the pretend board, stored, and
+judged again from its files the way the audit of stored evidence does: a share of part 1
+(the real census, 82 reads), the code run and a run of the singles (24 reads, the frames
+the prediction names). Both chains end to end over the made-up device: three runs of
+part 1; seventeen of part 2, with the tables, the description and the rule written.
+
+### Limits, beside those of section 45
+
+- The state as loaded is held, on both sides of its frames, by the parity over the 110
+  sites of each memory at each address — not site by site. That every memory holds its
+  own word is shown by the search: 64 bits of 64, in configuration memory.
+- The tables rest on the six moves for which address a place is, and on the code run for
+  which cell: two findings that must agree. A memory that is not laid out by the moves is
+  not found by part 1, has no table, and halts part 2; decoding it without the moves
+  (section 45, outcome 3) is not built. If the board shows one, that is where the step
+  stops and the owner decides.
+- A table never has a place that shows its cell inverted, as things are built: a place
+  that follows inverted reads its loaded bit inverted too, and the word is then not found
+  as it is. The tables and the singles carry the mark all the same, and tests give them
+  one.
+- The made-up device of the tests has all sites in one column of frames; the rule's parts
+  of the column and the word are tested on tables made from the stored prediction's
+  places, which is a layout that obeys a rule and no result.
+
+### In numbers
+
+- **Tests**: 1,200, all passing (71 new: 45 of part 1, 26 of part 2).
+- **Mutants**: 1,664, none stale — 109 new (states, judge, search, both chains, tables,
+  rule, the run script), each with a first look against the step's tests: all killed. Four
+  survived or timed out at first — three for want of a test they now have (a site register
+  that does not read as written; the word of what a run may write; the judge's own sentence
+  for a missing census), one for the slow comparison above. The
+  tool has not run them.
+- **Image**: unchanged (`8bf3799c…`). No serial port was opened.
+
+### For the owner, before the board
+
+1. The two changes above: sixteen runs of the singles; no access to one site alone.
+2. Whether part 2 should also be able to decode a memory that is not laid out by the six
+   moves before the board is asked, or whether a halt there is right. *(I would leave the
+   halt: it is a finding, and what to build then depends on what it looks like.)*
+3. The board, on three words as agreed: `s2b.bit` onto the card; part 1 (first run alone
+   and committed); part 2 (the code run alone and committed with the tables). Part 1 is
+   stored under `evidence/s2_5_17A6/`, where the sets of part 2 look for it.

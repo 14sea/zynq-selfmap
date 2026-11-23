@@ -75,7 +75,7 @@ def params(n_list: int, n_states: int, n_acc: int, **over) -> list[int]:
 
 class Run:
     def __init__(self, states=None, fault: str = "", reads=None, cells=None, entries=None, n_states=None, shifts: bool = False, list_words=None,
-                 clean: bool = False, srl_cells=None, **over) -> None:
+                 clean: bool = False, srl_cells=None, design_b=None, **over) -> None:
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "twin"], check=True)
         tmp = Path(scratch_dirs.mkdtemp(prefix="smtwin9_"))
         self.states = few(st.code_run(), 4) if states is None else states
@@ -93,8 +93,13 @@ class Run:
         (tmp / "acc.txt").write_text("\n".join(f"{x:x}" for x in self.acc) + "\n")
         (tmp / "rammap.txt").write_text("".join("%d %d %x %d %d %d\n" % c for c in self.cells))
         env = dict(os.environ)
-        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS", "SM_DIRTY", "SM_SRLMAP"):
+        for name in ("SM_FAULT", "SM_CREG", "SM_SHIFTS", "SM_DIRTY", "SM_SRLMAP", "SM_DESIGN", "SM_BINIT", "SM_BMAP"):
             env.pop(name, None)
+        if design_b is not None:                        # S2.5: the second probe design behind the same offsets — (the 440 words its memories are
+            words, places = design_b                    # loaded with, where cells show: (site, address, memory, frame address, word, bit, inverted))
+            (tmp / "binit.txt").write_text("".join(f"{w:x}\n" for w in words))
+            (tmp / "bmap.txt").write_text("".join("%d %d %d %x %d %d %d\n" % c for c in places))
+            env["SM_DESIGN"], env["SM_BINIT"], env["SM_BMAP"] = "s2b", str(tmp / "binit.txt"), str(tmp / "bmap.txt")
         if srl_cells is not None:                       # S2.4: where outputs of the shift registers show, in the form of the RAM's places
             (tmp / "srlmap.txt").write_text("".join("%d %d %x %d %d %d\n" % c for c in srl_cells))
             env["SM_SRLMAP"] = str(tmp / "srlmap.txt")

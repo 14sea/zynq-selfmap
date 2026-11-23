@@ -1,0 +1,483 @@
+#!/usr/bin/env python3
+"""S2.5, part 2 (docs/s2_plan.md, sections 45 to 47): the tables of the code run, the singles held to them, the
+description, the rule the probed sites obey, and the chain of seventeen runs — on the twin and on the pretend board,
+over a made-up device (tests/s2_5_made_up.py). No board is touched."""
+from __future__ import annotations
+
+import copy, hashlib, json, struct, subprocess, sys, unittest, zlib
+from pathlib import Path
+
+import jsonschema
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "host"))
+sys.path.insert(0, str(ROOT / "tests"))
+import scratch_dirs  # noqa: E402
+import s1a_run  # noqa: E402
+import s2_2_shares  # noqa: E402
+import s2_5_chain  # noqa: E402
+import s2_5_chain2  # noqa: E402
+import s2_5_judge  # noqa: E402
+import s2_5_predict  # noqa: E402
+import s2_5_rule  # noqa: E402
+import s2_5_states as st  # noqa: E402
+import s2_5_table  # noqa: E402
+import s2_5_made_up as M  # noqa: E402
+import test_s2_3_host as H9  # noqa: E402
+from s2_5_made_up import BUILD, CTL0, DESIGN, KNOWN, LOADED, RULE, alike, b_map, judged, once, run5, twin  # noqa: E402
+
+SCHEMA = json.loads((ROOT / "schemas" / "ram_map_v2.schema.json").read_text())
+CENSUS = json.loads(s2_2_shares.CENSUS.read_text())
+BASES = lambda: {s: json.loads(s1a_run.STAGES[s]["expected"].read_text()) for s in ("s2_5c", "s2_5s")}   # noqa: E731
+
+
+def part_1(cells=None) -> dict:
+    """What part 1's chain writes for the made-up device with its cells at these places: its three runs on the
+    pretend board, once for each map a test asks with."""
+    def make():
+        H9.prepared()
+        root = Path(scratch_dirs.mkdtemp(prefix="smp1_")) / "chain"
+        a = s2_5_chain.drive(root, json.loads(s1a_run.STAGES["s2_5f"]["expected"].read_text()), KNOWN,
+                             lambda share, out: run5("s2_5f", share, out=out, cells=cells), committed=lambda path: "")
+        assert a["state"] == "complete", a.get("why")
+        return json.loads((root / "candidates.json").read_text())
+    return once(("part 1", None if cells is None else hashlib.sha256(repr(cells).encode()).hexdigest()), make)
+
+
+def known2(cells=None) -> dict:
+    return dict(KNOWN, candidates=part_1(cells), ctl0_in_part_1=CTL0)
+
+
+def a_run(kind: str, share: int | None = None, cells=None, of=None) -> dict:
+    """The verdict of a run of part 2 on the twin, over what part 1 found with the cells at `of` (or at `cells`)."""
+    def make():
+        known = known2(cells if of is None else of)
+        p, r = twin(kind, share, cells=cells, known=known)
+        return judged(p, r, known)
+    return once(("verdict", kind, share, None if cells is None else hashlib.sha256(repr(cells).encode()).hexdigest(),
+                 None if of is None else hashlib.sha256(repr(of).encode()).hexdigest()), make)
+
+
+def tables() -> dict:
+    return s2_5_table.close_code(a_run("code"), part_1(), DESIGN)["tables"]
+
+
+class TheTables(unittest.TestCase):
+    def test_the_code_run_closes_into_a_table_for_every_site(self) -> None:
+        c = s2_5_table.close_code(a_run("code"), part_1(), DESIGN)
+        self.assertEqual((c["problems"], c["sites"], c["cells_a_site"], c["bits_that_follow"], c["inverted"], c["candidates_of_part_1"], c["sites_with_a_table"],
+                          c["sites_without_a_table"]), ([], 110, 256, 28160, 0, 28160, 110, []))
+        self.assertTrue(c["outcome"].startswith("7: at every site every cell has exactly one bit, the bits are the candidates of part 1"))
+        self.assertEqual(sorted(c["tables"]), list(range(110)))
+        for s in (0, 49, 50, 109):
+            self.assertTrue(c["tables"][s] == [(M.at(s, n // 64, n % 64), False) for n in range(256)], s)
+        doc = s2_5_table.table_file(c, {"dir": "run00", "result_sha256": "0" * 64}, DESIGN)
+        self.assertEqual((doc["schema"], doc["label"], doc["sites"], len(doc["tables"]), doc["tables"][7]["name"], doc["tables"][7]["places"][65], doc["tables"][7]["inverted"]),
+                         ("s2_5_table", "closed-book", 110, 110, "SLICE_X16Y7", s2_5_table.text(M.at(7, 1, 1)), []))
+        alike(self, s2_5_table.tables_of(json.loads(json.dumps(doc))), c["tables"], "the tables come back from the file as they went in")
+        shown = dict(c, tables=dict(c["tables"]))         # a table with a place that shows its cell inverted (no layout of the twin gives one: made up)
+        shown["tables"][5] = [(p, n == 9) for n, (p, _) in enumerate(c["tables"][5])]
+        doc = s2_5_table.table_file(shown, {"dir": "run00", "result_sha256": "0" * 64}, DESIGN)
+        self.assertEqual((doc["tables"][5]["inverted"], doc["tables"][4]["inverted"]), ([9], []))
+        alike(self, s2_5_table.tables_of(json.loads(json.dumps(doc))), shown["tables"], "and so do tables with a place shown inverted")
+        self.assertEqual(s2_5_table.place("0x00000b86/14/31"), (0xB86, 14, 31))
+
+    def test_whose_memory_a_place_is_comes_from_part_1_alone(self) -> None:
+        whose = s2_5_table.whose(part_1())
+        alike(self, whose, {place: (s, k, a) for place, (s, k, a) in M.where(b_map()).items()}, "whose memory a place is")
+        other = copy.deepcopy(part_1()); other["memories"][9]["inverted"] = True
+        self.assertEqual(len(s2_5_table.whose(other)), 28160 - 64, "a memory found inverted says of no place whose it is: its places would have no table")
+        bad = copy.deepcopy(part_1()); bad["the_six_moves"][3]["bit_of_the_half_word"] = 15
+        self.assertRaisesRegex(ValueError, "does not give each of 64 addresses a place of its own", s2_5_table.whose, bad)
+
+    def test_a_site_where_the_code_and_the_loaded_word_say_another_cell_has_no_table(self) -> None:
+        """Two cells of a memory lie in each other's places and were loaded alike: part 1 finds the word, by the six
+        moves; the code run says the two places are the other cells. That site has no table, and no single is run."""
+        cells = b_map(moved=M.swap(31, 0, alike=True))
+        cand = part_1(cells)
+        self.assertEqual((len(cand["memories"]), cand["memories_not_found"]), (440, []))
+        c = s2_5_table.close_code(a_run("code", cells=cells), cand, DESIGN)
+        self.assertEqual((c["tables"], c["sites_with_a_table"], c["outcome"][:2]), (None, 109, "8:"))
+        self.assertEqual(c["sites_without_a_table"], [{"site": 31, "name": "SLICE_X16Y31", "cells_with_no_bit": 0, "cells_with_several_bits": 0,
+                                                      "places_where_the_code_and_the_loaded_word_say_another_cell": 2}])
+        self.assertEqual(c["problems"], ["1 site(s) have no table: SLICE_X16Y31"])
+
+    def test_what_else_leaves_a_site_without_a_table(self) -> None:
+        v, cand = a_run("code"), part_1()
+
+        def closed(change_v=None, change_c=None) -> dict:
+            vv, cc = copy.deepcopy(v), copy.deepcopy(cand)
+            if change_v:
+                change_v(vv["finding"]["follows"])
+            if change_c:
+                change_c(cc)
+            return s2_5_table.close_code(vv, cc, DESIGN)
+
+        def drop(f): f[0]["bits"].pop(); f[0]["cells"].pop()
+        c = closed(drop)                                  # a candidate of part 1 that follows no cell: its site has a cell with no bit
+        self.assertEqual((c["tables"], c["candidates_of_part_1_that_follow_no_cell_n"], c["sites_without_a_table"][0]["cells_with_no_bit"]), (None, 1, 1))
+        self.assertIn("1 candidate(s) of part 1 follow no cell", c["problems"])
+
+        def twice(f): f[0]["cells"][0] = f[0]["cells"][1]
+        c = closed(twice)                                 # two places of a site that follow one cell
+        w = c["sites_without_a_table"][0]
+        self.assertEqual((c["tables"], w["cells_with_no_bit"], w["cells_with_several_bits"], w["places_where_the_code_and_the_loaded_word_say_another_cell"]), (None, 1, 1, 1))
+
+        def another_memory(f): f[0]["cells"][0] ^= 64
+        c = closed(another_memory)                        # a place that follows the cell of the same address in another memory
+        w = c["sites_without_a_table"][0]
+        self.assertEqual((c["tables"], w["cells_with_no_bit"], w["cells_with_several_bits"], w["places_where_the_code_and_the_loaded_word_say_another_cell"]), (None, 1, 1, 1))
+
+        def more(f): f.append({"far": "0x00000b80", "word": 3, "bits": [4], "inverted": [], "cells": [9]})
+        c = closed(more)                                  # a bit that follows a cell where part 1 found no candidate
+        self.assertEqual((c["tables"], c["places_part_1_did_not_have"], c["bits_that_follow_and_are_of_no_memory_found"]), (None, ["0x00000b80/3/4"], ["0x00000b80/3/4"]))
+        self.assertEqual(c["problems"], ["1 bit(s) follow a cell at a place part 1 did not find",
+                                         "1 bit(s) follow a cell and lie in no memory whose loaded word part 1 found: whose they are is not known"])
+
+        def as_a_candidate(cc): cc["places"].append({"far": "0x00000b80", "word": 3, "bits": [4], "inverted": [], "as_loaded": [0], "run": "run01"})
+        c = closed(more, as_a_candidate)                  # and one that part 1 had as a candidate of no memory found
+        self.assertEqual(c["problems"], ["1 bit(s) follow a cell and lie in no memory whose loaded word part 1 found: whose they are is not known"])
+
+        def turned(f): f[0]["inverted"].append(f[0]["bits"][0])
+        c = closed(turned)
+        self.assertEqual((c["tables"], c["places_shown_the_other_way_than_in_part_1_n"]), (None, 1))
+        self.assertIn("1 place(s) follow a cell the other way than they followed the written states in part 1", c["problems"])
+
+        def lost(cc): cc["memories"] = [m for m in cc["memories"] if (m["site"], m["memory"]) != (12, 3)]
+        c = closed(change_c=lost)                         # a memory part 1 did not find: 64 bits follow cells and are nobody's
+        self.assertEqual((c["tables"], c["bits_that_follow_and_are_of_no_memory_found_n"], c["sites_without_a_table"][0]["site"], c["sites_without_a_table"][0]["cells_with_no_bit"]),
+                         (None, 64, 12, 64))
+        for wrong, says in ((dict(v, verdict="FAIL"), "the code run is not a passing run"), (a_run("singles", 0), "the verdict is not of the code run")):
+            c = s2_5_table.close_code(wrong, cand, DESIGN)
+            self.assertEqual((c["tables"], c["problems"], c["outcome"]), (None, [says], "no table: there is no passing code run to close"))
+
+    def test_the_command(self) -> None:
+        tmp = Path(scratch_dirs.mkdtemp(prefix="smtab5_"))
+        (tmp / "v.json").write_text(json.dumps(a_run("code")))
+        (tmp / "c.json").write_text(json.dumps(part_1()))
+        r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s2_5_table.py"), str(tmp / "v.json"), str(tmp / "c.json")], capture_output=True, text=True)
+        self.assertEqual((r.returncode, json.loads(r.stdout)["sites_with_a_table"], "tables" in json.loads(r.stdout)), (0, 110, False), r.stderr)
+        self.assertEqual(subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s2_5_table.py")], capture_output=True, text=True).returncode, 2)
+
+
+class TheSingles(unittest.TestCase):
+    def test_a_run_of_the_singles_confirms_its_sixteen_cells_at_every_site(self) -> None:
+        for r in (0, 9):
+            h = s2_5_table.hold_singles(a_run("singles", r), tables())
+            self.assertEqual((h["problems"], h["confirmed"], h["contradictions"]), ([], list(range(16 * r, 16 * r + 16)), []))
+
+    def test_a_single_that_changes_other_than_the_tables_say_is_a_contradiction(self) -> None:
+        v, t = a_run("singles", 2), tables()
+        other = copy.deepcopy(t); other[40][35], other[40][36] = other[40][36], other[40][35]      # the tables with two cells of a site in each other's places
+        h = s2_5_table.hold_singles(v, other)
+        self.assertEqual((h["confirmed"], [c["cell"] for c in h["contradictions"]]), ([n for n in range(32, 48) if n not in (35, 36)], [35, 36]))
+        self.assertEqual(h["contradictions"][0], {"cell": 35, "sites_whose_place_did_not_change_as_the_table_has_it": [40], "of_them": 1,
+                                                  "bits_that_changed_and_are_no_site_s_place_for_it": [s2_5_table.text(M.at(40, 0, 35))], "of_those": 1})
+        self.assertIn("cell 35: its single changes 110 bit(s); the tables have 110 place(s) for it, one a site; at 1 site(s) the place did not change as the table has it, "
+                      "and 1 bit(s) changed that are no site's place for it", h["problems"])
+        fewer = {s: rows for s, rows in t.items() if s != 3}                                        # a site the tables do not have: its place changes and is nobody's
+        h = s2_5_table.hold_singles(v, fewer)
+        self.assertEqual((h["confirmed"], h["contradictions"][0]["of_them"], h["contradictions"][0]["of_those"]), ([], 0, 1))
+        vv = copy.deepcopy(v); gone = vv["finding"]["follows"][0]
+        n, b = gone["cells"].pop(), gone["bits"].pop()    # a site whose place did not change, and nothing else amiss
+        h = s2_5_table.hold_singles(vv, t)
+        self.assertEqual([(c["cell"], c["of_them"], c["of_those"]) for c in h["contradictions"]], [(n, 1, 0)])
+        turned = copy.deepcopy(t); turned[8][40] = (turned[8][40][0], True)                         # the tables say a place shows its cell inverted, and it does not
+        h = s2_5_table.hold_singles(v, turned)
+        self.assertEqual([(c["cell"], c["sites_whose_place_did_not_change_as_the_table_has_it"], c["of_those"]) for c in h["contradictions"]], [(40, [8], 0)])
+        vv = copy.deepcopy(v); vv["finding"]["follows"][0]["cells"][0] = 200
+        h = s2_5_table.hold_singles(vv, t)
+        self.assertIn("a bit follows cell 200, which is not a cell of this run", h["problems"])
+        self.assertEqual(len(h["contradictions"]), 1)
+        self.assertEqual(s2_5_table.hold_singles(a_run("code"), t)["problems"], ["not a passing run of the singles"])
+        self.assertEqual(s2_5_table.hold_singles(v, {})["problems"], ["the tables are not of every cell of their sites"])
+        self.assertEqual(s2_5_table.hold_singles(v, {0: t[0][:255]})["problems"], ["the tables are not of every cell of their sites"])
+
+
+class TheDescription(unittest.TestCase):
+    def doc(self, held=None) -> dict:
+        known = known2()
+        plans = [st.plan("code", None, known, known["census"], known["candidates"])] + [st.plan("singles", r, known, known["census"], known["candidates"]) for r in (0, 9)]
+        code = {"dir": "run00", "result_sha256": "a" * 64, "reads": plans[0]["reads"], "states": plans[0]["states"]}
+        singles = [{"dir": f"run{r + 1:02d}", "share": r, "result_sha256": "b" * 64, "reads": p["reads"], "states": p["states"],
+                    "held": (held or {}).get(r) or s2_5_table.hold_singles(a_run("singles", r), tables())} for r, p in zip((0, 9), plans[1:])]
+        return s2_5_table.ram_map(DESIGN, tables(), code, singles)
+
+    def test_it_is_a_ram_map_of_the_second_form(self) -> None:
+        doc = self.doc()
+        jsonschema.Draft202012Validator.check_schema(SCHEMA)
+        jsonschema.Draft202012Validator(SCHEMA).validate(json.loads(json.dumps(doc)))
+        self.assertEqual((doc["schema"], doc["schema_version"], doc["label"], doc["design"], len(doc["sites"]), doc["cells_a_site"], len(doc["entries"])),
+                         ("ram_map", 2, "closed-book", "s2b", 110, 256, 28160))
+        self.assertEqual(doc["counts"], {"confirmed": 32 * 110, "decoded": 224 * 110, "contradiction": 0}, "two runs of the singles were made here: 32 cells")
+        e = doc["entries"][256 * 7 + 147]
+        self.assertEqual(e, {"address": s2_5_table.text(M.at(7, 2, 19)), "site": 7, "cell": 147, "memory": 2, "ram_address": 19, "inverted": False, "confidence": 2, "state": "confirmed"})
+        self.assertEqual(doc["sites"][107], {"site": 107, "name": "SLICE_X34Y66"})
+        of = doc["evidence"]["of_a_cell"]
+        self.assertEqual((of[147], of[200]), ({"cell": 147, "state": "confirmed", "code_states": [1, 3, 6, 8, 9, 12, 14, 15], "single": {"run": "run10", "state": 4}},   # 147 = 0b10010011
+                                              {"cell": 200, "state": "decoded", "code_states": [2, 4, 6, 7, 10, 12, 13, 15], "single": None}))
+        self.assertEqual(doc["evidence"]["reads"], [["0x00000b83", 3], ["0x00000b86", 3], ["0x00000b89", 3], ["0x00000b8c", 3], ["0x00000b8f", 3]])
+        # the record its evidence names holds the frame, and there the place reads one: checked on the raw words of the run of the singles
+        known = known2()
+        p, r = twin("singles", 9, known=known)
+        far, word, bit = M.at(7, 2, 19)
+        k = next(i for i, (f, n) in enumerate(p["reads"]) if f <= far < f + n)
+        rec = r.rec(2 + 4 * len(p["reads"]) + k)
+        self.assertEqual((rec["far"], rec["frames"][far - rec["far"]][word] >> bit & 1, r.rec(2 + 3 * len(p["reads"]) + k)["frames"][far - rec["far"]][word] >> bit & 1),
+                         (p["reads"][k][0], 1, 0))
+
+    def test_as_it_is_written_to_a_file(self) -> None:
+        doc = self.doc()
+        text = s2_5_table.dump(doc)
+        self.assertTrue(json.loads(text) == json.loads(json.dumps(doc)), "what is written is the description")
+        lines = text.splitlines()
+        self.assertEqual(sum(1 for ln in lines if ln.startswith('  {"address": ')), 28160, "an entry a line")
+        self.assertLess(len(text), 5_000_000)
+
+    def test_a_contradiction_is_confidence_0(self) -> None:
+        refuted = {"problems": ["x"], "confirmed": [n for n in range(16) if n != 5], "contradictions": [{"cell": 5}]}
+        doc = self.doc(held={0: refuted})
+        jsonschema.Draft202012Validator(SCHEMA).validate(json.loads(json.dumps(doc)))
+        self.assertEqual((doc["counts"]["contradiction"], doc["entries"][5]["confidence"], doc["entries"][5]["state"], doc["evidence"]["of_a_cell"][5]["single"]),
+                         (110, 0, "contradiction", {"run": "run01", "state": 6}))
+
+    def test_the_schema_refuses_what_is_not_one(self) -> None:
+        doc = json.loads(json.dumps(self.doc()))
+        for change in (lambda d: d.update(schema_version=1), lambda d: d["entries"][0].pop("site"), lambda d: d["entries"][0].update(evidence={}),
+                       lambda d: d.update(label="open-book"), lambda d: d["entries"][0].update(address="b86/1/2"), lambda d: d.pop("evidence"),
+                       lambda d: d["evidence"]["of_a_cell"][0].update(state="guessed"), lambda d: d["sites"][0].pop("name")):
+            bad = copy.deepcopy(doc); change(bad)
+            self.assertRaises(jsonschema.ValidationError, jsonschema.Draft202012Validator(SCHEMA).validate, bad)
+
+
+class TheRule(unittest.TestCase):
+    """The rule is read from tables; here the tables are made from the stored prediction's places — a layout that
+    obeys a rule, on the census of the device — and from changed copies of it. Nothing of this is a result."""
+
+    PREDICTION = json.loads(s2_5_chain.PREDICTION.read_text())
+
+    def tables(self, form: int | None = None, change=None) -> dict:
+        by: dict[int, list] = {s: [None] * 256 for s in range(110)}
+        for place, (s, k, a) in s2_5_predict.places(self.PREDICTION, form).items():
+            by[s][64 * k + a] = (place, False)
+        if change:
+            change(by)
+        return by
+
+    def rule(self, **kw) -> dict:
+        return s2_5_rule.rule(self.tables(**kw), DESIGN, BUILD, CENSUS, s2_5_chain2.sites_of_the_kind())
+
+    def test_a_layout_that_obeys_one_rule_is_read_as_that_rule(self) -> None:
+        r = self.rule()
+        self.assertEqual((r["schema"], r["label"], r["design"], r["sites_measured"], r["one_rule"], set(r["obeyed_by_every_site_measured"].values())),
+                         ("s2_5_rule", "closed-book", "s2b", 110, True, {True}))
+        self.assertEqual((r["sites_of_this_kind_not_measured"], len(r["measured_at"]), r["columns_of_sites_measured"]),
+                         (1390, 110, [10, 12, 16, 20, 24, 28, 30, 32, 34, 38, 42]))
+        self.assertEqual((r["rows_measured"]["16"], r["rows_measured"]["34"]), ("100 row(s), 0 to 99", "row 66"))
+        self.assertEqual([(m["frame_above_the_lowest"], m["bit_of_the_half_word"]) for m in r["the_six_moves"]["moves"]], RULE)
+        self.assertEqual(r["the_position"]["positions"], {"A6LUT": {"word_of_the_site_s_two": 0, "half": "15 down to 0"}, "B6LUT": {"word_of_the_site_s_two": 0, "half": "31 down to 16"},
+                                                          "C6LUT": {"word_of_the_site_s_two": 1, "half": "15 down to 0"}, "D6LUT": {"word_of_the_site_s_two": 1, "half": "31 down to 16"}})
+        self.assertEqual(r["the_half"]["rows"], {"0 to 49": ["bottom"], "50 to 99": ["top"]})
+        c = r["the_column"]
+        self.assertEqual((c["frames_of_the_column"], c["first_of_the_four"], c["of_site_column_0"], c["site_columns_a_column"], c["measured"]["16"], c["measured"]["34"]),
+                         (36, 32, 19, 2, 36, 48))
+        self.assertIn("only columns of sites with even numbers were measured", c["note"])
+        self.assertEqual((r["the_word"]["the_one_word_more_after_row"], r["the_word"]["rows_measured"]), ([24], 50))
+        self.assertIn("up to row 24, and 2 r + 1 and 2 r + 2 above it", r["the_word"]["says"])
+        self.assertEqual(r["sites"][30], {"site": 30, "name": "SLICE_X16Y30", "frames": [f"{0x00401220 + f:#010x}" for f in range(4)], "words": [61, 62],
+                                          "memories": [{"position": "D6LUT", "word": 62, "bits": "31 down to 16"}, {"position": "A6LUT", "word": 61, "bits": "15 down to 0"},
+                                                       {"position": "B6LUT", "word": 61, "bits": "31 down to 16"}, {"position": "C6LUT", "word": 62, "bits": "15 down to 0"}]})
+
+    def test_where_the_one_word_more_lies_is_read_from_the_rows(self) -> None:
+        for form in (20, 21, 29):
+            r = self.rule(form=form)
+            self.assertEqual((r["the_word"]["the_one_word_more_after_row"], r["one_rule"]), ([form], True), form)
+
+    def test_rows_that_do_not_say_where_it_lies_leave_it_open(self) -> None:
+        keep = lambda s: (s < 100 and not 22 <= s % 50 <= 27) or s in (100, 101, 102, 103, 104, 105, 106, 108, 109)   # noqa: E731  without the rows 22 to 27, and without X32Y29
+        r = s2_5_rule.rule({s: rows for s, rows in self.tables().items() if keep(s)}, DESIGN, BUILD, CENSUS)
+        self.assertEqual((r["the_word"]["the_one_word_more_after_row"], r["one_rule"]), ([21, 22, 23, 24, 25, 26, 27], True))
+        self.assertIn("where the one word more lies is not fixed by the rows measured: after row 21 to 27", r["the_word"]["says"])
+        self.assertNotIn("sites_of_this_kind_not_measured", r)
+
+    def test_what_does_not_obey_is_said_part_by_part(self) -> None:
+        def a_cell_elsewhere(by): by[5][70], by[5][71] = by[5][71], by[5][70]
+        def a_site_a_word_up(by): by[40] = [((f, w + 2, b), inv) for (f, w, b), inv in by[40]]
+        def a_site_in_another_column(by): by[104] = [((f + 0x80, w, b), inv) for (f, w, b), inv in by[104]]
+        def a_memory_in_the_other_half(by): by[9][:64] = [((f, w, b - 16), inv) for (f, w, b), inv in by[9][:64]]
+        def a_site_in_the_other_half(by): by[10] = [((f & ~0x00400000, w, b), inv) for (f, w, b), inv in by[10]]   # a site of the rows 0 to 49, where the rows 50 to 99 lie
+        def a_cell_inverted(by): by[77][3] = (by[77][3][0], True)
+        def the_upper_rows_in_the_lower_half(by):
+            for s in [*range(50, 100), 102, 104, 105, 107]:
+                by[s] = [((f | 0x00400000, w, b), inv) for (f, w, b), inv in by[s]]
+        def a_site_four_frames_down(by): by[9] = [((f - 4, w, b), inv) for (f, w, b), inv in by[9]]
+        for change, parts in ((the_upper_rows_in_the_lower_half, {"the_half"}), (a_site_four_frames_down, {"the_column"}),
+                              (a_cell_elsewhere, {"the_six_moves"}), (a_site_a_word_up, {"the_word"}), (a_site_in_another_column, {"the_column"}),
+                              (a_memory_in_the_other_half, {"the_position"}), (a_site_in_the_other_half, {"the_half"}), (a_cell_inverted, {"the_six_moves"})):
+            with self.subTest(change.__name__):
+                r = self.rule(change=change)
+                self.assertEqual(({k for k, ok in r["obeyed_by_every_site_measured"].items() if not ok}, r["one_rule"]), (parts, False))
+        r = self.rule(change=a_site_in_another_column)
+        self.assertEqual((r["the_column"]["says"], r["the_column"]["measured"]["28"]), ("the columns of sites measured do not lie on one line among the columns of frames", ["45"]))
+        r = self.rule(change=a_site_a_word_up)
+        self.assertEqual((r["the_word"]["says"], r["the_word"]["rows"]["40"]), ("the rows measured do not have their words by one such rule", [81, 83]))
+
+
+class TheChain(unittest.TestCase):
+    """The chain of part 2 over the made-up device."""
+
+    def setUp(self) -> None:
+        H9.prepared()
+        self.root = Path(scratch_dirs.mkdtemp(prefix="smchain5b_")) / "chain"
+        self.bases = BASES()
+        self.calls: list[int] = []
+
+    def runner(self, known=None, per_run: dict | None = None, **kw):
+        def run(k: int, out: Path) -> None:
+            self.calls.append(k)
+            stage, share = s2_5_chain2.run_of(k)
+            run5(stage, share, known2() if known is None else known, out=out, **kw, **(per_run or {}).get(k, {}))
+        return run
+
+    def drive(self, known=None, **kw) -> dict:
+        kw.setdefault("committed", lambda path: "")
+        kw.setdefault("build", BUILD)
+        return s2_5_chain2.drive(self.root, self.bases, known2() if known is None else known, kw.pop("runner", self.runner(known)), **kw)
+
+    def test_the_runs_of_the_chain(self) -> None:
+        self.assertEqual((s2_5_chain2.RUNS, s2_5_chain2.run_of(0), s2_5_chain2.run_of(1), s2_5_chain2.run_of(16)), (17, ("s2_5c", None), ("s2_5s", 0), ("s2_5s", 15)))
+
+    def test_seventeen_runs_the_tables_the_description_and_the_rule(self) -> None:
+        said: list[str] = []
+        a = self.drive(say=said.append)
+        self.assertEqual((a["state"], self.calls, [r["decision"] for r in a["runs"]]), ("complete", list(range(17)), ["go on"] * 16 + ["complete"]))
+        self.assertEqual(a["closing"], {"sites": 110, "cells_a_site": 256, "places": 28160, "cells_confirmed_at_every_site": 256, "contradictions": 0,
+                                        "outcome": "7 and 9: a table for every site, and every cell confirmed at every site by its single",
+                                        "ctl0": [CTL0], "ctl0_in_part_1": CTL0, "bit_5": {}})
+        self.assertEqual(said[0], "the tables written: table/table.json")
+        self.assertEqual(said[1], "run00: code, 28160 bit(s) follow a cell as they are, 0 inverted, 0 irregular — go on")
+        self.assertEqual(said[-1], "run16: singles 15, 1760 bit(s) follow a cell as they are, 0 inverted, 0 irregular, 16 cell(s) confirmed at every site — complete")
+        table = json.loads((self.root / "table" / "table.json").read_text())
+        self.assertEqual((table["schema"], table["code_run"]["dir"], len(table["tables"])), ("s2_5_table", "run00", 110))
+        doc = json.loads((self.root / "ram_map.json").read_text())
+        jsonschema.Draft202012Validator(SCHEMA).validate(doc)
+        self.assertEqual((doc["counts"], len(doc["runs"]["singles"]), doc["runs"]["code"]["result_sha256"]),
+                         ({"confirmed": 28160, "decoded": 0, "contradiction": 0}, 16, a["runs"][0]["result_sha256"]))
+        alike(self, {(e["site"], e["cell"]): e["address"] for e in doc["entries"]},
+              {(s, 64 * k + a): s2_5_table.text(place) for place, (s, k, a) in M.where(b_map()).items()}, "every cell of every site at its place")
+        rule = json.loads((self.root / "rule.json").read_text())
+        self.assertEqual((rule["schema"], rule["sites_measured"], rule["obeyed_by_every_site_measured"]["the_six_moves"], rule["obeyed_by_every_site_measured"]["the_position"]),
+                         ("s2_5_rule", 110, True, True))
+        self.assertFalse(rule["one_rule"], "the made-up device has all its sites in one column: no rule of the columns")
+        chain = json.loads((self.root / "chain.json").read_text())
+        self.assertEqual(chain, json.loads(json.dumps(s2_5_chain2.brief(a))))
+        self.assertEqual((chain["table_sha256"], "table" in chain), (hashlib.sha256((self.root / "table" / "table.json").read_bytes()).hexdigest(), False))
+        self.assertEqual(s2_5_chain2.assess(self.root, self.bases, known2())["state"], "complete", "and it stands when looked at again")
+
+    def test_no_single_before_the_code_run_and_its_tables_are_committed(self) -> None:
+        a = self.drive(committed=s2_5_chain2.committed)
+        self.assertEqual((a["state"], self.calls, len(a["runs"])), ("go on", [0], 1))
+        self.assertIn("no single before the code run and its tables are committed: run00", a["held"])
+        self.assertTrue((self.root / "table" / "table.json").is_file())
+        a = self.drive(committed=lambda path: "" if path.name == "run00" else "table is not committed")
+        self.assertEqual((self.calls, a["held"]), ([0], "no single before the code run and its tables are committed: table is not committed"))
+        a = self.drive(max_new=2)
+        self.assertEqual((self.calls, a["state"], len(a["runs"]), a["next_run"]), ([0, 1, 2], "go on", 3, 3))
+
+    def test_a_site_without_a_table_halts_the_chain_and_no_single_is_run(self) -> None:
+        cells = b_map(moved=M.swap(31, 0, alike=True))
+        known = known2(cells)
+        a = self.drive(known, runner=self.runner(known, cells=cells))
+        self.assertEqual((a["state"], self.calls, (self.root / "table").exists()), ("halted", [0], False))
+        self.assertIn("run00: closed without a table for every site — 8:", a["why"][0])
+        self.assertEqual(a["why"][1], "run00: 1 site(s) have no table: SLICE_X16Y31")
+        self.assertEqual((self.drive(known, runner=self.runner(known, cells=cells))["state"], self.calls), ("halted", [0]), "driven again, it runs nothing")
+
+    def test_a_code_run_under_another_ctl0_than_part_1_halts_and_so_does_a_single_under_another(self) -> None:
+        a = self.drive(dict(known2(), ctl0_in_part_1="0x00000d01"))
+        self.assertEqual((a["state"], self.calls), ("halted", [0]))
+        self.assertIn("CTL0 read 0x00000501 in the code run and 0x00000d01 in the runs of part 1", a["why"][0])
+        self.root = self.root.parent / "other"; self.calls = []
+        a = self.drive(runner=self.runner(per_run={2: {"env": {"SM_CREG": "ctl0:00000d01"}}}))
+        self.assertEqual((a["state"], self.calls), ("halted", [0, 1, 2]))
+        self.assertIn("run02: CTL0 read 0x00000d01 in this run and 0x00000501 in the code run", a["why"][0])
+
+    def test_a_single_that_contradicts_the_tables_halts_the_chain(self) -> None:
+        a = self.drive(max_new=1)
+        self.assertEqual((a["state"], self.calls), ("go on", [0]))
+        other = copy.deepcopy(b_map())                    # from the first run of the singles on, two cells of a site show in each other's places
+        cells = b_map(moved={(40, 0, 3): M.at(40, 0, 4), (40, 0, 4): M.at(40, 0, 3)})
+        a = self.drive(runner=self.runner(cells=cells))
+        self.assertEqual((a["state"], self.calls, a["runs"][1]["confirmed"], [c["cell"] for c in a["runs"][1]["contradictions"]]),
+                         ("halted", [0, 1], [n for n in range(16) if n not in (3, 4)], [3, 4]))
+        self.assertTrue(a["why"][0].startswith("run01: cell 3: its single changes 110 bit(s)"), a["why"])
+        self.assertFalse((self.root / "ram_map.json").exists())
+        del other
+
+    def test_tables_that_were_changed_are_not_written_over_and_halt_the_chain(self) -> None:
+        self.drive(max_new=1)
+        stored = self.root / "table" / "table.json"
+        doc = json.loads(stored.read_text()); doc["tables"][0]["places"][0], doc["tables"][0]["places"][1] = doc["tables"][0]["places"][1], doc["tables"][0]["places"][0]
+        stored.write_text(json.dumps(doc, indent=1) + "\n")
+        before = stored.read_bytes()
+        a = self.drive()
+        self.assertEqual((a["state"], self.calls, stored.read_bytes() == before), ("halted", [0], True))
+        self.assertIn("run00: the tables stored with the chain are not the tables the code run's verdict gives", a["why"])
+        stored.unlink()
+        a = self.drive()
+        self.assertEqual((a["state"], self.calls), ("halted", [0]))
+        self.assertIn("run00: table/ is stored and the tables (table.json) are not in it", a["why"])
+
+    def test_a_stored_run_that_was_changed_takes_the_description_away(self) -> None:
+        self.drive()
+        self.assertTrue((self.root / "ram_map.json").is_file() and (self.root / "rule.json").is_file())
+        raw = bytearray((self.root / "run05" / "result.bin").read_bytes()); raw[-5] ^= 1
+        (self.root / "run05" / "result.bin").write_bytes(bytes(raw))
+        said: list[str] = []
+        a = self.drive(say=said.append)
+        self.assertEqual((a["state"], len(self.calls)), ("halted", 17))
+        self.assertIn("run05: the stored result is not the one whose checksum the board gave", a["why"][0])
+        self.assertFalse((self.root / "ram_map.json").exists() or (self.root / "rule.json").exists())
+        self.assertIn("ram_map.json and rule.json taken away: the chain is not complete as it is stored now", said)
+
+    def test_what_is_not_a_chain(self) -> None:
+        bases = dict(self.bases); bases["s2_5s"] = dict(bases["s2_5s"], image_sha256="0" * 64)
+        a = s2_5_chain2.assess(self.root, bases, known2())
+        self.assertEqual((a["state"], a["why"]), ("halted", ["the two sets of the step do not declare the same image and the same design"]))
+        (self.root / "table").mkdir(parents=True)
+        a = s2_5_chain2.assess(self.root, self.bases, known2())
+        self.assertEqual((a["state"], a["why"]), ("halted", ["tables are stored and no code run"]))
+
+    def test_the_command_says_that_part_1_is_not_stored(self) -> None:
+        if st.CANDIDATES.is_file():
+            self.skipTest("part 1 is stored")
+        r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s2_5_chain2.py"), "--dir", str(self.root)], capture_output=True, text=True)
+        self.assertEqual((r.returncode, r.stderr), (2, ""))
+        self.assertIn("REFUSED: s2_5c is run over what the part before it found, and that is not stored", r.stdout)
+
+
+class ARunOfTheDeviceSPlan(unittest.TestCase):
+    """A rehearsal of storing a run of part 2 with a plan of the device's size: the real census and design, and for
+    what part 1 found the frames the prediction names — 24 reads. On the pretend board, whose made-up frames read zero
+    there: nothing follows, and the run is stored, judged and judged again as the audit of stored evidence does."""
+
+    def test_it_is_stored_and_judged_again_as_it_was_judged(self) -> None:
+        H9.prepared()
+        said = json.loads(s2_5_chain.PREDICTION.read_text())
+        cand = {"frames_with_candidates": {f"{far:#010x}": 0 for far in sorted({k[0] for k in s2_5_predict.places(said)})}}
+        known = dict(s1a_run.known_for("s2_5f"), candidates=cand, ctl0_in_part_1=CTL0)
+        for stage, share, words in (("s2_5c", None, 222566), ("s2_5s", 15, 219110)):
+            with self.subTest(stage):
+                rec, u, out = run5(stage, share, known=known, cells=[])
+                self.assertEqual((rec["verdict"], rec["problems"], rec["plan"]["share"], rec["plan"]["reads"], rec["plan"]["states"]), ("PASS", [], share, 24, 18))
+                raw = (out / "result.bin").read_bytes()
+                self.assertEqual((len(raw), f"{zlib.crc32(raw) & 0xFFFFFFFF:08x}"), (4 * words, rec["board_crc32"]))
+                exp = s1a_run.with_plan(stage, json.loads(s1a_run.STAGES[stage]["expected"].read_text()), share, known)
+                now = s1a_run.STAGES[stage]["judge"].judge(list(struct.unpack("<%dI" % (len(raw) // 4), raw)), known, s1a_run.planned_words(exp))
+                self.assertEqual(json.loads(json.dumps(now)), json.loads((out / "verdict.json").read_text()))
+                self.assertEqual((now["verdict"], now["run"]["kind"], now["run"]["share"], now["finding"]["frames"], now["finding"]["bits"]["follow"]),
+                                 ("PASS", rec["plan"]["kind"], share, 72, 0))
+
+
+if __name__ == "__main__":
+    unittest.main()

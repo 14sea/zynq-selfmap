@@ -396,6 +396,19 @@ class Image(unittest.TestCase):
                 e22, stage=f"S2.4, the shift registers — {what}", params=[f"{w:08x}" for w in p23],
                 pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
                            "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"}), indent=1) + "\n")
+        # S2.5 (sections 45 and 46): the same stage and the same image with the second probe design, s2b — another file,
+        # another hash, another identification word, and its name on the card.
+        design_b = json.loads((ROOT / "pl" / "s2b" / "design.json").read_text())
+        built_b = json.loads((ROOT / "pl" / "s2b" / "build.json").read_text())
+        p25 = list(p23)
+        p25[26] = int(design_b["id"], 16)
+        for name, what in (("s2_5f", "part 1: one share of block type 0 as loaded, all one, all zero"),
+                           ("s2_5c", "part 2, the code run: eighteen states over the reads that deliver the frames with candidates"),
+                           ("s2_5s", "part 2, a run of the singles: eighteen states over the same reads")):
+            (BUILD / f"expected_{name}.json").write_text(json.dumps(dict(
+                e22, stage=f"S2.5, other sites — {what}", params=[f"{w:08x}" for w in p25],
+                pl_design={"sha256": built_b["bitstream"]["sha256"], "bytes": built_b["bitstream"]["bytes"], "file": "build/pl/s2b.bit", "card_name": "s2b.bit",
+                           "note": "the probe design s2b (pl/s2b), built here and loaded as an opaque file"}), indent=1) + "\n")
         # No part of the memory map bounds the image: it is loaded at 0x02000000 and the next thing above it is the PL
         # design at 0x04000000. The bound is a guard against an image that has grown by accident; it was 16 KiB until
         # stage 8 (16,360 bytes) came within 24 bytes of it.

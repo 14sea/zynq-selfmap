@@ -71,6 +71,20 @@
  * put where the host puts it. A write to the shift registers' data shifts them, as in the design; it is logged as a
  * VIOLATION — no set of S2.3 allows it — unless SM_SHIFTS=allowed says the test means it.
  *
+ * S2.5 (docs/s2_plan.md, sections 45 and 46). SM_DESIGN=s2b puts the second probe design behind the eight offsets:
+ * LUT RAM at 110 sites, four memories of 64 each; 0x04 the site (bits 6..0) and whether a write goes to every site
+ * (bit 8); 0x0c the address; 0x10 the data — a write into the site named or into every site, a read the four outputs
+ * of the site named; 0x14 nothing; 0x18, read only, over all sites at the address set and for each memory k: bit k a
+ * site holds a one, bit 4+k every site does, bit 8+k the parity; 0x1c the count of writes. SM_BINIT=<file> is what
+ * the memories are loaded with: 440 words of 64 bits (hex), memory k of site s the (4 s + k)-th, bit a the content of
+ * address a; without it they are loaded with zero. SM_BMAP=<file> says where cells show in configuration memory: a
+ * line for each place — the site, the address, the memory, the frame address (hex), the word, the bit, and 1 if
+ * inverted. A write to anything but the site, the address and the data is logged as a VIOLATION. Faults of this
+ * design:
+ *   bstuck                           one cell (site 5, memory 2, address 5) never takes a one
+ *   bmiss                            a write to every site does not reach site 7
+ *   bdisturb@R                       frame read R changes a cell (site 3, memory 1, address 9)
+ *
  * SM_DIRTY=1 (review of 5936a8e): memory holds something when the prober starts, as on a board, where the result of
  * the run before lies where this run's will. Every word then holds a word of its own, and a result that takes in a
  * word neither the prober nor the engine wrote in this run is not written out: the twin says STALE and ends with 4.
@@ -127,6 +141,19 @@ static uint32_t pl_ram_writes, pl_srl_shifts; static unsigned n_srl_reads; stati
 static struct { uint32_t addr, mem, far, word, bit, inv; } place[MAX_PLACES]; static unsigned n_places;
 static struct { uint32_t addr, mem, far, word, bit, inv; } srl_place[MAX_PLACES]; static unsigned n_srl_places;   /* SM_SRLMAP: the shift registers' */
 #define PL_ID_WORD 0x53324131u                         /* "S2A1": what pl/s2a answers with */
+/* the second probe design, s2b (SM_DESIGN=s2b): RAM at B_SITES sites behind the same offsets */
+#define B_ID_WORD  0x53324231u                         /* "S2B1" */
+#define B_SITES    110u
+#define B_SITE_REG 0x04u
+#define B_CHECK    0x18u
+#define MAX_BPLACES 40000u
+static int design_b; static uint32_t b_site, b_ram[B_SITES][RAM_DEPTH];
+static struct bplace { uint32_t far, site, addr, mem, word, bit, inv; } b_place[MAX_BPLACES]; static unsigned n_bplaces;
+static int by_far(const void *x, const void *y)
+{
+    const struct bplace *a = x, *b = y;
+    return a->far < b->far ? -1 : a->far > b->far;
+}
 
 /* An access nobody may make is logged as a VIOLATION and the run goes on, so that a test sees what else happened. A
  * program that makes them without end is stopped: the twin ends with a code, and whoever reads its output is not
@@ -180,6 +207,15 @@ static const uint32_t *frame(uint32_t far)
             if (!shown++) memcpy(changed, f, sizeof changed);
             changed[srl_place[i].word] = (changed[srl_place[i].word] & ~(1u << srl_place[i].bit)) | cell << srl_place[i].bit;
         }
+    if (n_bplaces && !fault_on("masked")) {                                   /* s2b: its places are kept in the order of their frames */
+        unsigned lo = 0, hi = n_bplaces;
+        while (lo < hi) { unsigned mid = (lo + hi) / 2u; if (b_place[mid].far < far) lo = mid + 1u; else hi = mid; }
+        for (i = lo; i < n_bplaces && b_place[i].far == far; i++) {
+            uint32_t cell = ((b_ram[b_place[i].site][b_place[i].addr] >> b_place[i].mem) & 1u) ^ b_place[i].inv;
+            if (!shown++) memcpy(changed, f, sizeof changed);
+            changed[b_place[i].word] = (changed[b_place[i].word] & ~(1u << b_place[i].bit)) | cell << b_place[i].bit;
+        }
+    }
     if (!disturbed) return shown ? changed : f;
     if (!shown) memcpy(changed, f, sizeof changed);
     changed[3] ^= 0x00010000u;
@@ -256,6 +292,7 @@ static void dma_execute(uint32_t dlen)
         } else {
             n_read_dma++;
             if (fault_at("ramdisturb", n_read_dma)) pl_ram[9] ^= 0x4u;
+            if (fault_at("bdisturb", n_read_dma)) b_ram[3][9] ^= 0x2u;
             if (fault_at("bit5", n_read_dma)) reg_sts |= STS_SEU_ERR;
             if (fault_at("short", n_read_dma)) n = dlen > 150u ? 150u : dlen / 2u;
             for (i = 0; i < n && q_at < q_n; i++) { ddr[(a - DDR_BASE) / 4u + i] = queue[q_at++]; wrote[(a - DDR_BASE) / 4u + i] = 1; }
@@ -314,13 +351,18 @@ uint32_t hal_rd(uint32_t a)
     case SLCR_FPGA_RST_CTRL: v = slcr_word[1]; break;
     case SLCR_FPGA0_CLK:     v = slcr_word[2]; break;
     case SLCR_PLL_STATUS:    v = slcr_word[3]; break;
-    case PL_BASE + PL_ID:       v = fault_on("plid") ? 0x53324132u : PL_ID_WORD; break;
-    case PL_BASE + PL_SCRATCH:  v = pl_scratch; break;
+    case PL_BASE + PL_ID:       v = fault_on("plid") ? 0x53324132u : design_b ? B_ID_WORD : PL_ID_WORD; break;
+    case PL_BASE + PL_SCRATCH:  v = design_b ? b_site : pl_scratch; break;
     case PL_BASE + PL_COUNT:    v = pl_count; if (!fault_on("countstuck")) pl_count += 37u; break;
     case PL_BASE + PL_RAM_ADDR: v = pl_ram_addr; break;
-    case PL_BASE + PL_RAM_DATA: v = pl_ram[pl_ram_addr]; break;
-    case PL_BASE + PL_SRL_ADDR: v = pl_srl_addr; break;
-    case PL_BASE + PL_SRL_DATA: v = pl_srl[pl_srl_addr] ^ ((fault_on("srlmoves") && n_srl_reads++ >= SRL_DEPTH + 3u) ? 0x2u : 0u); break;
+    case PL_BASE + PL_RAM_DATA: v = !design_b ? pl_ram[pl_ram_addr] : (b_site & 0x7Fu) < B_SITES ? b_ram[b_site & 0x7Fu][pl_ram_addr] : 0u; break;
+    case PL_BASE + PL_SRL_ADDR: v = design_b ? 0u : pl_srl_addr; break;
+    case PL_BASE + PL_SRL_DATA: if (design_b) {         /* s2b: the reading over all sites */
+                                    uint32_t any = 0u, all = 0xFu, par = 0u; unsigned s;
+                                    for (s = 0; s < B_SITES; s++) { uint32_t x = b_ram[s][pl_ram_addr]; any |= x; all &= x; par ^= x; }
+                                    v = any | all << 4 | par << 8; break;
+                                }
+                                v = pl_srl[pl_srl_addr] ^ ((fault_on("srlmoves") && n_srl_reads++ >= SRL_DEPTH + 3u) ? 0x2u : 0u); break;
     case PL_BASE + PL_WRITES:   v = (pl_ram_writes + (fault_on("plcount") ? 1u : 0u)) | pl_srl_shifts << 16; break;
     default:             v = 0; printf("VIOLATION read %08x\n", a); wild(); break;
     }
@@ -345,13 +387,23 @@ void hal_wr(uint32_t a, uint32_t v)
     case DEVCFG_DMA_DST:  dma_dst = v; break;
     case DEVCFG_DMA_SLEN: dma_slen = v; break;
     case DEVCFG_DMA_DLEN: dma_execute(v); polling = 1; break;
-    case PL_BASE + PL_SCRATCH:  pl_scratch = fault_on("scratchstuck") ? v & ~0x00000080u : v; break;
+    case PL_BASE + PL_SCRATCH:  if (design_b) { b_site = v & 0x17Fu; break; }
+                                pl_scratch = fault_on("scratchstuck") ? v & ~0x00000080u : v; break;
     case PL_BASE + PL_RAM_ADDR: pl_ram_addr = v & (RAM_DEPTH - 1u); break;
-    case PL_BASE + PL_RAM_DATA: pl_ram[pl_ram_addr] = (fault_on("ramstuck") && pl_ram_addr == 5u) ? v & 0xBu : v & 0xFu;
+    case PL_BASE + PL_RAM_DATA: if (design_b) {         /* s2b: into the site named, or into every site */
+                                    unsigned s;
+                                    for (s = 0; s < B_SITES; s++)
+                                        if ((b_site & 0x100u) ? !(fault_on("bmiss") && s == 7u) : (b_site & 0x7Fu) == s)
+                                            b_ram[s][pl_ram_addr] = v & 0xFu & ~((fault_on("bstuck") && s == 5u && pl_ram_addr == 5u) ? 0x4u : 0u);
+                                    pl_ram_writes = (pl_ram_writes + 1u) & 0xFFFFu; break;
+                                }
+                                pl_ram[pl_ram_addr] = (fault_on("ramstuck") && pl_ram_addr == 5u) ? v & 0xBu : v & 0xFu;
                                 if (fault_on("ramwild")) pl_ram[(pl_ram_addr + 1u) & (RAM_DEPTH - 1u)] = v & 0xFu;
                                 pl_ram_writes = (pl_ram_writes + 1u) & 0xFFFFu; break;
-    case PL_BASE + PL_SRL_ADDR: pl_srl_addr = v & (SRL_DEPTH - 1u); break;
-    case PL_BASE + PL_SRL_DATA: {                       /* a write shifts: the design does it, this prober must never ask for it */
+    case PL_BASE + PL_SRL_ADDR: if (design_b) { printf("VIOLATION write %08x: no register of s2b\n", a); break; }
+                                pl_srl_addr = v & (SRL_DEPTH - 1u); break;
+    case PL_BASE + PL_SRL_DATA: if (design_b) { printf("VIOLATION write %08x: read only in s2b\n", a); break; }
+                                {                       /* a write shifts: the design does it, this prober must never ask for it */
                                     unsigned k;
                                     for (k = SRL_DEPTH - 1u; k > 0u; k--) pl_srl[k] = pl_srl[k - 1u];
                                     pl_srl[0] = v & 0xFu; pl_srl_shifts = (pl_srl_shifts + 1u) & 0xFFFFu;
@@ -474,6 +526,30 @@ int main(int argc, char **argv)
                 srl_place[n_srl_places].word = (uint32_t)d; srl_place[n_srl_places].bit = (uint32_t)e; srl_place[n_srl_places].inv = (uint32_t)g; n_srl_places++;
             }
             fclose(m);
+        }
+        design_b = getenv("SM_DESIGN") && !strcmp(getenv("SM_DESIGN"), "s2b");
+        if (design_b && getenv("SM_BINIT")) {
+            FILE *m = fopen(getenv("SM_BINIT"), "r"); unsigned long long w; unsigned n = 0, a;
+            if (!m) return 2;
+            while (n < 4u * B_SITES && fscanf(m, "%llx", &w) == 1) {
+                for (a = 0; a < RAM_DEPTH; a++) b_ram[n / 4u][a] |= (uint32_t)((w >> a) & 1u) << (n % 4u);
+                n++;
+            }
+            fclose(m);
+            if (n != 4u * B_SITES) return 2;
+        }
+        if (design_b && getenv("SM_BMAP")) {
+            FILE *m = fopen(getenv("SM_BMAP"), "r"); unsigned long s, a, b, c, d, e, g;
+            if (!m) return 2;
+            while (n_bplaces < MAX_BPLACES && fscanf(m, "%lu %lu %lu %lx %lu %lu %lu", &s, &a, &b, &c, &d, &e, &g) == 7) {
+                if (s >= B_SITES || a >= RAM_DEPTH || b >= 4u || d >= FRAME_WORDS || e >= 32u || g > 1u) return 2;
+                b_place[n_bplaces].site = (uint32_t)s; b_place[n_bplaces].addr = (uint32_t)a; b_place[n_bplaces].mem = (uint32_t)b;
+                b_place[n_bplaces].far = (uint32_t)c; b_place[n_bplaces].word = (uint32_t)d; b_place[n_bplaces].bit = (uint32_t)e;
+                b_place[n_bplaces].inv = (uint32_t)g; n_bplaces++;
+            }
+            if (!feof(m)) { fclose(m); return 2; }       /* a line that is no place, or more places than there is room for */
+            fclose(m);
+            qsort(b_place, n_bplaces, sizeof b_place[0], by_far);
         }
         if (fault_on("ctrl"))   reg_ctrl &= ~0x08000000u;
         if (fault_on("lpbk"))   reg_mctrl |= MCTRL_PCAP_LPBK;

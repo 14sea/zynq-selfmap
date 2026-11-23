@@ -168,20 +168,26 @@ def predict(design: Path = S2B / "design.json", build: Path = S2B / "build.json"
             "sites_whose_word_depends_on_the_form": [s["name"] for s in sites if s["memories"][0]["word_under_the_other_forms"]]}
 
 
-def places(prediction: dict, form: int | None = None) -> dict[tuple[int, int, int], tuple[int, int, int]]:
-    """The prediction as places: (frame address, word, bit) -> (site, memory, address of the memory), under one form
-    of the word rule (the one named first, if none is given). From the stored prediction alone."""
+def memory_places(prediction: dict, form: int | None = None) -> dict[tuple[int, int], dict[tuple[int, int, int], int]]:
+    """The prediction a memory at a time: (site, memory) -> its 64 places, each (frame address, word, bit) with the
+    address of the memory it is said to be — under one form of the word rule (the one named first, if none is given).
+    From the stored prediction alone."""
     form = prediction["rules"]["the_word"]["named_first"] if form is None else form
     moves = [(m["frame_above_the_lowest"], m["bit_of_the_half_word"]) for m in prediction["the_six_moves"]]
-    out: dict[tuple[int, int, int], tuple[int, int, int]] = {}
+    out: dict[tuple[int, int], dict[tuple[int, int, int], int]] = {}
     for s in prediction["sites"]:
         low = int(s["frames"][0], 16)
         for m in s["memories"]:
             w, h = POSITIONS[m["position"]]
             word = word_of(s["row_of_its_half"], form) + w
-            for a, (f, b) in enumerate(moves):
-                out[(low + f, word, h + b)] = (s["site"], m["memory"], a)
+            out[(s["site"], m["memory"])] = {(low + f, word, h + b): a for a, (f, b) in enumerate(moves)}
     return out
+
+
+def places(prediction: dict, form: int | None = None) -> dict[tuple[int, int, int], tuple[int, int, int]]:
+    """The prediction as places: (frame address, word, bit) -> (site, memory, address of the memory). Where a
+    prediction names one place for two memories this has the later; who needs each memory's own asks memory_places."""
+    return {place: (s, k, a) for (s, k), its in memory_places(prediction, form).items() for place, a in its.items()}
 
 
 def main(argv: list[str]) -> int:

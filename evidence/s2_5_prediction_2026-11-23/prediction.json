@@ -1,0 +1,5745 @@
+{
+ "schema": "s2_5_prediction",
+ "schema_version": 1,
+ "label": "closed-book",
+ "what": "where the memories of the probe design s2b would lie in configuration memory, if the three rules read from the two sites measured so far hold at other sites (docs/s2_plan.md, section 45, part 0). A prediction made before the board was asked; it decides nothing.",
+ "from": {
+  "the_ram_of_s2a": "evidence/s2_3_17A6_2026-11-23/ram_map.json",
+  "its_shift_registers": "evidence/s2_4b_17A6_2026-11-23/srl_map.json",
+  "census": "census/frame_census_17A6.json",
+  "design": "pl/s2b/design.json",
+  "build": "pl/s2b/build.json"
+ },
+ "rules": {
+  "columns_of_36_frames_a_half": {
+   "bottom": 41,
+   "top": 41
+  },
+  "the_column": {
+   "of_site_column_0": 19,
+   "site_columns_a_column": 2
+  },
+  "the_half": {
+   "rows 0 to 49": "bottom",
+   "rows 50 to 99": "top"
+  },
+  "the_word": {
+   "words_a_row": 2,
+   "one_word_more_after_row": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+   ],
+   "named_first": 24
+  },
+  "the_position": {
+   "A6LUT": {
+    "word_of_the_row": 0,
+    "half": 0
+   },
+   "B6LUT": {
+    "word_of_the_row": 0,
+    "half": 16
+   },
+   "C6LUT": {
+    "word_of_the_row": 1,
+    "half": 0
+   },
+   "D6LUT": {
+    "word_of_the_row": 1,
+    "half": 16
+   }
+  },
+  "read_from": {
+   "SLICE_X16Y30": {
+    "x": 16,
+    "row": 30,
+    "half": "bottom",
+    "place": 27,
+    "word": 61
+   },
+   "SLICE_X34Y70": {
+    "x": 34,
+    "row": 20,
+    "half": "top",
+    "place": 36,
+    "word": 40
+   }
+  }
+ },
+ "the_six_moves": [
+  {
+   "address": 0,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 1,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 2,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 3,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 4,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 5,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 6,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 7,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 8,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 9,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 15
+  },
+  {
+   "address": 10,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 11,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 14
+  },
+  {
+   "address": 12,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 13,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 13
+  },
+  {
+   "address": 14,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 15,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 12
+  },
+  {
+   "address": 16,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 17,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 18,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 19,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 20,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 21,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 22,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 23,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 24,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 25,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 11
+  },
+  {
+   "address": 26,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 27,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 10
+  },
+  {
+   "address": 28,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 29,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 9
+  },
+  {
+   "address": 30,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 31,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 8
+  },
+  {
+   "address": 32,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 33,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 34,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 35,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 36,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 37,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 38,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 39,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 40,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 41,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 7
+  },
+  {
+   "address": 42,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 43,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 6
+  },
+  {
+   "address": 44,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 45,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 5
+  },
+  {
+   "address": 46,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 47,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 4
+  },
+  {
+   "address": 48,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 49,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 50,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 51,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 52,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 53,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 54,
+   "frame_above_the_lowest": 2,
+   "bit_of_the_half_word": 0
+  },
+  {
+   "address": 55,
+   "frame_above_the_lowest": 3,
+   "bit_of_the_half_word": 0
+  },
+  {
+   "address": 56,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 57,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 3
+  },
+  {
+   "address": 58,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 59,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 2
+  },
+  {
+   "address": 60,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 61,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 1
+  },
+  {
+   "address": 62,
+   "frame_above_the_lowest": 0,
+   "bit_of_the_half_word": 0
+  },
+  {
+   "address": 63,
+   "frame_above_the_lowest": 1,
+   "bit_of_the_half_word": 0
+  }
+ ],
+ "sites": [
+  {
+   "site": 0,
+   "name": "SLICE_X16Y0",
+   "half": "bottom",
+   "row_of_its_half": 0,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xca009717f87d8879",
+     "word": 1,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x6c3247d3eded6346",
+     "word": 0,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xeab1569b9465d5e7",
+     "word": 0,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x97bcd714b71ff9f7",
+     "word": 1,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 1,
+   "name": "SLICE_X16Y1",
+   "half": "bottom",
+   "row_of_its_half": 1,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xff058924c700a2a6",
+     "word": 3,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7be2226c616fcedd",
+     "word": 2,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x6328ff6ba7dc5b6b",
+     "word": 2,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xeed1f595b0fab6ea",
+     "word": 3,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 2,
+   "name": "SLICE_X16Y2",
+   "half": "bottom",
+   "row_of_its_half": 2,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x558da6f3e4aa5c95",
+     "word": 5,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xbd6359b5318c6508",
+     "word": 4,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xf77ab350c0354a54",
+     "word": 4,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xcff55e7d9df5e166",
+     "word": 5,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 3,
+   "name": "SLICE_X16Y3",
+   "half": "bottom",
+   "row_of_its_half": 3,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xd1ec960d1c2aa377",
+     "word": 7,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x85aa464423646bfd",
+     "word": 6,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x24665c33f3faf7bb",
+     "word": 6,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xb5d504cf6cee6878",
+     "word": 7,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 4,
+   "name": "SLICE_X16Y4",
+   "half": "bottom",
+   "row_of_its_half": 4,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xcc8d735d088ac3a3",
+     "word": 9,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x519ac31c2eae1999",
+     "word": 8,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xfd37a4d10accd79d",
+     "word": 8,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x3a1efad80cdda5eb",
+     "word": 9,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 5,
+   "name": "SLICE_X16Y5",
+   "half": "bottom",
+   "row_of_its_half": 5,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x84e11a9bb95d2de9",
+     "word": 11,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xc72680454ca25784",
+     "word": 10,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xe84252b4b191d584",
+     "word": 10,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x5f4304679fa56788",
+     "word": 11,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 6,
+   "name": "SLICE_X16Y6",
+   "half": "bottom",
+   "row_of_its_half": 6,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xba02ac701b531646",
+     "word": 13,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x63317388db402325",
+     "word": 12,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x4954169c4d298e88",
+     "word": 12,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xb1d401bedb554095",
+     "word": 13,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 7,
+   "name": "SLICE_X16Y7",
+   "half": "bottom",
+   "row_of_its_half": 7,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xba33cfdb7d46a7f1",
+     "word": 15,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x0824ffd4c43ac31d",
+     "word": 14,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x7f69cc4f31df4937",
+     "word": 14,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x12297ed4dd72c1f3",
+     "word": 15,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 8,
+   "name": "SLICE_X16Y8",
+   "half": "bottom",
+   "row_of_its_half": 8,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x229e24230e627aad",
+     "word": 17,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x714c0060d5b847d5",
+     "word": 16,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xd82beff7eca5e4ab",
+     "word": 16,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x628dcda679c35765",
+     "word": 17,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 9,
+   "name": "SLICE_X16Y9",
+   "half": "bottom",
+   "row_of_its_half": 9,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xd14c1e3c90c0cb5e",
+     "word": 19,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xa0eebed9ac357288",
+     "word": 18,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x7ecfe821c415a401",
+     "word": 18,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x33963d1db9fd9902",
+     "word": 19,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 10,
+   "name": "SLICE_X16Y10",
+   "half": "bottom",
+   "row_of_its_half": 10,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x45dced1569eff4d3",
+     "word": 21,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xb041aa6b281cfef6",
+     "word": 20,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xf175d485dde4a321",
+     "word": 20,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x667e1a3055908f0b",
+     "word": 21,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 11,
+   "name": "SLICE_X16Y11",
+   "half": "bottom",
+   "row_of_its_half": 11,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xc88f480f46616195",
+     "word": 23,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xd084a5686323ab08",
+     "word": 22,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x0e21e8b802169699",
+     "word": 22,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xd75edb0756921cd9",
+     "word": 23,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 12,
+   "name": "SLICE_X16Y12",
+   "half": "bottom",
+   "row_of_its_half": 12,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xea8e1e0eef60e7d9",
+     "word": 25,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x740558e136a62c8d",
+     "word": 24,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x6056e08585993560",
+     "word": 24,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xc662e711b680464b",
+     "word": 25,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 13,
+   "name": "SLICE_X16Y13",
+   "half": "bottom",
+   "row_of_its_half": 13,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x2533d938d8e730b3",
+     "word": 27,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xab80ff70a37bcf58",
+     "word": 26,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x10047ef5dd81a37c",
+     "word": 26,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x63a8037cb6aa812a",
+     "word": 27,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 14,
+   "name": "SLICE_X16Y14",
+   "half": "bottom",
+   "row_of_its_half": 14,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x7e2ccea6123b3a69",
+     "word": 29,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x8d4071ef03aaa1bb",
+     "word": 28,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x206a0119f06ee9f4",
+     "word": 28,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xf7712d716f4d54e3",
+     "word": 29,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 15,
+   "name": "SLICE_X16Y15",
+   "half": "bottom",
+   "row_of_its_half": 15,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xacc6d7c12e0538c2",
+     "word": 31,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xfed3989e63be926e",
+     "word": 30,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x1a27d5c42446eed5",
+     "word": 30,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x0b7a2b7195cd553f",
+     "word": 31,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 16,
+   "name": "SLICE_X16Y16",
+   "half": "bottom",
+   "row_of_its_half": 16,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x99dd8774252ca193",
+     "word": 33,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x453c48461cc4f55a",
+     "word": 32,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x3692d0f40f049201",
+     "word": 32,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xe29800c1ab708fab",
+     "word": 33,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 17,
+   "name": "SLICE_X16Y17",
+   "half": "bottom",
+   "row_of_its_half": 17,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xc11fd31dab6203e6",
+     "word": 35,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x977f0db6fe631b0e",
+     "word": 34,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb4db5ab9343d2740",
+     "word": 34,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xc51b9b4cf386aeca",
+     "word": 35,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 18,
+   "name": "SLICE_X16Y18",
+   "half": "bottom",
+   "row_of_its_half": 18,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x1420cc1d62670042",
+     "word": 37,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x89bf6a400aa6c084",
+     "word": 36,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x3099c715dde5c968",
+     "word": 36,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x41dd7db2586ae510",
+     "word": 37,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 19,
+   "name": "SLICE_X16Y19",
+   "half": "bottom",
+   "row_of_its_half": 19,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x8480a4de015e562d",
+     "word": 39,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xfd9fd043882b4803",
+     "word": 38,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x286e5b09651ef808",
+     "word": 38,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x80054c7394d2044d",
+     "word": 39,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 20,
+   "name": "SLICE_X16Y20",
+   "half": "bottom",
+   "row_of_its_half": 20,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xaccd84ed9dd7571a",
+     "word": 41,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x8bb9da2ad3dfe9a6",
+     "word": 40,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x630c89bc11dfdef9",
+     "word": 40,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x47aa829f77102ba5",
+     "word": 41,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 21,
+   "name": "SLICE_X16Y21",
+   "half": "bottom",
+   "row_of_its_half": 21,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x6aeaf695afa523fe",
+     "word": 43,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      44
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xfbc47b42a2e6940a",
+     "word": 42,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      43
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8a62a786f7e20e2f",
+     "word": 42,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      43
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xccfc3460ab211e16",
+     "word": 43,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      44
+     ]
+    }
+   ]
+  },
+  {
+   "site": 22,
+   "name": "SLICE_X16Y22",
+   "half": "bottom",
+   "row_of_its_half": 22,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xe29bd259711191f6",
+     "word": 45,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      46
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xa9f76257b42b3163",
+     "word": 44,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      45
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x9a2c25bfd2e83e79",
+     "word": 44,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      45
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x6061923ee4529047",
+     "word": 45,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "site": 23,
+   "name": "SLICE_X16Y23",
+   "half": "bottom",
+   "row_of_its_half": 23,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x41bf6606aa8e0afe",
+     "word": 47,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      48
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xdb9c18ddeecff926",
+     "word": 46,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      47
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb6bba7e3533340c9",
+     "word": 46,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      47
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x553d2b4475435e31",
+     "word": 47,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "site": 24,
+   "name": "SLICE_X16Y24",
+   "half": "bottom",
+   "row_of_its_half": 24,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x371ea411d0cc00cd",
+     "word": 49,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      50
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x94748389bcb65aee",
+     "word": 48,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      49
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x15c38b611ada45ef",
+     "word": 48,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      49
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xc03bcb67621005f6",
+     "word": 49,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "site": 25,
+   "name": "SLICE_X16Y25",
+   "half": "bottom",
+   "row_of_its_half": 25,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x1ae90b00623564b0",
+     "word": 52,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      51
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x672d36408fa9a7c3",
+     "word": 51,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      50
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x21897891327db143",
+     "word": 51,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      50
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x4c1e158fb2b43de2",
+     "word": 52,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      51
+     ]
+    }
+   ]
+  },
+  {
+   "site": 26,
+   "name": "SLICE_X16Y26",
+   "half": "bottom",
+   "row_of_its_half": 26,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x05e6474e877492da",
+     "word": 54,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      53
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf0e727a7e8699f68",
+     "word": 53,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      52
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xa3e46a4813763c9e",
+     "word": 53,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      52
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x165a464d38810044",
+     "word": 54,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      53
+     ]
+    }
+   ]
+  },
+  {
+   "site": 27,
+   "name": "SLICE_X16Y27",
+   "half": "bottom",
+   "row_of_its_half": 27,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xfe36c4e49167d30c",
+     "word": 56,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      55
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf83a17904fcab75b",
+     "word": 55,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      54
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x2219b5889a5a5112",
+     "word": 55,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      54
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x9f81209e5968cafb",
+     "word": 56,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      55
+     ]
+    }
+   ]
+  },
+  {
+   "site": 28,
+   "name": "SLICE_X16Y28",
+   "half": "bottom",
+   "row_of_its_half": 28,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x3307a0d0d7bf943c",
+     "word": 58,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      57
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xbbb1e4b94ea52bee",
+     "word": 57,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      56
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x4fcac0a4a413b17a",
+     "word": 57,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      56
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xc1005914fbbadf75",
+     "word": 58,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      57
+     ]
+    }
+   ]
+  },
+  {
+   "site": 29,
+   "name": "SLICE_X16Y29",
+   "half": "bottom",
+   "row_of_its_half": 29,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x6adf6e2054dbd880",
+     "word": 60,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      59
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x002c49a0bcc2fe33",
+     "word": 59,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      58
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x9cdb77941cf17c96",
+     "word": 59,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      58
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xae3aa250e3677a8d",
+     "word": 60,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      59
+     ]
+    }
+   ]
+  },
+  {
+   "site": 30,
+   "name": "SLICE_X16Y30",
+   "half": "bottom",
+   "row_of_its_half": 30,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x28cacab9f7b299dd",
+     "word": 62,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x31bec92813d20a97",
+     "word": 61,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x883387e11fb70307",
+     "word": 61,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xbcff78aaeb418333",
+     "word": 62,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 31,
+   "name": "SLICE_X16Y31",
+   "half": "bottom",
+   "row_of_its_half": 31,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xa03f1b589e5ef540",
+     "word": 64,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xdacf20bd43687b66",
+     "word": 63,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb20f2c67ee24056d",
+     "word": 63,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xbd73cc18e7202e4d",
+     "word": 64,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 32,
+   "name": "SLICE_X16Y32",
+   "half": "bottom",
+   "row_of_its_half": 32,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x754f8a3c3c645140",
+     "word": 66,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf313565665d465d1",
+     "word": 65,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x90a20074a6249f1a",
+     "word": 65,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x62a9aa31b27ff5c0",
+     "word": 66,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 33,
+   "name": "SLICE_X16Y33",
+   "half": "bottom",
+   "row_of_its_half": 33,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x3f28f6ddcebee14d",
+     "word": 68,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x2c7de955bc6c82f6",
+     "word": 67,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb029173fb9991fcd",
+     "word": 67,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xc530018256e11f56",
+     "word": 68,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 34,
+   "name": "SLICE_X16Y34",
+   "half": "bottom",
+   "row_of_its_half": 34,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xea691e43058fab6e",
+     "word": 70,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x6966d402bd9d75f4",
+     "word": 69,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x375a8daa267aa005",
+     "word": 69,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x2efe1b6cfcc6361c",
+     "word": 70,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 35,
+   "name": "SLICE_X16Y35",
+   "half": "bottom",
+   "row_of_its_half": 35,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xdee0135c516e6f1d",
+     "word": 72,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x828f87ab83437c59",
+     "word": 71,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xd693fe6c33ea8e5f",
+     "word": 71,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x8a373698e70d5d94",
+     "word": 72,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 36,
+   "name": "SLICE_X16Y36",
+   "half": "bottom",
+   "row_of_its_half": 36,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xf375af4ff4ee818a",
+     "word": 74,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x2841983ac4ce0084",
+     "word": 73,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xc0c658fc1634600b",
+     "word": 73,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xfaa60249fc9557c1",
+     "word": 74,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 37,
+   "name": "SLICE_X16Y37",
+   "half": "bottom",
+   "row_of_its_half": 37,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4019504f46865976",
+     "word": 76,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x61338e2bbbcb92d1",
+     "word": 75,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xaccc52ad5779ec76",
+     "word": 75,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x9c93cd9caffcfcd8",
+     "word": 76,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 38,
+   "name": "SLICE_X16Y38",
+   "half": "bottom",
+   "row_of_its_half": 38,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xb0f4cd8debfc8a70",
+     "word": 78,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x21da1bf52a67fe13",
+     "word": 77,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8ae54e5eb0848ae1",
+     "word": 77,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xfb3fa08610569006",
+     "word": 78,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 39,
+   "name": "SLICE_X16Y39",
+   "half": "bottom",
+   "row_of_its_half": 39,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x537e5728caebf9d9",
+     "word": 80,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x3803e3daa2e2a5d8",
+     "word": 79,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xfbfe5ffa2693d1d9",
+     "word": 79,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x000a98e629a4089a",
+     "word": 80,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 40,
+   "name": "SLICE_X16Y40",
+   "half": "bottom",
+   "row_of_its_half": 40,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xa8edb2ce09c9dd9b",
+     "word": 82,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x599b09da3baeae34",
+     "word": 81,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb2d58985f31e6f82",
+     "word": 81,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x304c868c8080e194",
+     "word": 82,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 41,
+   "name": "SLICE_X16Y41",
+   "half": "bottom",
+   "row_of_its_half": 41,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x28b8053799927d1e",
+     "word": 84,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xc619137823bfbdf2",
+     "word": 83,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x9401a882ecc18549",
+     "word": 83,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x767c330617096172",
+     "word": 84,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 42,
+   "name": "SLICE_X16Y42",
+   "half": "bottom",
+   "row_of_its_half": 42,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x3e0dada50f89b228",
+     "word": 86,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xbcfd1af33662b025",
+     "word": 85,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x562a1b9253f878dd",
+     "word": 85,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xf788f68445cd2814",
+     "word": 86,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 43,
+   "name": "SLICE_X16Y43",
+   "half": "bottom",
+   "row_of_its_half": 43,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xddfc1c7faf28811e",
+     "word": 88,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x2d9e2144d69f7216",
+     "word": 87,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xf7a23d0926890f1a",
+     "word": 87,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x99f868c056423c2c",
+     "word": 88,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 44,
+   "name": "SLICE_X16Y44",
+   "half": "bottom",
+   "row_of_its_half": 44,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x84441961f6a11f84",
+     "word": 90,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xc537a4b3e22323ed",
+     "word": 89,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8530cec921bc6a1e",
+     "word": 89,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x3b15f27600ad541e",
+     "word": 90,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 45,
+   "name": "SLICE_X16Y45",
+   "half": "bottom",
+   "row_of_its_half": 45,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x738572b2fd5d464c",
+     "word": 92,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf3b092eb5ddd8fae",
+     "word": 91,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x7d88cab116f64cdd",
+     "word": 91,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x98f43e22bdbed489",
+     "word": 92,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 46,
+   "name": "SLICE_X16Y46",
+   "half": "bottom",
+   "row_of_its_half": 46,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x7a150b69856e2913",
+     "word": 94,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x42d7137ab190acd3",
+     "word": 93,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x6ac1e7ab1022d6c3",
+     "word": 93,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x76907927f11cd088",
+     "word": 94,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 47,
+   "name": "SLICE_X16Y47",
+   "half": "bottom",
+   "row_of_its_half": 47,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x52937a962815eb70",
+     "word": 96,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x13f6c4fcf40070f1",
+     "word": 95,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x88ae45674f158e03",
+     "word": 95,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x69d29df534334d56",
+     "word": 96,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 48,
+   "name": "SLICE_X16Y48",
+   "half": "bottom",
+   "row_of_its_half": 48,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xc629b85d0b16945f",
+     "word": 98,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x466e61c8aae44eb9",
+     "word": 97,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x2ebd6bd04ff1e770",
+     "word": 97,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x011a20b76f70b830",
+     "word": 98,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 49,
+   "name": "SLICE_X16Y49",
+   "half": "bottom",
+   "row_of_its_half": 49,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x877a1b21712a144f",
+     "word": 100,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xeadf5e2fd1c7dcfa",
+     "word": 99,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x4e96054948904ab5",
+     "word": 99,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x26f70c0447cb8edf",
+     "word": 100,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 50,
+   "name": "SLICE_X16Y50",
+   "half": "top",
+   "row_of_its_half": 0,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x19f30bda4f33bfd0",
+     "word": 1,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf52a5d6efbb79877",
+     "word": 0,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x5bcdaabbc23f97e3",
+     "word": 0,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x8db2b3ee605cbb51",
+     "word": 1,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 51,
+   "name": "SLICE_X16Y51",
+   "half": "top",
+   "row_of_its_half": 1,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x365fa3e9d541ed3f",
+     "word": 3,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x1b440ac75f8a739a",
+     "word": 2,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xac3ab0366a047d42",
+     "word": 2,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x5794728d4dad441e",
+     "word": 3,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 52,
+   "name": "SLICE_X16Y52",
+   "half": "top",
+   "row_of_its_half": 2,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x04c116d3e852abc1",
+     "word": 5,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xb24c03d290469333",
+     "word": 4,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x184c1a166da949c6",
+     "word": 4,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x884dc483c64f93d4",
+     "word": 5,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 53,
+   "name": "SLICE_X16Y53",
+   "half": "top",
+   "row_of_its_half": 3,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x7e361324efadfafa",
+     "word": 7,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x07211bfe7928889b",
+     "word": 6,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x42238af442565b78",
+     "word": 6,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x04e5a63f7e7ed7f4",
+     "word": 7,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 54,
+   "name": "SLICE_X16Y54",
+   "half": "top",
+   "row_of_its_half": 4,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x59aa904d1cb4bc17",
+     "word": 9,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xbbc5d1354042c4bc",
+     "word": 8,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8f7506e0dab2f4a8",
+     "word": 8,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x96f3a4561a358319",
+     "word": 9,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 55,
+   "name": "SLICE_X16Y55",
+   "half": "top",
+   "row_of_its_half": 5,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x9c4d98cae8092ccc",
+     "word": 11,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xeab2e04667de4eab",
+     "word": 10,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xbb13d9f119880335",
+     "word": 10,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xfe5a88aa54e23229",
+     "word": 11,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 56,
+   "name": "SLICE_X16Y56",
+   "half": "top",
+   "row_of_its_half": 6,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x637b57dae5858bf8",
+     "word": 13,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7ee813d9b7987a01",
+     "word": 12,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x360135c89dbd9d31",
+     "word": 12,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x7763c9739d4a57dd",
+     "word": 13,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 57,
+   "name": "SLICE_X16Y57",
+   "half": "top",
+   "row_of_its_half": 7,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x3cb0cda780330ba0",
+     "word": 15,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x9f958149482762f5",
+     "word": 14,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x2bbdf518503111cd",
+     "word": 14,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x6927dff01c52d332",
+     "word": 15,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 58,
+   "name": "SLICE_X16Y58",
+   "half": "top",
+   "row_of_its_half": 8,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xa47f60fe8ace47dd",
+     "word": 17,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xd5bedc40a9b7b100",
+     "word": 16,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8eceae1faf0a576e",
+     "word": 16,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x1931657960ec0a5f",
+     "word": 17,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 59,
+   "name": "SLICE_X16Y59",
+   "half": "top",
+   "row_of_its_half": 9,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x018eb5b6103b5019",
+     "word": 19,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x528fc16152dbd765",
+     "word": 18,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb357be7c0d9c1e71",
+     "word": 18,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x5c7544a0c6cef51a",
+     "word": 19,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 60,
+   "name": "SLICE_X16Y60",
+   "half": "top",
+   "row_of_its_half": 10,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x883e7a730e572798",
+     "word": 21,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x38bcc33b864c65f3",
+     "word": 20,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x459333edc2a57e44",
+     "word": 20,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x637d925027a4152e",
+     "word": 21,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 61,
+   "name": "SLICE_X16Y61",
+   "half": "top",
+   "row_of_its_half": 11,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x50787f1fc532bfe8",
+     "word": 23,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x10670fc33f6e060f",
+     "word": 22,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xc19a73fef4f1361b",
+     "word": 22,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x92d7c38c3daa34be",
+     "word": 23,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 62,
+   "name": "SLICE_X16Y62",
+   "half": "top",
+   "row_of_its_half": 12,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x265c9c2ef8e17ddd",
+     "word": 25,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x407e36b03cbdea80",
+     "word": 24,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb68975a33bddc342",
+     "word": 24,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x9cc56f43af8bd8f5",
+     "word": 25,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 63,
+   "name": "SLICE_X16Y63",
+   "half": "top",
+   "row_of_its_half": 13,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4fa2e6d84b94a507",
+     "word": 27,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x641e58cedc480ada",
+     "word": 26,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xadf0a975723cd428",
+     "word": 26,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x7ae79830ce405c9a",
+     "word": 27,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 64,
+   "name": "SLICE_X16Y64",
+   "half": "top",
+   "row_of_its_half": 14,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x7d101a0362fe0578",
+     "word": 29,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x0377e6b091205048",
+     "word": 28,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x606dd6797f153160",
+     "word": 28,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xe626acadcba8cba3",
+     "word": 29,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 65,
+   "name": "SLICE_X16Y65",
+   "half": "top",
+   "row_of_its_half": 15,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xaf314e7aa413789d",
+     "word": 31,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x086b2eb06566106c",
+     "word": 30,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xe2a6e4086ef5d6fd",
+     "word": 30,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xac7a822b0dd63dc9",
+     "word": 31,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 66,
+   "name": "SLICE_X16Y66",
+   "half": "top",
+   "row_of_its_half": 16,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xd00934ec9284bcef",
+     "word": 33,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7e51edbb9d7dc29b",
+     "word": 32,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x7c3c644a59fbb31b",
+     "word": 32,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x71d4a4e351f673a5",
+     "word": 33,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 67,
+   "name": "SLICE_X16Y67",
+   "half": "top",
+   "row_of_its_half": 17,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xefbe1163cd14fa2c",
+     "word": 35,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x60522e7e73323f9a",
+     "word": 34,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xe9baf1eaae69794c",
+     "word": 34,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x49b84a720d3f6913",
+     "word": 35,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 68,
+   "name": "SLICE_X16Y68",
+   "half": "top",
+   "row_of_its_half": 18,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x89fac303d585c6e3",
+     "word": 37,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7b51b1bc87e3e1af",
+     "word": 36,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x2361fd8c2f76660e",
+     "word": 36,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x9225ef7254f9c6d7",
+     "word": 37,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 69,
+   "name": "SLICE_X16Y69",
+   "half": "top",
+   "row_of_its_half": 19,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xfdcb349ba3fc4f37",
+     "word": 39,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x46e634f979c375ee",
+     "word": 38,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x6d168c4ff950b2f1",
+     "word": 38,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x362d507ef77810e7",
+     "word": 39,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 70,
+   "name": "SLICE_X16Y70",
+   "half": "top",
+   "row_of_its_half": 20,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xc98d0dd54e19837d",
+     "word": 41,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7d186e264119b01d",
+     "word": 40,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x1604c1a8584b3bd2",
+     "word": 40,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xab9e848b8be05916",
+     "word": 41,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 71,
+   "name": "SLICE_X16Y71",
+   "half": "top",
+   "row_of_its_half": 21,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xcd765369470ecdbd",
+     "word": 43,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      44
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x6c8044468b578259",
+     "word": 42,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      43
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x4509e6be9f8583c8",
+     "word": 42,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      43
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xbaede2654db459b4",
+     "word": 43,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      44
+     ]
+    }
+   ]
+  },
+  {
+   "site": 72,
+   "name": "SLICE_X16Y72",
+   "half": "top",
+   "row_of_its_half": 22,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x3f96058371a498f3",
+     "word": 45,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      46
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xbf1c784393073b00",
+     "word": 44,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      45
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb93776db41663ea9",
+     "word": 44,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      45
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x0fdb77e2f9df60d7",
+     "word": 45,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      46
+     ]
+    }
+   ]
+  },
+  {
+   "site": 73,
+   "name": "SLICE_X16Y73",
+   "half": "top",
+   "row_of_its_half": 23,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4ac6e1a1792b023d",
+     "word": 47,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      48
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x280c272ee2c57089",
+     "word": 46,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      47
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x9c8e4a72dfd366bc",
+     "word": 46,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      47
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xb4a44bff9defdb36",
+     "word": 47,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      48
+     ]
+    }
+   ]
+  },
+  {
+   "site": 74,
+   "name": "SLICE_X16Y74",
+   "half": "top",
+   "row_of_its_half": 24,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4c191115de8cc92d",
+     "word": 49,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      50
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x3f8ae80b15a81020",
+     "word": 48,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      49
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x3f7ff2f3cead2399",
+     "word": 48,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      49
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x9a9835fc484d2a51",
+     "word": 49,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      50
+     ]
+    }
+   ]
+  },
+  {
+   "site": 75,
+   "name": "SLICE_X16Y75",
+   "half": "top",
+   "row_of_its_half": 25,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x816c91632d986927",
+     "word": 52,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      51
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x18f0ecc90ca08fa6",
+     "word": 51,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      50
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xac399366888ecae0",
+     "word": 51,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      50
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x1158b4dd929bfc9c",
+     "word": 52,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      51
+     ]
+    }
+   ]
+  },
+  {
+   "site": 76,
+   "name": "SLICE_X16Y76",
+   "half": "top",
+   "row_of_its_half": 26,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xe052f55c7b81885c",
+     "word": 54,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      53
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x0869104fda9c65fc",
+     "word": 53,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      52
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x7c567659b4d166fb",
+     "word": 53,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      52
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x030c7f57376cced2",
+     "word": 54,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      53
+     ]
+    }
+   ]
+  },
+  {
+   "site": 77,
+   "name": "SLICE_X16Y77",
+   "half": "top",
+   "row_of_its_half": 27,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x5a4f47216ab8bb2d",
+     "word": 56,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      55
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xedfbb6617c53d956",
+     "word": 55,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      54
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x37d56ff132336aaf",
+     "word": 55,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      54
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xb5d7887a4660cec3",
+     "word": 56,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      55
+     ]
+    }
+   ]
+  },
+  {
+   "site": 78,
+   "name": "SLICE_X16Y78",
+   "half": "top",
+   "row_of_its_half": 28,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xfec9d808dd095380",
+     "word": 58,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      57
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x6654f5be3644b625",
+     "word": 57,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      56
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x7c9f4954bf13ed0e",
+     "word": 57,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      56
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x572ef57d62ec7979",
+     "word": 58,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      57
+     ]
+    }
+   ]
+  },
+  {
+   "site": 79,
+   "name": "SLICE_X16Y79",
+   "half": "top",
+   "row_of_its_half": 29,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x927e94487d8f5be5",
+     "word": 60,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      59
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf7fcbff54d27a3b3",
+     "word": 59,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      58
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x84d88b97a77e7498",
+     "word": 59,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      58
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xe73c5f94b4617f6c",
+     "word": 60,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      59
+     ]
+    }
+   ]
+  },
+  {
+   "site": 80,
+   "name": "SLICE_X16Y80",
+   "half": "top",
+   "row_of_its_half": 30,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x0d0cb0841423d74d",
+     "word": 62,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x6ab437d528fce97f",
+     "word": 61,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xf7b5fc328d372279",
+     "word": 61,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xb33613b4775d5c68",
+     "word": 62,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 81,
+   "name": "SLICE_X16Y81",
+   "half": "top",
+   "row_of_its_half": 31,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xb8a995093850443c",
+     "word": 64,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x4cd240d2cf458cdc",
+     "word": 63,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x0df3c91b23ca51bc",
+     "word": 63,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x60990d190101c329",
+     "word": 64,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 82,
+   "name": "SLICE_X16Y82",
+   "half": "top",
+   "row_of_its_half": 32,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xcb8ffc958c8ce244",
+     "word": 66,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x389738375ac3c865",
+     "word": 65,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xbeda291d577aa11e",
+     "word": 65,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xa50af9296e47a43d",
+     "word": 66,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 83,
+   "name": "SLICE_X16Y83",
+   "half": "top",
+   "row_of_its_half": 33,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xcc72ad0030cec49d",
+     "word": 68,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x28035104d9830a92",
+     "word": 67,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x960f2ff5b79badea",
+     "word": 67,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x05d13844c73b9cac",
+     "word": 68,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 84,
+   "name": "SLICE_X16Y84",
+   "half": "top",
+   "row_of_its_half": 34,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x80221dcae6b6f713",
+     "word": 70,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7c1b5b4a1f136450",
+     "word": 69,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x1296fd367c3eac4d",
+     "word": 69,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x79fa35e76cc5604b",
+     "word": 70,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 85,
+   "name": "SLICE_X16Y85",
+   "half": "top",
+   "row_of_its_half": 35,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x759cdf66286858c3",
+     "word": 72,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xc52d095cce89cfc2",
+     "word": 71,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xf657f7a5b73a4092",
+     "word": 71,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xef11ed098b9a5029",
+     "word": 72,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 86,
+   "name": "SLICE_X16Y86",
+   "half": "top",
+   "row_of_its_half": 36,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x1f9e39ad93b9e78c",
+     "word": 74,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xd4d10b36317831f4",
+     "word": 73,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xaf49eba6e20b2255",
+     "word": 73,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x42637051b461d6f5",
+     "word": 74,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 87,
+   "name": "SLICE_X16Y87",
+   "half": "top",
+   "row_of_its_half": 37,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x1cad6697e1737c5a",
+     "word": 76,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xef447a134d121e35",
+     "word": 75,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xae54a4e0e1ec038f",
+     "word": 75,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x1b17ff4984635691",
+     "word": 76,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 88,
+   "name": "SLICE_X16Y88",
+   "half": "top",
+   "row_of_its_half": 38,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xfe4a5fb1c0ae1d58",
+     "word": 78,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x088832c2ed423f08",
+     "word": 77,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xd170ee091eaf05e2",
+     "word": 77,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x8a6f4966c44647da",
+     "word": 78,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 89,
+   "name": "SLICE_X16Y89",
+   "half": "top",
+   "row_of_its_half": 39,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x21c3f25ed0aae34b",
+     "word": 80,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf188cb5bb89182f5",
+     "word": 79,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xad35c11762a10fd0",
+     "word": 79,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x762be4ec015aa83c",
+     "word": 80,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 90,
+   "name": "SLICE_X16Y90",
+   "half": "top",
+   "row_of_its_half": 40,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xb633b9089292f239",
+     "word": 82,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x8d8a5a9ab71f152f",
+     "word": 81,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x4215f16ce3e20a70",
+     "word": 81,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xa6b96d44df064d07",
+     "word": 82,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 91,
+   "name": "SLICE_X16Y91",
+   "half": "top",
+   "row_of_its_half": 41,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x2b6b124f94bf66dd",
+     "word": 84,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xba69dccf49882e5e",
+     "word": 83,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x23ea697b02ef948b",
+     "word": 83,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x0a1995e96d632ee6",
+     "word": 84,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 92,
+   "name": "SLICE_X16Y92",
+   "half": "top",
+   "row_of_its_half": 42,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x60d6d468db3495fe",
+     "word": 86,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xb3825e41a85974ec",
+     "word": 85,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb40bb32df4703379",
+     "word": 85,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x2c2d9c2b2f59f920",
+     "word": 86,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 93,
+   "name": "SLICE_X16Y93",
+   "half": "top",
+   "row_of_its_half": 43,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x38a46b79fdc477a3",
+     "word": 88,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7c03448c6ea80c05",
+     "word": 87,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xbc9fabe6c588c72e",
+     "word": 87,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xac7939bc878700ab",
+     "word": 88,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 94,
+   "name": "SLICE_X16Y94",
+   "half": "top",
+   "row_of_its_half": 44,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xdaf01e3cb50be1a2",
+     "word": 90,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x7d580ed26caa0757",
+     "word": 89,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xb695433cb9546eb0",
+     "word": 89,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xe745d1660b979cb5",
+     "word": 90,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 95,
+   "name": "SLICE_X16Y95",
+   "half": "top",
+   "row_of_its_half": 45,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4b0556336a3f2af1",
+     "word": 92,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xd0b4d23c7ce8aebd",
+     "word": 91,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x795b7ebced55c3fc",
+     "word": 91,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x7a24b11fa28c37e0",
+     "word": 92,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 96,
+   "name": "SLICE_X16Y96",
+   "half": "top",
+   "row_of_its_half": 46,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x8266cafbef373add",
+     "word": 94,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x4babb828fcc88595",
+     "word": 93,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x9a3f4ddb7db0ad1f",
+     "word": 93,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x650ddd3690f499ad",
+     "word": 94,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 97,
+   "name": "SLICE_X16Y97",
+   "half": "top",
+   "row_of_its_half": 47,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x39b288589717e192",
+     "word": 96,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x35abf145ead60fbc",
+     "word": 95,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x0ddf4cc614ba471e",
+     "word": 95,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0xc18c88db38369e1c",
+     "word": 96,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 98,
+   "name": "SLICE_X16Y98",
+   "half": "top",
+   "row_of_its_half": 48,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x1765ea5b8cd987f5",
+     "word": 98,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xb573ab79bcf6afec",
+     "word": 97,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x9fd80c9b3b083367",
+     "word": 97,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x951703cb0602e8a8",
+     "word": 98,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 99,
+   "name": "SLICE_X16Y99",
+   "half": "top",
+   "row_of_its_half": 49,
+   "column_of_36_frames": 27,
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xb8acabac0c7f7c9e",
+     "word": 100,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x755d24375daca186",
+     "word": 99,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x5fde557ba01a18ab",
+     "word": 99,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x261f31adf942dac2",
+     "word": 100,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 100,
+   "name": "SLICE_X10Y7",
+   "half": "bottom",
+   "row_of_its_half": 7,
+   "column_of_36_frames": 24,
+   "frames": [
+    "0x00401020",
+    "0x00401021",
+    "0x00401022",
+    "0x00401023"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4b557218a239f5ae",
+     "word": 15,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xf33e5f21395812ec",
+     "word": 14,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8d0532299a99c55d",
+     "word": 14,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x90d43011aaf45ffa",
+     "word": 15,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 101,
+   "name": "SLICE_X12Y44",
+   "half": "bottom",
+   "row_of_its_half": 44,
+   "column_of_36_frames": 25,
+   "frames": [
+    "0x004010a0",
+    "0x004010a1",
+    "0x004010a2",
+    "0x004010a3"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x4adb0ae13e4f495b",
+     "word": 90,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x76f39ce4263afc8d",
+     "word": 89,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x935eb446ca50d0e7",
+     "word": 89,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x1b6567ddc0b976a3",
+     "word": 90,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 102,
+   "name": "SLICE_X20Y81",
+   "half": "top",
+   "row_of_its_half": 31,
+   "column_of_36_frames": 29,
+   "frames": [
+    "0x00001320",
+    "0x00001321",
+    "0x00001322",
+    "0x00001323"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xb95b5d142b834723",
+     "word": 64,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x85981a0b43a487a7",
+     "word": 63,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x6c76a80657da5823",
+     "word": 63,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x3688158ebf14e734",
+     "word": 64,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 103,
+   "name": "SLICE_X24Y18",
+   "half": "bottom",
+   "row_of_its_half": 18,
+   "column_of_36_frames": 31,
+   "frames": [
+    "0x004014a0",
+    "0x004014a1",
+    "0x004014a2",
+    "0x004014a3"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x3be0fabea49cff25",
+     "word": 37,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x3f9c8e35b3e114dd",
+     "word": 36,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x5865dfcb72824392",
+     "word": 36,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x965012e2a2227fc4",
+     "word": 37,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 104,
+   "name": "SLICE_X28Y55",
+   "half": "top",
+   "row_of_its_half": 5,
+   "column_of_36_frames": 33,
+   "frames": [
+    "0x00001620",
+    "0x00001621",
+    "0x00001622",
+    "0x00001623"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x076fa7b811dc5047",
+     "word": 11,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x09822da7d0a55783",
+     "word": 10,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x66ffa34895b62855",
+     "word": 10,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x7d70d9dc3965f81e",
+     "word": 11,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 105,
+   "name": "SLICE_X30Y92",
+   "half": "top",
+   "row_of_its_half": 42,
+   "column_of_36_frames": 34,
+   "frames": [
+    "0x000016a0",
+    "0x000016a1",
+    "0x000016a2",
+    "0x000016a3"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x990bfec74c26b4a4",
+     "word": 86,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x3098342cdb52938c",
+     "word": 85,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xeed9cc16d3ccf0a7",
+     "word": 85,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x109b89068c9f27a8",
+     "word": 86,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 106,
+   "name": "SLICE_X32Y29",
+   "half": "bottom",
+   "row_of_its_half": 29,
+   "column_of_36_frames": 35,
+   "frames": [
+    "0x004017a0",
+    "0x004017a1",
+    "0x004017a2",
+    "0x004017a3"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xcea96660380b21a7",
+     "word": 60,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      59
+     ]
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xe3935411c0a487ad",
+     "word": 59,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      58
+     ]
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x8ccdf8329a612927",
+     "word": 59,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": [
+      58
+     ]
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x0e4237fcf2511136",
+     "word": 60,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": [
+      59
+     ]
+    }
+   ]
+  },
+  {
+   "site": 107,
+   "name": "SLICE_X34Y66",
+   "half": "top",
+   "row_of_its_half": 16,
+   "column_of_36_frames": 36,
+   "frames": [
+    "0x00001820",
+    "0x00001821",
+    "0x00001822",
+    "0x00001823"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xff2e52b671884ebd",
+     "word": 33,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x9d1fe8209df44b38",
+     "word": 32,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x2d5645631a25280a",
+     "word": 32,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x09cb4c7efcfdafe8",
+     "word": 33,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 108,
+   "name": "SLICE_X38Y3",
+   "half": "bottom",
+   "row_of_its_half": 3,
+   "column_of_36_frames": 38,
+   "frames": [
+    "0x004019a0",
+    "0x004019a1",
+    "0x004019a2",
+    "0x004019a3"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0x8f9477248a1b12ab",
+     "word": 7,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0xb355209a3969782e",
+     "word": 6,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0x578ffe4ecb06bb03",
+     "word": 6,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x5eb2d033a9bcfb21",
+     "word": 7,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  },
+  {
+   "site": 109,
+   "name": "SLICE_X42Y40",
+   "half": "bottom",
+   "row_of_its_half": 40,
+   "column_of_36_frames": 40,
+   "frames": [
+    "0x00401aa0",
+    "0x00401aa1",
+    "0x00401aa2",
+    "0x00401aa3"
+   ],
+   "memories": [
+    {
+     "memory": 0,
+     "position": "D6LUT",
+     "loaded_word": "0xed011750f720c583",
+     "word": 82,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 1,
+     "position": "A6LUT",
+     "loaded_word": "0x1eea0dc0b565e950",
+     "word": 81,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 2,
+     "position": "B6LUT",
+     "loaded_word": "0xc69cc09b3a32beda",
+     "word": 81,
+     "bits": "31 down to 16",
+     "word_under_the_other_forms": []
+    },
+    {
+     "memory": 3,
+     "position": "C6LUT",
+     "loaded_word": "0x46c01ae55f4c547b",
+     "word": 82,
+     "bits": "15 down to 0",
+     "word_under_the_other_forms": []
+    }
+   ]
+  }
+ ],
+ "memories": 440,
+ "sites_whose_word_depends_on_the_form": [
+  "SLICE_X16Y21",
+  "SLICE_X16Y22",
+  "SLICE_X16Y23",
+  "SLICE_X16Y24",
+  "SLICE_X16Y25",
+  "SLICE_X16Y26",
+  "SLICE_X16Y27",
+  "SLICE_X16Y28",
+  "SLICE_X16Y29",
+  "SLICE_X16Y71",
+  "SLICE_X16Y72",
+  "SLICE_X16Y73",
+  "SLICE_X16Y74",
+  "SLICE_X16Y75",
+  "SLICE_X16Y76",
+  "SLICE_X16Y77",
+  "SLICE_X16Y78",
+  "SLICE_X16Y79",
+  "SLICE_X32Y29"
+ ]
+}

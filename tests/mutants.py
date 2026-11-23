@@ -40,6 +40,7 @@ JUDGE8, SHARES8, CHAIN8 = "host/s2_2_judge.py", "host/s2_2_shares.py", "host/s2_
 STATES9, JUDGE9, TABLE9, CHAIN9 = "host/s2_3_states.py", "host/s2_3_judge.py", "host/s2_3_table.py", "host/s2_3_chain.py"
 PREDICT4, STATES4, JUDGE24, CHAIN24 = "host/s2_4_predict.py", "host/s2_4_states.py", "host/s2_4_judge.py", "host/s2_4_chain.py"
 TABLE24, CHAIN242 = "host/s2_4_table.py", "host/s2_4_chain2.py"
+PREDICT5 = "host/s2_5_predict.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -1653,6 +1654,26 @@ MUTANTS = [
     (TABLE24, "table s2.4: what a place read before any shift is said as what its output would give", "\"reads\": x[\"reads\"],\n                                                   \"the_output_as_loaded_would_give\": x[\"the_cell_gives\"]}", "\"reads\": x[\"the_cell_gives\"],\n                                                   \"the_output_as_loaded_would_give\": x[\"the_cell_gives\"]}"),
     (CHAIN242, "chain2 s2.4: the table that is committed does not say which places read otherwise before any shift", "            \"places_that_read_otherwise_as_loaded\": closing[\"places_that_read_otherwise_as_loaded\"],", "            \"places_that_read_otherwise_as_loaded\": [],"),
     (CHAIN242, "chain2 s2.4: the bits of the pairs that follow no cell are not set down", "            r[\"bits_that_follow_no_cell\"] = v[\"finding\"][\"irregular\"]", "            r[\"bits_that_follow_no_cell\"] = []"),
+    # ---- S2.5, part 0 (sections 45 and 46): the prediction of where the memories of s2b lie
+    (PREDICT5, "predict5: a column of other than 36 frames counts as one of them", "        if len(fars) == COLUMN_FRAMES and fars == list(range(fars[0], fars[0] + COLUMN_FRAMES)):", "        if fars == list(range(fars[0], fars[0] + len(fars))):"),
+    (PREDICT5, "predict5: a site whose frames are not the last four of its column makes a rule", "        if half is None:\n            raise ValueError", "        if False:\n            raise ValueError"),
+    (PREDICT5, "predict5: a site whose memories are not in four frames next to each other makes a rule", "        if frames != list(range(frames[0], frames[0] + GROUP)):", "        if False:"),
+    (PREDICT5, "predict5: memories in three words make a rule", "        if len(words) != 2 or words[1] != words[0] + 1:", "        if False:"),
+    (PREDICT5, "predict5: a memory not where its position says makes a rule", "            if POSITIONS.get(m[\"position\"]) != (m[\"word\"] - words[0], m[\"half\"]):", "            if False:"),
+    (PREDICT5, "predict5: two sites in one half make a rule of the halves", "    if len(halves) != 2 or len(set(halves.values())) != 2:", "    if False:"),
+    (PREDICT5, "predict5: any two columns make a rule of the column", "    if (b[\"place\"] - a[\"place\"]) * 2 != b[\"x\"] - a[\"x\"]:", "    if False:"),
+    (PREDICT5, "predict5: any two words make a rule of the word", "    if (lo[\"word\"], hi[\"word\"]) != (2 * lo[\"row\"], 2 * hi[\"row\"] + 1) or", "    if False or"),
+    (PREDICT5, "predict5: site column 0 lies a column further on", "    first = a[\"place\"] - a[\"x\"] // 2", "    first = a[\"place\"] - a[\"x\"] // 2 + 1"),
+    (PREDICT5, "predict5: the one word more lies before the row named and not after it", "    return 2 * row + (1 if row > form else 0)", "    return 2 * row + (1 if row >= form else 0)"),
+    (PREDICT5, "predict5: the form named first is the last carried", "NAMED = 24 ", "NAMED = 29 "),
+    (PREDICT5, "predict5: the forms carried stop a row short", "FORMS = list(range(20, 30))", "FORMS = list(range(20, 29))"),
+    (PREDICT5, "predict5: position C is the lower word's upper half", "\"B6LUT\": (0, 16), \"C6LUT\": (1, 0),", "\"B6LUT\": (1, 0), \"C6LUT\": (0, 16),"),
+    (PREDICT5, "predict5: the rows 50 to 99 are in the half of the rows 0 to 49", "        half = r[\"the_half\"][\"rows 0 to 49\" if y < ROWS_A_HALF else \"rows 50 to 99\"]", "        half = r[\"the_half\"][\"rows 0 to 49\"]"),
+    (PREDICT5, "predict5: a memory is in the first four frames of its column", "        first = cols[half][place] + COLUMN_FRAMES - GROUP", "        first = cols[half][place]"),
+    (PREDICT5, "predict5: a site column with no column of frames is predicted all the same", "        if x % 2 or not 0 <= place < len(cols[half]):", "        if False:"),
+    (PREDICT5, "predict5: the words under the other forms are not given", "sorted({f + w for f in forms} - {word_of(row, NAMED) + w})", "[]"),
+    (PREDICT5, "predict5: the places are made under the form named first whatever form is asked", "            word = word_of(s[\"row_of_its_half\"], form) + w", "            word = word_of(s[\"row_of_its_half\"], NAMED) + w"),
+    (PREDICT5, "predict5: the places of a memory are made in the lower half of its word", "                out[(low + f, word, h + b)] = (s[\"site\"], m[\"memory\"], a)", "                out[(low + f, word, b)] = (s[\"site\"], m[\"memory\"], a)"),
 ]
 
 

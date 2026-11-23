@@ -58,8 +58,8 @@ complete: each of the 256 places follows one output, as it is or inverted, and e
 output is confirmed in all of its places; the table is what was said beforehand (section
 44). With it S2.4 is done**, on the image of section 32. S2.5 is proposed in full in
 section 45 and agreed, all ten points as recommended (section 46). Its design, `s2b`, is
-built and simulated (section 46); the rest of its host side is not built yet, and nothing
-of it has been on a board.
+built and simulated, and its part 0, the prediction, is made and stored (section 46); the
+rest of its host side is not built yet, and nothing of it has been on a board.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4099,15 +4099,39 @@ arose.
 
 ### In numbers
 
-- **Tests**: 1,120, all passing (fourteen new, of the design; the staging program's tests
-  know three designs).
-- **Mutants**: 1,536, none stale; none new — the design's files are held by the bench, the
-  build script's checks and the tests, as `s2a`'s are.
+- **Tests**: 1,129, all passing (fourteen of the design, nine of the prediction; the
+  staging program's tests know three designs).
+- **Mutants**: 1,555, none stale — nineteen new, of the prediction (`predict5`), all killed
+  in a first look against its tests; two survived a first try, each for want of a test it
+  now has (a pair of sites whose words make no rule; a site the column rule has no column
+  for). The design's files are held by the bench, the build script's checks and the
+  tests, as `s2a`'s are. The tool has not run the new mutants.
 - Nothing under `prober/` was touched; no serial port was opened.
+
+### Part 0: the prediction, made and stored
+
+`host/s2_5_predict.py`; its word is `evidence/s2_5_prediction_2026-11-23/prediction.json`,
+with a note beside it. For each of the 440 memories: its four frames, its word, its half;
+and by the six moves the place of each of its 64 cells — 28,160 places, no two alike.
+
+- The three rules are **read from the two measured sites and held against both before they
+  are used**: a pair of sites that does not make such a rule predicts nothing, and tests
+  give it such pairs. Read out: site column X in the (19 + X/2)-th column of 36 frames of
+  its half; rows 0–49 the half the RAM was found in, rows 50–99 the other; two words a
+  row; the LUT positions A, B, C, D as lower word lower half, lower word upper half, upper
+  word lower half, upper word upper half.
+- **Where the one word more lies is left open**, as point 4 has it: ten forms are carried
+  — after row 20, 21, … 29 — the middle one named first. Nineteen sites lie in rows 21 to
+  29 of their half and get a word under each form; for the other ninety-one every form
+  says the same.
+- For the one site already known it gives exactly what S2.3 found. It was read from that
+  site: this is the rule being consistent, not being tested, and the note says so.
+- It was committed with this section, before any run of the step and before the design
+  has been on the card.
 
 ### Not built yet
 
-Part 0, the predictions; the twin's model of this design; the sets, the states and both
+The twin's model of this design; the sets, the states and both
 lists; the design's side of the judge; the search for the loaded words; the closings; the
 two chains; the description and the rule; tests, mutants, a rehearsal of storing. Then
 the owner's review; the card and the board on the owner's word.

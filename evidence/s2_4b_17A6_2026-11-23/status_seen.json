@@ -1,0 +1,128 @@
+{
+ "error_mask": "0x00f4c840",
+ "usual": "0x50033004",
+ "runs": 4,
+ "runs_with_such_a_bit": [
+  "evidence/s2_4b_17A6_2026-11-23/run00",
+  "evidence/s2_4b_17A6_2026-11-23/run01",
+  "evidence/s2_4b_17A6_2026-11-23/run02",
+  "evidence/s2_4b_17A6_2026-11-23/run03"
+ ],
+ "bits": [
+  5
+ ],
+ "by_run": [
+  {
+   "run": "evidence/s2_4b_17A6_2026-11-23/run00",
+   "status_words": 1042,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 12,
+      "kind": "target",
+      "far": "0x0000181e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 16,
+     "words": 1042,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_4b_17A6_2026-11-23/run01",
+   "status_words": 682,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 2,
+      "kind": "target",
+      "far": "0x0000181e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 528,
+     "words": 682,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_4b_17A6_2026-11-23/run02",
+   "status_words": 682,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 2,
+      "kind": "target",
+      "far": "0x0000181e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 528,
+     "words": 682,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_4b_17A6_2026-11-23/run03",
+   "status_words": 82,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 2,
+      "kind": "target",
+      "far": "0x0000181e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 48,
+     "words": 82,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  }
+ ]
+}

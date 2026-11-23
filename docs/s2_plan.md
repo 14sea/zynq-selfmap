@@ -53,7 +53,10 @@ things found, all reproduced and mended (section 40)**; no new image. **Part 1 h
 the shift registers, 128 as they are and 128 inverted, in the four frames the prediction
 named; the prediction is a hit (section 41).** The host side of part 2 — which place is
 which output — is built (section 42) and has had a first review: two things found, both
-reproduced and mended (section 43); still no new image. S2.5 is not proposed in full yet.
+reproduced and mended (section 43). **Part 2 has been on the board (2026-11-23) and is
+complete: each of the 256 places follows one output, as it is or inverted, and every
+output is confirmed in all of its places; the table is what was said beforehand (section
+44). With it S2.4 is done**, on the image of section 32. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3764,3 +3767,88 @@ it; it is one more reason why they are not.
   look at the eleven that touch what was changed: all killed. The tool has not run them
   (section 35).
 - **Image**: unchanged. Nothing under `prober/` was touched. No serial port was opened.
+
+## 44. S2.4, part 2 on the board (2026-11-23): complete — which place is which output, 128 of 128 confirmed
+
+The account in full, with the runs and their numbers, is
+`evidence/s2_4b_17A6_2026-11-23/RESULT.md`. Here: what it says against what was named
+beforehand, and where S2.4 leaves S2.
+
+### What was done
+
+On the owner's word after the review of section 43. A precheck; the code run alone
+(20:16–20:20 UTC), stored and committed with its table (`689cf8a`); then the two runs of
+the singles and the pairs (20:25–20:32 UTC), stored and committed as they stood
+(`2aee241`). Four runs, four passes, no halt, nothing set aside, no piece of a result
+pulled twice.
+
+### What it says
+
+- **Outcome 10 of the code run**: every candidate of part 1 follows exactly one cell, as it
+  is or inverted and the way part 1 saw it; every cell has a place as it is. 120 cells
+  with one place each way, four with one place, four with three.
+- **Outcome 12 with the singles**: each of the 128 outputs, turned alone, changes exactly
+  its places — all of them, each the right way — and no other bit read. 128 confirmed.
+- **The table as a rule.** Register k is a half word of word 40 or 41 in the frames
+  `0x00001820`–`0x00001823`, laid out as a memory of the RAM is. Output a is at the place
+  of address 2 a + 1 as it is, and at 2 a + 2 inverted (not output 31); the place of
+  address 0 follows output 0 inverted once anything has been shifted in, and reads one
+  before. A test holds the 256 entries to that.
+- CTL0 `0x00000501` in all four runs.
+
+### What was said beforehand, and what came
+
+| said | where | came |
+|---|---|---|
+| the four loaded words lie in words 40 and 41 of `0x00001820`–`0x00001823`, at the odd addresses in order | part 0, before any run (`e5bf98e`) | part 1: those 128 places follow as they are. Part 2: output a is at address 2 a + 1 |
+| the even address 2 j follows output j − 1, inverted | the note beside the prediction, seen after the search and before the board | so, for j from 1 to 31 |
+| 120 cells with one place each way; the four outputs 31 with one | section 42 | so |
+| a guess: address 0 follows output 0 inverted after shifts and reads one before; the places of registers 0 and 2 read otherwise before any shift, those of 1 and 3 do not | section 42 | so, to the place |
+
+Four of four. I set the weight of it down as I see it: the first was fixed before the
+search and is a prediction in the full sense. The second and the fourth were read off
+stored frames after the search — they could not be bent to the board, which had not been
+asked, but they were not blind to the data they explain. What the board added to all of
+them is that the places move as said when the registers are shifted, which no stored frame
+could show.
+
+### Section 42's first point, on the board
+
+The judge asks what a bit follows over the states made by shifts, and a place that reads
+otherwise before any shift is in the table and set down. Had it asked over every state,
+this code run would have failed on two irregular bits — the two places above — and the
+chain would have halted at its first run. It did not come to that because the stored
+frames of S2.2 were read before the plan was fixed. The review of section 43 then found
+the description contradicting itself over exactly these two places, and that was mended
+before the board too.
+
+### Bit 5
+
+In the frames of the shift registers bit 5 shows — after both reads that deliver them, or
+neither — when the registers hold what they are loaded with (shifted in or not), and when
+they hold that with one to four cells turned; and it does not show when they hold all
+zero, all one, or a code state. That settles one thing section 41 left open: it does not
+answer to whether anything was ever shifted. It does not give a rule. With the RAM's
+frames (S2.3: with one cell set, and not with none, 32 or 64) I have six kinds of content
+that do not show it and five that do, and the result note says what I guess and that
+nothing rests on it. If it is to be understood, that is a step of its own with states
+chosen for it; I do not propose it now.
+
+### Where S2 stands after S2.4
+
+- Question 7 of section 1 is answered for this design's one site of each kind: the RAM
+  (S2.3) and the shift registers (S2.4). Both descriptions are closed-book and in this
+  project's own form.
+- One rule serves both: a memory or a register is a half word in each of four frames next
+  to each other, its 64 places ordered by the same six moves of the address. Whether that
+  holds at another site is S2.5.
+- **S2.5** (other sites; a second design) is not proposed in full.
+- **Before S2 is graded**: the complete set of mutants, once (section 35). 1,536 now.
+- Nothing has been written to configuration memory; `SEU_EN` was not set.
+
+### In numbers
+
+- **Tests**: 1,106 (one new: the stored chain assessed again from its raw words — the
+  table by the rule, the two places before any shift, bit 5 state by state).
+- **Mutants**: 1,536, none stale; none new. Nothing under `prober/` or `host/` was changed.
+- **Stored runs**: 213, of which 207 have a result of their own; 167 pass.

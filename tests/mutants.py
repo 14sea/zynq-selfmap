@@ -38,7 +38,7 @@ CENSUS = "host/s1_census.py"
 JUDGE_S2 = "host/s2_judge.py"
 JUDGE8, SHARES8, CHAIN8 = "host/s2_2_judge.py", "host/s2_2_shares.py", "host/s2_2_chain.py"
 STATES9, JUDGE9, TABLE9, CHAIN9 = "host/s2_3_states.py", "host/s2_3_judge.py", "host/s2_3_table.py", "host/s2_3_chain.py"
-PREDICT4 = "host/s2_4_predict.py"
+PREDICT4, STATES4 = "host/s2_4_predict.py", "host/s2_4_states.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -1473,6 +1473,38 @@ MUTANTS = [
     (PREDICT4, "predict4: words found in two groups of frames are found simply", ' and len({(tuple(h["frames"]), h["arrangement"]) for h in hits}) == 1:', ' and len({h["arrangement"] for h in hits}) == 1:'),
     (PREDICT4, "predict4: words found in two arrangements are found simply", ' and len({(tuple(h["frames"]), h["arrangement"]) for h in hits}) == 1:', ' and len({tuple(h["frames"]) for h in hits}) == 1:'),
     (PREDICT4, "predict4: nothing found is said to be found", '    if not hits:\n        return "not found"', '    if False:\n        return "not found"'),
+    # ---- S2.4 (sections 37 and 38): the states of the shift registers and the lists of a run
+    (STATES4, "states4: a cell's number counts the registers by 64", "    return DEPTH * k + a", "    return 2 * DEPTH * k + a"),
+    (STATES4, "states4: a cell is read from the wrong register", "    return (state[n % DEPTH] >> (n // DEPTH)) & 1", "    return (state[n % DEPTH] >> (n // DEPTH + 1)) & 1"),
+    (STATES4, "states4: a code state is the one of the bit above", "(((number(k, a) >> j) & 1) ^ int(complement)) << k", "(((number(k, a) >> (j + 1)) & 1) ^ int(complement)) << k"),
+    (STATES4, "states4: a complement is the state itself", "(((number(k, a) >> j) & 1) ^ int(complement)) << k", "((number(k, a) >> j) & 1) << k"),
+    (STATES4, "states4: a single turns the cell of the register above", "w ^ (1 << (n // DEPTH)) if a == n % DEPTH else w", "w ^ (2 << (n // DEPTH)) if a == n % DEPTH else w"),
+    (STATES4, "states4: a single turns a whole output", "w ^ (1 << (n // DEPTH)) if a == n % DEPTH else w", "w ^ 0xF if a == n % DEPTH else w"),
+    (STATES4, "states4: what is to end at output 0 is written first", "    return [state[a] for a in range(DEPTH - 1, -1, -1)]", "    return [state[a] for a in range(DEPTH)]"),
+    (STATES4, "states4: the model of a shift moves the outputs down", "    return [word & 0xF] + before[:-1]", "    return before[1:] + [word & 0xF]"),
+    (STATES4, "states4: part 1 ends in the all-one state", '{"name": "all zero", "kind": "uniform", "bit": 0, "srl": uniform(0), "shifted": True}]', '{"name": "all one", "kind": "uniform", "bit": 1, "srl": uniform(1), "shifted": True}]'),
+    (STATES4, "states4: the code run has six code bits", "    for j in range(CODE_BITS):\n        out.append({\"name\": f\"code {j}\", \"kind\": \"code\"", "    for j in range(CODE_BITS - 1):\n        out.append({\"name\": f\"code {j}\", \"kind\": \"code\""),
+    (STATES4, "states4: the code run does not end with the loaded content shifted in", '    return out + [{"name": "loaded again", "kind": "loaded", "srl": list(loaded), "shifted": True}]', '    return out'),
+    (STATES4, "states4: the first state of the code run is shifted in", 'out = [{"name": "as loaded", "kind": "loaded", "srl": list(loaded), "shifted": False}]', 'out = [{"name": "as loaded", "kind": "loaded", "srl": list(loaded), "shifted": True}]'),
+    (STATES4, "states4: a third run of the singles is made", "    if not 0 <= r < SINGLE_RUNS:", "    if not 0 <= r <= SINGLE_RUNS:"),
+    (STATES4, "states4: the second run of the singles has the cells of the first", "    cells = range(SINGLES_A_RUN * r, SINGLES_A_RUN * (r + 1))", "    cells = range(0, SINGLES_A_RUN)"),
+    (STATES4, "states4: a state is shifted in whether it is to be or not", '        if state["shifted"]:\n            for word in shifts(state["srl"]):', '        if True:\n            for word in shifts(state["srl"]):'),
+    (STATES4, "states4: the outputs are not read back before the frames", '        srl_back(state["srl"])\n        if i == 0:', '        if i == 0:'),
+    (STATES4, "states4: the outputs are not read back after the frames", '        out.append((A_MARK, 0, MARK_FRAMES))\n        srl_back(state["srl"])', '        out.append((A_MARK, 0, MARK_FRAMES))'),
+    (STATES4, "states4: an output is read and held to nothing", '            out.append((A_EXPECT, reg["SRL_DATA"], srl[a]))', '            out.append((A_READ, reg["SRL_DATA"], 0))'),
+    (STATES4, "states4: the RAM is not looked at before the first frames", '        if i == 0:\n            ram_back()', '        if False:\n            ram_back()'),
+    (STATES4, "states4: the RAM is not looked at after the last frames", '        if i == len(states) - 1:\n            ram_back()', '        if False:\n            ram_back()'),
+    (STATES4, "states4: the design's count is held to the shifts in its low half", '        out.append((A_EXPECT, reg["WRITES"], made << 16))', '        out.append((A_EXPECT, reg["WRITES"], made))'),
+    (STATES4, "states4: the design's count is not held to anything", '        out.append((A_EXPECT, reg["WRITES"], made << 16))', '        out.append((A_READ, reg["WRITES"], 0))'),
+    (STATES4, "states4: the counter is not read after the frames", '        srl_back(state["srl"])\n        out.append((A_READ, reg["COUNT"], 0))\n        out.append((A_EXPECT', '        srl_back(state["srl"])\n        out.append((A_EXPECT'),
+    (STATES4, "states4: a list longer than the stage takes is made", "    if len(out) > ACC_MAX:\n        raise ValueError(f\"{len(out)} entries; a list holds {ACC_MAX}\")\n    return out\n\n\ndef plan(", "    return out\n\n\ndef plan("),
+    (STATES4, "states4: more states than the stage takes are planned", "    if len(states) > MAX_STATES:", "    if False:"),
+    (STATES4, "states4: a result that does not lie in its area is planned", "    if words > RESULT_MAX_WORDS:\n        raise ValueError(f\"the result would have {words} words; its area holds {RESULT_MAX_WORDS}\")\n    return {\"kind\": kind, \"share\": share, \"states\": states,", "    return {\"kind\": kind, \"share\": share, \"states\": states,"),
+    (STATES4, "states4: a share that is none of the eight is planned", "        if share is None or not 0 <= share < len(every):", "        if share is None or not 0 <= share <= len(every):"),
+    (STATES4, "states4: the code run takes a share", '            if share is not None:\n                raise ValueError("the code run is one run")', '            if False:\n                raise ValueError("the code run is one run")'),
+    (STATES4, "states4: part 2 is planned though part 1's finding is not given", "        if candidates is None:", "        if False:"),
+    (STATES4, "states4: the singles read the whole column", "            states, reads = single_run(loaded, share), st9.candidate_reads(census, candidates)", "            states, reads = single_run(loaded, share), st9.column_reads(census, candidates)"),
+    (STATES4, "states4: the code run reads only the frames with candidates", "            states, reads = code_run(loaded), st9.column_reads(census, candidates)", "            states, reads = code_run(loaded), st9.candidate_reads(census, candidates)"),
 ]
 
 

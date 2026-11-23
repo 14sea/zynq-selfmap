@@ -3277,10 +3277,38 @@ a bit as it is, is still no table. The singles then hold a cell to all of its bi
 changes a point the owner agreed, and is not built until the owner says.** Everything else
 of the host side does not depend on it.
 
+### The states and the lists (`host/s2_4_states.py`), and point 3 shown on the twin
+
+Built after part 0, and independent of the question above. A state is what the four
+registers hold; every state but one "as loaded" is made by 32 shifts, the word for output
+31 first; in every state all 32 outputs are read back and held, before the frames and
+after; the design's count must be the shifts so far and no write to the RAM; the RAM is
+held to zero at all 64 addresses before the first frames and after the last.
+
+- Part 1: three states, 751 entries; the eight runs' results have 121,572 to 256,932 words
+  of the 262,144 their area holds.
+- The code run: sixteen states, 2,864 entries. A run of the singles: 66 states, 11,114
+  entries. (Counted over the frames the prediction points at; the real plan is made from
+  what part 1 finds.)
+- **Point 3 holds on the twin**: the stage as S2.3 left it runs the lists of part 1, of the
+  code run and of singles to their end, logs every shift, and counts them; a set whose word
+  does not allow the shift is refused before anything is touched; an output that does not
+  hold what was shifted in stops the run at that reading. The image is the one of section
+  32, byte for byte.
+- The pairs (point 5) are not planned yet: their cells come from the table.
+
 ### In numbers
 
-- **Tests**: 1,011 (seventeen new, of the prediction).
-- **Mutants**: 1,361, none stale — 25 new (`predict4`), all killed in a first look against
-  the prediction's tests; one survived the first try (a record of the reference frame was
-  passed by for two reasons at once, and no test had either alone) and has a test now.
+- **Tests**: 1,024 (seventeen of the prediction, thirteen of the states and lists).
+- **Mutants**: 1,392, none stale — 25 new of the prediction (`predict4`), 31 of the states
+  (`states4`), all killed in a first look against their own tests; one of the prediction's
+  survived the first try (a record of the reference frame was passed by for two reasons at
+  once, and no test had either alone) and has a test now. The tool has not run them.
 - Nothing under `prober/` was touched; no serial port was opened.
+
+### Not built yet
+
+The sets of S2.4 in the run script and what makes them; the twin's frames that show the
+shift registers' cells; the judge; the closing of part 1 into candidates and of the code
+run into the table; the chain's driver; the description and its schema; the pairs; the
+rehearsal of storing. Then the owner's review, and the board on the owner's word.

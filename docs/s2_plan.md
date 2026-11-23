@@ -49,8 +49,10 @@ and agreed, all nine points as recommended (section 38). Its part 0, the predict
 made and stored: the four loaded words are found, once each, in words 40 and 41 of the
 frames `0x00001820`–`0x00001823` (section 38). **The host side of its part 1 — where the
 shift registers' bits are — is built (section 39) and has had a first review: three
-things found, all reproduced and mended (section 40)**; no new image. Part 2 is built when part 1 has been on the board. Nothing of S2.4 has been on
-a board. S2.5 is not proposed in full yet.
+things found, all reproduced and mended (section 40)**; no new image. **Part 1 has been on the board (2026-11-23) and is complete: 256 bits follow
+the shift registers, 128 as they are and 128 inverted, in the four frames the prediction
+named; the prediction is a hit (section 41).** Part 2 — which place is which output — is
+not built yet. S2.5 is not proposed in full yet.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -3499,3 +3501,78 @@ judges those runs and is tested on them; it was the command that promised too mu
   all killed. One slip on the way: the first screening stopped on the mutant whose anchor
   I had removed, and left eight scratch copies behind, which I took away.
 - **Image**: unchanged. Nothing under `prober/` was touched. No serial port was opened.
+
+## 41. S2.4, part 1 on the board (2026-11-23): complete — 256 bits in four frames; the prediction a hit
+
+The account in full, with the runs and their numbers, is
+`evidence/s2_4_17A6_2026-11-23/RESULT.md`. Here: what it says against what section 37 named
+beforehand, and what follows for part 2.
+
+### What was done
+
+On the owner's word after the review of section 40. A precheck; the run of share 0 alone
+(16:23–16:30 UTC), stored and committed as it stood (`a189c0b`); then the other seven
+(16:34–17:24 UTC), stored and committed as they stood (`5e1699d`). Eight runs, eight
+passes, no halt, nothing set aside. The image of section 32; no new one was needed, as
+point 3 of section 38 hoped and section 39 showed on the twin.
+
+### What it says
+
+- **Outcome 2**: more bits follow than the registers have outputs — 128 as they are, 128
+  inverted; the other 12,488,192 bits of block type 0 still through the three states; the
+  registers read back as shifted before and after every pass (24 passes); the RAM zero.
+- **Where**: words 40 and 41 of the frames `0x00001820` to `0x00001823`. Register k is a
+  half word there, laid out as a memory of the RAM is in its frames; all 64 of its places
+  follow — the odd addresses as they are, the even inverted.
+- **The prediction of part 0 is a hit**, 128 places of 128. It was made on 2026-11-23 from
+  frames stored on 2026-11-22 and the rule found the same day, committed (`e5bf98e`) before
+  any run of this step, and held against the board by the chain's closing and by a test.
+  This is the first time in this project that the device's own data said where something
+  would be before it was looked for.
+- **Not one bit otherwise than S2.2 stored it**, outside the 256, in the first all-zero
+  state: 3,864 frames, a day apart.
+- CTL0 `0x00000501` in all eight runs. The two halts section 39 added for it were not met.
+
+### Bit 5: where S2.2 saw it, it did not show
+
+S2.2 saw bit 5 after the two reads that deliver these four frames, in every state; section
+38 took that for a second pointer to the place. Here the same two reads, three times, and
+bit 5 after none of them — nor anywhere else in eight runs. Then the registers were as
+loaded; here they were all zero or all one. With S2.3's finding (one cell of the RAM away
+from loaded: the bit shows; none, 32 or 64 away: it does not) this makes five cases and no
+rule I would put my name to:
+
+| the frame against what was loaded | bit 5 |
+|---|---|
+| the RAM's frames, nothing changed (S2.2, S2.3 base) | no |
+| the RAM's frames, one cell set (S2.3 singles) | **yes** |
+| the RAM's frames, 32 or 64 cells set (S2.2, S2.3 code run) | no |
+| the shift registers' frames, as loaded and never shifted (S2.2) | **yes** |
+| the shift registers' frames, all zero or all one (here) | no |
+
+The fourth row is the odd one: nothing was changed, and it showed. The guess of section 36
+— one bit away from what was loaded — does not cover it as it stands. Part 2 has the states
+that can part the readings: these frames as loaded again (does it show before any shift, as
+in S2.2?), the same content shifted in (does it still?), and one output the other way.
+
+### What follows for part 2
+
+- Its reads are known now: the column `0x00001800`–`0x00001823` for the code run (twelve
+  reads), and the two reads that deliver the four frames for the singles.
+- Every register has 64 places that follow, half of them inverted — the case the owner's
+  change to point 6 was made for. The table will have, for each output, the places that
+  follow it and which way.
+- The note's second prediction is still open and part 2 tests it: that even address 2 j
+  (j ≥ 1) follows output j − 1, inverted — and what even address 0 follows, which nobody
+  predicted.
+- To build: the sets of the code run and the singles in the run script (with these
+  candidates), the closing of the code run into the table, the holding of the singles, the
+  chain's driver, the description, the pairs. Then the owner's review, and the board on
+  the owner's word.
+
+### In numbers
+
+- **Tests**: 1,066 (one new: the stored chain assessed again from its raw words — the
+  candidates by the rule, the prediction a hit, bit 5 after no record).
+- **Mutants**: 1,464, none stale; none new. Nothing under `prober/` or `host/` was changed.
+- **Stored runs**: 209, of which 203 have a result of their own; 163 pass.

@@ -781,6 +781,74 @@ class StoredBoardResults(unittest.TestCase):
             again |= {s["far"] for _, v in verdicts if v.get("verdict") == "PASS" for s in v.get("walk") or []}
         self.assertEqual(len(again & {x["far"] for x in c["entries"]}), 2146, "addresses of the census walked on more than one occasion")
 
+    def test_the_chain_that_finds_the_shift_registers_bits(self) -> None:
+        """S2.4, part 1, 2026-11-23: eight runs, one of each share of block type 0, each in the three states of the
+        design's shift registers all zero, all one, all zero. The chain is assessed again here from the raw words of
+        its results, against the set and the image kept with the runs: complete; 256 bits follow, 128 as they are and
+        128 inverted, all in one run and in four frames next to each other; every other bit still; the registers read
+        back as shifted before and after every pass, the RAM zero. The prediction made before the board was asked is a
+        hit. Nothing was graded."""
+        import s1a_run, s2_4_chain, stage_designs, status_seen
+        d = ROOT / "evidence" / "s2_4_17A6_2026-11-23"
+        base = json.loads((d / "expected_s2_4f.json").read_text())
+        self.assertEqual({hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest(), base["image_sha256"]},
+                         {"8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b"}, "the image of section 32: S2.4 has no image of its own")
+        self.assertEqual([hashlib.sha256((d / f"run{k:02d}" / "result.bin").read_bytes()).hexdigest() for k in range(8)],
+                         ["ccaad522a868bdb6adaa45941d2f23b744b7b5403645654ac436624bac29d221", "d74f07b36e89cc3803e238e5e7c40d6cadce630d8cc1ea520c777c2a4a9a7820",
+                          "873f188ad071af8f46def14d0d08be843c8e5533cc2dbda820bcdc38b7e47060", "93a3c626eebe70e95375b871c9993af0c1594ecec62f3b6f07ee89b647f278f5",
+                          "fb57e2daaeb8f31001e989e1fb1254b112fb610655fbb12367e37753ba3a2c0b", "1d184bfd13a35dbc09ceb834e888abb410bedb7e515c42c5215ee707127c0cb6",
+                          "b98d22b36bb7990bfc80b20e89c569c356db02b5a1e04b9061e0e8a891588b10", "9640e6e7709cc1d1f78fcdbb6d59b1b4bd3cc2685e588f035861f9c1c035f0f3"])
+        known = s2_4_chain.known_of_the_device()
+        self.assertEqual((known["ctl0_in_s2_2"], len(known["frames_before"]), known["prediction"]["says"][:6]), ("0x00000501", 3864, "found:"))
+        stage_designs.stage()                           # the chain holds the staged design to the set
+        a = s2_4_chain.assess(d, base, known)
+        self.assertEqual((a["state"], len(a["runs"]), a["set_aside"]), ("complete", 8, []))
+        self.assertEqual([(r["share"], r["judge"], r["ctl0"], r["decision"], r["reads"], r["frames"], r["bits"]["follow"], r["bits"]["follow_inverted"], r["bits"]["irregular"],
+                           r["elsewhere"], r["bit_5_shown_after_records"]) for r in a["runs"]],
+                         [(k, "PASS", "0x00000501", "complete" if k == 7 else "go on", reads, frames, 128 if k == 3 else 0, 128 if k == 3 else 0, 0, [], [])
+                          for k, (reads, frames) in enumerate(((174, 516), (174, 516), (174, 520), (176, 524), (172, 508), (176, 524), (172, 512), (82, 244)))])
+        c = a["closing"]
+        self.assertEqual((c["problems"], c["addresses_read"], c["outputs_in_the_design"], c["candidates"], c["candidates_as_they_are"], c["candidates_inverted"], c["outcome"][:2]),
+                         ([], 3864, 128, 256, 128, 128, "2:"))
+        self.assertEqual((c["ctl0"], c["ctl0_in_s2_2"], c["bit_5"], c["frames_that_read_otherwise_than_in_s2_2_elsewhere"]), (["0x00000501"], "0x00000501", {}, []))
+        self.assertEqual(c["frames_with_candidates"], {f"0x{f:08x}": 64 for f in range(0x1820, 0x1824)})
+        self.assertEqual(c["prediction"], {"places_named": 128, "candidates_among_them_that_follow_as_named": 128,
+                                           "says": "hit: every place the prediction names is a candidate that follows the way it names", "not_such": []})
+        # ---- what was written beside the runs when the chain closed is what the programs give now
+        self.assertEqual(json.loads(json.dumps(s2_4_chain.brief(a))), json.loads((d / "chain.json").read_text()))
+        self.assertEqual(json.loads(json.dumps(s2_4_chain.candidates_file(a, known))), json.loads((d / "candidates.json").read_text()))
+        self.assertEqual(hashlib.sha256((d / "candidates.json").read_bytes()).hexdigest(), "ddc123edce05375959232056d045124ec9c8d531b02dae17772fda3f215ebf48")
+        # ---- the candidates, read by the rule of S2.3 (the account, section 41): register k is a half word of word 40 or
+        # 41 in the four frames, as a memory of the RAM is in its four; of its 64 places the 32 at the odd addresses follow
+        # as they are — the prediction — and the 32 at the even addresses follow inverted. None is a place of the RAM.
+        rule = [(2 + (x & 1) - 2 * (x >> 3 & 1), 15 - ((x >> 1 & 1) + 2 * (x >> 2 & 1) + 4 * (x >> 4 & 1) + 8 * (x >> 5 & 1))) for x in range(64)]
+        want = {(f"0x{0x1820 + f:08x}", 40 + k // 2, 16 * (k % 2) + b): bool(1 - address % 2) for k in range(4) for address, (f, b) in enumerate(rule)}
+        self.assertEqual({(x["far"], x["word"], x["bit"]): x["inverted"] for x in c["found"]}, want)
+        self.assertEqual(({x["run"] for x in c["found"]}, len(want)), ({"run03"}, 256))
+        ram = json.loads((ROOT / "evidence" / "s2_2_17A6_2026-11-22" / "candidates.json").read_text())["places"]
+        self.assertEqual({(x["far"], x["word"], x["bit"]) for x in ram} & set(want), set())
+        # ---- the eight runs: whole, saved, pulled; the registers as shifted through every pass, the RAM zero wherever read
+        again = 0
+        for k in range(8):
+            rec = json.loads((d / f"run{k:02d}" / "run.json").read_text())
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"], rec["return_code"]),
+                             ("PASS", [], [], True, "50033004", "0x0"), k)
+            self.assertEqual(rec["board_crc32"], rec["host_crc32"], k)
+            again += len(rec["pull"]["repeated"])
+            self.assertEqual((v["header"]["anomalies"], {r["code"] for r in v["records"]}, v["run"]), (0, {"0x0"}, {"kind": "find", "share": k, "states": ["all zero", "all one", "all zero"]}), k)
+            self.assertEqual((v["pl"]["code"], v["pl"]["passes_the_shift_registers_held_through"], v["pl"]["writes_counted"], v["pl"]["ram_readings_all_zero"], v["pl"]["id"]),
+                             ("0x0", 3, {"ram": 0, "shifts": 96}, 128, "0x53324131"), k)
+            self.assertEqual(v["pl"]["shift_registers_held"], [["0x00000000"] * 4, ["0xffffffff"] * 4, ["0x00000000"] * 4], k)
+        self.assertEqual(again, 6, "pieces of results pulled a second time: three in run01, two in run02, one in run04")
+        # ---- bit 5: after no record of any run — nor after the two reads of these four frames, where S2.2 saw it in every state
+        v = json.loads((d / "run03" / "verdict.json").read_text())
+        self.assertEqual([(r["index"], r["far"], r["state"], r["int_sts_after"]) for r in v["records"] if r["far"] in ("0x0000181e", "0x00001821")],
+                         [(46 + 176 * s + i, far, s, "50033004") for s in range(3) for i, far in enumerate(("0x0000181e", "0x00001821"))])
+        seen = [status_seen.seen(json.loads(f.read_text())) for f in status_seen.verdicts(d)]
+        listed = json.loads((d / "status_seen.json").read_text())
+        self.assertEqual(([{k: r[k] for k in ("status_words", "bits")} for r in listed["by_run"]], listed["bits"], listed["runs_with_such_a_bit"]), (seen, [], []))
+
     def test_the_chain_that_says_which_bit_is_which_cell(self) -> None:
         """S2.3, 2026-11-23: the code run and the four runs of the singles, assessed again here from the raw words of
         their results, against the sets and the image kept with the runs: complete — every cell of the RAM has one

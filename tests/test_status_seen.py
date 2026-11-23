@@ -71,7 +71,7 @@ class OverTheStoredRuns(unittest.TestCase):
     READ_COLUMNS_2_TO_4 = ("s1b4_17A6_2026-11-18", "sbit_17A6_2026-11-19")      # the directories whose runs read such frames of block type 1
     S2_2_RUN = "s2_2_17A6_2026-11-22/run03"                                     # and the one run of S2.2 that has such a bit and read none of them
     S2_3_SINGLES = [f"s2_3_17A6_2026-11-23/run{k:02d}" for k in (1, 2, 3, 4)]   # and the four runs of the singles of S2.3 (2026-11-23); its code run has none
-    S2_4_PART_2 = ["s2_4b_17A6_2026-11-23/run00"]                               # and the code run of S2.4, part 2 (2026-11-23); no run of part 1 has one
+    S2_4_PART_2 = [f"s2_4b_17A6_2026-11-23/run{k:02d}" for k in range(4)]       # and the four runs of S2.4, part 2 (2026-11-23); no run of part 1 has one
 
     def test_no_other_stored_run_has_such_a_bit(self) -> None:
         files = sorted(p for p in (ROOT / "evidence").rglob("verdict.json") if not set(self.READ_COLUMNS_2_TO_4) & set(p.parts))

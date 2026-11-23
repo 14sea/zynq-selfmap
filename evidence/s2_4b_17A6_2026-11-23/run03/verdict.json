@@ -1,0 +1,848 @@
+{
+ "problems": [],
+ "records": [
+  {
+   "index": 0,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "baseline",
+   "op": null,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 0,
+   "value_read": "0x00000b9b",
+   "int_sts": [
+    "50023004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    9,
+    9,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+   ],
+   "int_sts_after": "50033004"
+  },
+  {
+   "index": 1,
+   "far": "0x00000b99",
+   "frames": 0,
+   "words": 0,
+   "kind": "target",
+   "op": "CTL0",
+   "register": "CTL0",
+   "code": "0x0",
+   "state": 0,
+   "value_read": "0x00000501",
+   "int_sts": [
+    "50033004",
+    "00000000",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    9,
+    0,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": null,
+   "frame_sha256": [],
+   "int_sts_after": "50033004"
+  },
+  {
+   "index": 2,
+   "far": "0x0000181e",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 0,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 0,
+   "value_read": "0x00001822",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    8,
+    17,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e78c4c58382d7c7b7ea99ee142d173d004bbc357d0dee41cdca8f5d7f60d7f17",
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9",
+    "03d061600a050d4e52b127c52037543d8449152bb871c49aec12a460aaa9f40a"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 3,
+   "far": "0x00001821",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 1,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 0,
+   "value_read": "0x00001881",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "2cae7be1872dddeb465a7c15d655125414624f4b1ae0c933edc3388cd6a2ae61",
+    "992907f6ffe8a0173b07d01b8f891d6921eaf71e8e1407bab6b784c357ff8bdd",
+    "de113132565f8867c6faa5609d68604f1bbd7c785bafee68ab177ecc0a2762a8"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 4,
+   "far": "0x0000181e",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 0,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 1,
+   "value_read": "0x00001822",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    16,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e78c4c58382d7c7b7ea99ee142d173d004bbc357d0dee41cdca8f5d7f60d7f17",
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9",
+    "03d061600a050d4e52b127c52037543d8449152bb871c49aec12a460aaa9f40a"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 5,
+   "far": "0x00001821",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 1,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 1,
+   "value_read": "0x00001881",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    16,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "2cae7be1872dddeb465a7c15d655125414624f4b1ae0c933edc3388cd6a2ae61",
+    "c56a7517734eb70dbcc594ded3bef6c1f34583c2b29c5e536baf5f16913db58d",
+    "a11787324db76efaf0ec163c08a1634df2f624a1e49f2e97fc0aaed9c3874020"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 6,
+   "far": "0x0000181e",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 0,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 2,
+   "value_read": "0x00001822",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e78c4c58382d7c7b7ea99ee142d173d004bbc357d0dee41cdca8f5d7f60d7f17",
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9",
+    "cbcb71294c1f9a11c48ded721a7a2847872930e8be8ae3a90f91f24fc8441b75"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 7,
+   "far": "0x00001821",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 1,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 2,
+   "value_read": "0x00001881",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    3,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "43e82aa9fae385e57ec1b258fffd8c0e8f3edbcf1b968cd2687e35a9bf7a092d",
+    "4862520bf521e2dbe708c2849da23d6d8990feeb7401495b6fd4ccc562030146",
+    "6c26a2f80c4a4ca9b64cae0b117ab9837353b61b0259cf4cdfbf5e2464bf98d7"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 8,
+   "far": "0x0000181e",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 0,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 3,
+   "value_read": "0x00001822",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    16,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e78c4c58382d7c7b7ea99ee142d173d004bbc357d0dee41cdca8f5d7f60d7f17",
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9",
+    "03d061600a050d4e52b127c52037543d8449152bb871c49aec12a460aaa9f40a"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 9,
+   "far": "0x00001821",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 1,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 3,
+   "value_read": "0x00001881",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    3,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "2cae7be1872dddeb465a7c15d655125414624f4b1ae0c933edc3388cd6a2ae61",
+    "234004395d833a965d56f6941aa01d5b12a896b7e6cec3e968ff2477c9137093",
+    "a67f065a868b49878b419ce821df53ff076f2acf9e1374bcbdfa420bca05f7dc"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 10,
+   "far": "0x0000181e",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 0,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 4,
+   "value_read": "0x00001822",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e78c4c58382d7c7b7ea99ee142d173d004bbc357d0dee41cdca8f5d7f60d7f17",
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9",
+    "dd70b49fc006b8612ca85fc14c453872257f234e9b9072a8cf187346a42a28f5"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 11,
+   "far": "0x00001821",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 1,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 4,
+   "value_read": "0x00001881",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    3,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "2cae7be1872dddeb465a7c15d655125414624f4b1ae0c933edc3388cd6a2ae61",
+    "234004395d833a965d56f6941aa01d5b12a896b7e6cec3e968ff2477c9137093",
+    "177420574181d44e89e2eed7795c3c134752ede973e20065b0ffc7a0c359bbd2"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 12,
+   "far": "0x0000181e",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 0,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 5,
+   "value_read": "0x00001822",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "e78c4c58382d7c7b7ea99ee142d173d004bbc357d0dee41cdca8f5d7f60d7f17",
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9",
+    "03d061600a050d4e52b127c52037543d8449152bb871c49aec12a460aaa9f40a"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 13,
+   "far": "0x00001821",
+   "frames": 3,
+   "words": 404,
+   "kind": "target",
+   "op": 1,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 5,
+   "value_read": "0x00001881",
+   "int_sts": [
+    "50033004",
+    "50033024",
+    "50033024",
+    "50033024",
+    "50033024"
+   ],
+   "polls": [
+    9,
+    17,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "2cae7be1872dddeb465a7c15d655125414624f4b1ae0c933edc3388cd6a2ae61",
+    "992907f6ffe8a0173b07d01b8f891d6921eaf71e8e1407bab6b784c357ff8bdd",
+    "de113132565f8867c6faa5609d68604f1bbd7c785bafee68ab177ecc0a2762a8"
+   ],
+   "int_sts_after": "50033024",
+   "int_sts_after_clearing_bit_5": "50033004"
+  },
+  {
+   "index": 14,
+   "far": "0x00000b99",
+   "frames": 0,
+   "words": 0,
+   "kind": "target",
+   "op": "CTL0",
+   "register": "CTL0",
+   "code": "0x0",
+   "state": 6,
+   "value_read": "0x00000501",
+   "int_sts": [
+    "50033004",
+    "00000000",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    8,
+    0,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": null,
+   "frame_sha256": [],
+   "int_sts_after": "50033004"
+  },
+  {
+   "index": 15,
+   "far": "0x00000b99",
+   "frames": 1,
+   "words": 202,
+   "kind": "final",
+   "op": null,
+   "register": "FAR",
+   "code": "0x0",
+   "state": 6,
+   "value_read": "0x00000b9b",
+   "int_sts": [
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004",
+    "50033004"
+   ],
+   "polls": [
+    8,
+    9,
+    2,
+    2,
+    3
+   ],
+   "survivors": 0,
+   "pad_all_zero": true,
+   "frame_sha256": [
+    "0441772f66559a1c71f4559dc4405438fc9b8383ce1229139257a7fe6d7b8de9"
+   ],
+   "int_sts_after": "50033004"
+  }
+ ],
+ "header": {
+  "status": "0x1",
+  "records": 16,
+  "anomalies": 0,
+  "total_words": 10230,
+  "ctrl": "4e00e07f",
+  "mctrl": "30800100",
+  "int_sts_initial": "50021004",
+  "status_initial": "40000f30",
+  "sctlr": "08c51878",
+  "cpsr": "800001d3",
+  "sp": "1eacaaf8",
+  "r9": "1ead0ec0",
+  "int_sts_final": "50033004",
+  "status_final": "50000f30",
+  "stop_record": "0xffffffff"
+ },
+ "expected_console": [
+  "SM9 start",
+  "SM9 end status=00000001 records=00000010 anomalies=00000000 words=000027f6"
+ ],
+ "expected_return_code": "0x0",
+ "params": {
+  "far_lo": "0x00000000",
+  "far_hi": "0x00401ba9",
+  "ref_far": "0x00000b99",
+  "states": 6,
+  "reads_in_the_list": 2,
+  "entries_in_the_list_of_accesses": 1246,
+  "may_write": "0x01101000",
+  "poll_limit": 2097152,
+  "polling_loop": "no stores and no loads: no memory touched while the transfer runs",
+  "pl_envelope": [
+   "0x40000000",
+   "0x4000001f"
+  ]
+ },
+ "list": {
+  "reads": 2,
+  "frames": 6,
+  "first": "0x0000181e",
+  "last": "0x00001823"
+ },
+ "slcr": {
+  "LVL_SHFTR_EN": {
+   "read": "0000000f",
+   "wanted": "0000000f"
+  },
+  "FPGA_RST_CTRL": {
+   "read": "00000000",
+   "wanted": "00000000"
+  },
+  "FPGA0_CLK_CTRL": {
+   "read": "00400800",
+   "wanted": "00400800"
+  },
+  "PLL_STATUS": {
+   "read": "0000003f",
+   "wanted": "0000003f"
+  }
+ },
+ "bit_5": {
+  "shown_after_records": [
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13
+  ],
+  "cleared_after_records": [
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13
+  ],
+  "still_set_after_clearing": []
+ },
+ "pl": {
+  "accesses": 1235,
+  "code": "0x0",
+  "says": "nothing wrong",
+  "passes_the_shift_registers_held_through": 6,
+  "id": "0x53324131",
+  "writes_counted": {
+   "ram": 0,
+   "shifts": 192
+  },
+  "shift_registers_held": [
+   [
+    "0xa5c30f69",
+    "0x0f1e2d3c",
+    "0x13579bdf",
+    "0xfedcba98"
+   ],
+   [
+    "0xa5c30f6a",
+    "0x0f1e2d3c",
+    "0x13579bdf",
+    "0xfedcba98"
+   ],
+   [
+    "0xa5c30f78",
+    "0x0f1e2d3c",
+    "0x13579bdf",
+    "0xfedcba98"
+   ],
+   [
+    "0xa5c30f6e",
+    "0x0f1e2d3c",
+    "0x13579bdf",
+    "0xfedcba98"
+   ],
+   [
+    "0xa5c30f66",
+    "0x0f1e2d3c",
+    "0x13579bdf",
+    "0xfedcba98"
+   ],
+   [
+    "0xa5c30f69",
+    "0x0f1e2d3c",
+    "0x13579bdf",
+    "0xfedcba98"
+   ]
+  ],
+  "ram_readings_all_zero": 128,
+  "counter": [
+   "0x6e9edd61",
+   "0x6ea1f397",
+   "0x6ea24865",
+   "0x6ea55ba6",
+   "0x6ea5afcc",
+   "0x6ea8c212",
+   "0x6ea915c1",
+   "0x6eac2c2d",
+   "0x6eac801a",
+   "0x6eaf9384",
+   "0x6eafe73b",
+   "0x6eb2fc11"
+  ]
+ },
+ "registers": {
+  "CTL0": {
+   "values": {
+    "0x00000501": [
+     1,
+     14
+    ]
+   },
+   "value": "0x00000501",
+   "bits_set": [
+    "10 ConfigFallback",
+    "8 GLUTMASK_B",
+    "0 GTS_USR_B"
+   ]
+  }
+ },
+ "run": {
+  "kind": "pairs",
+  "share": null,
+  "states": [
+   "loaded",
+   "cells 0, 1",
+   "cells 0, 4",
+   "cells 0, 1, 2",
+   "cells 0, 1, 2, 3",
+   "loaded again"
+  ]
+ },
+ "finding": {
+  "states_read_whole": 6,
+  "frames": 6,
+  "bits": {
+   "still": 19381,
+   "follow": 5,
+   "follow_inverted": 6,
+   "irregular": 0
+  },
+  "follows": [
+   {
+    "far": "0x00001820",
+    "word": 40,
+    "bit": 14,
+    "cell": 4,
+    "register": 0,
+    "output": 4,
+    "inverted": true
+   },
+   {
+    "far": "0x00001820",
+    "word": 40,
+    "bit": 15,
+    "cell": 3,
+    "register": 0,
+    "output": 3,
+    "inverted": true
+   },
+   {
+    "far": "0x00001821",
+    "word": 40,
+    "bit": 15,
+    "cell": 4,
+    "register": 0,
+    "output": 4,
+    "inverted": false
+   },
+   {
+    "far": "0x00001822",
+    "word": 40,
+    "bit": 12,
+    "cell": 2,
+    "register": 0,
+    "output": 2,
+    "inverted": true
+   },
+   {
+    "far": "0x00001822",
+    "word": 40,
+    "bit": 13,
+    "cell": 1,
+    "register": 0,
+    "output": 1,
+    "inverted": true
+   },
+   {
+    "far": "0x00001822",
+    "word": 40,
+    "bit": 14,
+    "cell": 0,
+    "register": 0,
+    "output": 0,
+    "inverted": true
+   },
+   {
+    "far": "0x00001822",
+    "word": 40,
+    "bit": 15,
+    "cell": 0,
+    "register": 0,
+    "output": 0,
+    "inverted": true
+   },
+   {
+    "far": "0x00001823",
+    "word": 40,
+    "bit": 12,
+    "cell": 3,
+    "register": 0,
+    "output": 3,
+    "inverted": false
+   },
+   {
+    "far": "0x00001823",
+    "word": 40,
+    "bit": 13,
+    "cell": 2,
+    "register": 0,
+    "output": 2,
+    "inverted": false
+   },
+   {
+    "far": "0x00001823",
+    "word": 40,
+    "bit": 14,
+    "cell": 1,
+    "register": 0,
+    "output": 1,
+    "inverted": false
+   },
+   {
+    "far": "0x00001823",
+    "word": 40,
+    "bit": 15,
+    "cell": 0,
+    "register": 0,
+    "output": 0,
+    "inverted": false
+   }
+  ],
+  "irregular": [],
+  "cells_not_told_apart": [],
+  "cells_not_told_from_another_inverted": []
+ },
+ "verdict": "PASS"
+}

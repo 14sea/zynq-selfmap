@@ -66,7 +66,10 @@ the word asked only a row's lower word; and part 1 can find every memory and lea
 without room for a plan, which its closing now says. A second review, of that mending,
 found two more, both so and both mended (section 49): what was held to the runs was then
 read from the file a second time; and a chain of part 2 that cannot be planned said "go
-on". Nothing of it has been on a board, and the design is not on the card.
+on". The owner has decided on the as-built (section 50): sixteen runs of the singles and
+no access to one site alone are accepted, and a memory the six moves do not find halts
+part 2 — how it would then be given its site is said there beforehand, and not built.
+Nothing of it has been on a board, and the design is not on the card.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4460,3 +4463,86 @@ byte.
   files only after the function had returned. It has its test now (each file is read
   once: a file that changes on its second reading is given as it was held) and is killed.
   The tool has not run them.
+
+## 50. The owner's decisions on the as-built (2026-11-24), and what is said beforehand of a memory the six moves do not find
+
+Section 47 put three things to the owner. Decided, all three as recommended.
+
+### 1. Sixteen runs of the singles: accepted
+
+Reckoned again with the planner, at 24 reads a state and a result area of 262,144 words:
+
+| singles a run | states | result, words | fits | most reads a state that fit | runs |
+|---|---|---|---|---|---|
+| 20 (section 45) | 22 | 267,302 | no | — | 13 |
+| 19 | 21 | 255,254 | yes | 24 | 14, the last with 9 |
+| 16 (as built) | 18 | 219,110 | yes | 28 | 16 |
+
+Section 45's thirteen runs do not fit. Nineteen a run fit with nothing to spare: one read
+more a state — one group of frames beyond those the prediction names — and part 2 has no
+plan. Sixteen leave four reads, which is the room section 48 speaks of. The price is
+three more runs started. The two other ways were not taken: holding the state on one side
+of the frames only weakens what every state rests on; another image has to be proven
+again.
+
+### 2. No run writes or reads one site alone: accepted
+
+- Holding a state site by site does not fit in any case: one look through `CHECK` is 128
+  accesses, one through `RAM_DATA` at every site 14,190, and a state has two.
+- What is given up is a second witness of whose memory a place is — a write to one site
+  beside the word it was loaded with. Both name the design's number for a site; they can
+  disagree only if the design is at odds with itself, which the bench asks.
+- The limit of section 47 is not of this change's making: that the design's number reaches
+  the site the build names, the build's record says and nothing on the device can. It is
+  asked when S2 is graded.
+- Nothing is closed by it. `s2b` has the access to one site, and the image lets the site
+  register be written; only the host side would have to be built.
+
+### 3. A memory the six moves do not find: the chain halts, as built
+
+This is a third thing that is not as section 45 had it — outcome 3 there read "part 2
+decodes it without the rule" — and section 47 named it only among the limits. The owner
+decides: **the halt stays, and nothing is built for the case before the board shows it.**
+
+Why a halt loses nothing: as built, part 1 is complete under outcome 3; on the owner's
+word the code run is made; its closing finds bits that follow a cell and lie in no memory
+found, and no single is run (outcome 8). What is stored by then is, of every such bit,
+what it read as loaded (part 1) and which cell it follows (the code run). The price of
+the halt: one more turn with the owner, the singles on a later day — and not for the sites
+that have their tables either, since one site without a table holds all of them.
+
+Why not built beforehand: it could only be written against an anomaly imagined, and it
+would take the anomaly into a table without the owner having looked at it. That a memory
+is laid out otherwise is itself a finding.
+
+**What is said now, before any run, of how such bits would be given their memory** — so
+that it is not thought of with the data in hand. Not built and not tried; it would be
+built on the owner's word after the halt, from the stored runs, with no board.
+
+- *The orphans*: the candidates of part 1 that lie in no memory found. Each has from the
+  code run one cell, 64 k + a, and which way it shows it; and from part 1 its reading as
+  loaded.
+- *What is asked for*: the orphans parted into groups of 64, one group for each memory
+  not found — each group with one place for every address of one memory number k; read
+  in the order of the addresses, each reading turned where the place shows its cell
+  inverted, the group gives **the loaded word of one memory not found, 64 bits of 64**;
+  every memory not found has exactly one group and no orphan is left over. The 440 words
+  differ from one another in at least 14 bits and from one another's complements in at
+  least 15.
+- *Where the groups come from*: **from where the places lie, never from the words.** If
+  one site alone is not found, every cell has one orphan and there is nothing to part. If
+  several are, a group is the orphans in one half of one word of a frame, in frames next
+  to each other; the words then test the parting and do not make it.
+- *Where that does not decide*: two memories with the same number k whose places cannot
+  be told apart by where they lie. The words tell their places apart only at the
+  addresses at which the two words differ; at the others either place fits either memory.
+  That case is not decided by what is stored. A run that writes one site alone decides it
+  — which is the one use foreseen for that access.
+- *What it would give*: a table for the site, marked as decoded without the moves, to be
+  confirmed by the singles like any other; and in the rule the part of the six moves said
+  not to be obeyed there.
+
+### Still for the owner
+
+The board, on three words (section 46): `s2b.bit` onto the card; part 1; part 2. And the
+push of what is committed since `046a60d`.

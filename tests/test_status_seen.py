@@ -72,12 +72,13 @@ class OverTheStoredRuns(unittest.TestCase):
     S2_2_RUN = "s2_2_17A6_2026-11-22/run03"                                     # and the one run of S2.2 that has such a bit and read none of them
     S2_3_SINGLES = [f"s2_3_17A6_2026-11-23/run{k:02d}" for k in (1, 2, 3, 4)]   # and the four runs of the singles of S2.3 (2026-11-23); its code run has none
     S2_4_PART_2 = [f"s2_4b_17A6_2026-11-23/run{k:02d}" for k in range(4)]       # and the four runs of S2.4, part 2 (2026-11-23); no run of part 1 has one
+    S2_5_PART_1 = [f"s2_5_17A6/run{k:02d}" for k in (2, 3, 5, 6, 7)]            # and the five runs of S2.5, part 1 (2026-11-24) that read frames of the memories
 
     def test_no_other_stored_run_has_such_a_bit(self) -> None:
         files = sorted(p for p in (ROOT / "evidence").rglob("verdict.json") if not set(self.READ_COLUMNS_2_TO_4) & set(p.parts))
         self.assertGreaterEqual(len(files), 158, "the 158 verdicts stored before S1b.4, and whatever was stored since elsewhere")
         self.assertEqual([str(f.relative_to(ROOT / "evidence")) for f in files if status_seen.seen(json.loads(f.read_text()))["bits"]],
-                         [d + "/verdict.json" for d in [self.S2_2_RUN] + self.S2_3_SINGLES + self.S2_4_PART_2])
+                         [d + "/verdict.json" for d in [self.S2_2_RUN] + self.S2_3_SINGLES + self.S2_4_PART_2 + self.S2_5_PART_1])
 
     def test_the_one_run_of_block_type_0_that_has_it(self) -> None:
         """S2.2 on 2026-11-22, the run of share 3: bit 5 after two reads next to each other, the same two in each of the

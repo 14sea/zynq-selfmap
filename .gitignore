@@ -1,2 +1,33 @@
+# What programs make while they work. Nothing here is a record: every record of a run is under evidence/ and is tracked.
+# No pattern below may match a kind of file that evidence/ holds (console.log, *.out, *.bin, *.json, *.times).
+
+# products of the builds (prober, twin, the staged PL designs) and the lists a mutant run prints
 build/
+
+# Python
 __pycache__/
+*.pyc
+
+# Vivado, where it is started in this tree
+.Xil/
+vivado*.jou
+vivado*.log
+vivado*.str
+*.backup.jou
+*.backup.log
+xsim.dir/
+*.cache/
+*.runs/
+*.hw/
+*.ip_user_files/
+
+# Icarus Verilog
+*.vvp
+*.vcd
+
+# editors and tools
+*.swp
+*~
+.vscode/
+.idea/
+.claude/

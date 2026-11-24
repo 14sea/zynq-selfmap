@@ -1,0 +1,4521 @@
+{
+ "schema": "s2_5_rule",
+ "schema_version": 1,
+ "label": "closed-book",
+ "what": "how the place of a LUT RAM cell in configuration memory depends on its site, as the sites probed by the design s2b show it (docs/s2_plan.md, sections 45 and 46). Measured at the sites listed; for every other site this is what the rule says, and nothing here has shown it.",
+ "design": "s2b",
+ "sites_measured": 110,
+ "measured_at": [
+  "SLICE_X16Y0",
+  "SLICE_X16Y1",
+  "SLICE_X16Y2",
+  "SLICE_X16Y3",
+  "SLICE_X16Y4",
+  "SLICE_X16Y5",
+  "SLICE_X16Y6",
+  "SLICE_X16Y7",
+  "SLICE_X16Y8",
+  "SLICE_X16Y9",
+  "SLICE_X16Y10",
+  "SLICE_X16Y11",
+  "SLICE_X16Y12",
+  "SLICE_X16Y13",
+  "SLICE_X16Y14",
+  "SLICE_X16Y15",
+  "SLICE_X16Y16",
+  "SLICE_X16Y17",
+  "SLICE_X16Y18",
+  "SLICE_X16Y19",
+  "SLICE_X16Y20",
+  "SLICE_X16Y21",
+  "SLICE_X16Y22",
+  "SLICE_X16Y23",
+  "SLICE_X16Y24",
+  "SLICE_X16Y25",
+  "SLICE_X16Y26",
+  "SLICE_X16Y27",
+  "SLICE_X16Y28",
+  "SLICE_X16Y29",
+  "SLICE_X16Y30",
+  "SLICE_X16Y31",
+  "SLICE_X16Y32",
+  "SLICE_X16Y33",
+  "SLICE_X16Y34",
+  "SLICE_X16Y35",
+  "SLICE_X16Y36",
+  "SLICE_X16Y37",
+  "SLICE_X16Y38",
+  "SLICE_X16Y39",
+  "SLICE_X16Y40",
+  "SLICE_X16Y41",
+  "SLICE_X16Y42",
+  "SLICE_X16Y43",
+  "SLICE_X16Y44",
+  "SLICE_X16Y45",
+  "SLICE_X16Y46",
+  "SLICE_X16Y47",
+  "SLICE_X16Y48",
+  "SLICE_X16Y49",
+  "SLICE_X16Y50",
+  "SLICE_X16Y51",
+  "SLICE_X16Y52",
+  "SLICE_X16Y53",
+  "SLICE_X16Y54",
+  "SLICE_X16Y55",
+  "SLICE_X16Y56",
+  "SLICE_X16Y57",
+  "SLICE_X16Y58",
+  "SLICE_X16Y59",
+  "SLICE_X16Y60",
+  "SLICE_X16Y61",
+  "SLICE_X16Y62",
+  "SLICE_X16Y63",
+  "SLICE_X16Y64",
+  "SLICE_X16Y65",
+  "SLICE_X16Y66",
+  "SLICE_X16Y67",
+  "SLICE_X16Y68",
+  "SLICE_X16Y69",
+  "SLICE_X16Y70",
+  "SLICE_X16Y71",
+  "SLICE_X16Y72",
+  "SLICE_X16Y73",
+  "SLICE_X16Y74",
+  "SLICE_X16Y75",
+  "SLICE_X16Y76",
+  "SLICE_X16Y77",
+  "SLICE_X16Y78",
+  "SLICE_X16Y79",
+  "SLICE_X16Y80",
+  "SLICE_X16Y81",
+  "SLICE_X16Y82",
+  "SLICE_X16Y83",
+  "SLICE_X16Y84",
+  "SLICE_X16Y85",
+  "SLICE_X16Y86",
+  "SLICE_X16Y87",
+  "SLICE_X16Y88",
+  "SLICE_X16Y89",
+  "SLICE_X16Y90",
+  "SLICE_X16Y91",
+  "SLICE_X16Y92",
+  "SLICE_X16Y93",
+  "SLICE_X16Y94",
+  "SLICE_X16Y95",
+  "SLICE_X16Y96",
+  "SLICE_X16Y97",
+  "SLICE_X16Y98",
+  "SLICE_X16Y99",
+  "SLICE_X10Y7",
+  "SLICE_X12Y44",
+  "SLICE_X20Y81",
+  "SLICE_X24Y18",
+  "SLICE_X28Y55",
+  "SLICE_X30Y92",
+  "SLICE_X32Y29",
+  "SLICE_X34Y66",
+  "SLICE_X38Y3",
+  "SLICE_X42Y40"
+ ],
+ "columns_of_sites_measured": [
+  10,
+  12,
+  16,
+  20,
+  24,
+  28,
+  30,
+  32,
+  34,
+  38,
+  42
+ ],
+ "rows_measured": {
+  "10": "row 7",
+  "12": "row 44",
+  "16": "100 row(s), 0 to 99",
+  "20": "row 81",
+  "24": "row 18",
+  "28": "row 55",
+  "30": "row 92",
+  "32": "row 29",
+  "34": "row 66",
+  "38": "row 3",
+  "42": "row 40"
+ },
+ "sites_of_this_kind_not_measured": 1390,
+ "the_six_moves": {
+  "says": "every memory measured lies in one half of one word of four frames next to each other, shown as it is, and address a lies at the same frame of the four and the same bit of the half word at every one",
+  "moves": [
+   {
+    "address": 0,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 15
+   },
+   {
+    "address": 1,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 15
+   },
+   {
+    "address": 2,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 14
+   },
+   {
+    "address": 3,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 14
+   },
+   {
+    "address": 4,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 13
+   },
+   {
+    "address": 5,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 13
+   },
+   {
+    "address": 6,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 12
+   },
+   {
+    "address": 7,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 12
+   },
+   {
+    "address": 8,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 15
+   },
+   {
+    "address": 9,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 15
+   },
+   {
+    "address": 10,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 14
+   },
+   {
+    "address": 11,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 14
+   },
+   {
+    "address": 12,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 13
+   },
+   {
+    "address": 13,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 13
+   },
+   {
+    "address": 14,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 12
+   },
+   {
+    "address": 15,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 12
+   },
+   {
+    "address": 16,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 11
+   },
+   {
+    "address": 17,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 11
+   },
+   {
+    "address": 18,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 10
+   },
+   {
+    "address": 19,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 10
+   },
+   {
+    "address": 20,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 9
+   },
+   {
+    "address": 21,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 9
+   },
+   {
+    "address": 22,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 8
+   },
+   {
+    "address": 23,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 8
+   },
+   {
+    "address": 24,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 11
+   },
+   {
+    "address": 25,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 11
+   },
+   {
+    "address": 26,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 10
+   },
+   {
+    "address": 27,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 10
+   },
+   {
+    "address": 28,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 9
+   },
+   {
+    "address": 29,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 9
+   },
+   {
+    "address": 30,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 8
+   },
+   {
+    "address": 31,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 8
+   },
+   {
+    "address": 32,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 7
+   },
+   {
+    "address": 33,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 7
+   },
+   {
+    "address": 34,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 6
+   },
+   {
+    "address": 35,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 6
+   },
+   {
+    "address": 36,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 5
+   },
+   {
+    "address": 37,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 5
+   },
+   {
+    "address": 38,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 4
+   },
+   {
+    "address": 39,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 4
+   },
+   {
+    "address": 40,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 7
+   },
+   {
+    "address": 41,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 7
+   },
+   {
+    "address": 42,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 6
+   },
+   {
+    "address": 43,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 6
+   },
+   {
+    "address": 44,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 5
+   },
+   {
+    "address": 45,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 5
+   },
+   {
+    "address": 46,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 4
+   },
+   {
+    "address": 47,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 4
+   },
+   {
+    "address": 48,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 3
+   },
+   {
+    "address": 49,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 3
+   },
+   {
+    "address": 50,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 2
+   },
+   {
+    "address": 51,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 2
+   },
+   {
+    "address": 52,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 1
+   },
+   {
+    "address": 53,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 1
+   },
+   {
+    "address": 54,
+    "frame_above_the_lowest": 2,
+    "bit_of_the_half_word": 0
+   },
+   {
+    "address": 55,
+    "frame_above_the_lowest": 3,
+    "bit_of_the_half_word": 0
+   },
+   {
+    "address": 56,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 3
+   },
+   {
+    "address": 57,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 3
+   },
+   {
+    "address": 58,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 2
+   },
+   {
+    "address": 59,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 2
+   },
+   {
+    "address": 60,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 1
+   },
+   {
+    "address": 61,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 1
+   },
+   {
+    "address": 62,
+    "frame_above_the_lowest": 0,
+    "bit_of_the_half_word": 0
+   },
+   {
+    "address": 63,
+    "frame_above_the_lowest": 1,
+    "bit_of_the_half_word": 0
+   }
+  ]
+ },
+ "the_position": {
+  "says": "a site's four memories lie in two words next to each other; which of the two and which half is the same for a LUT position at every site",
+  "positions": {
+   "A6LUT": {
+    "word_of_the_site_s_two": 0,
+    "half": "15 down to 0"
+   },
+   "B6LUT": {
+    "word_of_the_site_s_two": 0,
+    "half": "31 down to 16"
+   },
+   "C6LUT": {
+    "word_of_the_site_s_two": 1,
+    "half": "15 down to 0"
+   },
+   "D6LUT": {
+    "word_of_the_site_s_two": 1,
+    "half": "31 down to 16"
+   }
+  },
+  "whose_word": "the names of the positions are the build's record (pl/s2b/build.json): what was placed, not something the device showed"
+ },
+ "the_half": {
+  "says": "the rows 0 to 49 lie in one half of the device, as the census names the halves, and the rows 50 to 99 in the other",
+  "rows": {
+   "0 to 49": [
+    "bottom"
+   ],
+   "50 to 99": [
+    "top"
+   ]
+  }
+ },
+ "the_column": {
+  "says": "the columns of sites measured do not lie on one line among the columns of frames",
+  "measured": {
+   "10": [
+    "26"
+   ],
+   "12": [
+    "27"
+   ],
+   "16": [
+    "36"
+   ],
+   "20": [
+    "38"
+   ],
+   "24": [
+    "41"
+   ],
+   "28": [
+    "44"
+   ],
+   "30": [
+    "45"
+   ],
+   "32": [
+    "47"
+   ],
+   "34": [
+    "48"
+   ],
+   "38": [
+    "51"
+   ],
+   "42": [
+    "53"
+   ]
+  }
+ },
+ "the_word": {
+  "says": "row r of its half (the site's row, less 50 in the upper half) has the words 2 r and 2 r + 1 up to row 24, and 2 r + 1 and 2 r + 2 above it: one word of the frame lies between",
+  "the_one_word_more_after_row": [
+   24
+  ],
+  "rows_measured": 50,
+  "the_same_row_in_both_halves_and_in_every_column_has_the_same_words": true
+ },
+ "obeyed_by_every_site_measured": {
+  "the_six_moves": true,
+  "the_position": true,
+  "the_half": true,
+  "the_column": false,
+  "the_word": true
+ },
+ "one_rule": false,
+ "sites": [
+  {
+   "site": 0,
+   "name": "SLICE_X16Y0",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    0,
+    1
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 1,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 0,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 0,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 1,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 1,
+   "name": "SLICE_X16Y1",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    2,
+    3
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 3,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 2,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 2,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 3,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 2,
+   "name": "SLICE_X16Y2",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    4,
+    5
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 5,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 4,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 4,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 5,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 3,
+   "name": "SLICE_X16Y3",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    6,
+    7
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 7,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 6,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 6,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 7,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 4,
+   "name": "SLICE_X16Y4",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    8,
+    9
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 9,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 8,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 8,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 9,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 5,
+   "name": "SLICE_X16Y5",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    10,
+    11
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 11,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 10,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 10,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 11,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 6,
+   "name": "SLICE_X16Y6",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    12,
+    13
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 13,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 12,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 12,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 13,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 7,
+   "name": "SLICE_X16Y7",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    14,
+    15
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 15,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 14,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 14,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 15,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 8,
+   "name": "SLICE_X16Y8",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    16,
+    17
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 17,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 16,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 16,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 17,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 9,
+   "name": "SLICE_X16Y9",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    18,
+    19
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 19,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 18,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 18,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 19,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 10,
+   "name": "SLICE_X16Y10",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    20,
+    21
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 21,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 20,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 20,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 21,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 11,
+   "name": "SLICE_X16Y11",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    22,
+    23
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 23,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 22,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 22,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 23,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 12,
+   "name": "SLICE_X16Y12",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    24,
+    25
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 25,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 24,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 24,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 25,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 13,
+   "name": "SLICE_X16Y13",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    26,
+    27
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 27,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 26,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 26,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 27,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 14,
+   "name": "SLICE_X16Y14",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    28,
+    29
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 29,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 28,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 28,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 29,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 15,
+   "name": "SLICE_X16Y15",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    30,
+    31
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 31,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 30,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 30,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 31,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 16,
+   "name": "SLICE_X16Y16",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    32,
+    33
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 33,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 32,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 32,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 33,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 17,
+   "name": "SLICE_X16Y17",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    34,
+    35
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 35,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 34,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 34,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 35,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 18,
+   "name": "SLICE_X16Y18",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    36,
+    37
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 37,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 36,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 36,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 37,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 19,
+   "name": "SLICE_X16Y19",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    38,
+    39
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 39,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 38,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 38,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 39,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 20,
+   "name": "SLICE_X16Y20",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    40,
+    41
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 41,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 40,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 40,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 41,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 21,
+   "name": "SLICE_X16Y21",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    42,
+    43
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 43,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 42,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 42,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 43,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 22,
+   "name": "SLICE_X16Y22",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    44,
+    45
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 45,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 44,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 44,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 45,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 23,
+   "name": "SLICE_X16Y23",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    46,
+    47
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 47,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 46,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 46,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 47,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 24,
+   "name": "SLICE_X16Y24",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    48,
+    49
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 49,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 48,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 48,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 49,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 25,
+   "name": "SLICE_X16Y25",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    51,
+    52
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 52,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 51,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 51,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 52,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 26,
+   "name": "SLICE_X16Y26",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    53,
+    54
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 54,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 53,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 53,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 54,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 27,
+   "name": "SLICE_X16Y27",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    55,
+    56
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 56,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 55,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 55,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 56,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 28,
+   "name": "SLICE_X16Y28",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    57,
+    58
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 58,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 57,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 57,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 58,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 29,
+   "name": "SLICE_X16Y29",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    59,
+    60
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 60,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 59,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 59,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 60,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 30,
+   "name": "SLICE_X16Y30",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    61,
+    62
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 62,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 61,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 61,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 62,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 31,
+   "name": "SLICE_X16Y31",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    63,
+    64
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 64,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 63,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 63,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 64,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 32,
+   "name": "SLICE_X16Y32",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    65,
+    66
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 66,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 65,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 65,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 66,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 33,
+   "name": "SLICE_X16Y33",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    67,
+    68
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 68,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 67,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 67,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 68,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 34,
+   "name": "SLICE_X16Y34",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    69,
+    70
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 70,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 69,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 69,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 70,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 35,
+   "name": "SLICE_X16Y35",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    71,
+    72
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 72,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 71,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 71,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 72,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 36,
+   "name": "SLICE_X16Y36",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    73,
+    74
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 74,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 73,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 73,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 74,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 37,
+   "name": "SLICE_X16Y37",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    75,
+    76
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 76,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 75,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 75,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 76,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 38,
+   "name": "SLICE_X16Y38",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    77,
+    78
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 78,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 77,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 77,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 78,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 39,
+   "name": "SLICE_X16Y39",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    79,
+    80
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 80,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 79,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 79,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 80,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 40,
+   "name": "SLICE_X16Y40",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    81,
+    82
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 82,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 81,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 81,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 82,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 41,
+   "name": "SLICE_X16Y41",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    83,
+    84
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 84,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 83,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 83,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 84,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 42,
+   "name": "SLICE_X16Y42",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    85,
+    86
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 86,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 85,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 85,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 86,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 43,
+   "name": "SLICE_X16Y43",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    87,
+    88
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 88,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 87,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 87,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 88,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 44,
+   "name": "SLICE_X16Y44",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    89,
+    90
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 90,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 89,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 89,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 90,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 45,
+   "name": "SLICE_X16Y45",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    91,
+    92
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 92,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 91,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 91,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 92,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 46,
+   "name": "SLICE_X16Y46",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    93,
+    94
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 94,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 93,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 93,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 94,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 47,
+   "name": "SLICE_X16Y47",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    95,
+    96
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 96,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 95,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 95,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 96,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 48,
+   "name": "SLICE_X16Y48",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    97,
+    98
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 98,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 97,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 97,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 98,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 49,
+   "name": "SLICE_X16Y49",
+   "frames": [
+    "0x00401220",
+    "0x00401221",
+    "0x00401222",
+    "0x00401223"
+   ],
+   "words": [
+    99,
+    100
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 100,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 99,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 99,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 100,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 50,
+   "name": "SLICE_X16Y50",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    0,
+    1
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 1,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 0,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 0,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 1,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 51,
+   "name": "SLICE_X16Y51",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    2,
+    3
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 3,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 2,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 2,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 3,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 52,
+   "name": "SLICE_X16Y52",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    4,
+    5
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 5,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 4,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 4,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 5,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 53,
+   "name": "SLICE_X16Y53",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    6,
+    7
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 7,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 6,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 6,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 7,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 54,
+   "name": "SLICE_X16Y54",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    8,
+    9
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 9,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 8,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 8,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 9,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 55,
+   "name": "SLICE_X16Y55",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    10,
+    11
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 11,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 10,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 10,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 11,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 56,
+   "name": "SLICE_X16Y56",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    12,
+    13
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 13,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 12,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 12,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 13,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 57,
+   "name": "SLICE_X16Y57",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    14,
+    15
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 15,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 14,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 14,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 15,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 58,
+   "name": "SLICE_X16Y58",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    16,
+    17
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 17,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 16,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 16,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 17,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 59,
+   "name": "SLICE_X16Y59",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    18,
+    19
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 19,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 18,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 18,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 19,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 60,
+   "name": "SLICE_X16Y60",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    20,
+    21
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 21,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 20,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 20,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 21,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 61,
+   "name": "SLICE_X16Y61",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    22,
+    23
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 23,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 22,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 22,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 23,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 62,
+   "name": "SLICE_X16Y62",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    24,
+    25
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 25,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 24,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 24,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 25,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 63,
+   "name": "SLICE_X16Y63",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    26,
+    27
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 27,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 26,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 26,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 27,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 64,
+   "name": "SLICE_X16Y64",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    28,
+    29
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 29,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 28,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 28,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 29,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 65,
+   "name": "SLICE_X16Y65",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    30,
+    31
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 31,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 30,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 30,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 31,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 66,
+   "name": "SLICE_X16Y66",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    32,
+    33
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 33,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 32,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 32,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 33,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 67,
+   "name": "SLICE_X16Y67",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    34,
+    35
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 35,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 34,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 34,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 35,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 68,
+   "name": "SLICE_X16Y68",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    36,
+    37
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 37,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 36,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 36,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 37,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 69,
+   "name": "SLICE_X16Y69",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    38,
+    39
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 39,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 38,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 38,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 39,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 70,
+   "name": "SLICE_X16Y70",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    40,
+    41
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 41,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 40,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 40,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 41,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 71,
+   "name": "SLICE_X16Y71",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    42,
+    43
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 43,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 42,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 42,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 43,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 72,
+   "name": "SLICE_X16Y72",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    44,
+    45
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 45,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 44,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 44,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 45,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 73,
+   "name": "SLICE_X16Y73",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    46,
+    47
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 47,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 46,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 46,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 47,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 74,
+   "name": "SLICE_X16Y74",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    48,
+    49
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 49,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 48,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 48,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 49,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 75,
+   "name": "SLICE_X16Y75",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    51,
+    52
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 52,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 51,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 51,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 52,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 76,
+   "name": "SLICE_X16Y76",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    53,
+    54
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 54,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 53,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 53,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 54,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 77,
+   "name": "SLICE_X16Y77",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    55,
+    56
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 56,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 55,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 55,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 56,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 78,
+   "name": "SLICE_X16Y78",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    57,
+    58
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 58,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 57,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 57,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 58,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 79,
+   "name": "SLICE_X16Y79",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    59,
+    60
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 60,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 59,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 59,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 60,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 80,
+   "name": "SLICE_X16Y80",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    61,
+    62
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 62,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 61,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 61,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 62,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 81,
+   "name": "SLICE_X16Y81",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    63,
+    64
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 64,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 63,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 63,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 64,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 82,
+   "name": "SLICE_X16Y82",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    65,
+    66
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 66,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 65,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 65,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 66,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 83,
+   "name": "SLICE_X16Y83",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    67,
+    68
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 68,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 67,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 67,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 68,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 84,
+   "name": "SLICE_X16Y84",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    69,
+    70
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 70,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 69,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 69,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 70,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 85,
+   "name": "SLICE_X16Y85",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    71,
+    72
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 72,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 71,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 71,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 72,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 86,
+   "name": "SLICE_X16Y86",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    73,
+    74
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 74,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 73,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 73,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 74,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 87,
+   "name": "SLICE_X16Y87",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    75,
+    76
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 76,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 75,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 75,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 76,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 88,
+   "name": "SLICE_X16Y88",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    77,
+    78
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 78,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 77,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 77,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 78,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 89,
+   "name": "SLICE_X16Y89",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    79,
+    80
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 80,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 79,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 79,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 80,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 90,
+   "name": "SLICE_X16Y90",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    81,
+    82
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 82,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 81,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 81,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 82,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 91,
+   "name": "SLICE_X16Y91",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    83,
+    84
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 84,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 83,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 83,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 84,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 92,
+   "name": "SLICE_X16Y92",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    85,
+    86
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 86,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 85,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 85,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 86,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 93,
+   "name": "SLICE_X16Y93",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    87,
+    88
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 88,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 87,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 87,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 88,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 94,
+   "name": "SLICE_X16Y94",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    89,
+    90
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 90,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 89,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 89,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 90,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 95,
+   "name": "SLICE_X16Y95",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    91,
+    92
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 92,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 91,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 91,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 92,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 96,
+   "name": "SLICE_X16Y96",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    93,
+    94
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 94,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 93,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 93,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 94,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 97,
+   "name": "SLICE_X16Y97",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    95,
+    96
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 96,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 95,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 95,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 96,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 98,
+   "name": "SLICE_X16Y98",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    97,
+    98
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 98,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 97,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 97,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 98,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 99,
+   "name": "SLICE_X16Y99",
+   "frames": [
+    "0x00001220",
+    "0x00001221",
+    "0x00001222",
+    "0x00001223"
+   ],
+   "words": [
+    99,
+    100
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 100,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 99,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 99,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 100,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 100,
+   "name": "SLICE_X10Y7",
+   "frames": [
+    "0x00400d20",
+    "0x00400d21",
+    "0x00400d22",
+    "0x00400d23"
+   ],
+   "words": [
+    14,
+    15
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 15,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 14,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 14,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 15,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 101,
+   "name": "SLICE_X12Y44",
+   "frames": [
+    "0x00400da0",
+    "0x00400da1",
+    "0x00400da2",
+    "0x00400da3"
+   ],
+   "words": [
+    89,
+    90
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 90,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 89,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 89,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 90,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 102,
+   "name": "SLICE_X20Y81",
+   "frames": [
+    "0x00001320",
+    "0x00001321",
+    "0x00001322",
+    "0x00001323"
+   ],
+   "words": [
+    63,
+    64
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 64,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 63,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 63,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 64,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 103,
+   "name": "SLICE_X24Y18",
+   "frames": [
+    "0x004014a0",
+    "0x004014a1",
+    "0x004014a2",
+    "0x004014a3"
+   ],
+   "words": [
+    36,
+    37
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 37,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 36,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 36,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 37,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 104,
+   "name": "SLICE_X28Y55",
+   "frames": [
+    "0x00001620",
+    "0x00001621",
+    "0x00001622",
+    "0x00001623"
+   ],
+   "words": [
+    10,
+    11
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 11,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 10,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 10,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 11,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 105,
+   "name": "SLICE_X30Y92",
+   "frames": [
+    "0x000016a0",
+    "0x000016a1",
+    "0x000016a2",
+    "0x000016a3"
+   ],
+   "words": [
+    85,
+    86
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 86,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 85,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 85,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 86,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 106,
+   "name": "SLICE_X32Y29",
+   "frames": [
+    "0x004017a0",
+    "0x004017a1",
+    "0x004017a2",
+    "0x004017a3"
+   ],
+   "words": [
+    59,
+    60
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 60,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 59,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 59,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 60,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 107,
+   "name": "SLICE_X34Y66",
+   "frames": [
+    "0x00001820",
+    "0x00001821",
+    "0x00001822",
+    "0x00001823"
+   ],
+   "words": [
+    32,
+    33
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 33,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 32,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 32,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 33,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 108,
+   "name": "SLICE_X38Y3",
+   "frames": [
+    "0x004019a0",
+    "0x004019a1",
+    "0x004019a2",
+    "0x004019a3"
+   ],
+   "words": [
+    6,
+    7
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 7,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 6,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 6,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 7,
+     "bits": "15 down to 0"
+    }
+   ]
+  },
+  {
+   "site": 109,
+   "name": "SLICE_X42Y40",
+   "frames": [
+    "0x00401aa0",
+    "0x00401aa1",
+    "0x00401aa2",
+    "0x00401aa3"
+   ],
+   "words": [
+    81,
+    82
+   ],
+   "memories": [
+    {
+     "position": "D6LUT",
+     "word": 82,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "A6LUT",
+     "word": 81,
+     "bits": "15 down to 0"
+    },
+    {
+     "position": "B6LUT",
+     "word": 81,
+     "bits": "31 down to 16"
+    },
+    {
+     "position": "C6LUT",
+     "word": 82,
+     "bits": "15 down to 0"
+    }
+   ]
+  }
+ ]
+}

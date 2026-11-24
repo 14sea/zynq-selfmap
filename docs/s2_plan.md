@@ -11,7 +11,7 @@ when the step before it has answered. The points for the owner are in section 11
 the owner decided in section 12. **No board run happens without the owner's word for that
 step.**
 
-**Where S2 stands (2026-11-23).** The host side of S2.0 and S2.1 is built (section 13). A
+**Where S2 stands (2026-11-24).** The host side of S2.0 and S2.1 is built (section 13). A
 review of it found one fault in the run script, and a review of the mending two more; all
 three are mended (sections 14 and 15). The complete set of mutants has been run, and the
 mutants of the run script on the script as it is now (section 16). **S2.0 has been on the
@@ -69,7 +69,14 @@ read from the file a second time; and a chain of part 2 that cannot be planned s
 on". The owner has decided on the as-built (section 50): sixteen runs of the singles and
 no access to one site alone are accepted, and a memory the six moves do not find halts
 part 2 — how it would then be given its site is said there beforehand, and not built.
-**The design is on the card since 2026-11-24 (section 51).** No run of S2.5 has been made.
+The design is on the card since 2026-11-24 (section 51). **Part 1 of S2.5 has been on the
+board (2026-11-24) and is complete: 28,160 bits follow, each of the 440 memories is found
+once, and 432 of them where the prediction said — the two sites of X10 and X12 lie six
+columns of frames lower (section 52).** **Part 2 has been on the board the same day and is
+complete: a table for every one of the 110 sites, every cell confirmed at every site; of
+the rule's five parts four hold at every site measured and the column does not (section
+53). With it S2.5 is done, and every step of S2 has been on the board.** What is left of
+S2 is the complete set of mutants, once, and the grading; neither is begun.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4569,3 +4576,169 @@ words of section 46 — the card — and no further: part 1 waits for its own.
 The record is `evidence/card_2026-11-24/`. Next, on the owner's word: part 1, its first run
 alone (`host/s2_5_chain.py --dir evidence/s2_5_17A6 --go --max-new 1`), committed before
 the rest.
+
+## 52. S2.5, part 1 on the board (2026-11-24): complete — 440 memories, each found once; the prediction misses at two sites
+
+The account in full, with the runs and their numbers, is `evidence/s2_5_17A6/RESULT.md`.
+Here: what it says against what was named beforehand.
+
+### What was done
+
+On the owner's word, after the design was on the card (section 51). A precheck; the run
+of share 0 alone (19:35–19:42 UTC), stored and committed (`019184e`); then the other
+seven (19:51–20:41 UTC), stored and committed as they stood (`8a7e92f`). Eight runs, eight
+passes, no halt, nothing set aside; three pieces of results pulled again. The first runs
+of the design `s2b` on a board.
+
+### What it says
+
+- **Outcome 2 of section 45**: 28,160 bits follow — as many as the design has cells — all
+  as they are; every other bit of block type 0 is still; each of the 440 loaded words is
+  found once, whole, under the six moves, and its 64 places are candidates. **Some are not
+  where part 0 said**: 8 of 440.
+- The candidates lie in 48 frames, twelve groups of four next to each other: two of 50
+  sites each (X16, one in each half) and ten of one site.
+- CTL0 `0x00000501` in all eight runs. All 110 sites read back as held before and after
+  the frames of every state.
+- Room for part 2: 24 reads a state; both of its kinds of run can be planned (section 48,
+  finding 3, did not come to pass).
+
+### The prediction, rule by rule
+
+Part 0 (`f692832`) was committed before the design was on the card, and the repository
+was public before the first run. It read three rules from two measured sites — X16 row
+30 (S2.3) and X34 row 70 (S2.4) — and carried ten forms of the word rule.
+
+| rule | came |
+|---|---|
+| the six moves, and which word and half a LUT position has | so, at all 110 sites |
+| rows 0 to 49 in one half of the device, 50 to 99 in the other | so, at all 110 |
+| two words a row, and one word more somewhere between rows 20 and 30 | so; it lies after row 24, the form named first — 432 of 440 under it, and fewer under each of the nine others |
+| site column X in the (19 + X/2)-th column of 36 frames of its half | so for nine columns, X16 to X42; **not for X10 and X12**, found six columns lower |
+
+So: 432 of 440, and the 8 are the two sites to the left of every site the rule was read
+from. The word and the half that were said for them are right; the four frames are
+`0x300` lower in the address. I set the weight of it down as I see it. A line through two
+points was carried to the right of them and to the left; to the right, and between the
+two, it held at seven columns nobody had measured; to the left it failed at the first
+column asked. That is a miss, and it is stored as one: nothing was done to the
+prediction afterwards, and the chain's closing scores each of the ten forms as it was
+written.
+
+What the miss says of the device is small and exact: between the columns of frames of
+X12 and X16 lie six columns of 36 frames that the count of X does not cover. Part 2 puts
+it in the census's own numbers (section 53).
+
+### Bit 5
+
+After 24 records: the two reads that deliver each of the twelve groups, in the state as
+loaded — at every group, and in no written state. As in the frames of the shift registers
+(section 44): with the loaded content, not with a uniform one.
+
+### In numbers
+
+- **Stored runs**: 221 after this chain, of which 215 have a result of their own; 175
+  pass.
+- The image, the prober and the host programs were not changed by the board: what was
+  mended between the as-built and the board is in sections 48 to 50.
+
+## 53. S2.5, part 2 on the board (2026-11-24): complete — a table for every site, every cell confirmed; the column is not one rule
+
+The account in full is `evidence/s2_5b_17A6/RESULT.md`. Here: what it says against what
+was named beforehand, and where S2.5 leaves S2.
+
+### What was done
+
+On the owner's word after part 1. A precheck; the code run alone (20:59–21:06 UTC),
+stored and committed with its tables (`554d91a`); then the sixteen runs of the singles
+(21:14–23:03 UTC), each on its turn, stored and committed as they stood (`4db4e98`).
+Seventeen runs, seventeen passes, no halt, nothing set aside; two pieces of results
+pulled again. Before every run what part 1 found was taken again from its stored runs
+(section 48).
+
+### What it says
+
+- **Outcome 7**: every one of the 28,160 places follows exactly one cell, as it is; the
+  places are the candidates of part 1; and at every site the cell is the one its place in
+  the loaded word says. 110 tables, and they are one table moved.
+- **Outcome 9**: each of the 256 cells, set alone at every site, changes exactly its 110
+  places and no other bit read. 28,160 places confirmed, no contradiction.
+- At `SLICE_X16Y30` the 256 entries are those of S2.3, place for place and cell for cell.
+- CTL0 `0x00000501` in all seventeen runs.
+
+### The rule
+
+`rule.json` says of each of its five parts whether every site measured obeys it:
+
+| part | every site? | what it says |
+|---|---|---|
+| the six moves | yes | S2.3's, at all 440 memories |
+| the position | yes | A, B, C, D: lower word lower half, lower word upper half, upper word lower half, upper word upper half |
+| the half | yes | rows 0 to 49 in one half of the device, 50 to 99 in the other |
+| the word | yes | 2 r and 2 r + 1 up to row 24 of the half, 2 r + 1 and 2 r + 2 above: word 50 of a frame is no row's. All 50 rows, both halves |
+| the column | **no** | X16 to X42: the (19 + X/2)-th column of 36 frames of the half, at nine columns. X10 and X12: the (13 + X/2)-th |
+
+So `one_rule` is false, and the file says so instead of a rule — which is what section
+45 asked for ("if the sites do not obey one rule, that is what is written"). In the
+census's numbers: the columns of frames 26 to 33 of a half are eight columns of 36 frames
+next to each other; X10 and X12 are the first two; X16 is column 36. Six columns of 36
+frames between X12 and X16 hold no site this count of X reaches. No site of X14 was
+probed, so where the six lie between the two is open, and so is what they hold.
+
+A reckoning that leans on names and on a step not measured, for no program and no judge.
+Vivado's list of the sites of this kind (`pl/s2a/slicem_sites.txt`) names no column above
+X42; with two numbers of X to a column of frames — the rule's reading, section 46 — the
+count of X reaches 22 columns, and the census has 41 columns of 36 frames a half. Nineteen
+are left over. Six of them lie between X12 and X16. X42 is in the last of the 41, so none
+lies to the right of it. If X0 to X12 keep the step that X10 and X12 keep, thirteen lie
+to the left of X0 — and thirteen and six are nineteen. That fits; it is an extrapolation
+and no finding, and what the nineteen hold I do not say. The grading at the end of S2 is
+where it is held against a database.
+
+### What was said beforehand, and what came
+
+| said | where | came |
+|---|---|---|
+| where each of the 440 memories lies | part 0, before the card (`f692832`) | 432 of 440; the column rule fails at X10 and X12 (section 52) |
+| the one word more: after row 24 named first of ten forms | part 0 | after row 24, and no other form fits |
+| 24 reads a state for part 2 | section 47, from the prediction's frames | 24 — the two sites that were elsewhere are in as many frames as said |
+| a memory the six moves do not find halts part 2 | sections 47 and 50 | none: all 440 found |
+| every cell at the place the loaded word gives it | section 45, outcome 7 | so, at all 28,160 |
+
+### The two things section 47 changed, on the board
+
+Sixteen runs of the singles instead of thirteen, and no access to one site alone: both as
+the owner accepted them (section 50). The first cost an hour and three quarters of board
+time, as reckoned. The second means what section 48 said it means: the site of an entry
+rests on part 1's loaded words, and the description says so in every file.
+
+### Bit 5
+
+In the singles it follows one rule without exception, over 3,072 records: with one cell
+set at every site and every other zero, it shows after the read that delivers the frame
+that cell lies in, at each of the twelve groups, and after no other read — not after the
+read of the three neighbouring frames of the same group. Not with all zero; not with any
+of the sixteen code states. So it answers read by read to the content of the frames
+delivered, as S2.3 and S2.4 suggested and this shows at twelve places at once. Which
+contents, I still cannot say; no rule is given, and nothing rests on it.
+
+### Where S2 stands after S2.5
+
+- All six steps of S2 have been on the board. Question 7 of section 1 is answered for the
+  RAM at 110 sites and for the shift registers at one. Three descriptions, closed-book,
+  in this project's own form: `ram_map.json` of S2.3, `srl_map.json` of S2.4, and
+  `ram_map.json` with `rule.json` of S2.5.
+- What S2.5 does not show is what section 45 said it would not, and one thing more: for a
+  column of sites below X16 the column rule is two measured columns, not a line.
+- **Before S2 is graded**: the complete set of mutants, once (section 35) — 1,681 now.
+  Then the grading, on the owner's word. Neither is begun.
+- Nothing has been written to configuration memory; `SEU_EN` was not set.
+
+### In numbers
+
+- **Tests**: 1,214 (two new: each stored chain of S2.5 assessed again from its raw
+  words — the candidates, the search, the prediction scored; the tables, the 28,160
+  entries by the rule, bit 5 read by read).
+- **Mutants**: 1,681, none stale; none new. Nothing under `prober/` or `host/` was
+  changed.
+- **Stored runs**: 238, of which 232 have a result of their own; 192 pass.

@@ -1,0 +1,172 @@
+{
+ "error_mask": "0x00f4c840",
+ "usual": "0x50033004",
+ "runs": 8,
+ "runs_with_such_a_bit": [
+  "evidence/s2_5_17A6/run02",
+  "evidence/s2_5_17A6/run03",
+  "evidence/s2_5_17A6/run05",
+  "evidence/s2_5_17A6/run06",
+  "evidence/s2_5_17A6/run07"
+ ],
+ "bits": [
+  5
+ ],
+ "by_run": [
+  {
+   "run": "evidence/s2_5_17A6/run00",
+   "status_words": 2632,
+   "bits": []
+  },
+  {
+   "run": "evidence/s2_5_17A6/run01",
+   "status_words": 2632,
+   "bits": []
+  },
+  {
+   "run": "evidence/s2_5_17A6/run02",
+   "status_words": 2632,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 82,
+      "kind": "target",
+      "far": "0x0000121e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 24,
+     "words": 2632,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_5_17A6/run03",
+   "status_words": 2662,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 12,
+      "kind": "target",
+      "far": "0x0000169e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 16,
+     "words": 2662,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_5_17A6/run04",
+   "status_words": 2602,
+   "bits": []
+  },
+  {
+   "run": "evidence/s2_5_17A6/run05",
+   "status_words": 2662,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 92,
+      "kind": "target",
+      "far": "0x00400d1e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 16,
+     "words": 2662,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_5_17A6/run06",
+   "status_words": 2602,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 34,
+      "kind": "target",
+      "far": "0x0040121e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 24,
+     "words": 2602,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  },
+  {
+   "run": "evidence/s2_5_17A6/run07",
+   "status_words": 1252,
+   "bits": [
+    {
+     "bit": 5,
+     "name": "PCFG_SEU_ERR (UG585, devcfg.INT_STS: triggers when PL detects POST_CRC or ECC error)",
+     "first": {
+      "where": "a record",
+      "record": 34,
+      "kind": "target",
+      "far": "0x0040199e",
+      "frames": 3,
+      "status_words": [
+       "50033004",
+       "50033024",
+       "50033024",
+       "50033024",
+       "50033024"
+      ]
+     },
+     "words_with_it": 16,
+     "words": 1252,
+     "stayed_once_it_showed": false,
+     "in_the_last_word": false
+    }
+   ]
+  }
+ ]
+}

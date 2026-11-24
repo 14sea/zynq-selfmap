@@ -33,7 +33,7 @@ The commit of the prediction is earlier than the run on the board.
 | S0 | Host programs and tests | Complete |
 | S1a | Frames that an earlier project measured | Complete. The prober read the same contents. |
 | S1b | Census of the frame addresses | Complete. Grading: no difference. |
-| S2 | Position of the bits of LUT RAM and of shift registers | Started. Steps S2.0 to S2.4 are complete on the board. Step S2.5 is ready, but it was not on the board. No grading. |
+| S2 | Position of the bits of LUT RAM and of shift registers | All six steps, S2.0 to S2.5, are complete on the board. No grading. |
 | S3 | State of flip-flops (not mandatory) | Not started |
 | S4 | First write to the configuration memory | Not started |
 | S5 | LUTs of SLICEL sites | Not started |
@@ -63,7 +63,19 @@ These results are closed-book. There was no grading.
   - The bits are in the frames `0x00001820` to `0x00001823`, in words 40 and 41.
   - The prediction gave these frames and these words before the run.
 - The two tables are `evidence/s2_3_17A6_2026-11-23/ram_map.json` and `evidence/s2_4b_17A6_2026-11-23/srl_map.json`.
-- Step S2.5 uses a design with LUT RAM at 110 sites. The prediction for its 440 memories is in `evidence/s2_5_prediction_2026-11-23/`.
+- LUT RAM, 110 sites, four memories of 64 bits at each site (step S2.5):
+  - The design gives each of the 440 memories a different initial word. The search found each word one time in the frames. Thus each memory has a known position.
+  - 28,160 bits of block type 0 follow the 28,160 cells. Each cell has one bit.
+  - A different run for each cell agrees with the table at all the sites.
+  - The table is `evidence/s2_5b_17A6/ram_map.json`.
+- The prediction of step S2.5:
+  - Before the run, a prediction gave the position of each of the 440 memories. It is in `evidence/s2_5_prediction_2026-11-23/`.
+  - 432 memories are in the predicted position.
+  - 8 memories, at two sites, are not. They are in the predicted words, but six columns of frames lower.
+- The rule of step S2.5 is `evidence/s2_5b_17A6/rule.json`. It has five parts:
+  - Four parts are correct for all the 110 sites: the sequence of the bits in a memory, the word and the half word for each LUT position, the half of the device, and the word for each row.
+  - The part for the column is not one rule. It is correct for the site columns X16 to X42. The site columns X10 and X12 are six columns of frames lower.
+  - The measurement is for 110 of the 1,500 sites of this type. For the other sites, the rule is not a measurement.
 
 ## Equipment
 
@@ -97,7 +109,7 @@ The tests do not use a board. This command does all the tests:
     SELFMAP_NO_BOARD=1 python3 -B -m unittest discover -s tests
 
 `SELFMAP_NO_BOARD=1` makes sure that no test opens the serial console.
-There are 1,212 tests. They take approximately 10 minutes.
+There are 1,214 tests. They take approximately 10 minutes.
 
 These tools are necessary:
 

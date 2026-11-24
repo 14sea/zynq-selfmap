@@ -781,6 +781,189 @@ class StoredBoardResults(unittest.TestCase):
             again |= {s["far"] for _, v in verdicts if v.get("verdict") == "PASS" for s in v.get("walk") or []}
         self.assertEqual(len(again & {x["far"] for x in c["entries"]}), 2146, "addresses of the census walked on more than one occasion")
 
+    def test_the_chain_that_finds_the_memories_of_110_sites(self) -> None:
+        """S2.5, part 1, 2026-11-24: eight runs, one of each share of block type 0, each in three states of the design
+        s2b — as loaded, all one, all zero, the last two written to every site at once. The chain is assessed again here
+        from the raw words of its results, against the set and the image kept with the runs: complete; 28,160 bits
+        follow, as many as the design has cells, all as they are, in twelve groups of four frames; every other bit
+        still; each of the 440 loaded words found once under the six moves of S2.3. The prediction made before the
+        design was on the card is a miss at two sites, in its rule of the column and in nothing else. Nothing was
+        graded."""
+        import s2_5_chain, stage_designs, status_seen
+        d = ROOT / "evidence" / "s2_5_17A6"
+        base = json.loads((d / "expected_s2_5f.json").read_text())
+        self.assertEqual({hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest(), base["image_sha256"]},
+                         {"8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b"}, "the image of section 32: S2.5 has no image of its own")
+        self.assertEqual([hashlib.sha256((d / f"run{k:02d}" / "result.bin").read_bytes()).hexdigest() for k in range(8)],
+                         ["f833dda4487cf2a7dbfd925e63138c6e5d5a3a44ef8bb934234f44244dd78709", "96f95f6235a85def5318779d5d1a34a68d94ab7499148664181035ab035b1daf",
+                          "dc9815f3ec695f9de8f8a2652637026794c75859eaa151c275afb80361446b06", "c18076601cc71e8a0113779565354cc9addf3e9f75c9c238b4c5bcb3a31445fd",
+                          "e2e18e2ad446ddd6463a3cd53c2dc4e091e61e18f4510f61c013f5d4f3b323d0", "67be7234b5ed7e0cc4cc89ce09d4f5b740edff4c2366ad736b72bf89227a91cb",
+                          "7900518d7dc85bf136fd4764a50d54e3585cad645babdd83ecaa9f6d4b7f87d3", "e41accca3bd60996a04c29e3af133b84cc11460e0f7be2aa401dd65c71115b0a"])
+        known = s2_5_chain.known_of_the_device()
+        stage_designs.stage()
+        a = s2_5_chain.assess(d, base, known)
+        self.assertEqual((a["state"], len(a["runs"]), a["set_aside"]), ("complete", 8, []))
+        self.assertEqual([(r["share"], r["decision"], r["reads"], r["frames"], len(r["memories"]), r["bits"]["follow"], r["bits"]["follow_inverted"], r["bits"]["irregular"], r["ctl0"])
+                          for r in a["runs"]],
+                         [(k, "complete" if k == 7 else "go on", reads, frames, follow // 64, follow, 0, 0, "0x00000501")
+                          for k, (reads, frames, follow) in enumerate(((174, 516, 0), (174, 516, 0), (174, 520, 13312), (176, 524, 512), (172, 508, 0), (176, 524, 512), (172, 512, 13312), (82, 244, 512)))])
+        self.assertEqual(sum(r["bits"]["still"] for r in a["runs"]) + 28160, 3864 * 101 * 32, "every bit of every frame of block type 0 is still or a candidate")
+        c = a["closing"]
+        self.assertEqual((c["problems"], c["addresses_read"], c["sites"], c["memories_in_the_design"], c["cells_in_the_design"], c["candidates"], c["candidates_as_they_are"], c["candidates_inverted"]),
+                         ([], 3864, 110, 440, 28160, 28160, 28160, 0))
+        self.assertEqual((c["memories_found_once"], c["memories_found_inverted"], c["memories_not_found"], c["memories_found_more_than_once"],
+                          c["memories_found_whose_places_are_not_all_candidates"], c["candidates_of_no_memory_found"], c["places_looked_at"], c["outcome"][:2], c["ctl0"], c["ctl0_in_s2_2"]),
+                         (440, 0, [], [], [], 0, 712656, "2:", ["0x00000501"], "0x00000501"))
+        self.assertLess(c["hits_chance_would_give"], 1e-10)
+        # ---- where they lie: twelve groups of four frames next to each other, two of 50 sites and ten of one
+        groups = {0x00001220: 50, 0x00001320: 1, 0x00001620: 1, 0x000016a0: 1, 0x00001820: 1, 0x00400d20: 1, 0x00400da0: 1, 0x00401220: 50, 0x004014a0: 1, 0x004017a0: 1, 0x004019a0: 1, 0x00401aa0: 1}
+        self.assertEqual(c["frames_with_candidates"], {f"0x{g + i:08x}": 64 * n for g, n in groups.items() for i in range(4)})
+        # ---- the prediction (part 0, f692832), scored form by form as it was written: a miss, at two sites, by six columns
+        p = c["prediction"]
+        self.assertEqual((p["memories_named"], {int(k): v for k, v in p["forms"].items()}, p["forms_under_which_every_memory_is_where_it_said"], p["the_form_it_named_first"], p["best_form"]),
+                         (440, {20: 400, 21: 408, 22: 416, 23: 424, 24: 432, 25: 424, 26: 416, 27: 408, 28: 400, 29: 388}, [], 24, 24))
+        self.assertEqual([(m["name"], m["memory"], m["said"]["frames"][0], m["found"]["frames"][0], m["said"]["word_under_the_form"] == m["found"]["word"], m["said"]["bits"] == m["found"]["bits"], m["found"]["inverted"])
+                          for m in p["not_where_it_said"]],
+                         [(name, k, said, found, True, True, False) for name, said, found in (("SLICE_X10Y7", "0x00401020", "0x00400d20"), ("SLICE_X12Y44", "0x004010a0", "0x00400da0")) for k in range(4)])
+        self.assertEqual({int(m["said"]["frames"][0], 16) - int(m["found"]["frames"][0], 16) for m in p["not_where_it_said"]}, {6 * 0x80}, "six columns of frames lower than said")
+        # ---- room for part 2 (section 48): it can be planned
+        self.assertEqual(c["part_2"], {"frames_with_candidates": 48, "the_result_area_holds": 262144, "a_list_holds": 178, "reads_a_state": 24,
+                                       "result_words": {"code": 222566, "singles": 219110}, "can_be_planned": True})
+        # ---- what was written beside the runs when the chain closed is what the programs give now
+        self.assertEqual(json.loads(json.dumps(s2_5_chain.brief(a))), json.loads((d / "chain.json").read_text()))
+        self.assertEqual(json.loads(json.dumps(s2_5_chain.candidates_file(a, known))), json.loads((d / "candidates.json").read_text()))
+        self.assertEqual((hashlib.sha256((d / "candidates.json").read_bytes()).hexdigest(), hashlib.sha256((d / "chain.json").read_bytes()).hexdigest()),
+                         ("88be2ae0696d4132a188f87ebfef301cc9db89021587dc22ad8f628f1c70710e", "3534cf545bea8bafbe33d7bf8e54596895421b875e338875228e886a2bdb9fe4"))
+        # ---- the eight runs: whole, saved, pulled; every site as held after every pass; nothing to one site alone
+        pieces_again, with_bit_5 = 0, {}
+        for k in range(8):
+            rec = json.loads((d / f"run{k:02d}" / "run.json").read_text())
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"], rec["return_code"]),
+                             ("PASS", [], [], True, "50033004", "0x0"), k)
+            self.assertEqual(rec["board_crc32"], rec["host_crc32"], k)
+            self.assertEqual((v["header"]["anomalies"], {r["code"] for r in v["records"]}, v["finding"]["states_read_whole"]), (0, {"0x0"}, 3), k)
+            self.assertEqual((v["pl"]["code"], v["pl"]["passes_the_sites_held_through"], v["pl"]["writes_counted"], v["pl"]["sites"], v["pl"]["id"]), ("0x0", 3, 128, 110, "0x53324231"), k)
+            self.assertEqual(int(v["header"]["ctrl"], 16) & 0x100, 0, "SEU_EN is clear")
+            pieces_again += len(rec["pull"]["repeated"])
+            # bit 5: after the two reads that deliver a group of four frames with memories in them, in the state as loaded — and after no other record
+            shown = [r["index"] for r in v["records"] if any(int(w, 16) & 0x20 for w in r["int_sts"])]
+            self.assertEqual(shown, [r["index"] for r in v["records"] if r["kind"] == "target" and r["state"] == 0 and any(int(r["far"], 16) in (g - 2, g + 1) for g in groups)], k)
+            self.assertEqual(shown, c["bit_5"].get(f"run{k:02d}", []), k)
+            with_bit_5[k] = len(shown)
+        self.assertEqual((pieces_again, with_bit_5, c["bit_5_still_set_after_clearing"]), (4, {0: 0, 1: 0, 2: 6, 3: 4, 4: 0, 5: 4, 6: 6, 7: 4}, {}))
+        self.assertEqual(sum(with_bit_5.values()), 2 * len(groups))
+        self.assertEqual((d / "resets_console.log").read_bytes().count(b"<<TX b'reset\\r'>>"), 8)
+        listed = json.loads((d / "status_seen.json").read_text())
+        seen = [status_seen.seen(json.loads(f.read_text())) for f in status_seen.verdicts(d)]
+        self.assertEqual(([{k: r[k] for k in ("status_words", "bits")} for r in listed["by_run"]], listed["bits"], sum(s["status_words"] for s in seen)), (seen, [5], 19676))
+        self.assertEqual([Path(r).name for r in listed["runs_with_such_a_bit"]], ["run02", "run03", "run05", "run06", "run07"])
+        self.assertFalse((d / "grade.json").exists(), "nothing was graded")
+
+    def test_the_chain_that_says_which_place_is_which_cell_at_110_sites(self) -> None:
+        """S2.5, part 2, 2026-11-24: the code run and the sixteen runs of the singles, every write to every site at once.
+        The chain is assessed again here from the raw words of its results, over what part 1's stored runs give:
+        complete; every one of the 28,160 places follows one cell as it is, the cell its place in the loaded word says;
+        every cell confirmed at every site by its single. The 28,160 entries follow from the site's name by the rule the
+        account sets down and nothing else; of that rule's five parts the column is the one that is not one rule. At
+        the site of S2.3 the entries are S2.3's. Bit 5 of the status follows one rule read by read. Nothing was
+        graded."""
+        import re
+        import s1a_run, s2_5_chain2, s2_5_table, stage_designs, status_seen
+        d = ROOT / "evidence" / "s2_5b_17A6"
+        bases = {stage: json.loads((d / f"expected_{stage}.json").read_text()) for stage in ("s2_5c", "s2_5s")}
+        self.assertEqual({hashlib.sha256((d / "prober.bin").read_bytes()).hexdigest()} | {b["image_sha256"] for b in bases.values()},
+                         {"8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b"})
+        self.assertEqual(hashlib.sha256(b"".join(hashlib.sha256((d / f"run{k:02d}" / "result.bin").read_bytes()).digest() for k in range(17))).hexdigest(),
+                         "26b3db316fac63237c985c534069b4c1b2a6a59dbd0f418e3e3ce73c3f9551f9", "the seventeen results, by the hash of their hashes in order")
+        known = s1a_run.known_for("s2_5c")              # what part 1 found, taken again from its stored runs (section 48)
+        stage_designs.stage()
+        a = s2_5_chain2.assess(d, bases, known)
+        self.assertEqual((a["state"], len(a["runs"]), a["set_aside"]), ("complete", 17, []))
+        self.assertEqual([(r["kind"], r["share"], r["decision"], r["states"], r["reads"], r["frames"], r["bits"], r["ctl0"]) for r in a["runs"]],
+                         [("code", None, "go on", 18, 24, 72, {"still": 204544, "follow": 28160, "follow_inverted": 0, "irregular": 0}, "0x00000501")]
+                         + [("singles", k, "complete" if k == 15 else "go on", 18, 24, 72, {"still": 230944, "follow": 1760, "follow_inverted": 0, "irregular": 0}, "0x00000501") for k in range(16)])
+        code = a["closing_of_the_code_run"]
+        self.assertEqual((code["problems"], code["bits_that_follow"], code["inverted"], code["candidates_of_part_1"], code["places_part_1_did_not_have_n"], code["candidates_of_part_1_that_follow_no_cell_n"],
+                          code["places_shown_the_other_way_than_in_part_1_n"], code["bits_that_follow_and_are_of_no_memory_found_n"], code["sites_with_a_table"], code["sites_without_a_table"], code["outcome"][:2]),
+                         ([], 28160, 0, 28160, 0, 0, 0, 0, 110, [], "7:"))
+        c = a["closing"]
+        self.assertEqual({k: v for k, v in c.items() if k != "bit_5"},
+                         {"sites": 110, "cells_a_site": 256, "places": 28160, "cells_confirmed_at_every_site": 256, "contradictions": 0,
+                          "outcome": "7 and 9: a table for every site, and every cell confirmed at every site by its single", "ctl0": ["0x00000501"], "ctl0_in_part_1": "0x00000501"})
+        # ---- what was written beside the runs is what the programs give now
+        self.assertEqual(json.loads(json.dumps(s2_5_chain2.brief(a))), json.loads((d / "chain.json").read_text()))
+        self.assertEqual(json.dumps(a["table"], indent=1) + "\n", (d / "table" / "table.json").read_text())
+        self.assertEqual(s2_5_table.dump(s2_5_chain2.ram_map_file(a, bases, known)), (d / "ram_map.json").read_text())
+        rule = s2_5_chain2.rule_file(a, known, json.loads(s2_5_chain2.BUILD_RECORD.read_text()), s2_5_chain2.sites_of_the_kind())
+        self.assertEqual(json.dumps(rule, indent=1) + "\n", (d / "rule.json").read_text())
+        self.assertEqual([hashlib.sha256((d / name).read_bytes()).hexdigest() for name in ("table/table.json", "ram_map.json", "rule.json")],
+                         ["760de3a6efa0703c89e0c5a269d57fc551a41d6b057339d3b24c7c7dca4471bb", "4386407d8d2277f27907febb8359c2c22a890cfadf669655508551d48b5b34e2",
+                          "7b4cec63521356cf48f37973967b50ab93f77e7b0a81ea0db7d1663390bc3165"])
+        doc = json.loads((d / "ram_map.json").read_text())
+        self.assertEqual((doc["counts"], doc["label"], len(doc["entries"])), ({"confirmed": 28160, "decoded": 0, "contradiction": 0}, "closed-book", 28160))
+        # ---- the rule: four of its five parts are obeyed by every site measured, the column is not
+        self.assertEqual((rule["obeyed_by_every_site_measured"], rule["one_rule"], rule["sites_measured"], rule["sites_of_this_kind_not_measured"]),
+                         ({"the_six_moves": True, "the_position": True, "the_half": True, "the_column": False, "the_word": True}, False, 110, 1390))
+        self.assertEqual((rule["the_word"]["the_one_word_more_after_row"], rule["the_word"]["rows_measured"]), ([24], 50))
+        self.assertEqual({int(x): int(v[0]) for x, v in rule["the_column"]["measured"].items()}, {10: 26, 12: 27, 16: 36, 20: 38, 24: 41, 28: 44, 30: 45, 32: 47, 34: 48, 38: 51, 42: 53})
+        import s2_2_shares
+        lay = s2_2_shares.layout(known["census"])
+        wide = {half: [lay["column"][col[0]][3] for col in s2_2_shares.columns(lay) if lay["column"][col[0]][1] == half and len(col) == 36] for half in ("bottom", "top")}
+        self.assertEqual((len(wide["bottom"]), wide["bottom"], [n for n in range(26, 34) if n not in wide["bottom"]]), (41, wide["top"], []), "41 columns of 36 frames a half; the census's 26 to 33 are eight of them")
+        self.assertEqual({x: wide["bottom"].index(n) - x // 2 for x, n in ((int(x), int(v[0])) for x, v in rule["the_column"]["measured"].items())},
+                         {10: 13, 12: 13, 16: 19, 20: 19, 24: 19, 28: 19, 30: 19, 32: 19, 34: 19, 38: 19, 42: 19}, "X16 to X42 on the line of the prediction, X10 and X12 six columns lower")
+        # ---- the 28,160 entries, from the site's name and the cell by the account's rule and nothing else (RESULT.md)
+        name = {s["site"]: s["name"] for s in doc["sites"]}
+        lowest = {10: 0x00400d20, 12: 0x00400da0, 20: 0x00001320, 24: 0x004014a0, 28: 0x00001620, 30: 0x000016a0, 32: 0x004017a0, 34: 0x00001820, 38: 0x004019a0, 42: 0x00401aa0}
+        position = {0: (1, 16), 1: (0, 0), 2: (0, 16), 3: (1, 0)}       # the design's memory k: which of the row's two words, and the half's lowest bit — D, A, B, C by the build's names
+        moves = {0: (1, 0), 1: (0, -1), 2: (0, -2), 3: (-2, 0), 4: (0, -4), 5: (0, -8)}
+        for e in doc["entries"]:
+            x, y = (int(n) for n in re.fullmatch(r"SLICE_X(\d+)Y(\d+)", name[e["site"]]).groups())
+            low = lowest[x] if x != 16 else 0x00401220 if y < 50 else 0x00001220
+            self.assertEqual(low >> 22 & 1, 1 if y < 50 else 0, "rows 0 to 49 in the half of the addresses 0x0040…")
+            r, (word, half), address = y % 50, position[e["memory"]], e["ram_address"]
+            self.assertEqual(tuple(int(n, 0) for n in e["address"].split("/")),
+                             (low + 2 + sum(moves[i][0] for i in range(6) if address >> i & 1), 2 * r + (1 if r > 24 else 0) + word, half + 15 + sum(moves[i][1] for i in range(6) if address >> i & 1)), e)
+            self.assertEqual((e["cell"], e["inverted"], e["state"], e["confidence"]), (64 * e["memory"] + address, False, "confirmed", 2), e)
+        self.assertEqual(len({e["address"] for e in doc["entries"]}), 28160)
+        self.assertEqual({tuple(m["position"] for m in s["memories"]) for s in rule["sites"]}, {("D6LUT", "A6LUT", "B6LUT", "C6LUT")})
+        # ---- the site of S2.3, in another design on another day: the same 256 entries
+        s2_3 = {e["address"]: (e["memory"], e["ram_address"]) for e in json.loads((ROOT / "evidence" / "s2_3_17A6_2026-11-23" / "ram_map.json").read_text())["entries"]}
+        self.assertEqual({e["address"]: (e["memory"], e["ram_address"]) for e in doc["entries"] if name[e["site"]] == "SLICE_X16Y30"}, s2_3)
+        # ---- the seventeen runs: whole, saved, pulled; every site as held after every pass; nothing to one site alone
+        frame_of = {e["cell"]: int(e["address"].split("/")[0], 0) & 3 for e in doc["entries"]}            # the same at every site: which of its group's four frames a cell lies in
+        groups = sorted({int(e["address"].split("/")[0], 0) & ~3 for e in doc["entries"]})
+        pieces_again, with_bit_5 = 0, 0
+        for k in range(17):
+            rec = json.loads((d / f"run{k:02d}" / "run.json").read_text())
+            v = json.loads((d / f"run{k:02d}" / "verdict.json").read_text())
+            self.assertEqual((rec["verdict"], rec["problems"], rec["replies_not_whole"], rec["card_verified"], rec["int_sts_afterwards"], rec["return_code"], rec["result_words"]),
+                             ("PASS", [], [], True, "50033004", "0x0", 222566 if k == 0 else 219110), k)
+            self.assertEqual(rec["board_crc32"], rec["host_crc32"], k)
+            self.assertEqual((v["header"]["anomalies"], {r["code"] for r in v["records"]}, len(v["records"]), v["finding"]["states_read_whole"]), (0, {"0x0"}, 436, 18), k)
+            self.assertEqual((v["pl"]["code"], v["pl"]["passes_the_sites_held_through"], v["pl"]["writes_counted"], v["pl"]["sites"], v["pl"]["id"]), ("0x0", 18, 960 if k == 0 else 96, 110, "0x53324231"), k)
+            self.assertEqual(int(v["header"]["ctrl"], 16) & 0x100, 0, "SEU_EN is clear")
+            pieces_again += len(rec["pull"]["repeated"])
+            # bit 5: in a state with one cell one at every site and every other zero, after the one read of each group that delivers the
+            # frame the cell lies in (the read that ends with the group's lowest frame, or the read of its other three) — and after no other
+            states = v["run"]["states"]
+            self.assertEqual(states, ["base"] + ([f"single {16 * (k - 1) + j}" for j in range(16)] if k else [f"code {j // 2}{' complement' if j % 2 else ''}" for j in range(16)]) + ["base"], k)
+            shown = [r["index"] for r in v["records"] if any(int(w, 16) & 0x20 for w in r["int_sts"])]
+            want = [r["index"] for r in v["records"] if r["kind"] == "target" and r["state"] < 18 and states[r["state"]].startswith("single")
+                    and int(r["far"], 16) in [g - 2 if frame_of[int(states[r["state"]].split()[1])] == 0 else g + 1 for g in groups]]
+            self.assertEqual((shown, len(shown)), (want, 192 if k else 0), k)
+            self.assertEqual(shown, c["bit_5"].get(f"run{k:02d}", []), k)
+            with_bit_5 += len(shown)
+        self.assertEqual((pieces_again, with_bit_5, len(groups), sum(1 for f in frame_of.values() if f == 0)), (2, 256 * 12, 12, 64))
+        self.assertEqual((d / "resets_console.log").read_bytes().count(b"<<TX b'reset\\r'>>"), 17)
+        listed = json.loads((d / "status_seen.json").read_text())
+        seen = [status_seen.seen(json.loads(f.read_text())) for f in status_seen.verdicts(d)]
+        self.assertEqual(([{k: r[k] for k in ("status_words", "bits")} for r in listed["by_run"]], listed["bits"], [s["status_words"] for s in seen]), (seen, [5], [2182] * 17))
+        self.assertEqual([(Path(r["run"]).name, [(b["bit"], b["words_with_it"], b["stayed_once_it_showed"]) for b in r["bits"]]) for r in listed["by_run"]],
+                         [("run00", [])] + [(f"run{k:02d}", [(5, 768, False)]) for k in range(1, 17)])
+        self.assertFalse((d / "grade.json").exists(), "nothing was graded")
+
     def test_the_chain_that_finds_the_shift_registers_bits(self) -> None:
         """S2.4, part 1, 2026-11-23: eight runs, one of each share of block type 0, each in the three states of the
         design's shift registers all zero, all one, all zero. The chain is assessed again here from the raw words of

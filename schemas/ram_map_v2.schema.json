@@ -1,6 +1,6 @@
 {
  "$schema": "https://json-schema.org/draft/2020-12/schema",
- "title": "ram_map 2 — at every probed site, which bit of configuration memory is which cell of a probe design's LUT RAM",
+ "title": "ram_map 2 \u2014 at every probed site, which bit of configuration memory is which cell of a probe design's LUT RAM",
  "description": "zynq-selfmap, S2.5 (docs/s2_plan.md, sections 45 and 46). Written by host/s2_5_table.py from the verdicts of stored runs and from what part 1's chain found. It is ram_map 1 with the site added to an entry, for a design with RAM at many sites; and since every site was written alike, what an entry rests on is said once for each cell and not in every entry. Closed-book: nothing in a document of this form comes from a database or from a bitstream.",
  "type": "object",
  "additionalProperties": false,
@@ -90,10 +90,37 @@
    "type": "object",
    "additionalProperties": false,
    "required": [
+    "part_1",
     "code",
     "singles"
    ],
    "properties": {
+    "part_1": {
+     "type": "array",
+     "minItems": 1,
+     "description": "the runs of part 1, in which the word each memory was loaded with was found: what the site of an entry rests on",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "dir",
+       "share",
+       "result_sha256"
+      ],
+      "properties": {
+       "dir": {
+        "type": "string"
+       },
+       "share": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "result_sha256": {
+        "$ref": "#/$defs/sha256"
+       }
+      }
+     }
+    },
     "code": {
      "$ref": "#/$defs/run"
     },
@@ -127,11 +154,16 @@
    "type": "object",
    "additionalProperties": false,
    "required": [
+    "the_site",
     "what",
     "reads",
     "of_a_cell"
    ],
    "properties": {
+    "the_site": {
+     "type": "string",
+     "description": "what the site of an entry rests on"
+    },
     "what": {
      "type": "string"
     },

@@ -179,9 +179,11 @@ def hold_singles(verdict: dict, tables: dict[int, list]) -> dict:
     return out
 
 
-def ram_map(design: dict, tables: dict[int, list], code: dict, singles: list[dict]) -> dict:
+def ram_map(design: dict, tables: dict[int, list], code: dict, singles: list[dict], part_1: list[dict]) -> dict:
     """The description. `code`: {"dir", "result_sha256", "reads", "states"} of the code run; `singles`: the same for
-    each run of the singles that was made, with "share" and what `hold_singles` said of it ("held")."""
+    each run of the singles that was made, with "share" and what `hold_singles` said of it ("held"); `part_1`: the
+    runs of part 1 as its candidates file names them ("dir", "share", "result_sha256") — what the site of every entry
+    rests on, and nothing of part 2 does."""
     names = {s["site"]: s["name"] for s in design["ram"]["sites"]}
     confirmed = {n: s for s in singles for n in s["held"]["confirmed"]}
     refuted = {c["cell"]: s for s in singles for c in s["held"]["contradictions"]}
@@ -211,9 +213,13 @@ def ram_map(design: dict, tables: dict[int, list], code: dict, singles: list[dic
             "confidence": {"0": "contradiction: with that cell alone set at every site, the bits that changed are not the places decoded for it",
                            "1": "decoded from the code states and the loaded words only",
                            "2": "confirmed: with that cell alone set at every site, exactly the places decoded for it, one a site, read otherwise than the base"},
-            "runs": {"code": {"dir": code["dir"], "result_sha256": code["result_sha256"]},
+            "runs": {"part_1": [{"dir": r["dir"], "share": r["share"], "result_sha256": r["result_sha256"]} for r in part_1],
+                     "code": {"dir": code["dir"], "result_sha256": code["result_sha256"]},
                      "singles": [{"dir": s["dir"], "share": s["share"], "result_sha256": s["result_sha256"]} for s in singles]},
-            "evidence": {"what": "every site was written alike, so what an entry rests on is said once for each cell: the states of the code run in "
+            "evidence": {"the_site": "which site an entry is of rests on the runs of part 1 and on them alone: the word the design loads a memory with "
+                                     "was found in the frames read there before anything was written, at the entry's place. The runs of part 2 write "
+                                     "every site alike and show nothing of it; a single confirms the cell of a place, not its site.",
+                         "what": "every site was written alike, so what an entry rests on is said once for each cell: the states of the code run in "
                                  "which the cell was one, and the run and state of the singles in which it alone was. The record of a run in which a "
                                  "place's frame was read in a state is 2 + state x (number of reads) + (the read that delivers the frame); the reads "
                                  "are the same in every run of part 2.",

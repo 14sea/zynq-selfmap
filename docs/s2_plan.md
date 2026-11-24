@@ -59,8 +59,12 @@ output is confirmed in all of its places; the table is what was said beforehand 
 44). With it S2.4 is done**, on the image of section 32. S2.5 is proposed in full in
 section 45 and agreed, all ten points as recommended (section 46). Its design, `s2b`, is
 built and simulated, and its part 0, the prediction, is made and stored (section 46); its
-host side is built and waits for the owner's review (section 47). Nothing of it has been
-on a board, and the design is not on the card.
+host side is built and waits for the owner's review (section 47). An outside review of
+it found three things, all three so and all mended (section 48): part 2 took whose memory
+a place is from a file of part 1 without going back to part 1's runs; the rule's part of
+the word asked only a row's lower word; and part 1 can find every memory and leave part 2
+without room for a plan, which its closing now says. Nothing of it has been on a board,
+and the design is not on the card.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4293,3 +4297,97 @@ part 1; seventeen of part 2, with the tables, the description and the rule writt
 3. The board, on three words as agreed: `s2b.bit` onto the card; part 1 (first run alone
    and committed); part 2 (the code run alone and committed with the tables). Part 1 is
    stored under `evidence/s2_5_17A6/`, where the sets of part 2 look for it.
+
+## 48. External review of `66e4ac4` (2026-11-24): three findings, all three so, all mended
+
+An outside review took `66e4ac4` as a whole. Each of its findings was held against the
+source, and two were made to happen again here, before anything was changed. All three
+are as the review says. Nothing of this has been on a board; the image is unchanged.
+
+### 1. Part 2 could confirm a wrong site (high)
+
+**What the review did.** In a copy, it left the two files part 1's chain writes —
+`candidates.json` and `chain.json` — took the runs away, and in the candidates file said
+of two sites' memories that they were each other's. The dry run of part 2 passed; and
+seventeen untouched runs of part 2, judged again over that file, closed complete: 512
+places with the wrong site, every one of them "confirmed".
+
+**Why it is so.** Part 2 took what part 1 found from the two files and never went back to
+part 1's runs. In S2.3 and S2.4 that was harmless: a candidates file there says only which
+places follow, and the code run finds that out again by itself — a place not as the file
+has it is no table. In S2.5 the file says one thing more that part 2 **cannot** find out:
+whose memory a place is. Every write of part 2 goes to every site alike (the second change
+of section 47), so two sites named for each other look to it exactly as they should. The
+one finding of the step that rested on part 1 alone was the one read from a summary.
+
+**Mended.** `s2_5_chain.not_as_its_runs_give`: every stored run of part 1 is taken again
+from its raw words, as the chain's own assessment takes it; the chain must be complete; and
+each of the two files must be what the chain would write of those runs now. It is asked
+where the sets of part 2 are given what is known (`s1a_run.known_for`), so by everything
+that uses them: the run script (its dry run and its run), the command of part 2's chain,
+the judge's command, and the audit of stored evidence. Where it does not hold, nothing is
+run and nothing assessed, and the reason is said. Taking the eight runs again costs
+seconds. The description (`ram_map.json`) now names the runs of part 1 beside those of
+part 2, and says that the site of an entry rests on them and on nothing of part 2
+(`runs.part_1`, `evidence.the_site`; the schema asks for both).
+
+**What that does and does not hold.** The two files are held to the stored runs; the
+stored runs are held, as every run of this project, by the checksum the board gave and by
+git. It is no new finding about the device, and the limit of section 47 stands: no run
+shows that the design's number for a site is the site the build's record names.
+
+### 2. The rule's part of the word said "obeyed" of a site that does not obey it (medium)
+
+`s2_5_rule` asked of every row only its lowest word. With the measured words of
+`SLICE_X10Y7` changed from 14 and 15 to 14 and 19, the part of the position said no and so
+did `one_rule` — and `the_word` still said that the row has "2 r and 2 r + 1". Reproduced
+here as the review has it. Mended: a row is held by both of its words, which must be next
+to each other and the same at every site of the row measured; what is listed where the
+rows do not obey is each row's pairs.
+
+### 3. Part 1 can find every memory and leave part 2 without a plan (a limit)
+
+Each state of part 2 reads every frame with a candidate, and the records lie with the log
+of accesses in one result area. Over the frames the prediction names that is 24 reads a
+state; the area has room for 28 (the code run: 222,566 words at 24, 257,126 at 28, and
+265,766 at 29 against 262,144). So memories in three columns of frames more than the
+prediction names — 30 reads — are found by part 1, every one, and the planner then
+refuses both the code run and the singles, as it should. The review found it with three
+sites moved; reckoned here to the same numbers.
+
+Mended as the review proposes: **the closing of part 1 says it** (`part_2` in the closing
+and so in `chain.json`: the frames with candidates, the reads a state, the words of the
+code run's result and of a run of the singles, and whether both can be planned — or the
+planner's own sentence why not), and the chain's command says it in a line of its own.
+It does not change what part 1 found or its outcome. **Not built:** part 2 over the
+frames in shares, which is what such a result would ask for. If the board shows it, that
+is where the step stops and the owner decides.
+
+### What else the review reports
+
+In the review's own words, and not checked again here: a clean copy passes all 1,200
+tests; the audit of stored evidence covers 213 runs; the four board runs of S2.4, part 2,
+judged again give the stored description; S2.5 rehearsed over the real census with the
+prediction's places, 25 runs on the pretend board, each of the 28,160 places traced to the
+raw readings of the code run and the singles; the prober rebuilt byte for byte; the bench
+of `s2b` passing; and a rebuild of `s2b` in Vivado with the same configuration data,
+placement and timing, the `.bit` differing in the date and time of its header only.
+
+### Tests and mutants
+
+- A chain of part 1 **with the plans of the device itself** is now made in the tests: the
+  real census, its eight shares, on the pretend board with the memories where the stored
+  prediction has them — outcome 1, 440 memories, 28,160 candidates, room for part 2 at 24
+  reads. The sets of part 2 are given it; with two sites named for each other in its
+  candidates file the run script's question and the command of part 2's chain both refuse
+  (`REFUSED`, nothing written). The same change over the made-up device, with the code
+  run's closing shown to pass it — which is the finding; a changed `chain.json`; a run
+  taken away; a result changed; the two files without their runs; a file missing or
+  broken.
+- The room for part 2 at 24, 28 and 30 reads; the word rule on the review's case, also
+  where the site is the only one of its row.
+- **Tests**: 1,208, all passing (8 new). **Mutants**: 1,677, none stale — 13 new, and one
+  whose line was rewritten set on the new line; the fourteen each with a first look
+  against the step's tests: all killed. The tool has not run them.
+- Taking the eight runs of a part 1 of the device's size again, as every use of a set of
+  part 2 now does: 3.7 seconds here.

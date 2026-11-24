@@ -124,22 +124,22 @@ def rule(tables: dict[int, list], design: dict, build: dict, census: dict, all_s
                                                        "measured": {str(x): sorted(str(c) for c in v) for x, v in sorted(by_x.items())}})
 
     # ---- the word
-    by_row: dict[int, set] = {}
-    for p in per:
-        by_row.setdefault(p["y"] % ROWS_A_HALF, set()).add(p["words"][0])
+    by_row: dict[int, set] = {}                          # every word a site of the row has a cell in, not its lowest alone (review of 66e4ac4:
+    for p in per:                                        # a site with the words 14 and 19 was said to have "2 r and 2 r + 1")
+        by_row.setdefault(p["y"] % ROWS_A_HALF, set()).add(tuple(p["words"]))
     alike = all(len(v) == 1 for v in by_row.values())
-    low = {r: next(iter(v)) for r, v in by_row.items()} if alike else {}
-    fits = [f for f in range(-1, ROWS_A_HALF) if alike and all(w == 2 * r + (1 if r > f else 0) for r, w in low.items())]
+    its = {r: min(v) for r, v in by_row.items()} if alike else {}
+    fits = [f for f in range(-1, ROWS_A_HALF) if alike and all(list(w) == [2 * r + (1 if r > f else 0), 2 * r + (1 if r > f else 0) + 1] for r, w in its.items())]
     obeyed["the_word"] = bool(fits)
     if fits:
         said = (f"row r of its half (the site's row, less 50 in the upper half) has the words 2 r and 2 r + 1 up to row {fits[0]}, and 2 r + 1 and 2 r + 2 above it: "
                 "one word of the frame lies between" if 0 <= fits[0] < ROWS_A_HALF - 1 and len(fits) == 1 else
                 f"row r of its half has two words; where the one word more lies is not fixed by the rows measured: after row {fits[0]} to {fits[-1]}"
                 if len(fits) > 1 else "row r of its half has the words 2 r and 2 r + 1" if fits[0] == ROWS_A_HALF - 1 else "row r of its half has the words 2 r + 1 and 2 r + 2")
-        doc["the_word"] = {"says": said, "the_one_word_more_after_row": fits, "rows_measured": len(low),
+        doc["the_word"] = {"says": said, "the_one_word_more_after_row": fits, "rows_measured": len(its),
                            "the_same_row_in_both_halves_and_in_every_column_has_the_same_words": True}
     else:
-        doc["the_word"] = {"says": "the rows measured do not have their words by one such rule", "rows": {str(r): sorted(v) for r, v in sorted(by_row.items())}}
+        doc["the_word"] = {"says": "the rows measured do not have their words by one such rule", "rows": {str(r): sorted(list(w) for w in v) for r, v in sorted(by_row.items())}}
 
     doc["obeyed_by_every_site_measured"] = obeyed
     doc["one_rule"] = all(obeyed.values())

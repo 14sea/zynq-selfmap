@@ -39,6 +39,15 @@ A complete chain writes DIR/candidates.json: the places and, for each memory fou
 — closed-book; a site's name there is the design's own record of where the build placed what it loaded with that
 word. Which cell of its memory a place is, is said by the six moves the search assumed and tested by part 2.
 
+Beside the outcome the closing says whether the runs of part 2 can be made over the frames with candidates as the
+stage is (`room_for_part_2`): each state of part 2 reads those frames, and its records and its log of accesses lie in
+one result area. Where they do not fit, part 1 stands as it is and part 2 has no run: for the owner.
+
+**Part 2 is built on candidates.json and on chain.json, and on nothing else of part 1** — and whose memory a place is,
+is said by part 1 alone, since part 2 writes every site alike and cannot tell one site from another. So before part 2
+takes either file, every stored run of this chain is taken again from its raw words and both files are held to what
+that gives (`not_as_its_runs_give`; the run script asks it of every run of part 2, and so does part 2's chain).
+
 Anything that is not as planned halts the chain, and nothing is run again: a run directory that does not hold a
 passing run stays where it is until the owner has it set aside. No database is read and nothing is graded."""
 from __future__ import annotations
@@ -173,6 +182,24 @@ def held_to_the_prediction(prediction: dict, found: dict[tuple[int, int], dict],
             "best_form": best, "not_where_it_said": not_there}
 
 
+def room_for_part_2(known: dict, frames: list[str]) -> dict:
+    """Whether the runs of part 2 can be made over these frames with candidates, as the stage is: how many reads a
+    state would have, and how many words the result of the code run and of a run of the singles (they are all of one
+    size). Each state of part 2 reads every frame with a candidate, and the records lie with the log of accesses in
+    one result area; memories that lie in more columns than were reckoned with can be found, every one, by part 1 and
+    still leave part 2 without a plan. That does not touch what part 1 found."""
+    out: dict = {"frames_with_candidates": len(frames), "the_result_area_holds": s2_5_states.RESULT_MAX_WORDS, "a_list_holds": s2_2_shares.LIST_MAX}
+    if not frames:
+        return dict(out, can_be_planned=False, why="there is no candidate to read a state over")
+    found = {"frames_with_candidates": frames}
+    try:
+        out["reads_a_state"] = len(s2_5_states.candidate_reads(known["census"], found))
+        out["result_words"] = {kind: s2_5_states.plan(kind, share, known, known["census"], found)["result_words"] for kind, share in (("code", None), ("singles", 0))}
+    except ValueError as e:
+        return dict(out, can_be_planned=False, why=str(e))
+    return dict(out, can_be_planned=True)
+
+
 def close(runs: list[dict], known: dict) -> dict:
     """What all runs together say."""
     lay = s2_2_shares.layout(known["census"])
@@ -251,7 +278,7 @@ def close(runs: list[dict], known: dict) -> dict:
     for far, _, _ in follows:
         by_frame[f"{far:#010x}"] = by_frame.get(f"{far:#010x}", 0) + 1
     out.update(outcome=outcome, ctl0=sorted({r["ctl0"] for r in runs if r.get("ctl0")}), ctl0_in_s2_2=known.get("ctl0_in_s2_2"),
-               frames_with_candidates=dict(sorted(by_frame.items())),
+               frames_with_candidates=dict(sorted(by_frame.items())), part_2=room_for_part_2(known, sorted(by_frame)),
                bit_5={r["dir"]: r["bit_5_shown_after_records"] for r in runs if r["bit_5_shown_after_records"]},
                bit_5_still_set_after_clearing={r["dir"]: r["bit_5_still_set_after_clearing"] for r in runs if r["bit_5_still_set_after_clearing"]},
                found=[dict(e, run=r["dir"]) for r in runs for e in r["candidates"]],
@@ -339,6 +366,31 @@ def candidates_file(a: dict, known: dict) -> dict:
             "the_six_moves": [{"address": n, "frame_above_the_lowest": f, "bit_of_the_half_word": b} for n, (f, b) in enumerate(known["rule"])],
             "frames_with_candidates": c["frames_with_candidates"], "memories": c["memories"],
             "memories_not_found": c["memories_not_found"], "candidates_of_no_memory_found": c["candidates_of_no_memory_found"], "places": c["found"]}
+
+
+def not_as_its_runs_give(root: Path, candidates: Path | None = None, chain: Path | None = None, base: dict | None = None, known: dict | None = None) -> str:
+    """Why part 2 may not be built on what is stored of part 1 under `root`, or "" if it may. Part 2 reads two files
+    this chain wrote — the candidates with the memory and the site of each, and chain.json for the CTL0 of the runs —
+    and part 2 cannot test whose memory a place is: it writes every site alike. So both files are held here to the
+    stored runs themselves: every run taken again from its raw words as `assess` takes it, the chain complete, and
+    each file what the driver would write of it now. (External review of 66e4ac4: with two sites' names changed for
+    each other in candidates.json and nothing else touched, part 2 closed with 512 places of the wrong site, every one
+    confirmed.) `candidates`, `chain`: the files part 2 is given, if they are not the two in `root`."""
+    base = json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()) if base is None else base
+    known = known_of_the_device() if known is None else known
+    a = assess(root, base, known)
+    if a["state"] != "complete":
+        return (f"the chain of part 1 stored there is {a['state']}, not complete, when its {len(a['runs'])} stored run(s) are taken again"
+                + (f": {a['why'][0]}" if a.get("why") else ""))
+    for path, now, name in ((root / "candidates.json" if candidates is None else candidates, candidates_file(a, known), "candidates.json"),
+                            (root / "chain.json" if chain is None else chain, brief(dict(a, candidates_file="there")), "chain.json")):
+        try:
+            stored = json.loads(path.read_text())
+        except (OSError, ValueError):
+            return f"{name} of part 1 is not there as a file that can be read"
+        if stored != json.loads(json.dumps(now)):
+            return f"{name} of part 1 is not what its stored runs give when they are taken again"
+    return ""
 
 
 def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = None, say=lambda *_: None, committed=committed,
@@ -430,6 +482,9 @@ def main() -> int:
     print(json.dumps({k: v for k, v in brief(state).items() if k != "runs"}, indent=1))
     if state["state"] != "complete" and state.get("candidates_file"):
         print("NOTE: a candidates.json lies beside these runs, and the chain is not complete as it is stored now: it does not stand")
+    room = (state.get("closing") or {}).get("part_2")
+    if room is not None and not room["can_be_planned"]:
+        print(f"NOTE: the runs of part 2 cannot be planned over these frames as the stage is ({room['why']}): what part 1 found stands, and part 2 has no run")
     if state.get("held"):
         print(f"HELD: {state['held']}")
     print(f"{len(state['runs'])} run(s) stored of {state['shares']}; the chain: {state['state']}")

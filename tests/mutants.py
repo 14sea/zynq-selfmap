@@ -1768,7 +1768,8 @@ MUTANTS = [
     (RULE25, "rule s2.5: rows of one half in two halves of the device make a rule", "obeyed[\"the_half\"] = all(len(v) == 1 and None not in v for v in halves.values()) and", "obeyed[\"the_half\"] = all(None not in v for v in halves.values()) and"),
     (RULE25, "rule s2.5: columns that lie on no line make a rule", "and len(steps) == 1 and all(x % 2 == 0 for x in by_x))", "and len(steps) >= 1 and all(x % 2 == 0 for x in by_x))"),
     (RULE25, "rule s2.5: sites at other frames of their column make a rule", "    first = one(p[\"first_frame_in_its_column\"] for p in per)", "    first = per[0][\"first_frame_in_its_column\"]"),
-    (RULE25, "rule s2.5: the one word more lies a row lower", "all(w == 2 * r + (1 if r > f else 0) for r, w in low.items())]", "all(w == 2 * r + (1 if r >= f else 0) for r, w in low.items())]"),
+    (RULE25, "rule s2.5: the one word more lies a row lower", 'all(list(w) == [2 * r + (1 if r > f else 0), 2 * r + (1 if r > f else 0) + 1] for r, w in its.items())]', 'all(list(w) == [2 * r + (1 if r >= f else 0), 2 * r + (1 if r >= f else 0) + 1] for r, w in its.items())]'),
+    (RULE25, "rule s2.5: a row's words are held by the lower one alone", 'all(list(w) == [2 * r + (1 if r > f else 0), 2 * r + (1 if r > f else 0) + 1] for r, w in its.items())]', "all(w[0] == 2 * r + (1 if r > f else 0) for r, w in its.items())]"),
     (RULE25, "rule s2.5: a row with two words in two sites makes a rule", "    alike = all(len(v) == 1 for v in by_row.values())", "    alike = True"),
     (RULE25, "rule s2.5: the sites not measured are every site listed", "len(set(all_sites) - {p[\"name\"] for p in per})", "len(set(all_sites))"),
     (CHAIN252, "chain2 s2.5: the code run is not held to the CTL0 of part 1", "        if not r[\"problems\"] and k == 0 and (not known.get(\"ctl0_in_part_1\") or r.get(\"ctl0\") != known[\"ctl0_in_part_1\"]):", "        if False:"),
@@ -1786,6 +1787,18 @@ MUTANTS = [
     (RUN, "run s2.5: a set of part 2 is given what is known though part 1 is not stored", "        if what in STAGES[stage] and not STAGES[stage][what].is_file():", "        if False:"),
     (RUN, "run s2.5: the sets of S2.5 are planned by the program of S2.4", "PLANNED_BY.update({name: s2_5_states for name in (\"s2_5f\", \"s2_5c\", \"s2_5s\")})", "PLANNED_BY.update({name: s2_4_states for name in (\"s2_5f\", \"s2_5c\", \"s2_5s\")})"),
     (RUN, "run s2.5: a run of the singles of S2.5 is said to be one of two", "SINGLES_OF = {\"s2_4s\": \"two\", \"s2_5s\": \"sixteen\"}", "SINGLES_OF = {\"s2_4s\": \"two\", \"s2_5s\": \"two\"}"),
+    (RUN, "run s2.5: the sets of part 2 are not held to the stored runs of part 1", '    if "part_1" in STAGES[stage]:', '    if False:'),
+    (CHAIN25, "chain s2.5: part 2 is built on a chain of part 1 that is not complete", '    if a["state"] != "complete":\n        return (f"the chain of part 1 stored there', '    if False:\n        return (f"the chain of part 1 stored there'),
+    (CHAIN25, "chain s2.5: a candidates file that is not what the runs give is passed", '        if stored != json.loads(json.dumps(now)):', '        if name != "candidates.json" and stored != json.loads(json.dumps(now)):'),
+    (CHAIN25, "chain s2.5: a chain file that is not what the runs give is passed", '        if stored != json.loads(json.dumps(now)):', '        if name != "chain.json" and stored != json.loads(json.dumps(now)):'),
+    (CHAIN25, "chain s2.5: a file of part 1 that cannot be read is passed", '            return f"{name} of part 1 is not there as a file that can be read"', '            continue'),
+    (CHAIN25, "chain s2.5: the candidates held are those beside the runs, whatever part 2 is given", 'root / "candidates.json" if candidates is None else candidates', 'root / "candidates.json"'),
+    (CHAIN25, "chain s2.5: the closing does not say whether part 2 can be planned", ', part_2=room_for_part_2(known, sorted(by_frame)),', ','),
+    (CHAIN25, "chain s2.5: part 2 is said to have a plan where the planner refuses", '        return dict(out, can_be_planned=False, why=str(e))', '        return dict(out, can_be_planned=True, why=str(e))'),
+    (CHAIN25, "chain s2.5: the room of part 2 is reckoned by the code run alone", 'for kind, share in (("code", None), ("singles", 0))}', 'for kind, share in (("code", None),)}'),
+    (CHAIN25, "chain s2.5: the command does not say that part 2 cannot be planned", '    if room is not None and not room["can_be_planned"]:', '    if False:'),
+    (TABLE25, "table s2.5: the description does not name the runs of part 1", '"runs": {"part_1": [{"dir": r["dir"], "share": r["share"], "result_sha256": r["result_sha256"]} for r in part_1],', '"runs": {"part_1": [],'),
+    (CHAIN252, "chain2 s2.5: the description names a run of part 2 as the runs of part 1", 'code, singles, known["candidates"]["runs"])', 'code, singles, [{k: singles[0][k] for k in ("dir", "share", "result_sha256")}])'),
 ]
 
 

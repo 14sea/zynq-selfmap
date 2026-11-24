@@ -10,6 +10,13 @@ The runs: DIR/run00 is the code run (the set s2_5c); DIR/run01 to DIR/run16 are 
 is taken from its files and judged again from its raw words, against the plan of that run, before it is relied on;
 what a stored run must show of the image, the design and both lists it was made with is what the chain of S2.3 asks.
 
+**What part 1 found is taken the same way.** Part 2 reads two files of part 1's chain — its candidates, with the
+memory and the site of each, and its chain.json — and cannot test whose memory a place is, since it writes every site
+alike. Before either is used, every stored run of part 1 is judged again from its raw words and both files are held to
+what that gives (s2_5_chain.not_as_its_runs_give, asked by the run script of every run and by this command); where
+they are not, nothing is run and nothing is assessed. The description names the runs of part 1 as what the site of an
+entry rests on.
+
 **The code run is made alone, and held to the CTL0 of part 1's runs**: the candidates it is read over were found under
 that word. When it is a passing run it is closed into a table for every site (s2_5_table.close_code): what part 1 says
 of a place — whose memory, by the word it was loaded with — and what the code run says — which cell — held against
@@ -232,7 +239,7 @@ def ram_map_file(a: dict, bases: dict, known: dict) -> dict:
     plans = [s2_5_states.plan(s1a_run.PLANS_AT_RUN_TIME[run_of(k)[0]], run_of(k)[1], known, known["census"], known["candidates"]) for k in range(RUNS)]
     code = {"dir": a["runs"][0]["dir"], "result_sha256": a["runs"][0]["result_sha256"], "reads": plans[0]["reads"], "states": plans[0]["states"]}
     singles = [dict(r["_for_the_map"], reads=plans[k]["reads"], states=plans[k]["states"]) for k, r in enumerate(a["runs"]) if k > 0]
-    return s2_5_table.ram_map(known, s2_5_table.tables_of(a["table"]), code, singles)
+    return s2_5_table.ram_map(known, s2_5_table.tables_of(a["table"]), code, singles, known["candidates"]["runs"])
 
 
 def rule_file(a: dict, known: dict, build: dict, all_sites: list[str] | None) -> dict:

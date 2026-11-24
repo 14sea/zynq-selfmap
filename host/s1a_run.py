@@ -155,7 +155,8 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # over what part 1 found, as its chain writes it — until part 1 is stored there is no such run — and are told
           # what CTL0 read in its runs.
           **{name: {"judge": judge, "expected": ROOT / "build" / "prober" / f"expected_{name}.json", "known": ROOT / "pl" / "s2b" / "design.json",
-                    "census": s2_2_shares.CENSUS, "candidates": s2_5_states.CANDIDATES, "chain_of_part_1": s2_5_states.CHAIN_OF_PART_1}
+                    "census": s2_2_shares.CENSUS, "candidates": s2_5_states.CANDIDATES, "chain_of_part_1": s2_5_states.CHAIN_OF_PART_1,
+                    "part_1": s2_5_states.PART_1}
              for name, judge in (("s2_5c", s2_5c_judge), ("s2_5s", s2_5s_judge))},
           # not stages of the prober but two parameter sets for its stage 2, to count how many frame reads go by before
           # the receive FIFO overflows: 128 reads of one frame, and 128 reads of three frames, on the known frames
@@ -225,6 +226,11 @@ def known_for(stage: str) -> dict:
     for what in ("candidates", "chain_of_part_1"):     # a set that reads over what the part before found has no run until that is stored
         if what in STAGES[stage] and not STAGES[stage][what].is_file():
             raise ValueError(f"{stage} is run over what the part before it found, and that is not stored ({STAGES[stage][what].relative_to(ROOT)})")
+    if "part_1" in STAGES[stage]:                    # S2.5, part 2: whose memory a place is, is said by part 1 alone and cannot be tested by part 2 —
+        import s2_5_chain                            # so what part 1's chain wrote is held to its stored runs, taken again from their raw words
+        why = s2_5_chain.not_as_its_runs_give(STAGES[stage]["part_1"], STAGES[stage]["candidates"], STAGES[stage]["chain_of_part_1"])
+        if why:
+            raise ValueError(f"{stage} is run over what part 1 found, and what is stored of part 1 does not stand ({STAGES[stage]['part_1']}): {why}")
     known = json.loads(STAGES[stage].get("known", KNOWN).read_text())
     if "census" in STAGES[stage]:
         known = dict(known, census=json.loads(STAGES[stage]["census"].read_text()))

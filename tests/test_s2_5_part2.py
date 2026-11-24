@@ -4,7 +4,8 @@ description, the rule the probed sites obey, and the chain of seventeen runs —
 over a made-up device (tests/s2_5_made_up.py). No board is touched."""
 from __future__ import annotations
 
-import copy, hashlib, json, struct, subprocess, sys, unittest, zlib
+import contextlib, copy, hashlib, io, json, shutil, struct, subprocess, sys, unittest, zlib
+from unittest import mock
 from pathlib import Path
 
 import jsonschema
@@ -42,6 +43,59 @@ def part_1(cells=None) -> dict:
         assert a["state"] == "complete", a.get("why")
         return json.loads((root / "candidates.json").read_text())
     return once(("part 1", None if cells is None else hashlib.sha256(repr(cells).encode()).hexdigest()), make)
+
+
+BASE_1 = lambda: json.loads(s1a_run.STAGES["s2_5f"]["expected"].read_text())   # noqa: E731
+
+
+def a_copy(root: Path) -> Path:
+    to = Path(scratch_dirs.mkdtemp(prefix="smp1c_")) / "chain"
+    shutil.copytree(root, to)
+    return to
+
+
+def chain_1() -> Path:
+    """The chain of part 1 over the made-up device as it is stored: three runs, candidates.json, chain.json. Several
+    tests look at it; one that changes anything takes a copy (`a_copy`)."""
+    def make():
+        H9.prepared()
+        root = Path(scratch_dirs.mkdtemp(prefix="smp1s_")) / "chain"
+        a = s2_5_chain.drive(root, BASE_1(), KNOWN, lambda share, out: run5("s2_5f", share, out=out), committed=lambda path: "")
+        assert a["state"] == "complete", a.get("why")
+        return root
+    return once("part 1, stored", make)
+
+
+def said_places() -> list[tuple]:
+    """Where the stored prediction has every cell, as the twin is told where cells show."""
+    said = json.loads(s2_5_chain.PREDICTION.read_text())
+    return [(s, a, k, far, word, bit, 0) for (far, word, bit), (s, k, a) in sorted(s2_5_predict.places(said).items())]
+
+
+def chain_1_of_the_device() -> Path:
+    """The chain of part 1 with the plans of the device itself — the real census, its eight shares — on the pretend
+    board, with the memories where the stored prediction has them. A rehearsal, and nothing of it is a result."""
+    def make():
+        H9.prepared()
+        known = s2_5_chain.known_of_the_device()
+        root = Path(scratch_dirs.mkdtemp(prefix="smp1d_")) / "chain"
+        cells = said_places()
+        a = s2_5_chain.drive(root, BASE_1(), known, lambda share, out: run5("s2_5f", share, known=known, out=out, cells=cells), committed=lambda path: "")
+        assert a["state"] == "complete", a.get("why")
+        return root
+    return once("part 1 of the device, stored", make)
+
+
+def two_sites_named_for_each_other(root: Path, one: int = 3, other: int = 8) -> None:
+    """The change of the review of 66e4ac4: in candidates.json and nowhere else, the memories of two sites are said
+    to be each other's."""
+    c = json.loads((root / "candidates.json").read_text())
+    names = {m["site"]: m["name"] for m in c["memories"]}
+    for m in c["memories"]:
+        if m["site"] in (one, other):
+            m["site"] = other if m["site"] == one else one
+            m["name"] = names[m["site"]]
+    (root / "candidates.json").write_text(json.dumps(c, indent=1) + "\n")
 
 
 def known2(cells=None) -> dict:
@@ -201,7 +255,7 @@ class TheDescription(unittest.TestCase):
         code = {"dir": "run00", "result_sha256": "a" * 64, "reads": plans[0]["reads"], "states": plans[0]["states"]}
         singles = [{"dir": f"run{r + 1:02d}", "share": r, "result_sha256": "b" * 64, "reads": p["reads"], "states": p["states"],
                     "held": (held or {}).get(r) or s2_5_table.hold_singles(a_run("singles", r), tables())} for r, p in zip((0, 9), plans[1:])]
-        return s2_5_table.ram_map(DESIGN, tables(), code, singles)
+        return s2_5_table.ram_map(DESIGN, tables(), code, singles, known["candidates"]["runs"])
 
     def test_it_is_a_ram_map_of_the_second_form(self) -> None:
         doc = self.doc()
@@ -213,6 +267,10 @@ class TheDescription(unittest.TestCase):
         e = doc["entries"][256 * 7 + 147]
         self.assertEqual(e, {"address": s2_5_table.text(M.at(7, 2, 19)), "site": 7, "cell": 147, "memory": 2, "ram_address": 19, "inverted": False, "confidence": 2, "state": "confirmed"})
         self.assertEqual(doc["sites"][107], {"site": 107, "name": "SLICE_X34Y66"})
+        self.assertEqual(([r["dir"] for r in doc["runs"]["part_1"]], [r["share"] for r in doc["runs"]["part_1"]], doc["runs"]["part_1"], list(doc["runs"])),
+                         (["run00", "run01", "run02"], [0, 1, 2], known2()["candidates"]["runs"], ["part_1", "code", "singles"]),
+                         "the runs of part 1, which the site of every entry rests on")
+        self.assertIn("rests on the runs of part 1 and on them alone", doc["evidence"]["the_site"])
         of = doc["evidence"]["of_a_cell"]
         self.assertEqual((of[147], of[200]), ({"cell": 147, "state": "confirmed", "code_states": [1, 3, 6, 8, 9, 12, 14, 15], "single": {"run": "run10", "state": 4}},   # 147 = 0b10010011
                                               {"cell": 200, "state": "decoded", "code_states": [2, 4, 6, 7, 10, 12, 13, 15], "single": None}))
@@ -245,7 +303,9 @@ class TheDescription(unittest.TestCase):
         doc = json.loads(json.dumps(self.doc()))
         for change in (lambda d: d.update(schema_version=1), lambda d: d["entries"][0].pop("site"), lambda d: d["entries"][0].update(evidence={}),
                        lambda d: d.update(label="open-book"), lambda d: d["entries"][0].update(address="b86/1/2"), lambda d: d.pop("evidence"),
-                       lambda d: d["evidence"]["of_a_cell"][0].update(state="guessed"), lambda d: d["sites"][0].pop("name")):
+                       lambda d: d["evidence"]["of_a_cell"][0].update(state="guessed"), lambda d: d["sites"][0].pop("name"),
+                       lambda d: d["runs"].pop("part_1"), lambda d: d["runs"].update(part_1=[]), lambda d: d["runs"]["part_1"][0].pop("result_sha256"),
+                       lambda d: d["evidence"].pop("the_site")):
             bad = copy.deepcopy(doc); change(bad)
             self.assertRaises(jsonschema.ValidationError, jsonschema.Draft202012Validator(SCHEMA).validate, bad)
 
@@ -311,16 +371,25 @@ class TheRule(unittest.TestCase):
             for s in [*range(50, 100), 102, 104, 105, 107]:
                 by[s] = [((f | 0x00400000, w, b), inv) for (f, w, b), inv in by[s]]
         def a_site_four_frames_down(by): by[9] = [((f - 4, w, b), inv) for (f, w, b), inv in by[9]]
+        def a_site_with_its_words_apart(by): by[100] = [((f, 19 if w == 15 else w, b), inv) for (f, w, b), inv in by[100]]   # SLICE_X10Y7: the words 14 and 19 (review of 66e4ac4)
         for change, parts in ((the_upper_rows_in_the_lower_half, {"the_half"}), (a_site_four_frames_down, {"the_column"}),
                               (a_cell_elsewhere, {"the_six_moves"}), (a_site_a_word_up, {"the_word"}), (a_site_in_another_column, {"the_column"}),
-                              (a_memory_in_the_other_half, {"the_position"}), (a_site_in_the_other_half, {"the_half"}), (a_cell_inverted, {"the_six_moves"})):
+                              (a_memory_in_the_other_half, {"the_position"}), (a_site_in_the_other_half, {"the_half"}), (a_cell_inverted, {"the_six_moves"}),
+                              (a_site_with_its_words_apart, {"the_position", "the_word"})):
             with self.subTest(change.__name__):
                 r = self.rule(change=change)
                 self.assertEqual(({k for k, ok in r["obeyed_by_every_site_measured"].items() if not ok}, r["one_rule"]), (parts, False))
         r = self.rule(change=a_site_in_another_column)
         self.assertEqual((r["the_column"]["says"], r["the_column"]["measured"]["28"]), ("the columns of sites measured do not lie on one line among the columns of frames", ["45"]))
         r = self.rule(change=a_site_a_word_up)
-        self.assertEqual((r["the_word"]["says"], r["the_word"]["rows"]["40"]), ("the rows measured do not have their words by one such rule", [81, 83]))
+        self.assertEqual((r["the_word"]["says"], r["the_word"]["rows"]["40"]), ("the rows measured do not have their words by one such rule", [[81, 82], [83, 84]]))
+        r = self.rule(change=a_site_with_its_words_apart)
+        self.assertEqual((DESIGN["ram"]["sites"][100]["name"], r["sites"][100]["words"], r["the_word"]["says"], r["the_word"]["rows"]["7"]),
+                         ("SLICE_X10Y7", [14, 19], "the rows measured do not have their words by one such rule", [[14, 15], [14, 19]]),
+                         "a row's words are both of them: the lower one alone, 14, is what the rule gives for row 7")
+        alone = {s: rows for s, rows in self.tables(change=a_site_with_its_words_apart).items() if s == 100}
+        r = s2_5_rule.rule(alone, DESIGN, BUILD, CENSUS)
+        self.assertEqual((r["obeyed_by_every_site_measured"]["the_word"], r["the_word"]["rows"]), (False, {"7": [[14, 19]]}), "and so where no other site of the row is measured")
 
 
 class TheChain(unittest.TestCase):
@@ -363,6 +432,7 @@ class TheChain(unittest.TestCase):
         jsonschema.Draft202012Validator(SCHEMA).validate(doc)
         self.assertEqual((doc["counts"], len(doc["runs"]["singles"]), doc["runs"]["code"]["result_sha256"]),
                          ({"confirmed": 28160, "decoded": 0, "contradiction": 0}, 16, a["runs"][0]["result_sha256"]))
+        self.assertEqual(doc["runs"]["part_1"], known2()["candidates"]["runs"])
         alike(self, {(e["site"], e["cell"]): e["address"] for e in doc["entries"]},
               {(s, 64 * k + a): s2_5_table.text(place) for place, (s, k, a) in M.where(b_map()).items()}, "every cell of every site at its place")
         rule = json.loads((self.root / "rule.json").read_text())
@@ -454,6 +524,144 @@ class TheChain(unittest.TestCase):
         r = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s2_5_chain2.py"), "--dir", str(self.root)], capture_output=True, text=True)
         self.assertEqual((r.returncode, r.stderr), (2, ""))
         self.assertIn("REFUSED: s2_5c is run over what the part before it found, and that is not stored", r.stdout)
+
+
+class WhatPartOneFoundIsHeldToItsRuns(unittest.TestCase):
+    """Part 2 is built on two files part 1's chain wrote, and whose memory a place is, is in them alone. Before they
+    are used the stored runs of part 1 are taken again and the files held to them (review of 66e4ac4)."""
+
+    NOT_CANDIDATES = "candidates.json of part 1 is not what its stored runs give when they are taken again"
+
+    def held(self, root: Path, **kw) -> str:
+        return s2_5_chain.not_as_its_runs_give(root, base=BASE_1(), known=KNOWN, **kw)
+
+    def test_what_the_chain_wrote_is_what_its_runs_give(self) -> None:
+        root = a_copy(chain_1())
+        self.assertEqual(self.held(root), "")
+        self.assertEqual(self.held(root, candidates=root / "candidates.json", chain=root / "chain.json"), "")
+
+    def test_two_sites_named_for_each_other_in_the_candidates_file(self) -> None:
+        root = a_copy(chain_1())
+        two_sites_named_for_each_other(root)
+        changed = json.loads((root / "candidates.json").read_text())
+        closing = s2_5_table.close_code(a_run("code"), changed, DESIGN)
+        self.assertEqual((closing["problems"], closing["tables"][3] == tables()[8], closing["tables"][8] == tables()[3], closing["tables"][4] == tables()[4]), ([], True, True, True),
+                         "part 2 cannot tell: every site is written alike, and the code run closes over the changed file into a table for every site")
+        self.assertEqual(self.held(root), self.NOT_CANDIDATES)
+        self.assertEqual(self.held(chain_1(), candidates=root / "candidates.json"), self.NOT_CANDIDATES, "nor where the file is given from elsewhere")
+
+    def test_a_chain_file_that_was_changed(self) -> None:
+        root = a_copy(chain_1())
+        c = json.loads((root / "chain.json").read_text())
+        self.assertEqual(c["runs"][0]["ctl0"], CTL0)
+        for r in c["runs"]:
+            r["ctl0"] = "0x00000541"
+        (root / "chain.json").write_text(json.dumps(c, indent=1) + "\n")
+        self.assertEqual(self.held(root), "chain.json of part 1 is not what its stored runs give when they are taken again")
+
+    def test_runs_that_are_not_a_complete_chain(self) -> None:
+        root = a_copy(chain_1())
+        raw = bytearray((root / "run01" / "result.bin").read_bytes())
+        raw[4000] ^= 1
+        (root / "run01" / "result.bin").write_bytes(bytes(raw))
+        self.assertEqual(self.held(root), "the chain of part 1 stored there is halted, not complete, when its 2 stored run(s) are taken again: "
+                                          "run01: the stored result is not the one whose checksum the board gave")
+        root = a_copy(chain_1())
+        shutil.rmtree(root / "run02")
+        self.assertEqual(self.held(root), "the chain of part 1 stored there is go on, not complete, when its 2 stored run(s) are taken again")
+        nothing = Path(scratch_dirs.mkdtemp(prefix="smp1n_"))
+        shutil.copy(chain_1() / "candidates.json", nothing); shutil.copy(chain_1() / "chain.json", nothing)
+        self.assertEqual(self.held(nothing), "the chain of part 1 stored there is go on, not complete, when its 0 stored run(s) are taken again",
+                         "the two files alone, without the runs they were written from")
+
+    def test_a_file_that_is_not_there(self) -> None:
+        for name in ("candidates.json", "chain.json"):
+            root = a_copy(chain_1())
+            (root / name).unlink()
+            self.assertEqual(self.held(root), f"{name} of part 1 is not there as a file that can be read")
+            (root / name).write_text("{")
+            self.assertEqual(self.held(root), f"{name} of part 1 is not there as a file that can be read")
+
+    def of_the_device(self, root: Path):
+        """The sets of part 2 with part 1 stored at `root`, for as long as the test looks."""
+        kept = dict(s1a_run.STAGES)
+        there = {stage: dict(kept[stage], part_1=root, candidates=root / "candidates.json", chain_of_part_1=root / "chain.json") for stage in ("s2_5c", "s2_5s")}
+        return mock.patch.dict(s1a_run.STAGES, there)
+
+    def command(self, *argv: str) -> tuple[int, str]:
+        said = io.StringIO()
+        with mock.patch.object(sys, "argv", ["s2_5_chain2.py", *argv]), contextlib.redirect_stdout(said):
+            code = s2_5_chain2.main()
+        return code, said.getvalue()
+
+    def test_the_run_script_and_the_chain_of_part_2_ask_it_of_the_device_s_part_1(self) -> None:
+        self.assertEqual((s1a_run.STAGES["s2_5c"]["part_1"], s1a_run.STAGES["s2_5s"]["part_1"], "part_1" in s1a_run.STAGES["s2_5f"]), (st.PART_1, st.PART_1, False))
+        whole = chain_1_of_the_device()
+        c = json.loads((whole / "chain.json").read_text())["closing"]
+        self.assertEqual((c["candidates"], c["memories_found_once"], c["outcome"][:2], c["prediction"]["forms_under_which_every_memory_is_where_it_said"]), (28160, 440, "1:", [24]))
+        self.assertEqual(c["part_2"], {"frames_with_candidates": 48, "the_result_area_holds": 262144, "a_list_holds": 178, "reads_a_state": 24,
+                                       "result_words": {"code": 222566, "singles": 219110}, "can_be_planned": True})
+        empty = Path(scratch_dirs.mkdtemp(prefix="smp2e_")) / "chain"
+        with self.of_the_device(whole):
+            for stage in ("s2_5c", "s2_5s"):
+                known = s1a_run.known_for(stage)
+                self.assertEqual((len(known["candidates"]["memories"]), len(known["candidates"]["runs"]), known["ctl0_in_part_1"]), (440, 8, CTL0))
+            code, said = self.command("--dir", str(empty))
+            self.assertEqual((code, "0 run(s) stored of 17; the chain: go on" in said), (0, True), said)
+        root = a_copy(whole)
+        two_sites_named_for_each_other(root)
+        with self.of_the_device(root):
+            for stage in ("s2_5c", "s2_5s"):
+                self.assertRaisesRegex(ValueError, f"^{stage} is run over what part 1 found, and what is stored of part 1 does not stand \\(.*\\): {self.NOT_CANDIDATES}$",
+                                       s1a_run.known_for, stage)
+            code, said = self.command("--dir", str(empty))
+            self.assertEqual((code, said.startswith("REFUSED: s2_5c is run over what part 1 found, and what is stored of part 1 does not stand ("),
+                              said.rstrip().endswith(self.NOT_CANDIDATES), len(said.splitlines()), empty.exists()), (2, True, True, 1, False), said)
+        root = a_copy(whole)
+        shutil.rmtree(root / "run07")
+        with self.of_the_device(root):
+            self.assertRaisesRegex(ValueError, "the chain of part 1 stored there is go on, not complete, when its 7 stored run", s1a_run.known_for, "s2_5c")
+        with self.of_the_device(chain_1()):
+            self.assertRaisesRegex(ValueError, "does not stand", s1a_run.known_for, "s2_5c")       # a chain of another device than the census's
+
+
+class RoomForPartTwo(unittest.TestCase):
+    """The closing of part 1 says whether part 2 can be planned over what it found (review of 66e4ac4: with three
+    sites in other columns part 1 found every memory, and part 2 had 30 reads a state for a room of 28)."""
+
+    KNOWN_D = None
+
+    def room(self, frames: set[int]) -> dict:
+        known = type(self).KNOWN_D = type(self).KNOWN_D or s2_5_chain.known_of_the_device()
+        return s2_5_chain.room_for_part_2(known, [f"{f:#010x}" for f in sorted(frames)])
+
+    def test_over_the_frames_the_prediction_names_and_over_more(self) -> None:
+        said = {far for far, _, _ in s2_5_predict.places(json.loads(s2_5_chain.PREDICTION.read_text()))}
+        r = self.room(said)
+        self.assertEqual((r["can_be_planned"], r["reads_a_state"], r["result_words"], r["frames_with_candidates"]), (True, 24, {"code": 222566, "singles": 219110}, 48))
+        others = [c for c in s2_2_shares.columns(s2_2_shares.layout(CENSUS)) if len(c) >= 6 and not said & set(c)]   # columns of the census in which it names nothing
+        more = lambda n: {far for c in others[:n] for far in c[:6]}   # noqa: E731  for each such column two reads more a state
+        r = self.room(said | more(2))
+        self.assertEqual((r["can_be_planned"], r["reads_a_state"], r["result_words"]), (True, 28, {"code": 222566 + 4 * 18 * 480, "singles": 219110 + 4 * 18 * 480}))
+        r = self.room(said | more(3))
+        self.assertEqual((r["can_be_planned"], r["reads_a_state"], "result_words" in r), (False, 30, False))
+        self.assertRegex(r["why"], r"^the result would have 2\d{5} words; its area holds 262144$")
+        self.assertEqual(self.room(set()), {"frames_with_candidates": 0, "the_result_area_holds": 262144, "a_list_holds": 178, "can_be_planned": False,
+                                            "why": "there is no candidate to read a state over"})
+        r = self.room({0x00C00000})
+        self.assertEqual((r["can_be_planned"], r["why"]), (False, "a frame with candidates is no address of block type 0 of the census"))
+
+    def test_the_closing_of_the_made_up_chain_says_it_and_the_command_says_where_it_cannot(self) -> None:
+        c = json.loads((chain_1() / "chain.json").read_text())["closing"]["part_2"]
+        self.assertEqual((c["can_be_planned"], c["reads_a_state"], c["frames_with_candidates"]), (True, 5, 12))
+        state = {"step": "s2_5, part 1", "shares": 8, "runs": [], "state": "complete", "candidates_file": "there",
+                 "closing": {"outcome": "2: ...", "part_2": {"can_be_planned": False, "why": "the result would have 265766 words; its area holds 262144"}}}
+        for a, note in ((state, True), (dict(state, closing=dict(state["closing"], part_2={"can_be_planned": True})), False), ({k: v for k, v in state.items() if k != "closing"}, False)):
+            said = io.StringIO()
+            with mock.patch.object(s2_5_chain, "assess", lambda *_: a), mock.patch.object(sys, "argv", ["s2_5_chain.py", "--dir", "nowhere"]), contextlib.redirect_stdout(said):
+                s2_5_chain.main()
+            self.assertEqual("NOTE: the runs of part 2 cannot be planned over these frames as the stage is (the result would have 265766 words; its area holds 262144): "
+                             "what part 1 found stands, and part 2 has no run" in said.getvalue(), note, said.getvalue())
 
 
 class ARunOfTheDeviceSPlan(unittest.TestCase):

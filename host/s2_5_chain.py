@@ -46,7 +46,8 @@ one result area. Where they do not fit, part 1 stands as it is and part 2 has no
 **Part 2 is built on candidates.json and on chain.json, and on nothing else of part 1** — and whose memory a place is,
 is said by part 1 alone, since part 2 writes every site alike and cannot tell one site from another. So before part 2
 takes either file, every stored run of this chain is taken again from its raw words and both files are held to what
-that gives (`not_as_its_runs_give`; the run script asks it of every run of part 2, and so does part 2's chain).
+that gives; and part 2 is given what was held, not the files to open again (`taken_again`; the run script asks it of
+every run of part 2, and so does part 2's chain).
 
 Anything that is not as planned halts the chain, and nothing is run again: a run directory that does not hold a
 passing run stays where it is until the owner has it set aside. No database is read and nothing is graded."""
@@ -368,29 +369,42 @@ def candidates_file(a: dict, known: dict) -> dict:
             "memories_not_found": c["memories_not_found"], "candidates_of_no_memory_found": c["candidates_of_no_memory_found"], "places": c["found"]}
 
 
-def not_as_its_runs_give(root: Path, candidates: Path | None = None, chain: Path | None = None, base: dict | None = None, known: dict | None = None) -> str:
-    """Why part 2 may not be built on what is stored of part 1 under `root`, or "" if it may. Part 2 reads two files
-    this chain wrote — the candidates with the memory and the site of each, and chain.json for the CTL0 of the runs —
-    and part 2 cannot test whose memory a place is: it writes every site alike. So both files are held here to the
-    stored runs themselves: every run taken again from its raw words as `assess` takes it, the chain complete, and
-    each file what the driver would write of it now. (External review of 66e4ac4: with two sites' names changed for
-    each other in candidates.json and nothing else touched, part 2 closed with 512 places of the wrong site, every one
-    confirmed.) `candidates`, `chain`: the files part 2 is given, if they are not the two in `root`."""
+def taken_again(root: Path, candidates: Path | None = None, chain: Path | None = None, base: dict | None = None, known: dict | None = None) -> dict:
+    """What part 2 may build on of the part 1 stored under `root`: {"why": "", "candidates", "chain"} — or "why" alone,
+    with the reason, where it may build on nothing. Part 2 uses two things this chain wrote — the candidates with the
+    memory and the site of each, and chain.json for the CTL0 of the runs — and part 2 cannot test whose memory a
+    place is: it writes every site alike. So both are held here to the stored runs themselves: every run taken again
+    from its raw words as `assess` takes it, the chain complete, and each file what the driver would write of it now.
+    (External review of 66e4ac4: with two sites' names changed for each other in candidates.json and nothing else
+    touched, part 2 closed with 512 places of the wrong site, every one confirmed.)
+
+    **What is given back is what was held, not a file to be opened again**: the candidates and the chain as the runs
+    give them here, which each file was found to be. (External review of b8f014a: the files were held to the runs
+    and then read a second time; changed by another program in between, they were taken as they then were.)
+    `candidates`, `chain`: the files part 2 is given, if they are not the two in `root`."""
     base = json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()) if base is None else base
     known = known_of_the_device() if known is None else known
     a = assess(root, base, known)
     if a["state"] != "complete":
-        return (f"the chain of part 1 stored there is {a['state']}, not complete, when its {len(a['runs'])} stored run(s) are taken again"
-                + (f": {a['why'][0]}" if a.get("why") else ""))
+        return {"why": f"the chain of part 1 stored there is {a['state']}, not complete, when its {len(a['runs'])} stored run(s) are taken again"
+                       + (f": {a['why'][0]}" if a.get("why") else "")}
+    given: dict = {"why": ""}
     for path, now, name in ((root / "candidates.json" if candidates is None else candidates, candidates_file(a, known), "candidates.json"),
                             (root / "chain.json" if chain is None else chain, brief(dict(a, candidates_file="there")), "chain.json")):
+        now = json.loads(json.dumps(now))
         try:
             stored = json.loads(path.read_text())
         except (OSError, ValueError):
-            return f"{name} of part 1 is not there as a file that can be read"
-        if stored != json.loads(json.dumps(now)):
-            return f"{name} of part 1 is not what its stored runs give when they are taken again"
-    return ""
+            return {"why": f"{name} of part 1 is not there as a file that can be read"}
+        if stored != now:
+            return {"why": f"{name} of part 1 is not what its stored runs give when they are taken again"}
+        given[name[:-len(".json")]] = now
+    return given
+
+
+def not_as_its_runs_give(root: Path, candidates: Path | None = None, chain: Path | None = None, base: dict | None = None, known: dict | None = None) -> str:
+    """Why part 2 may not be built on what is stored of part 1 under `root`, or "" if it may (`taken_again`)."""
+    return taken_again(root, candidates, chain, base, known)["why"]
 
 
 def drive(root: Path, base: dict, known: dict, runner, max_new: int | None = None, say=lambda *_: None, committed=committed,

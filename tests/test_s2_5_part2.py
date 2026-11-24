@@ -625,6 +625,56 @@ class WhatPartOneFoundIsHeldToItsRuns(unittest.TestCase):
             self.assertRaisesRegex(ValueError, "does not stand", s1a_run.known_for, "s2_5c")       # a chain of another device than the census's
 
 
+    def test_part_2_is_given_what_was_held_to_the_runs_and_no_file_read_again(self) -> None:
+        """Review of b8f014a: the files were held to the runs and then opened again. Another program that changes
+        them just after they were held gave part 2 its own candidates, and seventeen untouched runs closed complete."""
+        whole = chain_1_of_the_device()
+        as_stored = json.loads((whole / "candidates.json").read_text())
+        asked = s2_5_chain.taken_again
+        for stage in ("s2_5c", "s2_5s"):
+            root = a_copy(whole)
+
+            def and_then_another_program_changes_the_files(*a, **kw):
+                got = asked(*a, **kw)
+                two_sites_named_for_each_other(root)
+                c = json.loads((root / "chain.json").read_text())
+                c["closing"]["ctl0"] = ["0x00000541"]
+                (root / "chain.json").write_text(json.dumps(c, indent=1) + "\n")
+                return got
+            with self.of_the_device(root), mock.patch.object(s2_5_chain, "taken_again", and_then_another_program_changes_the_files):
+                known = s1a_run.known_for(stage)
+            self.assertTrue(known["candidates"] == as_stored, f"{stage}: the candidates part 2 is given are those that were held to the runs")
+            self.assertEqual(known["ctl0_in_part_1"], CTL0)
+            self.assertFalse(json.loads((root / "candidates.json").read_text()) == as_stored, "and the file was changed in between")
+            with self.of_the_device(root):
+                self.assertRaisesRegex(ValueError, self.NOT_CANDIDATES, s1a_run.known_for, stage)    # asked again, the changed files are found
+
+    def test_what_is_taken_again_is_given_with_the_reason(self) -> None:
+        root = a_copy(chain_1())
+        got = s2_5_chain.taken_again(root, base=BASE_1(), known=KNOWN)
+        self.assertEqual((got["why"], got["candidates"] == json.loads((root / "candidates.json").read_text()), got["chain"] == json.loads((root / "chain.json").read_text())),
+                         ("", True, True))
+        was = {name: (root / name).read_text() for name in ("candidates.json", "chain.json")}
+        two_sites_named_for_each_other(root)
+
+        class ReadOnce:
+            """A file that is as it was when it is first read, and changed whenever it is read after that."""
+            def __init__(self, name: str) -> None:
+                self.name, self.reads = name, 0
+
+            def read_text(self) -> str:
+                self.reads += 1
+                return was[self.name] if self.reads == 1 else (root / "candidates.json").read_text() if self.name == "candidates.json" else was[self.name].replace(CTL0, "0x00000541")
+        files = {name: ReadOnce(name) for name in was}
+        got = s2_5_chain.taken_again(chain_1(), candidates=files["candidates.json"], chain=files["chain.json"], base=BASE_1(), known=KNOWN)
+        self.assertEqual((got["why"], got["candidates"] == json.loads(was["candidates.json"]), got["chain"] == json.loads(was["chain.json"]), [f.reads for f in files.values()]),
+                         ("", True, True, [1, 1]), "each file is read once, and what is given is what was held")
+        got = s2_5_chain.taken_again(root, base=BASE_1(), known=KNOWN)
+        self.assertEqual((got["why"], sorted(got)), (self.NOT_CANDIDATES, ["why"]), "where it does not stand nothing is given to build on")
+        shutil.rmtree(root / "run02")
+        self.assertEqual(sorted(s2_5_chain.taken_again(root, base=BASE_1(), known=KNOWN)), ["why"])
+
+
 class RoomForPartTwo(unittest.TestCase):
     """The closing of part 1 says whether part 2 can be planned over what it found (review of 66e4ac4: with three
     sites in other columns part 1 found every memory, and part 2 had 30 reads a state for a room of 28)."""
@@ -650,6 +700,29 @@ class RoomForPartTwo(unittest.TestCase):
                                             "why": "there is no candidate to read a state over"})
         r = self.room({0x00C00000})
         self.assertEqual((r["can_be_planned"], r["why"]), (False, "a frame with candidates is no address of block type 0 of the census"))
+
+    def test_a_chain_of_part_2_whose_next_run_has_no_plan_does_not_say_go_on(self) -> None:
+        """Review of b8f014a: with 30 reads a state part 1 said that part 2 cannot be planned and the dry run refused
+        — and the chain of part 2, asked where it stands, said "go on" and ended with 0."""
+        said = {far for far, _, _ in s2_5_predict.places(json.loads(s2_5_chain.PREDICTION.read_text()))}
+        others = [c for c in s2_2_shares.columns(s2_2_shares.layout(CENSUS)) if len(c) >= 6 and not said & set(c)]
+        frames = lambda n: {"frames_with_candidates": {f"{far:#010x}": 0 for far in sorted(said | {far for c in others[:n] for far in c[:6]})}}   # noqa: E731
+        known = lambda n: dict(s1a_run.known_for("s2_5f"), candidates=frames(n), ctl0_in_part_1=CTL0)   # noqa: E731
+        empty = Path(scratch_dirs.mkdtemp(prefix="smp2r_")) / "chain"
+        a = s2_5_chain2.assess(empty, BASES(), known(2))
+        self.assertEqual((a["state"], a["next_run"]), ("go on", 0), "28 reads: there is room")
+        a = s2_5_chain2.assess(empty, BASES(), known(3))
+        self.assertEqual((a["state"], a["runs"], "next_run" in a), ("halted", [], False))
+        self.assertRegex(a["why"][0], r"^no plan can be made for the next run, run00: the result would have 2\d{5} words; its area holds 262144$")
+        out = io.StringIO()
+        no_room = known(3)
+        with mock.patch.object(s1a_run, "known_for", lambda stage: no_room), mock.patch.object(sys, "argv", ["s2_5_chain2.py", "--dir", str(empty)]), contextlib.redirect_stdout(out):
+            code = s2_5_chain2.main()
+        self.assertEqual((code, "0 run(s) stored of 17; the chain: halted" in out.getvalue(), "no plan can be made for the next run, run00" in out.getvalue(), empty.exists()),
+                         (1, True, True, False), out.getvalue())
+        calls: list[int] = []
+        a = s2_5_chain2.drive(empty, BASES(), no_room, lambda k, o: calls.append(k), committed=lambda path: "")
+        self.assertEqual((a["state"], calls), ("halted", []), "and nothing is sent")
 
     def test_the_closing_of_the_made_up_chain_says_it_and_the_command_says_where_it_cannot(self) -> None:
         c = json.loads((chain_1() / "chain.json").read_text())["closing"]["part_2"]

@@ -13,9 +13,13 @@ what a stored run must show of the image, the design and both lists it was made 
 **What part 1 found is taken the same way.** Part 2 reads two files of part 1's chain — its candidates, with the
 memory and the site of each, and its chain.json — and cannot test whose memory a place is, since it writes every site
 alike. Before either is used, every stored run of part 1 is judged again from its raw words and both files are held to
-what that gives (s2_5_chain.not_as_its_runs_give, asked by the run script of every run and by this command); where
-they are not, nothing is run and nothing is assessed. The description names the runs of part 1 as what the site of an
-entry rests on.
+what that gives — and what part 2 is then given is what was held, not the files opened a second time
+(s2_5_chain.taken_again, asked by the run script of every run and by this command); where they are not, nothing is run
+and nothing is assessed. The description names the runs of part 1 as what the site of an entry rests on.
+
+**"Go on" is said only where the next run can be planned.** Each state reads every frame in which part 1 found a
+candidate, and the result has room for so many reads; where the next run has no plan the chain is halted and says why,
+also when no run is stored yet and it is only asked where it stands.
 
 **The code run is made alone, and held to the CTL0 of part 1's runs**: the candidates it is read over were found under
 that word. When it is a passing run it is closed into a table for every site (s2_5_table.close_code): what part 1 says
@@ -210,7 +214,12 @@ def assess(root: Path, bases: dict, known: dict) -> dict:
                 r["problems"].append(f"the run directories after it were not looked at: {names[k + 1:]}")
             return halted(*[f"{name}: {p}" for p in r["problems"]])
         r["decision"] = "go on" if k + 1 < RUNS else "complete"
-    if len(names) < RUNS:
+    if len(names) < RUNS:                            # "go on" is said only of a chain whose next run can be planned (review of b8f014a: over
+        stage, share = run_of(len(names))            # frames that leave the result no room, the chain with no run stored said "go on")
+        try:
+            s1a_run.with_plan(stage, bases[stage], share, known)
+        except ValueError as e:
+            return halted(f"no plan can be made for the next run, run{len(names):02d}: {e}")
         out.update(state="go on", next_run=len(names))
         return out
     confirmed = sorted(n for r in out["runs"][1:] for n in r["confirmed"])

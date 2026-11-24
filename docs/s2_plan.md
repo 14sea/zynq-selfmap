@@ -63,8 +63,10 @@ host side is built and waits for the owner's review (section 47). An outside rev
 it found three things, all three so and all mended (section 48): part 2 took whose memory
 a place is from a file of part 1 without going back to part 1's runs; the rule's part of
 the word asked only a row's lower word; and part 1 can find every memory and leave part 2
-without room for a plan, which its closing now says. Nothing of it has been on a board,
-and the design is not on the card.
+without room for a plan, which its closing now says. A second review, of that mending,
+found two more, both so and both mended (section 49): what was held to the runs was then
+read from the file a second time; and a chain of part 2 that cannot be planned said "go
+on". Nothing of it has been on a board, and the design is not on the card.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4391,3 +4393,70 @@ placement and timing, the `.bit` differing in the date and time of its header on
   against the step's tests: all killed. The tool has not run them.
 - Taking the eight runs of a part 1 of the device's size again, as every use of a set of
   part 2 now does: 3.7 seconds here.
+
+## 49. Second outside review, of `b8f014a` (2026-11-24): two findings, both so, both mended
+
+The review took the three cases of section 48 again and found them mended, and found two
+things at the edges of that mending. Both were held against the source and made to happen
+here before anything was changed. Nothing of this has been on a board; the image is
+unchanged.
+
+### 1. What was held to the runs was then read a second time
+
+`known_for` asked whether the two files of part 1 are what its stored runs give — and,
+told that they are, opened both files again to take what part 2 is given. Between the two
+readings another program can change them: the review named two sites for each other just
+after the files were held, and seventeen untouched runs of part 2, judged again, closed
+complete. Here: with the files changed in exactly that place, `known_for` gave part 2 the
+changed candidates.
+
+**Mended.** What is held is what is given. `s2_5_chain.taken_again` gives back the
+candidates and the chain as the stored runs give them — which each file was found to be —
+and `known_for` uses those; neither file is opened after it was held. A set that is built
+on nothing of S2.5's part 1 reads its files as before.
+
+How likely another program is, is not the point: the file was the one thing of part 1
+that part 2 cannot test, and it was read where nothing stood behind it.
+
+### 2. A chain of part 2 that cannot be planned said "go on"
+
+With 30 reads a state (section 48, finding 3) part 1 says that part 2 cannot be planned
+and the run script's dry run refuses. But the chain of part 2, asked where it stands with
+no run stored, answered "go on" and ended with 0: it made a plan only for runs that were
+stored, and for the next one only when it was about to send it. Nothing would have been
+sent — the driver asks the dry run first — but the answer was wrong.
+
+**Mended.** `s2_5_chain2.assess` says "go on" only where the next run can be planned;
+otherwise the chain is halted with the planner's own sentence ("no plan can be made for
+the next run, run00: …"), the command ends with 1, and nothing is written or sent. That
+holds after the code run too, for the next run of the singles.
+
+Not changed: the chain of part 1. Its plans are made from the census alone, and no result
+can leave it without one.
+
+### What else the review reports
+
+In the review's words, not checked again here: the raw data of 25 runs on the pretend
+board replayed alike, 28,160 places and the eight hashes of part 1 that the description
+now names; two sites named for each other in the stored file, a run taken away and a
+damaged checksum each refused; the words 14 and 19 said not to obey; a clean copy passing
+1,208 tests; the fourteen mutants of section 48 each caught; the prober rebuilt byte for
+byte.
+
+### Tests and mutants
+
+- The files changed by another program just after they were held, for both sets of part
+  2, over the chain of part 1 with the device's own plans: part 2 is given the candidates
+  and the CTL0 that were held; asked again, the changed files are refused. What
+  `taken_again` gives where part 1 stands, and that it gives nothing to build on where it
+  does not.
+- A chain of part 2 with no run stored over 28 reads a state ("go on") and over 30
+  (halted, the command ends with 1, the driver sends nothing).
+- **Tests**: 1,211, all passing (3 new). **Mutants**: 1,681, none stale — four new, and
+  four of section 48 set on the lines as they are now; those and the one of the run
+  script that asks the question, nine, each with a first look against the step's tests.
+  Eight were killed. One survived — `taken_again` giving back the file opened again in
+  place of what it had held: the same fault one step further in, and the test changed the
+  files only after the function had returned. It has its test now (each file is read
+  once: a file that changes on its second reading is given as it was held) and is killed.
+  The tool has not run them.

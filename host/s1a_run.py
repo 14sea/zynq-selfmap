@@ -226,20 +226,21 @@ def known_for(stage: str) -> dict:
     for what in ("candidates", "chain_of_part_1"):     # a set that reads over what the part before found has no run until that is stored
         if what in STAGES[stage] and not STAGES[stage][what].is_file():
             raise ValueError(f"{stage} is run over what the part before it found, and that is not stored ({STAGES[stage][what].relative_to(ROOT)})")
+    part_1 = None
     if "part_1" in STAGES[stage]:                    # S2.5, part 2: whose memory a place is, is said by part 1 alone and cannot be tested by part 2 —
-        import s2_5_chain                            # so what part 1's chain wrote is held to its stored runs, taken again from their raw words
-        why = s2_5_chain.not_as_its_runs_give(STAGES[stage]["part_1"], STAGES[stage]["candidates"], STAGES[stage]["chain_of_part_1"])
-        if why:
-            raise ValueError(f"{stage} is run over what part 1 found, and what is stored of part 1 does not stand ({STAGES[stage]['part_1']}): {why}")
+        import s2_5_chain                            # so what part 1's chain wrote is held to its stored runs, taken again from their raw words;
+        part_1 = s2_5_chain.taken_again(STAGES[stage]["part_1"], STAGES[stage]["candidates"], STAGES[stage]["chain_of_part_1"])
+        if part_1["why"]:                            # and what is used below is what was held, not either file opened a second time
+            raise ValueError(f"{stage} is run over what part 1 found, and what is stored of part 1 does not stand ({STAGES[stage]['part_1']}): {part_1['why']}")
     known = json.loads(STAGES[stage].get("known", KNOWN).read_text())
     if "census" in STAGES[stage]:
         known = dict(known, census=json.loads(STAGES[stage]["census"].read_text()))
     if "candidates" in STAGES[stage]:                # S2.3: what S2.2 found, as its chain wrote it
-        known = dict(known, candidates=json.loads(STAGES[stage]["candidates"].read_text()))
+        known = dict(known, candidates=part_1["candidates"] if part_1 else json.loads(STAGES[stage]["candidates"].read_text()))
     if "chain_before" in STAGES[stage]:              # and what CTL0 read in the runs that found it: the chain of S2.3 holds its code run to it
         known = dict(known, ctl0_in_s2_2=s2_3_states.ctl0_in_s2_2(json.loads(STAGES[stage]["chain_before"].read_text())))
     if "chain_of_part_1" in STAGES[stage]:           # S2.4, part 2: what CTL0 read in the runs of part 1, to which its chain holds the code run
-        known = dict(known, ctl0_in_part_1=s2_3_states.ctl0_in_s2_2(json.loads(STAGES[stage]["chain_of_part_1"].read_text())))
+        known = dict(known, ctl0_in_part_1=s2_3_states.ctl0_in_s2_2(part_1["chain"] if part_1 else json.loads(STAGES[stage]["chain_of_part_1"].read_text())))
     if "ram_places" in STAGES[stage]:                # S2.4: where the RAM's cells are, which no bit of the shift registers may be
         known = dict(known, ram_places=json.loads(STAGES[stage]["ram_places"].read_text()))
     return known

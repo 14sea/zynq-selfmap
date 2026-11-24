@@ -124,6 +124,42 @@ class NoSuiteOfTheToolReachesABoard(unittest.TestCase):
             self.assertEqual(m.suite(tree), (False, "Ran 3 OK; 0 test(s): "))
         self.assertEqual([env["SELFMAP_NO_BOARD"] for env in seen], ["1"], "whatever the tool's own environment says of it")
 
+    def test_a_scratch_copy_is_told_where_the_compiler_is(self) -> None:
+        """Found 2026-11-24, when the path of the compiler in the Makefiles was made relative to the repository: a copy
+        of the tree in another place looked for the compiler beside itself, built no image, and the tool's unmutated
+        tree would not have passed. The whole suite did not show it; it runs where the repository lies."""
+        import hashlib, os, shutil, subprocess
+        from unittest import mock
+        sys.path.insert(0, str(ROOT / "tests"))
+        import scratch_dirs
+        m = tool()
+        with mock.patch.dict("os.environ"):
+            os.environ.pop("XGCC", None)
+            given = m.compiler()
+        self.assertEqual(list(given), ["XGCC"])
+        self.assertTrue(Path(given["XGCC"]).is_file() and Path(given["XGCC"]).is_absolute(), given)
+        with mock.patch.dict("os.environ", {"XGCC": "/somewhere/else/gcc"}):
+            self.assertEqual(m.compiler(), {}, "a compiler that was named is left as it was named")
+        seen: list[dict] = []
+        def run(cmd, **kw):
+            if "unittest" in cmd:
+                seen.append(kw["env"])
+                return subprocess.CompletedProcess(cmd, 0, "", "Ran 3 tests in 0.1s\n\nOK\n")
+            return subprocess_run(cmd, **kw)
+        subprocess_run = subprocess.run
+        tree = Path(scratch_dirs.mkdtemp(prefix="smtool_")) / "tree"
+        shutil.copytree(ROOT / "prober", tree / "prober")
+        with mock.patch.object(m.subprocess, "run", run):
+            m.suite(tree)
+        self.assertEqual([env.get("XGCC") for env in seen], [os.environ.get("XGCC") or given["XGCC"]], "every suite the tool starts is given it")
+        env = {k: v for k, v in os.environ.items() if k != "XGCC"}
+        alone = subprocess.run(["make", "-s", "-C", str(tree / "prober"), "image"], capture_output=True, text=True, env=env)
+        self.assertNotEqual(alone.returncode, 0, "left to itself the copy finds no compiler: that is what the tool has to mend")
+        told = subprocess.run(["make", "-s", "-C", str(tree / "prober"), "image"], capture_output=True, text=True, env={**env, **given})
+        self.assertEqual(told.returncode, 0, told.stderr)
+        self.assertEqual(hashlib.sha256((tree / "build" / "prober" / "prober.bin").read_bytes()).hexdigest(),
+                         hashlib.sha256((ROOT / "build" / "prober" / "prober.bin").read_bytes()).hexdigest(), "and the image built in the copy is the image")
+
     def test_where_it_is_set_the_console_is_not_opened(self) -> None:
         from unittest import mock
         sys.path.insert(0, str(ROOT / "host"))

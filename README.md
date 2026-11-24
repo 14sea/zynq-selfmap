@@ -97,7 +97,7 @@ The tests do not use a board. This command does all the tests:
     SELFMAP_NO_BOARD=1 python3 -B -m unittest discover -s tests
 
 `SELFMAP_NO_BOARD=1` makes sure that no test opens the serial console.
-There are 1,211 tests. They take approximately 10 minutes.
+There are 1,212 tests. They take approximately 10 minutes.
 
 These tools are necessary:
 

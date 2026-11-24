@@ -1810,6 +1810,22 @@ MUTANTS = [
 # this is set, and what a suite starts inherits it (section 33 of the S2 plan).
 NO_BOARD = {"SELFMAP_NO_BOARD": "1"}
 
+
+
+def compiler() -> dict:
+    """The ARM compiler, for a suite run in a scratch copy. The Makefiles look for it beside the repository (no path of
+    one machine is written in them), and a scratch copy lies somewhere else: left to itself it finds none, the image is
+    not built, and the unmutated tree does not pass. So a copy is told where this tree finds it — unless whoever started
+    the tool named a compiler already (XGCC)."""
+    if os.environ.get("XGCC"):
+        return {}
+    r = subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "xgcc"], capture_output=True, text=True)
+    return {"XGCC": r.stdout.strip()}
+
+
+COMPILER = compiler()                                # asked once, when the tool is loaded
+
+
 NEEDS_FREE = 8 << 30                                 # bytes free where the scratch copies go, or nothing is started
 
 
@@ -1817,7 +1833,7 @@ def suite(tree: Path) -> tuple[bool, str]:
     tmp = tree.parent / "tmp"                            # whatever a run of the suite leaves behind goes with it, also if it was cut short
     shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
     try:
-        r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True, env={**os.environ, **NO_BOARD, "TMPDIR": str(tmp)})
+        r = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=tree, capture_output=True, text=True, env={**os.environ, **NO_BOARD, **COMPILER, "TMPDIR": str(tmp)})
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return read(r.stdout + r.stderr)

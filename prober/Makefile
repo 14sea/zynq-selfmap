@@ -30,4 +30,9 @@ $(BUILD)/twin_asan: sm_core.c twin_hal.c sm.h
 	@mkdir -p $(BUILD)
 	$(CC) -std=c99 -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wextra -Werror -D_POSIX_C_SOURCE=200809L -o $@ sm_core.c twin_hal.c
 
-.PHONY: all twin twin_asan image
+# Where the compiler is looked for from here. A copy of this tree in another place does not find it by itself and is given
+# this as XGCC (tests/mutants.py does so for its scratch copies).
+xgcc:
+	@echo $(XGCC)
+
+.PHONY: all twin twin_asan image xgcc

@@ -1,0 +1,21 @@
+zynq-selfmap — a Zynq-7010 finds the structure of its own PL configuration memory
+Copyright 2026 14sea
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Material copied from other repositories of the same author:
+
+- imported/fabricmap/ and imported/psmap/ hold files copied unchanged from
+  zynq-fabricmap and zynq-psmap (both Apache-2.0). Each directory has an
+  IMPORT.json that records the source repository, path, commit and sha256 of
+  every file.
+
+Generated artifacts and referenced tools:
+
+- Tracked .bit files are exact reproducibility artifacts generated with
+  AMD/Xilinx Vivado from the designs in pl/ and imported/. Vivado itself is
+  proprietary software and is not redistributed in this repository.
+- AMD/Xilinx user guides, including UG470, UG585 and UG908, are cited as
+  references only and are not redistributed here.
+- The Project X-Ray database (prjxray-db) is not in this repository. The
+  grading programs read it from a separate checkout, after the fact.

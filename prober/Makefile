@@ -1,6 +1,7 @@
 # The prober: the host twin (any cc) and the board image (the pinned xPack ARM toolchain).
 BUILD ?= $(abspath $(CURDIR)/../build/prober)
-XGCC  ?= /home/test/zynq_psoracle/toolchain/xpack-arm-none-eabi-gcc-14.2.1-1.1/bin/arm-none-eabi-gcc
+# The toolchain is looked for beside this repository, where the project it was pinned in keeps it; XGCC=... names another place.
+XGCC  ?= $(abspath $(CURDIR)/../../zynq_psoracle/toolchain/xpack-arm-none-eabi-gcc-14.2.1-1.1/bin/arm-none-eabi-gcc)
 XPFX   = $(XGCC:gcc=)
 XFLAGS = -mcpu=cortex-a9 -marm -mfloat-abi=soft -mgeneral-regs-only -ffixed-r9 -mno-unaligned-access \
          -std=c99 -Os -ffreestanding -fno-builtin -fno-pic -nostdlib -nostartfiles \

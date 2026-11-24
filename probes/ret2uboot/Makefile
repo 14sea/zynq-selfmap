@@ -1,7 +1,8 @@
 # ret2uboot: the host twin (any cc) and the board image (the pinned xPack ARM toolchain).
 # Products go to the top-level ignored build/ directory.
 BUILD ?= $(abspath $(CURDIR)/../../build/ret2uboot)
-XGCC  ?= /home/test/zynq_psoracle/toolchain/xpack-arm-none-eabi-gcc-14.2.1-1.1/bin/arm-none-eabi-gcc
+# The toolchain is looked for beside this repository, where the project it was pinned in keeps it; XGCC=... names another place.
+XGCC  ?= $(abspath $(CURDIR)/../../../zynq_psoracle/toolchain/xpack-arm-none-eabi-gcc-14.2.1-1.1/bin/arm-none-eabi-gcc)
 XPFX   = $(XGCC:gcc=)
 # soft float and general registers only: U-Boot does not enable the VFP. r9 is U-Boot's gd pointer.
 XFLAGS = -mcpu=cortex-a9 -marm -mfloat-abi=soft -mgeneral-regs-only -ffixed-r9 -mno-unaligned-access \

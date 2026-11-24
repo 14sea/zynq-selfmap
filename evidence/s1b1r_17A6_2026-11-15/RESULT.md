@@ -42,7 +42,7 @@ pulled twice); the card copy (`saf979a3.bin`) verified; `result.bin` sha256 `08e
 ## The grader, afterwards (`grade.json`)
 
 Run after the result had been saved, judged and committed (`b6cdd14`), against
-`/home/test/prjxray-db/zynq7/xc7z010clg400-1/part.json` (sha256 `1754ec1c…d095`, the checkout at
+`prjxray-db/zynq7/xc7z010clg400-1/part.json` in a checkout beside this repository (sha256 `1754ec1c…d095`, the checkout at
 `0a0adde`):
 
 - the 36 addresses walked are minors 0..35 of one column — block type 0, top half, row 0,

@@ -18,7 +18,8 @@ import json
 import sys
 from pathlib import Path
 
-DEFAULT_DB = Path("/home/test/prjxray-db/zynq7/xc7z010clg400-1/part.json")
+# The database is no part of this repository: by default a checkout of prjxray-db beside it; another file is named as the second argument.
+DEFAULT_DB = Path(__file__).resolve().parents[2] / "prjxray-db" / "zynq7" / "xc7z010clg400-1" / "part.json"
 BUS = {0: "CLB_IO_CLK", 1: "BLOCK_RAM"}
 
 

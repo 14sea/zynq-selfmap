@@ -135,7 +135,7 @@ the plan lay down and the owner released after review:
    55 `0x1b80..0x1ba9`; after the row `0x00400000`, the register having stood still one step
    before it.
 2. **`grade.json`** (sha256 `6ecfc55f…9887`), `grade_s1b2.py` run once on that file against
-   `/home/test/prjxray-db/zynq7/xc7z010clg400-1/part.json` (sha256 `1754ec1c…d095`, the
+   `prjxray-db/zynq7/xc7z010clg400-1/part.json` in a checkout beside this repository (sha256 `1754ec1c…d095`, the
    checkout at `0a0adde` — the file S1b.1 was graded against), committed as it came out
    (`fffe4cc`):
    - each of the 56 columns has the number of frames the database gives it (41 of 36, 9 of 28,

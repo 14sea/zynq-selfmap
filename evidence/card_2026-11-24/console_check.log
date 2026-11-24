@@ -1,0 +1,61 @@
+
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000b                             ....
+Zynq> 
+<<TX b'printenv cardid\r'>>
+printenv cardid
+## Error: "cardid" not defined
+Zynq> 
+<<TX b'\x03'>>
+<INTERRUPT>
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 
+<<TX b'md.l f800700c 1\r'>>
+md.l f800700c 1
+f800700c: a802000b                             ....
+Zynq> 
+<<TX b'printenv cardid\r'>>
+printenv cardid
+## Error: "cardid" not defined
+Zynq> 
+<<TX b'fatsize mmc 0:1 carrier.bit\r'>>
+fatsize mmc 0:1 carrier.bit
+Zynq> 
+<<TX b'printenv filesize\r'>>
+printenv filesize
+filesize=1fcc17
+Zynq> 
+<<TX b'fatsize mmc 0:1 s2a.bit\r'>>
+fatsize mmc 0:1 s2a.bit
+Zynq> 
+<<TX b'printenv filesize\r'>>
+printenv filesize
+filesize=1fcc13
+Zynq> 
+<<TX b'fatsize mmc 0:1 s2b.bit\r'>>
+fatsize mmc 0:1 s2b.bit
+Zynq> 
+<<TX b'version\r'>>
+version
+U-Boot 2026.04-rc5-dirty (Aug 01 2026 - 15:00:50 +0100)
+
+arm-linux-gnueabihf-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+GNU ld (GNU Binutils for Ubuntu) 2.42
+Zynq> 

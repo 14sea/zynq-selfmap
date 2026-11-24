@@ -69,7 +69,7 @@ read from the file a second time; and a chain of part 2 that cannot be planned s
 on". The owner has decided on the as-built (section 50): sixteen runs of the singles and
 no access to one site alone are accepted, and a memory the six moves do not find halts
 part 2 — how it would then be given its site is said there beforehand, and not built.
-Nothing of it has been on a board, and the design is not on the card.
+**The design is on the card since 2026-11-24 (section 51).** No run of S2.5 has been made.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4546,3 +4546,26 @@ built on the owner's word after the halt, from the stored runs, with no board.
 
 The board, on three words (section 46): `s2b.bit` onto the card; part 1; part 2. And the
 push of what is committed since `046a60d`.
+
+## 51. S2.5 on the board, first word: the design onto the card (2026-11-24)
+
+The repository is public since 2026-11-24, at `f5c3975`: the prediction of part 0
+(`f692832`) was there to be read before anything of S2.5 was on a board.
+
+The owner's word for the board came the same day. It is taken as the first of the three
+words of section 46 — the card — and no further: part 1 waits for its own.
+
+- **The check before**, read-only: the board answers at its prompt, status `a802000b`, and
+  the card is the project's (`carrier.bit` and `s2a.bit` with their sizes). The script was
+  run twice: its first form asked for a `cardid` that the environment does not define and
+  never did in the checks before the chains of S2.3 and S2.4. That was the script's
+  mistake; it was taken out and the same commands sent again.
+- **The saving**, 19:22:43–19:26:05 UTC: `build/pl/s2b.bit` (2,083,859 bytes, sha256
+  `7f0e1af8…7a12`) sent by YMODEM, crc32 `15045cfc` in RAM, written with `fatwrite`, read
+  back after `mmc rescan` with the same crc32. `s2a.bit` and `carrier.bit` read back as
+  they were. Nothing was loaded into the PL and the board was not reset; status
+  `a802000b` before and after; no exception, no restart, nothing sent twice.
+
+The record is `evidence/card_2026-11-24/`. Next, on the owner's word: part 1, its first run
+alone (`host/s2_5_chain.py --dir evidence/s2_5_17A6 --go --max-new 1`), committed before
+the rest.

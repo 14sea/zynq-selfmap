@@ -23,8 +23,8 @@ once, every one of the 28,160 cells with one bit and confirmed, and 432 of the 4
 a prediction had said. The two sites it missed lie six columns of frames lower: of the
 five parts of the rule by which a memory's place depends on its site, four hold at every
 site measured and the column does not.** Nothing
-of S2 is graded: that is done once, at its end, after the complete set of mutants has
-been run once; neither is begun. S3 to S6 have not been begun, and nothing
+of S2 is graded: that is done once, at its end, after the mutants the tool has not yet
+judged have been run (`docs/s2_plan.md`, section 55); that run is begun, the grading is not. S3 to S6 have not been begun, and nothing
 has written configuration memory. The frame census is written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 The plan for S2 is `docs/s2_plan.md`, agreed by the owner on 2026-11-20 (its section 12);
 where it stands is said at its head.

@@ -76,7 +76,9 @@ columns of frames lower (section 52).** **Part 2 has been on the board the same 
 complete: a table for every one of the 110 sites, every cell confirmed at every site; of
 the rule's five parts four hold at every site measured and the column does not (section
 53). With it S2.5 is done, and every step of S2 has been on the board.** What is left of
-S2 is the complete set of mutants, once, and the grading; neither is begun.
+S2 is the mutants the tool has not yet judged — 355, by the owner's rule of 2026-11-25
+(section 55), which takes the place of "the complete set" here — and the grading. The run
+of the 355 is begun; the grading is not.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -2952,6 +2954,8 @@ there would be. What I answered, and what was decided.
    mended judge judges them again, mostly without the board. And grading asks only for
    the table: what else S2 says of the device (that readback leaves the RAM as it was,
    what the status bits do) rests on the judges alone.
+   *(Changed by the owner on 2026-11-25, section 55: before a stage is graded, the mutants
+   the tool has never judged; the others before S4.)*
 4. **Before the first write to configuration memory (S4)**: the complete set, or at the
    least every mutant of the prober and of what guards a write. What a wrong write does,
    it does before anything is graded.
@@ -4784,3 +4788,62 @@ a suite (`SELFMAP_NO_BOARD`, `XGCC`, a `TMPDIR` of its own), 1,214 passing (3 sk
 the third is the test that needs git, as in every copy). No mutant is new and none is
 anchored in the two files. Not yet seen by an outside review. The complete set is
 started again on the commit that holds this section.
+
+## 55. Which mutants are run before a stage is graded (owner, 2026-11-25)
+
+Point 3 of section 35 said: before a stage is graded, the complete set once. The complete
+set was started again on `9b82c2e` at 09:47:39Z (section 54). Its unmutated tree passed
+(1,214 tests, 3 skipped, in a scratch copy), so the two tests of section 54 are mended.
+The owner then asked again whether all of it is needed. What I answered, and what was
+decided.
+
+### What the records say of the list as it is
+
+Every name of the list was held against every record of the tool in
+`evidence/host_checks/` (the list was read, the tool was not run for this):
+
+- **355 mutants have never been given a verdict by the tool.** They are the last 355 of
+  the list, numbers 1326 to 1680: the mutants of S2.4 and S2.5 (`predict4`, `states4`,
+  `judge s2.4`, `chain s2.4`, `table s2.4`, `chain2 s2.4`, `run s2.4`; `predict5`,
+  `states s2.5`, `judge s2.5`, `find s2.5`, `chain s2.5`, `table s2.5`, `rule s2.5`,
+  `chain2 s2.5`, `run s2.5`) and twelve of S2.3 that were added after its run. All are of
+  host programs. Each was looked at when it was written — applied in a scratch copy, the
+  tests of its own part run — and that is not the tool's verdict: not the whole suite, no
+  count of the tests held.
+- 340 had their last verdict in the runs of 2026-11-23, all killed (section 33).
+- 986 had their last verdict in the runs of 2026-11-22, all killed (section 27). Of what
+  they mutate, the image has not changed since section 32.
+- The tool takes the list in order. The 355 come last: a complete run gives about 45
+  hours to mutants it has killed before, and only then comes to those it has never seen.
+- A complete run is now about 2.3 days of this machine (about 29 mutants an hour at 8
+  jobs, measured in this run), not the day it was when section 35 was written: the suite
+  has grown with S2.4 and S2.5.
+
+What section 35 said of the record holds as it did: a mutant that survives has nearly
+always been a new one in its first run by the tool.
+
+### The rule now
+
+Point 3 of section 35 is changed; points 1, 2 and 4 stand.
+
+3. **Before a stage is graded**: every mutant the tool has never judged. The others —
+   judged before, and killed — are run before the first write to configuration memory
+   (S4), with what point 4 names.
+
+What is given up, and said: if a change of these days made an older test weaker, one of
+the 1,326 could survive now, and that is not seen until the run before S4. For what S2
+is graded on I hold that small: the audit of the stored evidence judges every stored run
+again from its raw words in every run of the suite, and the programs that made what is
+graded — the judges, chains and tables of S2.4 and S2.5 — are what the 355 mutate. The
+mutants of S2.2 and S2.3 (the candidates, and the table of S2.3) are among those judged
+before; the owner was offered the 340 of S2.3 with the 355, about a day together, and
+chose the 355.
+
+### What was done
+
+- The complete run was **stopped at 11:38Z on the owner's word**: 39 judged, 39 killed
+  (`evidence/host_checks/mutants_2026-11-25_complete_stopped.txt`). It says nothing of
+  the set and is kept as what was run. Its scratch copies are removed.
+- The tool is started on the 355 (`SM_MUTANT_FROM=1326`) on the commit that holds this
+  section. Its record, and what it finds, go into a section of their own.
+- The grading is still the owner's word.

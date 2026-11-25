@@ -4742,3 +4742,45 @@ contents, I still cannot say; no rule is given, and nothing rests on it.
 - **Mutants**: 1,681, none stale; none new. Nothing under `prober/` or `host/` was
   changed.
 - **Stored runs**: 238, of which 232 have a result of their own; 192 pass.
+
+## 54. The complete set before the grading: the first start refused, two tests mended (2026-11-25)
+
+The complete set of mutants (section 35, point 3) was started on `d1bbd89` on
+2026-11-25 at 09:16:53Z. The tool stopped at 09:26:56Z with exit code 2 and ran no
+mutant: its unmutated tree — a scratch copy of this one — did not pass. Record:
+`evidence/host_checks/mutants_2026-11-25_complete_refused.txt`. Both failures were made
+again in a copy made by hand as the tool makes its own. Both are faults of tests;
+nothing under `prober/` or `host/` is at fault, and nothing there is changed.
+
+1. `test_a_scratch_copy_is_told_where_the_compiler_is` (`tests/test_mutants_tool.py`,
+   of 2026-11-24). It asks the tool where the compiler is, with `XGCC` taken out of the
+   environment, and held the answer to be a file. The test is itself run in the tool's
+   scratch copies. A copy has no compiler beside it — the tool names one to the suite
+   as `XGCC` — so there the answer is a place that holds nothing. Mended: where a
+   compiler was named to the suite, the answer must be an absolute path and no more,
+   and the compiler a copy is told is the one that was named. Where none was named the
+   test is as it was.
+2. `test_the_chain_that_says_which_place_is_which_cell_at_110_sites`
+   (`tests/test_board_evidence.py`, of section 53). `s1a_run.known_for("s2_5c")` takes
+   part 1 again with its set as the image's tests write it
+   (`build/prober/expected_s2_5f.json`), and the tests of that file come before the
+   image's. In this tree `build/` was there from earlier runs, so the suite passed. In a
+   tree just copied — **or just cloned: this fault is in what was pushed as `d1bbd89`**
+   — the first run of the suite fails at this test, and the second passes. Mended: the
+   test builds the image and the sets first (`the_set()`, as the audit of the stored
+   evidence does).
+
+The same test of point 1 read this tree's own image at its end and built it nowhere;
+it has `the_set()` there now.
+
+Why neither was seen before: since 2026-11-24 the tool itself had not been run, only
+selections of tests in scratch copies; and the whole suite is run where `build/` is.
+The tool's unmutated tree is the one place where the whole suite is run in a tree with
+nothing built, and it is what found both.
+
+After the change, the whole suite, twice at once: in this tree, 1,214 passing (2
+skipped as before); and in a copy made as the tool makes it, with what the tool gives
+a suite (`SELFMAP_NO_BOARD`, `XGCC`, a `TMPDIR` of its own), 1,214 passing (3 skipped —
+the third is the test that needs git, as in every copy). No mutant is new and none is
+anchored in the two files. Not yet seen by an outside review. The complete set is
+started again on the commit that holds this section.

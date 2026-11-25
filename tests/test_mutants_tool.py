@@ -132,12 +132,22 @@ class NoSuiteOfTheToolReachesABoard(unittest.TestCase):
         from unittest import mock
         sys.path.insert(0, str(ROOT / "tests"))
         import scratch_dirs
+        import test_s1b2 as row_tests
         m = tool()
+        named = os.environ.get("XGCC")
         with mock.patch.dict("os.environ"):
             os.environ.pop("XGCC", None)
             given = m.compiler()
         self.assertEqual(list(given), ["XGCC"])
-        self.assertTrue(Path(given["XGCC"]).is_file() and Path(given["XGCC"]).is_absolute(), given)
+        self.assertTrue(Path(given["XGCC"]).is_absolute(), given)
+        if named is None:
+            self.assertTrue(Path(given["XGCC"]).is_file(), given)
+        else:
+            # Found 2026-11-25, when the tool was started on the complete set and its unmutated tree did not pass: this
+            # test is itself run in the tool's scratch copies, and a copy has no compiler beside it — the tool named one
+            # to this suite (XGCC). Where one was named, the place the Makefile looks in need hold nothing, and the
+            # compiler a copy of this tree is told is the one this tree was told.
+            given = {"XGCC": named}
         with mock.patch.dict("os.environ", {"XGCC": "/somewhere/else/gcc"}):
             self.assertEqual(m.compiler(), {}, "a compiler that was named is left as it was named")
         seen: list[dict] = []
@@ -157,6 +167,7 @@ class NoSuiteOfTheToolReachesABoard(unittest.TestCase):
         self.assertNotEqual(alone.returncode, 0, "left to itself the copy finds no compiler: that is what the tool has to mend")
         told = subprocess.run(["make", "-s", "-C", str(tree / "prober"), "image"], capture_output=True, text=True, env={**env, **given})
         self.assertEqual(told.returncode, 0, told.stderr)
+        row_tests.the_set()                              # this tree's own image built, if no test before this one built it
         self.assertEqual(hashlib.sha256((tree / "build" / "prober" / "prober.bin").read_bytes()).hexdigest(),
                          hashlib.sha256((ROOT / "build" / "prober" / "prober.bin").read_bytes()).hexdigest(), "and the image built in the copy is the image")
 

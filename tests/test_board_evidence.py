@@ -876,6 +876,12 @@ class StoredBoardResults(unittest.TestCase):
                          {"8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b"})
         self.assertEqual(hashlib.sha256(b"".join(hashlib.sha256((d / f"run{k:02d}" / "result.bin").read_bytes()).digest() for k in range(17))).hexdigest(),
                          "26b3db316fac63237c985c534069b4c1b2a6a59dbd0f418e3e3ce73c3f9551f9", "the seventeen results, by the hash of their hashes in order")
+        # Found 2026-11-25, when the mutant tool's unmutated tree did not pass: part 1 is taken again with its set as the
+        # image's tests write it, and in a tree just copied (or just cloned) nothing is built when this test is run — the
+        # tests of this file come before the image's. So the image and the sets are built here, as the audit builds them.
+        sys.path.insert(0, str(ROOT / "tests"))
+        import test_s1b2 as row_tests
+        row_tests.the_set()
         known = s1a_run.known_for("s2_5c")              # what part 1 found, taken again from its stored runs (section 48)
         stage_designs.stage()
         a = s2_5_chain2.assess(d, bases, known)

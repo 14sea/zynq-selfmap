@@ -26,14 +26,14 @@ No program and no judge uses it.
 Where a prediction is possible, the project makes the prediction before the measurement.
 The commit of the prediction is earlier than the run on the board.
 
-## Status on 2026-11-24
+## Status on 2026-11-26
 
 | Stage | Subject | Status |
 |---|---|---|
 | S0 | Host programs and tests | Complete |
 | S1a | Frames that an earlier project measured | Complete. The prober read the same contents. |
 | S1b | Census of the frame addresses | Complete. Grading: no difference. |
-| S2 | Position of the bits of LUT RAM and of shift registers | All six steps, S2.0 to S2.5, are complete on the board. No grading. |
+| S2 | Position of the bits of LUT RAM and of shift registers | Complete. All six steps, S2.0 to S2.5, are complete on the board. Grading: no difference. |
 | S3 | State of flip-flops (not mandatory) | Not started |
 | S4 | First write to the configuration memory | Not started |
 | S5 | LUTs of SLICEL sites | Not started |
@@ -48,9 +48,9 @@ Until this date, no program of this project wrote to the configuration memory.
 - Block type 2 has 112 frame addresses. All their frames contain zero. The database has no data for them.
 - The census is in `census/`.
 
-### Results of S2 at this time
+### Results of S2
 
-These results are closed-book. There was no grading.
+These results are closed-book. The grading came after them (see "Grading of S2").
 
 - Control register 0 reads `0x00000501`. Bit 8 is set. Thus the readback shows the contents of LUT RAM.
 - LUT RAM, one site, four memories of 64 bits:
@@ -76,6 +76,18 @@ These results are closed-book. There was no grading.
   - Four parts are correct for all the 110 sites: the sequence of the bits in a memory, the word and the half word for each LUT position, the half of the device, and the word for each row.
   - The part for the column is not one rule. It is correct for the site columns X16 to X42. The site columns X10 and X12 are six columns of frames lower.
   - The measurement is for 110 of the 1,500 sites of this type. For the other sites, the rule is not a measurement.
+
+### Grading of S2
+
+The grading was on 2026-11-26. Before the grading, a document gave the comparisons (`docs/s2_plan.md`, section 57). The result is in `evidence/s2_grade_2026-11-26/`.
+
+- There is no difference.
+- LUT RAM: the 28,160 bits of step S2.5 and the 256 bits of step S2.3 are in the same positions as in prjxray-db.
+- Shift registers: the 256 bits are bits of the contents of the correct LUTs. The database does not give the sequence of the stages. Thus there is no grading for the sequence.
+- The rule: the four correct parts are correct for all the 1,500 sites of this type in the database. The 11 measured columns are correct.
+- For the 990 sites that are not measured but are in measured columns, the rule gives the same positions as the database: 253,440 bits.
+- The sites of this type are in 15 columns. 4 columns (X0, X4, X6, X8) are not measured.
+- The grading does not show that a write to these bits changes a LUT. That is the subject of S4.
 
 ## Equipment
 
@@ -109,7 +121,7 @@ The tests do not use a board. This command does all the tests:
     SELFMAP_NO_BOARD=1 python3 -B -m unittest discover -s tests
 
 `SELFMAP_NO_BOARD=1` makes sure that no test opens the serial console.
-There are 1,214 tests. They take approximately 10 minutes.
+There are 1,244 tests. They take approximately 10 minutes.
 
 These tools are necessary:
 

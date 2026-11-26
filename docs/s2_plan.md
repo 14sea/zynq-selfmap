@@ -75,11 +75,14 @@ once, and 432 of them where the prediction said — the two sites of X10 and X12
 columns of frames lower (section 52).** **Part 2 has been on the board the same day and is
 complete: a table for every one of the 110 sites, every cell confirmed at every site; of
 the rule's five parts four hold at every site measured and the column does not (section
-53). With it S2.5 is done, and every step of S2 has been on the board.** What is left of
-S2 is the grading. The mutants the tool had not yet judged — 355, by the owner's rule of
-2026-11-25 (section 55), which takes the place of "the complete set" here — have been run
-and every one is killed (section 56, 2026-11-26). The grading is not begun; it waits for
-the owner's word.
+53). With it S2.5 is done, and every step of S2 has been on the board.** The mutants the
+tool had not yet judged — 355, by the owner's rule of 2026-11-25 (section 55), which takes
+the place of "the complete set" here — have been run and every one is killed (section 56,
+2026-11-26). **S2 is graded (2026-11-26, on the owner's word): what is compared was said
+beforehand (section 57), and nothing differs (section 58) — all 28,160 cells of S2.5 and
+the 256 of S2.3 lie where the database puts them, the 256 places of the shift registers
+are content bits of their LUTs, and the rule holds at every one of the 1,500 sites of this
+kind the database has. With that S2 is done.**
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -5011,3 +5014,102 @@ After it I have seen where the database puts every column and every LUT bit. Any
 measured in S2 from here on — the columns below X14, for one — is no longer closed-book
 for its author, and would have to say so. That is the price of grading now and not after
 those columns; it is said here so that it stands before the results do.
+
+## 58. S2 graded (2026-11-26): nothing differs
+
+The account in full is `evidence/s2_grade_2026-11-26/RESULT.md`; the grader's output as it
+came is `grade.json` beside it. Here: what was done, the counts, and what turned out
+otherwise than section 57 expected.
+
+### What was done, in order
+
+1. Section 57 written and committed (`7af55bf`), the database's files for slices not yet
+   opened.
+2. The files looked at: `xc7z010/tilegrid.json` and the `segbits` files of the two types of
+   tile that hold sites of this kind. prjxray-db at commit `0a0added` (2021-12-14).
+3. The grader written (`host/grade_s2.py`) and run. Its first run said what the stored
+   `grade.json` says; the grader was changed after that run in what it reports — the three
+   other readings are counted whether anything differs or not, and three statements were
+   added (the list of sites, the count of sites not measured, a name that is not the
+   build's) — and in nothing it compares. No comparison was mended, because none differed.
+4. Its tests on a made-up device and database (`tests/test_grade_s2.py`, 30 tests), sixteen
+   mutants of it (`tests/mutants.py`), and the two older tests that hold the judges and the
+   prober to name no database now pass the new grader by as they pass the three of S1b.
+5. The sixteen mutants run by the tool: sixteen killed, the unmutated tree passing in a
+   scratch copy (1,244 tests, 4 skipped — there the database is not beside the tree, and
+   the test that holds the stored grade to the grader is skipped)
+   (`evidence/host_checks/mutants_2026-11-26_grade_s2.txt`). Then the whole suite in this
+   tree, as it is committed. The other 1,681 mutants were not run: no program they mutate
+   was changed (two tests gained one name in a list of graders).
+
+### What was read of the database
+
+Said as a fact of this grading, not as a claim of what its author knows or does not know.
+`xc7z010/tilegrid.json` was read by the grader and its first entries were looked at. Of
+the two `segbits` files the grader uses the 256 lines of LUT content of the sites of this
+kind; in looking at the files' form, lines of the other kind of site of the same tiles
+(their LUT content) and lines for flip-flops and multiplexers of the sites of this kind
+were also shown. No number from any of these lines is written into a program, a test or a
+note of this project; the grader reads the files when it runs. The files named `mask_…`,
+those for routing and every other file of the database were not opened.
+
+What keeps a later stage honest is not what was or was not seen here but what it always
+was: the search over the whole of a block type, what is said and committed beforehand,
+the confirming runs, and the tests that keep the database's name and the part's numbers
+out of the programs.
+
+### The counts
+
+| comparison (section 57) | compared | agree | differ |
+|---|---|---|---|
+| 1. cells of LUT RAM, S2.5, 110 sites | 28,160 entries | 28,160 | 0 |
+| 2. cells of LUT RAM, S2.3, one site | 256 entries | 256 | 0 |
+| 3. places of the shift registers, S2.4 | 256 places | 256 are content bits of the build's LUT | 0 |
+| 4. the rule: six moves, position | 256 lines and 4 LUTs, in each of two types of tile | all | 0 |
+| 4. the rule: half, word, the four frames | 1,500 sites each | 1,500 | 0 |
+| 4. the rule: the column as measured | 1,100 sites in eleven columns of sites | 1,100 | 0 |
+| 5. sites not measured, in a measured column of sites | 253,440 cells at 990 sites | 253,440 | 0 |
+| 5. sites not measured, in a column not measured | 400 sites, the parts that need no column | 400 | 0 |
+
+Read in any of the three other ways the grader counts, no entry of comparisons 1 and 2
+would agree: the agreement is of the reading section 57 named.
+
+Section 53's reckoning of the columns — "an extrapolation and no finding" — fits the
+database at all fifteen columns of sites of this kind: the eleven measured and X0, X4, X6
+and X8, which were not.
+
+Which content bit is which stage of a shift register the database does not say, as
+expected. What S2.4 found is listed in the database's numbers and not graded: content bit
+2 a + 1 follows output a as it is, 2 a + 2 follows it inverted, bit 0 follows output 0
+inverted — S2.4's own table.
+
+### What turned out otherwise than section 57 expected
+
+- **Four columns of sites were not measured, not eleven.** Sites of this kind lie in
+  fifteen columns of sites, X 0, 4, 6, 8, 10, 12, 16, 20, 24, 28, 30, 32, 34, 38 and 42;
+  X2, X14, X18, X22, X26, X36 and X40 have none — in the database and in
+  `pl/s2a/slicem_sites.txt` alike. The list was in the repository throughout; I had not
+  counted its columns. Section 53's "22 columns" counts pairs of X, sites of any kind.
+- So what section 53 left open of X14 ("no site of X14 was probed") cannot be closed by
+  probing LUT RAM: there is none at X14.
+- Nothing else: the files hold what was expected and their numbers read as section 57 said.
+
+### What it says, and what it does not
+
+- The systematic error that grading only at the end risked (section 12, point 8) is not
+  there: every place S2 found is where a database made in another way has that bit.
+- The rule's four parts hold at every site of this kind of the part, not only where they
+  were measured; the column is right where it was measured.
+- It does not say that writing these bits changes a LUT. Nothing has been written to
+  configuration memory; that is S4, and S4 needs the owner's word and, before it, the
+  mutants of section 55's point 4.
+- One database, one board.
+- The question of measuring the columns below X14 (X0 to X8) is answered by the database
+  now, for what a database's word is worth; a measurement of them from here on would not
+  be closed-book for its author (section 57).
+
+### Where S2 stands
+
+Done: six steps on the board, three descriptions, graded once with nothing differing.
+What S2 did not set out to show is in section 10. What comes next is the owner's to say:
+S3 (flip-flop state, optional) or S4 (the first write).

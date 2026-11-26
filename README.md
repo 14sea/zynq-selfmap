@@ -156,6 +156,7 @@ A test reads each `result.bin` again and gives it to the judge again. The new de
 - `proposal.md` gives the purpose, the closed-book rule and the stages.
 - `docs/s1a_plan.md`, `docs/s1b_plan.md` and `docs/s1b_review.md` are the records of S1.
 - `docs/s2_plan.md` is the record of S2. The first paragraphs tell you the status. `docs/s2_review.md` is the review of S2 as a whole.
+- `docs/s3_plan.md` is the proposal for S3. It is not yet agreed.
 - `census/README.md` describes the census.
 
 The plans are in time sequence. A later section can correct an earlier section.

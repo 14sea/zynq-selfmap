@@ -1,4 +1,4 @@
-# S3 — flip-flop state: plan (2026-11-26; a proposal, not yet agreed)
+# S3 — flip-flop state: plan (2026-11-26; agreed by the owner the same day, all ten points as recommended — section 12)
 
 S2 found where the content of LUT RAM and of shift registers lies in configuration memory. S3
 asks the same of flip-flops: user logic sets a flip-flop to a known value, the state is
@@ -275,3 +275,28 @@ The host runs no mutants while the board is in use.
 If this is agreed, the next thing built is the host side of S3.0 (if point 4 is agreed):
 the COR0 read in the generator, the guard, the parser, the twin, a judge and a set; then its
 "as built" section here and the owner's review, and only then, on the owner's word, the board.
+
+## 12. Decisions (owner, 2026-11-26)
+
+The owner: all ten points of section 11 as recommended, and begin.
+
+1. **The steps** as in section 5: S3.0, S3.1, S3.2, S3.3, S3.4; the last three each with a
+   proposal of its own.
+2. **A capture is a class of its own**: allowed under S3, on the owner's word for each step,
+   never with GRESTORE, the design reloaded before every run. The proposal says so in a dated
+   note (sections 6 and 7). For the mutant rule S3 stays among the stages that only read
+   (`docs/s2_plan.md`, section 35, point 2); the complete set before S4 stands.
+3. **Capture by `CAPTUREE2` in the design**, triggered by a register write. GCAPTURE is not
+   added to what the prober may send; its packets stay `CMD` with RCFG and DESYNC, and `FAR`.
+4. **S3.0, the COR0 read, is done**: a new image.
+5. **RCAP is not proposed**; it becomes a proposal of its own only if COR0 has `SINGLE` set
+   under `s3a`.
+6. **The design `s3a`** as in section 6.
+7. **Its slice**: a SLICEM site in a column S2 measured, at a row S2 did not probe, chosen by
+   a rule.
+8. **Restless bits** as in section 4, point 5.
+9. **Grading once, at the end of S3**, on the owner's word.
+10. **Documents**: UG470, UG585, and Vivado's simulation models of `CAPTUREE2` and `FDRE`.
+
+The host side of S3.0 is built next. Its account follows here as a section "as built" before
+anything is put to the owner for review.

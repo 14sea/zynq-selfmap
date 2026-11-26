@@ -336,3 +336,47 @@ committed with this file: the same count, OK.
 
 **For the owner.** Whether S2 is accepted as finished with F1 to F3 and F5 done; or what else
 is wanted before it is.
+
+## 11. After the owner's word: F1 to F3 and F5 done (2026-11-26)
+
+The owner: as recommended. Done the same day, before anything of S3.
+
+- **F1. The label.** A dated note in the proposal's section 3: the descriptions are left as
+  they were stored; read by that section's words, which site a place of S2.5 belongs to and
+  the predictions of S2.4 and S2.5 are half-open; the cells within a site, S2.3's table and
+  S2.4's are closed-book. The README's results of S2 say the same.
+- **F2. The proposal.** Dated notes: question 7 answered (the six moves, the shift registers'
+  places); bit 5 among the risks, as S2 left it; the stage table's row of S2 no longer ends
+  with "Nothing of S2 is graded"; the paragraph at the head dated 2026-11-26 and saying that
+  S2 is closed.
+- **F3. The numbers of the part** (`tests/test_s2_numbers.py`, 5 tests). Each constant of
+  the prediction and the rule of S2.5 is held to where its program says it comes from: 36 to
+  the census's column that holds each measured site, whose last four frames they are; 50 to
+  the rows of the list of sites over the census's two halves; the forms 20 to 29 to the rows,
+  within their halves, of the two measured sites, and the form named first, 24, to the middle
+  of a half; the half word of 16 bits to the places of S2.3's four memories. And a scan of
+  every program of S2: a constant above 16 that equals a number the census or the list of
+  sites gives — the frames of a column, of a row, the columns, the rows, the totals, the sites
+  and their rows — must be listed in the test with its reason. Fifteen are, each a format of
+  the project's own (the list's 28-bit address, the parameter block's indices, two outcome
+  codes, the prober's log size, a bit of CTL0's table) or one of the constants held above.
+  Tried: each of the five constants changed alone in the program as loaded — each fails the
+  test.
+- **F5. The shell the suite is run in** (`tests/test_suite_environment.py`, 2 tests). Not as
+  I recommended. Clearing every `SM_*` variable for the whole suite would take `SM_DIRTY` from
+  `tests/test_prober_dirty.py`, which runs the twin's tests with it set on purpose and rests on
+  its reaching the twin. Instead the suite fails once, naming the variable, if the shell it
+  runs in has any variable the twin reads (taken from `prober/twin_hal.c`). Tried with
+  `SM_LIST` set: it fails and names it.
+
+No program of the host or the prober was changed, so no mutant was run: 1,697, none stale.
+1,251 tests (seven new). The whole suite, with `SELFMAP_NO_BOARD=1`: in this tree, 1,251 OK (2
+skipped); in a copy made as the mutants tool makes its own (no `build/`, `XGCC` named, a
+`TMPDIR` of its own), 1,251 OK (4 skipped: no git, no database beside it).
+
+## 12. S2 is closed (2026-11-26)
+
+The owner, on this review: as recommended. With F1 to F3 and F5 done (section 11), S2 is
+closed. The proposal's stage table, the paragraph at its head and the head of the plan say so;
+so does the README. F4 and F6 to F8 stand as recommended; with section 10 and the open things
+of section 6 they are what S3 starts from. The next thing is the proposal for S3.

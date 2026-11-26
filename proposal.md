@@ -4,7 +4,7 @@ v0.3 folds in the owner's decisions of 2026-11-13 (section 12). The proposal its
 changed since; what has been done under it is noted where it belongs — the stage table of
 section 7, the open questions of section 11 — and those notes are dated.
 
-**Where the work stands (2026-11-24).** S0, S1a and S1b are done: the owner closed S1b on
+**Where the work stands (2026-11-26).** S0, S1a and S1b are done: the owner closed S1b on
 2026-11-20, after its review as a whole (`docs/s1b_review.md`). S1b, the read-only census, has
 block types 0 and 1 complete and graded: 3,864 and 1,280 frame addresses, 5,144 in all,
 nothing differs from prjxray-db. Block type 2 is complete too: 112 frame addresses, two rows of 56 columns of one frame, every
@@ -28,7 +28,7 @@ been run (`docs/s2_plan.md`, sections 55 and 56): what is compared was written b
 (section 57), and nothing differs (section 58; `evidence/s2_grade_2026-11-26/`) — the 28,160
 cells of S2.5 and the 256 of S2.3 lie where prjxray-db puts them, the 256 places of the
 shift registers are content bits of their LUTs, and the rule holds at all 1,500 sites of
-this kind. S3 to S6 have not been begun, and nothing
+this kind. The owner closed S2 on 2026-11-26, after its review as a whole (`docs/s2_review.md`). S3 to S6 have not been begun, and nothing
 has written configuration memory. The frame census is written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 The plan for S2 is `docs/s2_plan.md`, agreed by the owner on 2026-11-20 (its section 12);
 where it stands is said at its head.
@@ -88,6 +88,14 @@ Every result is labelled as one of:
 
 - closed-book: rests on observations made on the device only;
 - half-open: also uses "what value our own design put there".
+
+*2026-11-26 (review of S2, finding F1, as the owner agreed):* every description S2 stored says
+`closed-book`, and they are left as they were stored. Read by the words above, two things in
+them are half-open: **which site a place of S2.5 belongs to** — part 1 found each memory by the
+word the design loaded it with, and part 2 wrote every site at once — and **the predictions of
+S2.4 and S2.5**, read from frames as loaded. The cells within a site, S2.3's table and S2.4's
+rest on what user logic did and are closed-book. The grading held the build's names of the sites
+against the database and found every entry agreeing (`evidence/s2_grade_2026-11-26/`).
 
 ## 4. The structure description
 
@@ -210,7 +218,7 @@ the chain halted there.
 | S0 | Host only: the frame-access interface, the schema, the safety checker, tests; the PCAP readback sequence copied from zynq-psmap | no | a testable skeleton |
 | S1a | Read-only, small: the prober reads the few frames zynq-psmap already verified on this die and must reproduce them | no | the method confirmed on a known range — **done 2026-11-13, PASS** (`evidence/s1a_17A6_2026-11-13/`) |
 | S1b | Read-only census, widened in steps: walk the FAR space; record which addresses exist and how many frames each block type has | no | the frame list, compared afterwards with prjxray's 5144 — **done (closed by the owner 2026-11-20, after the review in `docs/s1b_review.md`)**: block type 0 done and graded, 3,864 addresses in two rows of 1,932 frames and 56 columns; block type 1 done and graded, 1,280 addresses in two rows of 640 frames and 5 columns; 5,144 in all and nothing differs. After block type 1 the device names `0x01000000`, block type 2: done (2026-11-19), 112 addresses in two rows of 56 columns of one frame, all zero, not graded (the database has none); after it the device names `0x01800000`, where one unfinished pass (2026-11-19) read ten addresses of block type 3, all zero, and left the register at `0x02000000`, not read. Reading the frames of three of the five columns of block type 1 raises a status bit that is not explained. Step by step in `docs/s1b_plan.md`, which begins with an index |
-| S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) — **all six steps done on the board; graded 2026-11-26, nothing differs (`evidence/s2_grade_2026-11-26/RESULT.md`)** (`docs/s2_plan.md`, which says at its head where it stands). Done on the board: S2.0 (2026-11-20; control register 0 is `0x00000501`, bit 8 set), S2.1 (2026-11-20; the prober reaches our own design `s2a` and returns), S2.2 (2026-11-22; 256 bits of block type 0 follow the design's 256 cells of LUT RAM, in the frames `0x00401220` to `0x00401223`; every other bit is still; reading does not disturb the RAM). S2.3 (2026-11-23; every one of the 256 cells has one bit, in words 61 and 62 of those frames, each confirmed by a run of its own), S2.4 (2026-11-23; the shift registers of a second site: 256 bits follow their 128 outputs in the frames `0x00001820` to `0x00001823`, words 40 and 41, half as they are and half inverted, where a prediction made beforehand said, and every output is confirmed). S2.5 (2026-11-24; LUT RAM at 110 sites: 28,160 bits follow, each of the 440 memories is found once by the word it was loaded with, every cell has one bit and is confirmed at every site; 432 memories are where a prediction made beforehand said and 8, at two sites, are six columns of frames lower; four of the five parts of the rule the sites obey hold at every site measured, the column does not). The bit tables are closed-book descriptions (`evidence/s2_3_17A6_2026-11-23/ram_map.json`, `evidence/s2_4b_17A6_2026-11-23/`, `evidence/s2_5b_17A6/ram_map.json` with `rule.json`). Nothing of S2 is graded: once, at its end |
+| S2 | LUT RAM location: the probe circuit writes known patterns into LUT RAM through user logic; read back; find where the patterns land. Also settles the readback mask (GLUTMASK) and the bit order of shift registers | no (only user logic writes) | bit table for SLICEM LUTs (closed-book) — **all six steps done on the board; graded 2026-11-26, nothing differs (`evidence/s2_grade_2026-11-26/RESULT.md`)** (`docs/s2_plan.md`, which says at its head where it stands). Done on the board: S2.0 (2026-11-20; control register 0 is `0x00000501`, bit 8 set), S2.1 (2026-11-20; the prober reaches our own design `s2a` and returns), S2.2 (2026-11-22; 256 bits of block type 0 follow the design's 256 cells of LUT RAM, in the frames `0x00401220` to `0x00401223`; every other bit is still; reading does not disturb the RAM). S2.3 (2026-11-23; every one of the 256 cells has one bit, in words 61 and 62 of those frames, each confirmed by a run of its own), S2.4 (2026-11-23; the shift registers of a second site: 256 bits follow their 128 outputs in the frames `0x00001820` to `0x00001823`, words 40 and 41, half as they are and half inverted, where a prediction made beforehand said, and every output is confirmed). S2.5 (2026-11-24; LUT RAM at 110 sites: 28,160 bits follow, each of the 440 memories is found once by the word it was loaded with, every cell has one bit and is confirmed at every site; 432 memories are where a prediction made beforehand said and 8, at two sites, are six columns of frames lower; four of the five parts of the rule the sites obey hold at every site measured, the column does not). The bit tables are closed-book descriptions (`evidence/s2_3_17A6_2026-11-23/ram_map.json`, `evidence/s2_4b_17A6_2026-11-23/`, `evidence/s2_5b_17A6/ram_map.json` with `rule.json`). *(2026-11-26: graded once, at its end, as said above; closed by the owner after its review, `docs/s2_review.md`.)* |
 | S3 | Flip-flop state through GCAPTURE | no | flip-flop bit table (closed-book); optional |
 | S4 | LUT-level read-modify-write with read-after-write, **writing only bits that S2 located** | yes | the first configuration write; confirms the located bits are LUT content |
 | S5 | Ordinary LUTs (SLICEL): known INIT values with locked pins in our design, searched for in readback; then pin-connectivity probing | yes | bit table for SLICEL LUTs (half-open); a connectivity graph |
@@ -266,6 +274,10 @@ This project is engineering and measurement. It makes no claim of a new mechanis
   after the reads of the frames that hold that RAM, whatever it held. From S2.2 on the
   prober records it and clears it alone. Still not explained — `docs/s2_plan.md`,
   section 28.)
+  (2026-11-26: through S2.3 to S2.5 the bit answers read by read to the content of the frames
+  a read delivers: it shows when they hold what was loaded, or are one to a few cells away from
+  it; not with all zero, all one or a code state — over 3,072 records of S2.5 without exception.
+  No rule is given and nothing rests on it; nothing stopped — `docs/s2_review.md`, section 6.)
 - From S4 on configuration memory is written, and only at LUT bits that the project located
   itself and that belong to the probe circuit.
 - If the PL-side AXI clock is not running, a PS read of the PL never returns and only a power
@@ -330,6 +342,15 @@ To be settled from documents or on the board:
    *2026-11-22:* still open. For one slice of LUT RAM the places are known — all 32 bits of
    two words in each of four frames (S2.2) — and not yet which place is which cell (S2.3),
    nor anything of the shift registers (S2.4).
+   *2026-11-26:* answered for LUT RAM in the form `RAM64X1S` and for `SRLC32E`. A memory of 64
+   cells is a half word in each of four frames next to each other; its 64 places follow from the
+   first by six moves of the RAM address — address bit 0 one frame up, bit 3 two frames down, bits
+   1, 2, 4 and 5 one, two, four and eight bits down the word (S2.3, one site; S2.5, 110 sites, all
+   440 memories). A shift register lies in the same 64 places: output a at the place of address
+   2 a + 1 as it is and at 2 a + 2 inverted, the place of address 0 following output 0 inverted
+   once anything has been shifted in (S2.4, one site). So every output as it is lies at an odd
+   place, and the even places hold the outputs inverted. Graded with nothing differing; the
+   order of a shift register's stages is not in the database and is not graded.
 8. **Getting results off the board, and returning to U-Boot.** The earlier PS program on this
    board (zynq-psoracle's, started with `go 0x02000000`) brought its own startup code and
    took the machine over; it never returned. The prober is meant to be a function in U-Boot's

@@ -33,7 +33,7 @@ The commit of the prediction is earlier than the run on the board.
 | S0 | Host programs and tests | Complete |
 | S1a | Frames that an earlier project measured | Complete. The prober read the same contents. |
 | S1b | Census of the frame addresses | Complete. Grading: no difference. |
-| S2 | Position of the bits of LUT RAM and of shift registers | Complete. All six steps, S2.0 to S2.5, are complete on the board. Grading: no difference. |
+| S2 | Position of the bits of LUT RAM and of shift registers | Complete. All six steps, S2.0 to S2.5, are complete on the board. Grading: no difference. The owner closed S2 on 2026-11-26, after the review in `docs/s2_review.md`. |
 | S3 | State of flip-flops (not mandatory) | Not started |
 | S4 | First write to the configuration memory | Not started |
 | S5 | LUTs of SLICEL sites | Not started |
@@ -50,7 +50,7 @@ Until this date, no program of this project wrote to the configuration memory.
 
 ### Results of S2
 
-These results are closed-book. The grading came after them (see "Grading of S2").
+These results are closed-book, with one exception. In step S2.5, the site of each table comes from the initial words that the design put in the memories, and the predictions of S2.4 and S2.5 use the frames with those words. The proposal (section 3) calls this half-open. The grading came after the results (see "Grading of S2").
 
 - Control register 0 reads `0x00000501`. Bit 8 is set. Thus the readback shows the contents of LUT RAM.
 - LUT RAM, one site, four memories of 64 bits:
@@ -155,7 +155,7 @@ A test reads each `result.bin` again and gives it to the judge again. The new de
 
 - `proposal.md` gives the purpose, the closed-book rule and the stages.
 - `docs/s1a_plan.md`, `docs/s1b_plan.md` and `docs/s1b_review.md` are the records of S1.
-- `docs/s2_plan.md` is the record of S2. The first paragraphs tell you the status.
+- `docs/s2_plan.md` is the record of S2. The first paragraphs tell you the status. `docs/s2_review.md` is the review of S2 as a whole.
 - `census/README.md` describes the census.
 
 The plans are in time sequence. A later section can correct an earlier section.

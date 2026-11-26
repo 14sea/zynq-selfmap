@@ -4902,3 +4902,112 @@ complete run had begun with (section 55).
 
 Every step of S2 has been on the board, and the mutants section 55 asks for before the
 grading are run. What is left of S2 is the grading, on the owner's word.
+
+## 57. The grading of S2: what is held against the database, and how — said beforehand (2026-11-26)
+
+The owner called for the grading on 2026-11-26, after section 56. This section is written
+and committed **before** the database's files for slices are opened and before the grader
+is written. So far the project has read one file of the database, `part.json` (the graders
+of S1b); of the rest I have seen the names of the files and no more. What I say below of
+what those files hold is what I expect from the database's own documentation and from
+earlier projects that used it; where it turns out otherwise, the section of the results
+says so, and this section is not edited.
+
+### What is graded
+
+Three descriptions, as they are stored, and no run of the board:
+
+- `evidence/s2_3_17A6_2026-11-23/ram_map.json` — 256 cells of LUT RAM at one site (design `s2a`);
+- `evidence/s2_4b_17A6_2026-11-23/srl_map.json` — 128 outputs of shift registers at one site, 256 places;
+- `evidence/s2_5b_17A6/ram_map.json` and `rule.json` — 28,160 cells at 110 sites (design `s2b`), and the rule.
+
+Nothing in them is changed by the grading, whatever it finds (the proposal, section 3). The
+grade is written beside them, in a file of its own.
+
+### What the database is asked
+
+For a site by its name (`SLICE_XnYm`): which tile holds it, the tile's first frame address
+and its words within a frame (`tilegrid.json` of the part), and for each LUT of the site
+(A to D) and each bit of its content (`INIT[0]` to `INIT[63]`) the frame within the tile and
+the bit within the tile's words (the `segbits` file of the tile's type). From these: one
+frame address, one word of the frame and one bit of the word for every (site, LUT, bit of
+content) — the same three numbers an entry of the descriptions carries.
+
+How I read the database's numbers: the frame is the tile's first frame address plus the
+frame number the `segbits` line gives; the bit number it gives counts from the first word
+of the tile, 32 to a word, bit 0 the least significant of a word as the bitstream holds it.
+The descriptions count a word of the frame from 0 and a bit of the word from 0, the least
+significant — the same, if I read both right. **If the comparison differs under this
+reading and agrees under another** (the bits of a word counted from the other end, the
+words of a frame counted otherwise), **that is reported as what it is**: the counts under
+the reading above, and the counts under the other with the other named. It is not quietly
+taken as agreement.
+
+### The comparisons
+
+1. **The cells of LUT RAM, S2.5** — 28,160 entries. For an entry: the site's name (the
+   build's record of where the memory was placed), the LUT (the build's record of which
+   LUT a memory is: D, A, B, C for memories 0 to 3), the RAM address a. Held against the
+   database's place for `INIT[a]` of that LUT of that site. This takes **RAM address a to
+   be bit a of the content**, which S2 does not show (section 10) and the simulation model
+   of the primitive says. Counted: entries that agree; entries that differ. If entries
+   differ: whether the 64 places of a memory are, as a set, the database's 64 for that LUT
+   (the same cells in another order), for another LUT of the site, or neither.
+2. **The cells of LUT RAM, S2.3** — 256 entries at `SLICE_X16Y30`, in the same way.
+3. **The shift registers, S2.4** — 256 places at `SLICE_X34Y70`. I expect the database to
+   hold the content bits of the LUT and nothing of which of them is which stage of a
+   shift register. Counted: places that are content bits of the LUT the build names for
+   that register, and places that are not. Listed and not graded: which bit of content
+   each output's places are. If the database does say how the stages lie, that is compared
+   and said.
+4. **The rule, part by part** (`rule.json`):
+   - *the six moves* (address a: which of four frames, which bit of the half word) — against
+     the 64 lines of each LUT in the `segbits` files, for both types of tile that hold
+     sites of this kind;
+   - *the position* (which of the site's two words and which half a LUT has) — the same;
+   - *the half* (rows 0 to 49 in one half, 50 to 99 in the other) — against the frame
+     addresses of the tiles;
+   - *the word* (2 r and 2 r + 1 up to row 24, one word more above) — against the tiles'
+     words, for every row of every column of sites of this kind;
+   - *the column* — the eleven measured columns against the database; and for the eleven
+     columns of sites not measured, the database's column of frames is listed beside what
+     section 53 extrapolated (X0 to X12 keeping one step; thirteen columns of frames to
+     the left of X0). Section 53 called that an extrapolation and no finding; it is graded
+     as that.
+5. **Every site of this kind not measured** — 1,390 by the rule's own count. Where the rule
+   gives a place (a column of sites that was measured), the place of every cell by the rule
+   against the database. Where it does not (a column of sites not measured), counted apart,
+   with the parts of the rule that do not need the column.
+
+### What is not compared, and why
+
+- Whether a place reads inverted (`inverted` in the descriptions): what readback shows of a
+  cell. I expect the database to say nothing of readback; if it marks a bit as inverted in
+  its own sense, the two are listed side by side and not counted as agreement or difference.
+- Control register 0 and the mask of LUT RAM in readback (S2.0, S2.2); that reading does
+  not disturb the RAM (S2.2); bit 5 of the status; the path from PS to PL (S2.1). The
+  database describes the bitstream, not the device's behaviour.
+- That the design's number for a site reaches the site the build names (section 50, point
+  2). The grading holds the build's name against the database, so it does ask this: a
+  memory at another site than its name would differ in comparison 1.
+- The candidates of S2.2 and the predictions made before S2.4 and S2.5: steps on the way,
+  already judged by what the device showed.
+
+### What counts
+
+A difference is a finding, not a failure of S2 and not a fault of the database: it is one
+more witness. Every difference is listed, or counted with examples where there are many.
+If a difference turns out to be the grader misreading the database, the grader is mended,
+and the section of the results says what was misread and shows the counts before and after.
+
+The grader names the database and is the only program that does (the tests hold this for
+the judges, the chains and the prober, and are extended to it). It parses no bitstream and
+reads no report of Vivado; the names of sites and LUTs it uses are those already stored in
+the descriptions and in `pl/s2b/build.json`, `pl/s2a/build.json` and `pl/s2a/design.json`.
+
+### What the grading ends
+
+After it I have seen where the database puts every column and every LUT bit. Anything
+measured in S2 from here on — the columns below X14, for one — is no longer closed-book
+for its author, and would have to say so. That is the price of grading now and not after
+those columns; it is said here so that it stands before the results do.

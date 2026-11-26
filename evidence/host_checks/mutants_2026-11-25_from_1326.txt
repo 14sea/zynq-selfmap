@@ -1,0 +1,362 @@
+# SELFMAP_NO_BOARD=1 SM_MUTANT_JOBS=8 SM_MUTANT_FROM=1326 python3 -B tests/mutants.py   (the 355 mutants the tool had never judged, before S2 is graded: section 35, point 3, as section 55 changed it)
+# started 2026-11-25T11:39:02Z on 952cc40810e832aaf9ce46b5d384285dd5eed413, working tree clean: 0 changed file(s); SELFMAP_NO_BOARD=1; 20 processors, Python 3.12.3
+# ended 2026-11-26T07:02:33Z, exit 0: 355 judged, 355 killed; the machine was asleep from about 16:03Z to about 19:29Z on 2026-11-25 and the run went on when it woke (section 56)
+from mutant 1326 of the 1681 in the list (355 taken); the first is: chain9: a code run made under another CTL0 than S2.2's is taken
+unmutated: Ran 1214 OK (skipped=3); 0 test(s): 
+KILLED   chain9: a code run made under another CTL0 than S2.2's is taken Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_code_run_made_under_another_ctl0_than_s2_, the_singles_are_not_what_is_held_to_s2_2_an
+KILLED   chain9: the singles are held to S2.2's CTL0 and the code run is not Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_code_run_made_under_another_ctl0_than_s2_, a_run_made_under_another_ctl0_halts_the_cha
+KILLED   chain9: the closing does not say what CTL0 read in S2.2        Ran 1214 FAILED (errors=2, skipped=3); 2 test(s): the_chain_that_says_which_bit_is_which_cell, the_singles_are_not_what_is_held_to_s2_2_an
+KILLED   states9: a chain of S2.2 that is not complete gives its CTL0   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_ctl0_read_in_s2_2_is_taken_from_that_c
+KILLED   states9: of two values of CTL0 in S2.2 the first is taken      Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_ctl0_read_in_s2_2_is_taken_from_that_c
+KILLED   states9: what is not a word is taken for S2.2's CTL0           Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_ctl0_read_in_s2_2_is_taken_from_that_c
+KILLED   states9: a word of seven digits or nine is taken for S2.2's CTL0 Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_ctl0_read_in_s2_2_is_taken_from_that_c
+KILLED   states9: the chain of S2.2 is looked for in another file than the one beside the candidates Ran 1214 FAILED (failures=9, errors=25, skipped=3); 29 test(s): a_chain_of_part_2_whose_next_run_has_no_pla, a_plan_fills_in_both_lists_and_what_follows
+KILLED   run s2.3: the sets of S2.3 are not told what CTL0 read in S2.2 Ran 1214 FAILED (failures=3, errors=12, skipped=3); 14 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   run s2.3: the set of the singles is not told what CTL0 read in S2.2 Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): what_ctl0_read_in_s2_2_is_taken_from_that_c
+KILLED   predict4: the frames of a memory are counted from its highest  Ran 1214 FAILED (failures=7, errors=6, skipped=3); 12 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   predict4: memories under two rules give the first one's        Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_description_that_is_not_of_that_form_give
+KILLED   predict4: a rule that does not fill four frames by sixteen bits is taken Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_description_that_is_not_of_that_form_give
+KILLED   predict4: a memory in two words of its frames is taken         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_description_that_is_not_of_that_form_give
+KILLED   predict4: a memory of fewer places than 64 is taken            Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_description_that_is_not_of_that_form_give
+KILLED   predict4: the second state is held for the third               Ran 1214 FAILED (failures=7, errors=2, skipped=3); 9 test(s): a_frame_that_read_otherwise_the_third_time_, copies_of_what_s2_2_stored_that_are_not_wha
+KILLED   predict4: a frame that read otherwise the third time is taken as loaded Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_frame_that_read_otherwise_the_third_time_
+KILLED   predict4: the reference frame is taken for a read of the list  Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): records_that_are_not_reads_of_the_list_are_
+KILLED   predict4: the result of a run that stopped is read             Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_not_whole_or_not_plain_gives_nothin
+KILLED   predict4: a result that is cut short is read                   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_not_whole_or_not_plain_gives_nothin
+KILLED   predict4: a frame read twice in a state is taken the second time Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_not_whole_or_not_plain_gives_nothin
+KILLED   predict4: states that did not read the same frames are taken   Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): what_is_not_whole_or_not_plain_gives_nothin
+KILLED   predict4: no stored run is no fault                            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_not_whole_or_not_plain_gives_nothin
+KILLED   predict4: the frames are taken a word early                    Ran 1214 FAILED (failures=6, skipped=3); 6 test(s): a_frame_that_read_otherwise_the_third_time_, it_is_what_the_program_says_now
+KILLED   predict4: the even addresses are the odd ones                  Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): a_word_is_found_where_it_was_put_and_as_it_, it_is_what_the_program_says_now
+KILLED   predict4: the upper addresses are the lower ones               Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_word_is_found_where_it_was_put_and_as_it_, the_pattern_of_a_word
+KILLED   predict4: reversed is in order                                 Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): a_word_is_found_where_it_was_put_and_as_it_, it_is_what_the_program_says_now
+KILLED   predict4: inverted is as it is                                 Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): a_word_is_found_where_it_was_put_and_as_it_, it_is_what_the_program_says_now
+KILLED   predict4: only the lower half of a word is looked at           Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): a_word_is_found_where_it_was_put_and_as_it_, four_frames_that_are_not_next_to_each_other
+KILLED   predict4: the last word of a frame is not looked at            Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): a_word_is_found_where_it_was_put_and_as_it_, four_frames_that_are_not_next_to_each_other
+KILLED   predict4: four frames with a gap are a group                   Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): four_frames_that_are_not_next_to_each_other
+KILLED   predict4: a word found twice is found simply                   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_search_is_said_to_have_found
+KILLED   predict4: words found in two groups of frames are found simply Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_search_is_said_to_have_found
+KILLED   predict4: words found in two arrangements are found simply     Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_search_is_said_to_have_found
+KILLED   predict4: nothing found is said to be found                    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_search_is_said_to_have_found
+KILLED   states4: a cell's number counts the registers by 64            Ran 1214 FAILED (failures=18, errors=20, skipped=3); 38 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: a cell is read from the wrong register                Ran 1214 FAILED (failures=23, errors=16, skipped=3); 39 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: a code state is the one of the bit above              Ran 1214 FAILED (failures=17, errors=20, skipped=3); 37 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: a complement is the state itself                      Ran 1214 FAILED (failures=6, skipped=3); 6 test(s): a_bit_that_moves_and_follows_no_cell_is_set, no_run_is_judged_otherwise_now_than_it_was
+KILLED   states4: a single turns the cell of the register above         Ran 1214 FAILED (failures=20, errors=4, skipped=3); 24 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_cell_its_single_contradicts_is_said_to_be
+KILLED   states4: a single turns a whole output                         Ran 1214 FAILED (failures=23, errors=5, skipped=3); 28 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: what is to end at output 0 is written first           Ran 1214 FAILED (failures=18, errors=20, skipped=3); 38 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: the model of a shift moves the outputs down           Ran 1214 FAILED (failures=18, errors=19, skipped=3); 37 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: part 1 ends in the all-one state                      Ran 1214 FAILED (failures=7, errors=1, skipped=3); 8 test(s): a_bit_that_moves_and_does_not_follow_fails_, a_run_of_part_1_passes_and_says_what_follow
+KILLED   states4: the code run has six code bits                        Ran 1214 FAILED (failures=21, errors=20, skipped=3); 41 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: the code run does not end with the loaded content shifted in Ran 1214 FAILED (failures=11, skipped=3); 11 test(s): a_state_as_loaded_is_made_by_no_shift_and_c, no_run_is_judged_otherwise_now_than_it_was
+KILLED   states4: the first state of the code run is shifted in         Ran 1214 FAILED (failures=10, errors=1, skipped=3); 11 test(s): a_device_with_a_place_that_reads_otherwise_, a_state_as_loaded_is_made_by_no_shift_and_c
+KILLED   states4: the code run has no all-zero state                    Ran 1214 FAILED (failures=19, errors=20, skipped=3); 39 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_cell_its_single_contradicts_is_said_to_be
+KILLED   states4: a third run of the singles is made                    Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): the_dry_runs_of_the_run_script, the_runs
+KILLED   states4: the second run of the singles has the cells of the first Ran 1214 FAILED (failures=13, errors=10, skipped=3); 23 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_cell_its_single_contradicts_is_said_to_be
+KILLED   states4: a state is shifted in whether it is to be or not      Ran 1214 FAILED (failures=11, skipped=3); 11 test(s): a_device_with_a_place_that_reads_otherwise_, a_state_as_loaded_is_made_by_no_shift_and_c
+KILLED   states4: the outputs are not read back before the frames       Ran 1214 FAILED (failures=44, errors=25, skipped=3); 69 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_does_not_follow_fails_
+KILLED   states4: the outputs are not read back after the frames        Ran 1214 FAILED (failures=43, errors=25, skipped=3); 68 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_does_not_follow_fails_
+KILLED   states4: an output is read and held to nothing                 Ran 1214 FAILED (failures=5, errors=3, skipped=3); 8 test(s): a_list_that_shifts_after_the_frames_or_does, a_state_as_loaded_is_made_by_no_shift_and_c
+KILLED   states4: the RAM is not looked at before the first frames      Ran 1214 FAILED (failures=37, errors=22, skipped=3); 59 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: the RAM is not looked at after the last frames        Ran 1214 FAILED (failures=37, errors=22, skipped=3); 59 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: the design's count is held to the shifts in its low half Ran 1214 FAILED (failures=40, errors=26, skipped=3); 66 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_does_not_follow_fails_
+KILLED   states4: the design's count is not held to anything            Ran 1214 FAILED (failures=4, errors=1, skipped=3); 5 test(s): a_state_as_loaded_is_made_by_no_shift_and_c, the_accesses_of_a_run_state_by_state
+KILLED   states4: the counter is not read after the frames              Ran 1214 FAILED (failures=38, errors=22, skipped=3); 60 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: a list longer than the stage takes is made            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_or_a_result_too_long_for_the_stage_i
+KILLED   states4: more states than the stage takes are planned          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_or_a_result_too_long_for_the_stage_i
+KILLED   states4: a result that does not lie in its area is planned     Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_or_a_result_too_long_for_the_stage_i
+KILLED   states4: a share that is none of the eight is planned          Ran 1214 FAILED (failures=2, errors=2, skipped=3); 4 test(s): it_is_judged_again_as_it_was_judged, the_dry_run_of_the_run_script
+KILLED   states4: the code run takes a share                            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_run_of_the_step_gives_no_plan
+KILLED   states4: part 2 is planned though part 1's finding is not given Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): what_is_no_run_of_the_step_gives_no_plan
+KILLED   states4: the singles read the whole column                     Ran 1214 FAILED (failures=2, errors=30, skipped=3); 32 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: the code run reads only the frames with candidates    Ran 1214 FAILED (failures=7, skipped=3); 7 test(s): a_run_whose_word_allows_more_than_its_lists, no_run_is_judged_otherwise_now_than_it_was
+KILLED   judge9: a shift passes in a run of S2.3                        Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_run_of_s2_3_is_judged_as_it_always_was, the_log_of_accesses_to_the_design
+KILLED   judge9: another step's side of the judging is not asked        Ran 1214 FAILED (failures=90, errors=42, skipped=3); 114 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_does_not_follow_fails_
+KILLED   judge s2.4: a reading of an output is not held to the shifts of the log Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_registers_hold_is_worked_out_from_
+KILLED   judge s2.4: a shift of the log does not move what the registers are taken to hold Ran 1214 FAILED (failures=36, errors=25, skipped=3); 61 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_does_not_follow_fails_
+KILLED   judge s2.4: a shift after the frames of a state is no fault    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_that_shifts_after_the_frames_or_does
+KILLED   judge s2.4: outputs not all read back pass                     Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_list_that_shifts_after_the_frames_or_does
+KILLED   judge s2.4: a counter that stood still passes                  Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_counter_that_stands_still_fails_the_run
+KILLED   judge s2.4: the design's count is not held to the shifts of the log Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_of_the_design_s_side_is_held_what
+KILLED   judge s2.4: the design's count is held to the shifts in its low half Ran 1214 FAILED (failures=31, errors=22, skipped=3); 53 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   judge s2.4: a RAM that reads something passes                  Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_of_the_design_s_side_is_held_what
+KILLED   judge s2.4: a RAM not read before the first frames passes      Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_that_writes_the_ram_or_leaves_it_unr
+KILLED   judge s2.4: a RAM not read after the last frames passes        Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_that_writes_the_ram_or_leaves_it_unr
+KILLED   judge s2.4: a write to the RAM passes                          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_that_writes_the_ram_or_leaves_it_unr
+KILLED   judge s2.4: states that are no run of the step pass            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): states_that_are_no_run_of_the_step_and_read
+KILLED   judge s2.4: a run is judged though the census is not given     Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): states_that_are_no_run_of_the_step_and_read
+KILLED   judge s2.4: reads that are no share of the census pass         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): states_that_are_no_run_of_the_step_and_read
+KILLED   judge s2.4: the list of reads is not held to the plan          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_run_whose_word_allows_more_than_its_lists
+KILLED   judge s2.4: the list of accesses is not held to the plan       Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_list_that_writes_the_ram_or_leaves_it_unr
+KILLED   judge s2.4: the word of what the run may write is not held to the plan Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_run_whose_word_allows_more_than_its_lists
+KILLED   judge s2.4: a bit that follows inverted is counted as following as it is Ran 1214 FAILED (failures=7, skipped=3); 7 test(s): a_run_of_part_1_passes_and_says_what_follow, four_runs_and_the_step_is_closed
+KILLED   judge s2.4: a place of part 1 loses that it is inverted        Ran 1214 FAILED (failures=6, skipped=3); 6 test(s): a_run_of_part_1_passes_and_says_what_follow, fewer_bits_than_outputs_are_reported_and_th
+KILLED   judge s2.4: a place of part 2 loses that it is inverted        Ran 1214 FAILED (failures=11, errors=17, skipped=3); 28 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_cell_its_single_contradicts_is_said_to_be
+KILLED   judge s2.4: a place of part 2 names the register for the output Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): the_chain_that_says_which_place_is_which_ou, the_code_run_and_the_singles_pass_and_name_
+KILLED   judge s2.4: an irregular bit passes                            Ran 1214 FAILED (failures=3, errors=1, skipped=3); 4 test(s): a_bit_that_moves_and_does_not_follow_fails_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   judge s2.4: in part 1 a bit must follow one cell alone         Ran 1214 FAILED (failures=14, errors=4, skipped=3); 18 test(s): a_bit_that_moves_and_does_not_follow_fails_, a_candidate_among_the_ram_s_places_halts_th
+KILLED   judge s2.4: cells that would pass for another inverted are no fault Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): states_under_which_a_cell_inverted_would_pa
+KILLED   judge s2.4: a run that did not complete passes                 Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_bit_that_moves_and_follows_no_cell_is_set, a_run_that_fails_halts_the_chain_and_nothin
+KILLED   judge s2.4: CTL0 that reads two values passes                  Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): ctl0_that_reads_otherwise_at_the_end_fails_
+KILLED   judge s2.4: the layout of a run of part 1 is the code run's    Ran 1214 FAILED (failures=9, errors=6, skipped=3); 15 test(s): a_candidate_among_the_ram_s_places_halts_th, a_first_run_under_another_ctl0_than_s2_2_s_
+KILLED   run s2.4: the sets of S2.4 are planned by the program of S2.3  Ran 1214 FAILED (failures=11, errors=28, skipped=3); 38 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_candidate_among_the_ram_s_places_halts_th
+KILLED   run s2.4: a run of part 1 takes no share                       Ran 1214 FAILED (failures=3, errors=21, skipped=3); 24 test(s): a_candidate_among_the_ram_s_places_halts_th, a_first_run_under_another_ctl0_than_s2_2_s_
+KILLED   run s2.4: the set of part 1 is not told where the RAM's cells are Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, what_the_run_script_gives_the_judge_of_the_
+KILLED   run s2.4: the set of part 1 is not told what CTL0 read in S2.2 Ran 1214 FAILED (errors=2, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, what_the_run_script_gives_the_judge_of_the_
+KILLED   states4: a test's fewer reads a run are not taken              Ran 1214 FAILED (failures=7, errors=18, skipped=3); 25 test(s): a_bit_that_moves_and_does_not_follow_fails_, a_counter_that_stands_still_fails_the_run
+KILLED   predict4: a predicted place is counted from the top of its half word Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, the_stored_prediction_as_places
+KILLED   chain s2.4: a first run under another CTL0 than S2.2's is taken Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_first_run_under_another_ctl0_than_s2_2_s_
+KILLED   chain s2.4: a later run under another CTL0 than the first is taken Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_first_run_under_another_ctl0_than_s2_2_s_
+KILLED   chain s2.4: nothing that follows is no halt                    Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): nothing_that_follows_halts_the_chain_when_i
+KILLED   chain s2.4: a candidate among the RAM's places is no halt      Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_candidate_among_the_ram_s_places_halts_th
+KILLED   chain s2.4: where the RAM's cells are need not be given        Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_candidate_among_the_ram_s_places_halts_th
+KILLED   chain s2.4: a place found in two runs is taken                 Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.4: runs that did not read all of block type 0 are closed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.4: outcome 1 is said though bits follow inverted      Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, three_runs_and_the_candidates
+KILLED   chain s2.4: fewer bits than outputs are outcome 2              Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): fewer_bits_than_outputs_are_reported_and_th
+KILLED   chain s2.4: a second run does not wait for the first to be committed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): no_second_run_before_the_first_is_committed
+KILLED   chain s2.4: candidates that no longer stand are left where they are Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_stored_run_that_was_altered_halts_the_cha
+KILLED   chain s2.4: the stored verdict need not be the judge's         Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_stored_run_that_was_altered_halts_the_cha
+KILLED   chain s2.4: a result that is not the board's is judged         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_stored_run_that_was_altered_halts_the_cha
+KILLED   chain s2.4: a stored run the judge fails is taken              Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_stored_run_the_judge_fails_now_halts_the_
+KILLED   chain s2.4: the frames are not held against what S2.2 stored   Ran 1214 FAILED (errors=2, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, the_frames_are_held_against_what_was_stored
+KILLED   chain s2.4: a frame that reads otherwise at a candidate is listed Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, the_frames_are_held_against_what_was_stored
+KILLED   chain s2.4: a frame S2.2 did not store is passed by            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_frames_are_held_against_what_was_stored
+KILLED   chain s2.4: the frames of every state are held against what S2.2 stored Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_frames_are_held_against_what_was_stored
+KILLED   chain s2.4: the prediction is a hit though a place it names follows the other way Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_prediction_is_held_against_the_candidat
+KILLED   chain s2.4: the prediction is a hit though a place it names is no candidate Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_prediction_is_held_against_the_candidat
+KILLED   chain s2.4: a place the prediction names as inverted is a miss whatever follows there Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_prediction_is_held_against_the_candidat
+KILLED   chain s2.4: the runner starts a run without the reset          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_console_that_fails_before_a_run_holds_the
+KILLED   chain s2.4: the image is not kept with the runs                Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): three_runs_and_the_candidates
+KILLED   chain s2.4: it goes on after the last run it was allowed       Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): no_second_run_before_the_first_is_committed, run_directories_that_are_not_the_chain_s
+KILLED   chain s2.4: a run with problems does not halt the chain        Ran 1214 FAILED (failures=2, errors=2, skipped=3); 4 test(s): a_first_run_under_another_ctl0_than_s2_2_s_, a_run_that_fails_halts_the_chain_and_nothin
+KILLED   chain s2.4: run directories with a gap are taken               Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): run_directories_that_are_not_the_chain_s
+KILLED   chain s2.4: a file with the name of a run is passed by         Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): run_directories_that_are_not_the_chain_s
+KILLED   chain s2.4: more run directories than shares are taken         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): run_directories_that_are_not_the_chain_s
+KILLED   chain s2.4: the candidates file does not say which bits are inverted Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): the_chain_that_finds_the_shift_registers_bi, three_runs_and_the_candidates
+KILLED   predict4: the frames of a chain that is not complete are taken Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): only_a_chain_that_stands_by_its_own_files_i
+KILLED   predict4: runs other than those the chain names are read       Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): copies_of_what_s2_2_stored_that_are_not_wha, only_a_chain_that_stands_by_its_own_files_i
+KILLED   predict4: a result that is not the one the chain names is read Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): only_a_chain_that_stands_by_its_own_files_i
+KILLED   predict4: a result that does not have the board's checksum is read Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): only_a_chain_that_stands_by_its_own_files_i
+KILLED   predict4: fewer frames than the chain says it read are taken for all Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): only_a_chain_that_stands_by_its_own_files_i
+KILLED   judge s2.4: the command takes a run of the singles without saying which Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): it_is_judged_again_as_it_was_judged
+KILLED   judge s2.4: the command ends in an exception where no plan can be made Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): it_is_judged_again_as_it_was_judged
+KILLED   states4: the run of the pairs turns one cell where it is to turn several Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): four_runs_and_the_step_is_closed, no_run_is_judged_otherwise_now_than_it_was
+KILLED   states4: the run of the pairs does not end with the loaded content shifted in Ran 1214 FAILED (failures=10, skipped=3); 10 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   states4: the run of the pairs takes a share                    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_run_of_the_step_gives_no_plan
+KILLED   states4: the pairs read the whole column                       Ran 1214 FAILED (failures=6, skipped=3); 6 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, no_run_is_judged_otherwise_now_than_it_was
+KILLED   states4: the candidates of part 1 are looked for beside another chain Ran 1214 FAILED (failures=1, errors=10, skipped=3); 11 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   judge s2.4: the run of the pairs is no run of the step         Ran 1214 FAILED (failures=7, errors=3, skipped=3); 10 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   judge s2.4: the layout of the pairs is the singles'            Ran 1214 FAILED (failures=4, errors=2, skipped=3); 6 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_code_run_under_another_ctl0_than_part_1_s
+KILLED   run s2.4: a run of the singles of S2.4 may be without a share  Ran 1214 FAILED (failures=3, errors=17, skipped=3); 19 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_chain_that_no_longer_stands_loses_its_des
+KILLED   run s2.4: the run of the pairs is planned as a code run        Ran 1214 FAILED (failures=9, errors=2, skipped=3); 11 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_code_run_under_another_ctl0_than_part_1_s
+KILLED   run s2.4: the sets of part 2 are not told what CTL0 read in part 1 Ran 1214 FAILED (failures=1, errors=4, skipped=3); 5 test(s): part_2_is_given_what_was_held_to_the_runs_a, the_chain_that_says_which_place_is_which_ce
+KILLED   run s2.4: the sets of part 2 read over what S2.2 found         Ran 1214 FAILED (failures=6, skipped=3); 6 test(s): no_run_is_judged_otherwise_now_than_it_was, the_chain_that_says_which_place_is_which_ou
+KILLED   run s2.4: a run of the singles of S2.4 is refused in S2.3's words Ran 1214 FAILED (failures=3, skipped=3); 2 test(s): the_dry_runs_of_the_run_script, what_is_refused
+KILLED   table s2.4: a failing code run is closed                       Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_table
+KILLED   table s2.4: a run that is not the code run is closed           Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_table
+KILLED   table s2.4: a cell with no bit as it is has a row              Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_code_run_that_gives_no_table_halts_the_ch, what_is_no_table
+KILLED   table s2.4: a cell shown inverted only counts as shown         Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_code_run_that_gives_no_table_halts_the_ch, what_is_no_table
+KILLED   table s2.4: a place part 1 did not find is taken               Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_command_closes_a_stored_verdict, what_is_no_table
+KILLED   table s2.4: a candidate of part 1 that follows no cell is no fault Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_table
+KILLED   table s2.4: a place that follows the other way than in part 1 is taken Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_table
+KILLED   table s2.4: a place said to follow two cells is taken          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_no_table
+KILLED   table s2.4: the table has one place for a cell                 Ran 1214 FAILED (failures=16, errors=5, skipped=3); 21 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_cell_its_single_contradicts_is_said_to_be
+KILLED   table s2.4: the table loses which way a place shows its cell   Ran 1214 FAILED (failures=16, errors=4, skipped=3); 20 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_cell_its_single_contradicts_is_said_to_be
+KILLED   table s2.4: the inverted places come first                     Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_code_run_closed_into_the_table, a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a single that changes other places than the table's confirms Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): a_cell_its_single_contradicts_is_said_to_be, a_device_that_shows_a_cell_elsewhere_than_i
+KILLED   table s2.4: a single that changes one of a cell's places confirms Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a single need not show a place the way the table has it Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a bit that follows a cell of another run is no problem Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a failing run of the singles is held               Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a run that is not of the singles is held           Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a table that is not of every cell is held to       Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_table_that_is_not_what_the_singles_show
+KILLED   table s2.4: a contradicted cell is written as confirmed        Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_cell_its_single_contradicts_is_said_to_be
+KILLED   table s2.4: a cell with no single is written as confirmed      Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_cell_its_single_contradicts_is_said_to_be, a_cell_whose_single_was_not_made_is_decoded
+KILLED   table s2.4: the description has an entry a cell and not a place Ran 1214 FAILED (failures=7, skipped=3); 7 test(s): a_cell_its_single_contradicts_is_said_to_be, a_cell_whose_single_was_not_made_is_decoded
+KILLED   table s2.4: the description says an inverted place reads as the output does Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): the_chain_that_says_which_place_is_which_ou, the_description_rests_on_the_shifted_states
+KILLED   table s2.4: the description names the states in which the output held a zero Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): the_chain_that_says_which_place_is_which_ou, the_description_rests_on_the_shifted_states
+KILLED   chain2 s2.4: a code run under another CTL0 than part 1's is taken Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_code_run_under_another_ctl0_than_part_1_s
+KILLED   chain2 s2.4: a later run under another CTL0 than the code run is taken Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_code_run_under_another_ctl0_than_part_1_s
+KILLED   chain2 s2.4: a code run that gives no table does not halt the chain Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_code_run_that_gives_no_table_halts_the_ch
+KILLED   chain2 s2.4: a stored table need not be the code run's         Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_stored_table_that_is_not_the_code_run_s_a
+KILLED   chain2 s2.4: a table's directory without the table is passed by Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_stored_table_that_is_not_the_code_run_s_a
+KILLED   chain2 s2.4: a table's place that is a file is taken           Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_stored_table_that_is_not_the_code_run_s_a
+KILLED   chain2 s2.4: a table stored without a code run is passed by    Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_stored_table_that_is_not_the_code_run_s_a
+KILLED   chain2 s2.4: a contradiction does not halt the chain           Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_single_that_contradicts_the_table_halts_t
+KILLED   chain2 s2.4: the pairs are held to the table as singles are    Ran 1214 FAILED (failures=2, errors=2, skipped=3); 4 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_device_with_a_place_that_reads_otherwise_
+KILLED   chain2 s2.4: the second run of the singles is planned as the pairs Ran 1214 FAILED (failures=6, errors=3, skipped=3); 9 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_chain_that_no_longer_stands_loses_its_des
+KILLED   chain2 s2.4: a single is started before the code run is committed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): no_single_is_started_before_the_code_run_an
+KILLED   chain2 s2.4: a single is started before the table is committed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): no_single_is_started_before_the_code_run_an
+KILLED   chain2 s2.4: the table is not written out                      Ran 1214 FAILED (failures=4, errors=5, skipped=3); 9 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_chain_that_no_longer_stands_loses_its_des
+KILLED   chain2 s2.4: the description is not written out                Ran 1214 FAILED (failures=1, errors=2, skipped=3); 3 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_device_with_a_place_that_reads_otherwise_
+KILLED   chain2 s2.4: a description that no longer stands is left where it is Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_chain_that_no_longer_stands_loses_its_des
+KILLED   chain2 s2.4: sets that do not declare one image are taken      Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): sets_that_do_not_declare_one_image_and_run_
+KILLED   chain2 s2.4: the stored verdict need not be the judge's        Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_chain_that_no_longer_stands_loses_its_des
+KILLED   chain2 s2.4: a run with problems does not halt the chain       Ran 1214 FAILED (failures=1, errors=5, skipped=3); 6 test(s): a_chain_that_no_longer_stands_loses_its_des, a_code_run_that_gives_no_table_halts_the_ch
+KILLED   chain2 s2.4: it goes on after the last run it was allowed      Ran 1214 FAILED (failures=2, errors=1, skipped=3); 3 test(s): a_stored_table_that_is_not_the_code_run_s_a, no_single_is_started_before_the_code_run_an
+KILLED   chain2 s2.4: the runner starts a run without the reset         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_console_that_fails_before_a_run_holds_the
+KILLED   chain2 s2.4: bit 5 after a read of another state is set down for this one Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_says_which_place_is_which_ou, what_the_chain_sets_down_of_it
+KILLED   chain2 s2.4: the bits a state changes are counted a cell and not a place Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_says_which_place_is_which_ou, what_the_chain_sets_down_of_it
+KILLED   chain2 s2.4: more run directories than runs are taken          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): sets_that_do_not_declare_one_image_and_run_
+KILLED   judge s2.4: what a bit follows is asked over the state before any shift too Ran 1214 FAILED (failures=14, errors=20, skipped=3); 34 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   judge s2.4: the cells are told apart over the state before any shift too Ran 1214 FAILED (failures=14, errors=20, skipped=3); 34 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   judge s2.4: a place that reads otherwise before any shift is not set down Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): a_device_with_a_place_that_reads_otherwise_, the_chain_that_says_which_place_is_which_ou
+KILLED   judge s2.4: what a cell gives before any shift is taken as it is for an inverted place Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): a_device_with_a_place_that_reads_otherwise_, the_chain_that_says_which_place_is_which_ou
+KILLED   states4: a run of the singles begins before any shift          Ran 1214 FAILED (failures=9, errors=1, skipped=3); 10 test(s): a_device_with_a_place_that_reads_otherwise_, no_run_is_judged_otherwise_now_than_it_was
+KILLED   states4: the run of the pairs begins before any shift          Ran 1214 FAILED (failures=7, skipped=3); 7 test(s): a_device_with_a_place_that_reads_otherwise_, no_run_is_judged_otherwise_now_than_it_was
+KILLED   table s2.4: the places that read otherwise before any shift are not named Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): a_device_with_a_place_that_reads_otherwise_, the_chain_that_says_which_place_is_which_ou
+KILLED   judge s2.4: the verdict of a run without a state before any shift has the field for one Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): part_1_sees_such_a_place_follow_inverted_li, the_chain_that_finds_the_shift_registers_bi
+KILLED   judge s2.4: a bit that follows no cell fails the run of the pairs Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_moves_and_follows_no_cell_is_set
+KILLED   table s2.4: the description names the state before any shift as evidence Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_says_which_place_is_which_ou, the_description_rests_on_the_shifted_states
+KILLED   table s2.4: the description does not say that a place read otherwise before any shift Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_device_with_a_place_that_reads_otherwise_, the_chain_that_says_which_place_is_which_ou
+KILLED   table s2.4: what a place read before any shift is said as what its output would give Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): the_chain_that_says_which_place_is_which_ou, the_description_rests_on_the_shifted_states
+KILLED   chain2 s2.4: the table that is committed does not say which places read otherwise before any shift Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_device_with_a_place_that_reads_otherwise_, the_chain_that_says_which_place_is_which_ou
+KILLED   chain2 s2.4: the bits of the pairs that follow no cell are not set down Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_
+KILLED   predict5: a column of other than 36 frames counts as one of them Ran 1214 FAILED (failures=3, errors=2, skipped=3); 5 test(s): a_site_the_rule_of_the_column_has_no_column, it_is_what_the_program_says_now
+KILLED   predict5: a site whose frames are not the last four of its column makes a rule Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: a site whose memories are not in four frames next to each other makes a rule Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: memories in three words make a rule                  Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: a memory not where its position says makes a rule    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: two sites in one half make a rule of the halves      Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: any two columns make a rule of the column            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: any two words make a rule of the word                Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): sites_that_make_no_such_rule_predict_nothin
+KILLED   predict5: site column 0 lies a column further on               Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): it_is_what_the_program_says_now, the_rules_they_give
+KILLED   predict5: the one word more lies before the row named and not after it Ran 1214 FAILED (failures=9, errors=6, skipped=3); 15 test(s): a_layout_that_obeys_one_rule_is_read_as_tha, as_places
+KILLED   predict5: the form named first is the last carried             Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): it_is_what_the_program_says_now, the_rules_they_give
+KILLED   predict5: the forms carried stop a row short                   Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): it_is_what_the_program_says_now, the_rules_they_give
+KILLED   predict5: position C is the lower word's upper half            Ran 1214 FAILED (failures=8, errors=8, skipped=3); 16 test(s): a_layout_that_obeys_one_rule_is_read_as_tha, a_site_the_rule_of_the_column_has_no_column
+KILLED   predict5: the rows 50 to 99 are in the half of the rows 0 to 49 Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): it_is_what_the_program_says_now
+KILLED   predict5: a memory is in the first four frames of its column   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): it_is_what_the_program_says_now
+KILLED   predict5: a site column with no column of frames is predicted all the same Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_site_the_rule_of_the_column_has_no_column
+KILLED   predict5: the words under the other forms are not given        Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): it_is_what_the_program_says_now
+KILLED   predict5: the places are made under the form named first whatever form is asked Ran 1214 FAILED (failures=7, errors=6, skipped=3); 13 test(s): as_places, every_result_is_the_one_whose_checksum_the_
+KILLED   predict5: the places of a memory are made in the lower half of its word Ran 1214 FAILED (failures=6, errors=19, skipped=3); 16 test(s): a_layout_that_obeys_one_rule_is_read_as_tha, as_places
+KILLED   states s2.5: a write goes to one site                          Ran 1214 FAILED (failures=47, errors=16, skipped=3); 61 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: the parity over the sites is not asked            Ran 1214 FAILED (failures=56, errors=17, skipped=3); 65 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: whether every site holds a one is not asked       Ran 1214 FAILED (failures=48, errors=16, skipped=3); 62 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: the state as loaded is held to nothing            Ran 1214 FAILED (failures=55, errors=17, skipped=3); 64 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: a later state is written whole                    Ran 1214 FAILED (failures=8, errors=6, skipped=3); 13 test(s): a_later_state_is_written_only_where_it_diff, every_result_is_the_one_whose_checksum_the_
+KILLED   states s2.5: the memories are not read back after the frames   Ran 1214 FAILED (failures=64, errors=14, skipped=3); 68 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: the memories are not read back before the frames  Ran 1214 FAILED (failures=61, errors=14, skipped=3); 68 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: the count of writes is not asked                  Ran 1214 FAILED (failures=53, errors=13, skipped=3); 65 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: the site register is not asked at a state's end   Ran 1214 FAILED (failures=51, errors=13, skipped=3); 63 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_card_without_the_design_gets_it_by_ymodem
+KILLED   states s2.5: a run of the singles has seventeen cells          Ran 1214 FAILED (failures=15, errors=6, skipped=3); 21 test(s): a_later_state_is_written_only_where_it_diff, a_run_of_the_singles_confirms_its_sixteen_c
+KILLED   states s2.5: a run of the singles begins a cell further on     Ran 1214 FAILED (failures=12, errors=5, skipped=3); 17 test(s): a_code_run_under_another_ctl0_than_part_1_h, a_contradiction_is_confidence_0
+KILLED   states s2.5: part 1 does not read the frames as loaded         Ran 1214 FAILED (failures=11, errors=56, skipped=3); 65 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_chain_file_that_was_changed
+KILLED   states s2.5: the reads of part 2 are every read of the columns Ran 1214 FAILED (failures=5, errors=11, skipped=3); 15 test(s): a_chain_of_part_2_whose_next_run_has_no_pla, every_result_is_the_one_whose_checksum_the_
+KILLED   states s2.5: a frame with candidates outside block type 0 is passed over Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): over_the_frames_the_prediction_names_and_ov, the_plans_of_the_device
+KILLED   states s2.5: a result too large for its area is planned        Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_chain_of_part_2_whose_next_run_has_no_pla, over_the_frames_the_prediction_names_and_ov
+KILLED   states s2.5: more reads than a list holds are planned          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_plans_of_the_device
+KILLED   states s2.5: the state as loaded may come later in a run       Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_later_state_is_written_only_where_it_diff
+KILLED   states s2.5: the sites' words are taken in whatever order the record has them Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_design_loads_and_what_the_reading_
+KILLED   judge s2.5: a write to one site alone is no fault              Ran 1214 FAILED (failures=2, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: a write after the frames of a state is no fault    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: a reading of one site alone is no fault            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: the reading over all sites is not held to the log  Ran 1214 FAILED (failures=3, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: a site register that reads otherwise than it was written is no fault Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_site_register_that_does_not_read_as_writt
+KILLED   judge s2.5: the readings over all sites need not be at every address Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: only the readings before the frames are asked for  Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: a counter that stands still is no fault            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_clock_and_the_count
+KILLED   judge s2.5: the count of writes is not held to the log         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: the site register need not name every site at a state's end Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_sites_hold_is_worked_out_from_the_
+KILLED   judge s2.5: states of no run of the step are passed            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): which_run_it_is_and_the_plan_it_is_held_to
+KILLED   judge s2.5: without a census the lists are held to nothing that is said Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): which_run_it_is_and_the_plan_it_is_held_to
+KILLED   judge s2.5: reads that are no share of the census are passed   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): which_run_it_is_and_the_plan_it_is_held_to
+KILLED   judge s2.5: the word of what the run may write is not held to the plan Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_site_register_that_does_not_read_as_writt
+KILLED   judge s2.5: a bit that moves and follows no cell is not counted Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_bit_that_moves_and_follows_no_cell_fails_
+KILLED   judge s2.5: an irregular bit does not fail the run             Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_bit_that_moves_and_follows_no_cell_fails_
+KILLED   judge s2.5: a bit that follows inverted is said to follow as it is Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_place_shown_inverted_follows_inverted, fewer_cells_that_show_and_cells_shown_inver
+KILLED   judge s2.5: what a bit read as loaded is taken from the first written state Ran 1214 FAILED (failures=4, errors=6, skipped=3); 10 test(s): a_bit_that_moves_and_follows_no_cell_fails_, a_place_shown_inverted_follows_inverted
+KILLED   judge s2.5: the layout of a run of the singles is the code run's Ran 1214 FAILED (failures=5, errors=2, skipped=3); 7 test(s): a_code_run_under_another_ctl0_than_part_1_h, a_single_that_contradicts_the_tables_halts_
+KILLED   judge s2.5: a design record without its registers is read as one Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): which_run_it_is_and_the_plan_it_is_held_to
+KILLED   find s2.5: the frames of the second state are searched         Ran 1214 FAILED (failures=25, errors=14, skipped=3); 39 test(s): a_code_run_under_another_ctl0_than_part_1_h, a_contradiction_is_confidence_0
+KILLED   find s2.5: a frame read twice in a state is taken              Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_not_searched
+KILLED   find s2.5: a word is not looked for inverted                   Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): a_memory_shown_inverted_is_found_as_inverte, fewer_cells_that_show_and_cells_shown_inver
+KILLED   find s2.5: a word found inverted is said to be as it is        Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_memory_shown_inverted_is_found_as_inverte, fewer_cells_that_show_and_cells_shown_inver
+KILLED   find s2.5: only the lower half of a word is looked at          Ran 1214 FAILED (failures=22, errors=13, skipped=3); 35 test(s): a_code_run_under_another_ctl0_than_part_1_h, a_contradiction_is_confidence_0
+KILLED   find s2.5: a rule that is no rule is searched with             Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): what_is_not_searched, whose_memory_a_place_is_comes_from_part_1_a
+KILLED   find s2.5: the places of a memory found are in the lower half of its word Ran 1214 FAILED (failures=36, errors=7, skipped=3); 43 test(s): a_chain_file_that_was_changed, a_code_run_under_another_ctl0_than_part_1_h
+KILLED   find s2.5: the last word of a frame is not looked at           Ran 1214 FAILED (failures=4, errors=6, skipped=3); 10 test(s): every_memory_s_word_is_found_once_where_it_, every_result_is_the_one_whose_checksum_the_
+KILLED   find s2.5: chance counts a word once, not as it is and inverted Ran 1214 FAILED (failures=2, errors=6, skipped=3); 8 test(s): every_memory_s_word_is_found_once_where_it_, every_result_is_the_one_whose_checksum_the_
+KILLED   chain s2.5: the first run is not held to the CTL0 of S2.2      Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_first_run_under_another_ctl0_halts_the_ch
+KILLED   chain s2.5: with no CTL0 of S2.2 given the first run is held to none Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_first_run_under_another_ctl0_halts_the_ch
+KILLED   chain s2.5: a later run under another CTL0 goes on             Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_first_run_under_another_ctl0_halts_the_ch
+KILLED   chain s2.5: a second run before the first is committed         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): no_second_run_before_the_first_is_committed
+KILLED   chain s2.5: nothing that follows is no halt                    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): nothing_that_follows_halts_the_chain_when_i
+KILLED   chain s2.5: a memory found whose places are not candidates is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.5: a memory found twice counts as found               Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.5: a candidate of no memory found is not counted      Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_memory_not_laid_out_by_the_six_moves_is_o, what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.5: the runs need not have read all of block type 0    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.5: a place that is a candidate in two runs is passed  Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_the_closing_asks_of_the_runs_together
+KILLED   chain s2.5: the prediction is held under the form it named first only Ran 1214 FAILED (failures=2, errors=6, skipped=3); 8 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   chain s2.5: a memory found inverted counts as where the prediction said Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): fewer_cells_that_show_and_cells_shown_inver
+KILLED   chain s2.5: a candidates.json of an earlier look is left       Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_stored_run_that_was_changed_is_not_relied
+KILLED   chain s2.5: a run that is not of the share planned is taken    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_run_in_another_run_s_place_and_a_verdict_
+KILLED   chain s2.5: a verdict stored that is not the judge's is passed Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_run_in_another_run_s_place_and_a_verdict_
+KILLED   chain s2.5: the outcome is 1 whatever the prediction says      Ran 1214 FAILED (failures=2, errors=6, skipped=3); 8 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   chain s2.5: without the six moves a run is passed unsearched   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): without_the_six_moves_a_run_s_frames_are_no
+KILLED   table s2.5: a memory found inverted says whose a place is      Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): whose_memory_a_place_is_comes_from_part_1_a
+KILLED   table s2.5: a bit that follows a cell where part 1 found none is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: a candidate of part 1 that follows no cell is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: a place shown the other way than in part 1 is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: bits of no memory found are passed                 Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: a site where the code and the loaded word disagree has its table Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_site_where_the_code_and_the_loaded_word_s, a_site_without_a_table_halts_the_chain_and_
+KILLED   table s2.5: a cell followed by two bits of its site has the first Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: the cell a place should be is taken from its address alone Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: the verdict of a failing code run is closed        Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: any verdict is closed as the code run's            Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_else_leaves_a_site_without_a_table
+KILLED   table s2.5: singles — a cell is confirmed if its places are among the bits that changed Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): a_single_that_changes_other_than_the_tables
+KILLED   table s2.5: singles — a cell is confirmed if no other bit changed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_single_that_changes_other_than_the_tables
+KILLED   table s2.5: singles — which way a place shows its cell is not held Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_single_that_changes_other_than_the_tables
+KILLED   table s2.5: singles — a bit that follows a cell of another run is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_single_that_changes_other_than_the_tables
+KILLED   table s2.5: the description — a contradiction is called confirmed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_contradiction_is_confidence_0
+KILLED   table s2.5: the description — a cell no single was made of is confirmed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): it_is_a_ram_map_of_the_second_form
+KILLED   table s2.5: the description — the code states of a cell are those in which it was zero Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): it_is_a_ram_map_of_the_second_form, the_chain_that_says_which_place_is_which_ce
+KILLED   table s2.5: the description — a cell's single is the state before it Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): a_contradiction_is_confidence_0, it_is_a_ram_map_of_the_second_form
+KILLED   table s2.5: the tables are written with every place a cell on  Ran 1214 FAILED (failures=3, skipped=3); 3 test(s): seventeen_runs_the_tables_the_description_a, the_chain_that_says_which_place_is_which_ce
+KILLED   table s2.5: the cells a table shows inverted are not written   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_code_run_closes_into_a_table_for_every_
+KILLED   rule s2.5: the six moves are a rule though a cell is shown inverted Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: memories laid out otherwise make a rule of the moves Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: a position with two places makes a rule             Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: both halves of the rows in one half of the device make a rule Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: rows of one half in two halves of the device make a rule Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: columns that lie on no line make a rule             Ran 1214 FAILED (failures=3, skipped=3); 2 test(s): the_chain_that_says_which_place_is_which_ce, what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: sites at other frames of their column make a rule   Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: the one word more lies a row lower                  Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): a_layout_that_obeys_one_rule_is_read_as_tha, rows_that_do_not_say_where_it_lies_leave_it
+KILLED   rule s2.5: a row's words are held by the lower one alone       Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: a row with two words in two sites makes a rule      Ran 1214 FAILED (failures=2, errors=1, skipped=3); 1 test(s): what_does_not_obey_is_said_part_by_part
+KILLED   rule s2.5: the sites not measured are every site listed        Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): a_layout_that_obeys_one_rule_is_read_as_tha, the_chain_that_says_which_place_is_which_ce
+KILLED   chain2 s2.5: the code run is not held to the CTL0 of part 1    Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_code_run_under_another_ctl0_than_part_1_h
+KILLED   chain2 s2.5: a single under another CTL0 than the code run goes on Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_code_run_under_another_ctl0_than_part_1_h
+KILLED   chain2 s2.5: a single before the code run is committed         Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): no_single_before_the_code_run_and_its_table
+KILLED   chain2 s2.5: a single before the tables are committed          Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): no_single_before_the_code_run_and_its_table
+KILLED   chain2 s2.5: stored tables that are not the code run's are passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): tables_that_were_changed_are_not_written_ov
+KILLED   chain2 s2.5: a table directory without the tables in it is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): tables_that_were_changed_are_not_written_ov
+KILLED   chain2 s2.5: a contradiction of the singles does not halt the chain Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_single_that_contradicts_the_tables_halts_
+KILLED   chain2 s2.5: a description of an earlier look is left          Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_stored_run_that_was_changed_takes_the_des
+KILLED   chain2 s2.5: run k of the chain is run k of the singles        Ran 1214 FAILED (failures=5, skipped=3); 5 test(s): a_single_that_contradicts_the_tables_halts_, a_stored_run_that_was_changed_takes_the_des
+KILLED   chain2 s2.5: the two sets need not declare one image and one design Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): what_is_not_a_chain
+KILLED   chain2 s2.5: tables stored without a code run are passed       Ran 1214 FAILED (errors=1, skipped=3); 1 test(s): what_is_not_a_chain
+KILLED   chain2 s2.5: the rule is not written                           Ran 1214 FAILED (failures=1, errors=1, skipped=3); 2 test(s): a_stored_run_that_was_changed_takes_the_des, seventeen_runs_the_tables_the_description_a
+KILLED   run s2.5: a set of part 2 is given what is known though part 1 is not stored Ran 1214 FAILED (failures=1, skipped=2); 1 test(s): a_set_of_part_2_has_no_run_until_part_1_is_
+KILLED   run s2.5: the sets of S2.5 are planned by the program of S2.4  Ran 1214 FAILED (failures=1, errors=56, skipped=3); 56 test(s): a_card_without_the_design_gets_it_by_ymodem, a_chain_file_that_was_changed
+KILLED   run s2.5: a run of the singles of S2.5 is said to be one of two Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_refused
+KILLED   run s2.5: the sets of part 2 are not held to the stored runs of part 1 Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): part_2_is_given_what_was_held_to_the_runs_a, the_run_script_and_the_chain_of_part_2_ask_
+KILLED   chain s2.5: part 2 is built on a chain of part 1 that is not complete Ran 1214 FAILED (errors=3, skipped=3); 3 test(s): runs_that_are_not_a_complete_chain, the_run_script_and_the_chain_of_part_2_ask_
+KILLED   chain s2.5: a candidates file that is not what the runs give is passed Ran 1214 FAILED (failures=4, skipped=3); 4 test(s): part_2_is_given_what_was_held_to_the_runs_a, the_run_script_and_the_chain_of_part_2_ask_
+KILLED   chain s2.5: a chain file that is not what the runs give is passed Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_chain_file_that_was_changed
+KILLED   chain s2.5: a file of part 1 that cannot be read is passed     Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_file_that_is_not_there
+KILLED   chain s2.5: the candidates held are those beside the runs, whatever part 2 is given Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): two_sites_named_for_each_other_in_the_candi, what_is_taken_again_is_given_with_the_reaso
+KILLED   chain s2.5: the closing does not say whether part 2 can be planned Ran 1214 FAILED (errors=9, skipped=3); 9 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   chain s2.5: part 2 is said to have a plan where the planner refuses Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): over_the_frames_the_prediction_names_and_ov
+KILLED   chain s2.5: the room of part 2 is reckoned by the code run alone Ran 1214 FAILED (failures=3, errors=6, skipped=3); 9 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   chain s2.5: the command does not say that part 2 cannot be planned Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): the_closing_of_the_made_up_chain_says_it_an
+KILLED   table s2.5: the description does not name the runs of part 1   Ran 1214 FAILED (failures=1, errors=4, skipped=3); 5 test(s): a_contradiction_is_confidence_0, it_is_a_ram_map_of_the_second_form
+KILLED   chain2 s2.5: the description names a run of part 2 as the runs of part 1 Ran 1214 FAILED (failures=2, skipped=3); 2 test(s): seventeen_runs_the_tables_the_description_a, the_chain_that_says_which_place_is_which_ce
+KILLED   run s2.5: the candidates are read again from the file after they were held to the runs Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): part_2_is_given_what_was_held_to_the_runs_a
+KILLED   run s2.5: the CTL0 of part 1 is read again from the file after it was held to the runs Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): part_2_is_given_what_was_held_to_the_runs_a
+KILLED   chain s2.5: what is given back of part 1 is the file opened again, not what the runs give Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): what_is_taken_again_is_given_with_the_reaso
+KILLED   chain2 s2.5: a chain whose next run has no plan is said to go on Ran 1214 FAILED (failures=1, skipped=3); 1 test(s): a_chain_of_part_2_whose_next_run_has_no_pla
+restored: Ran 1214 OK (skipped=3); 0 test(s):  (8 copies)
+355 mutants, 0 survived

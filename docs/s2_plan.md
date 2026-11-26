@@ -76,9 +76,10 @@ columns of frames lower (section 52).** **Part 2 has been on the board the same 
 complete: a table for every one of the 110 sites, every cell confirmed at every site; of
 the rule's five parts four hold at every site measured and the column does not (section
 53). With it S2.5 is done, and every step of S2 has been on the board.** What is left of
-S2 is the mutants the tool has not yet judged — 355, by the owner's rule of 2026-11-25
-(section 55), which takes the place of "the complete set" here — and the grading. The run
-of the 355 is begun; the grading is not.
+S2 is the grading. The mutants the tool had not yet judged — 355, by the owner's rule of
+2026-11-25 (section 55), which takes the place of "the complete set" here — have been run
+and every one is killed (section 56, 2026-11-26). The grading is not begun; it waits for
+the owner's word.
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at
@@ -4847,3 +4848,57 @@ chose the 355.
 - The tool is started on the 355 (`SM_MUTANT_FROM=1326`) on the commit that holds this
   section. Its record, and what it finds, go into a section of their own.
 - The grading is still the owner's word.
+
+## 56. The 355 mutants the tool had not judged: all killed (2026-11-26)
+
+The run of section 55. `SM_MUTANT_FROM=1326`, 8 at a time, `SELFMAP_NO_BOARD=1`, on
+`952cc40` with a clean working tree; started 2026-11-25T11:39:02Z, ended
+2026-11-26T07:02:33Z with exit 0. The record is
+`evidence/host_checks/mutants_2026-11-25_from_1326.txt`.
+
+| | |
+|---|---|
+| the unmutated tree, in a scratch copy | 1,214 tests, OK, 3 skipped |
+| mutants taken | 355 (list numbers 1326 to 1680) |
+| killed | **355** |
+| survived | 0 |
+| BROKEN, STALE | 0, 0 |
+| tests run under every mutant | 1,214, as under the unmutated tree |
+| the 8 scratch copies, restored | each passes again |
+
+By what they are of: predict4 31, states4 40, judge s2.4 37, chain s2.4 29, table s2.4 27,
+chain2 s2.4 25, run s2.4 9, predict5 19, states s2.5 18, judge s2.5 20, find s2.5 9,
+chain s2.5 27, table s2.5 21, rule s2.5 11, chain2 s2.5 14, run s2.5 6, and the twelve of
+S2.3 that were added after its last run (states9 5, chain9 3, judge9 2, run s2.3 2).
+
+No test was added and no program was changed: there was nothing to mend.
+
+### The machine slept during the run
+
+The machine went to sleep at about 16:03Z on 2026-11-25 and woke at about 19:29Z, about
+three and a half hours. The tool was not stopped; it went on when the machine woke. 87
+mutants had been judged before. Eight suites were under way across the sleep: those of
+list numbers 1414 to 1421 (the 89th to the 96th of this run, all `judge s2.4:`), found by
+holding each scratch copy against the tree while they still ran.
+
+A suite that is asleep for hours could fail a test for that reason alone, and the tool
+would write KILLED over a mutant no test catches. For each of the eight the record names
+the tests that failed, and they are tests of the S2.4 judge and of the chains that use
+it — what each of those mutants changes. None of the eight was run again. The record
+names at most two of the failed tests of a suite, so this is what the names shown say,
+not a proof for every test that failed in those eight suites.
+
+Without the sleep the run took about 16 hours: about 22 mutants an hour, not the 29 the
+complete run had begun with (section 55).
+
+### What this run does not say
+
+- The other 1,326 mutants of the list were not run on this tree. They were last judged on
+  2026-11-22 (986) and 2026-11-23 (340), before the two tests of section 54 were mended.
+  By section 55 they are run before S4.
+- It says nothing of the board, and nothing is graded by it.
+
+### Where S2 stands
+
+Every step of S2 has been on the board, and the mutants section 55 asks for before the
+grading are run. What is left of S2 is the grading, on the owner's word.

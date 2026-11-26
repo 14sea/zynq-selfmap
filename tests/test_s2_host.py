@@ -195,10 +195,14 @@ class TheJudgeDoesNotTakeTheBoardsWord(unittest.TestCase):
         self.assertTrue(has(v, "CTL0 does not read the same every time"))
 
     def test_a_header_that_reads_another_register(self) -> None:
-        def change(w): w[self.at(self.r6, 3, 60)] = 0x28012001   # COR0 in the place of CTL0
+        def change(w): w[self.at(self.r6, 3, 60)] = 0x2801C001   # COR1 in the place of CTL0 (COR0 may be read since S3.0)
         v = self.tampered(self.r6, change, 6)
         self.assertTrue(has(v, "record 3: the CTL0 read stream is not the pinned one"))
-        self.assertTrue(has(v, "is not read-only: word 1: a read of COR0"))
+        self.assertTrue(has(v, "is not read-only: word 1: a read of COR1"))
+        def cor0(w): w[self.at(self.r6, 3, 60)] = 0x28012001     # COR0 there: on the list, and still not the stream the plan has
+        v = self.tampered(self.r6, cor0, 6)
+        self.assertTrue(has(v, "record 3: the CTL0 read stream is not the pinned one"))
+        self.assertFalse(has(v, "is not read-only"))
 
     def test_a_write_among_the_streams(self) -> None:
         def change(w): w[self.at(self.r6, 3, 60)] = 0x3000A001   # a write to CTL0
@@ -259,7 +263,7 @@ class TheJudgeDoesNotTakeTheBoardsWord(unittest.TestCase):
         """The echoed block is the one planned, word for word, and the status says done: only the judge's own reading
         of the block can say that no prober runs with it."""
         cases = ((6, 13, 1, "a reserved word"), (6, 11, 1, "another reserved word"), (6, 9, 0, "no limit to the wait"),
-                 (6, 12, 0x3214, "a register that is not one of the four"), (6, 12, 0x13210, "a register for an operation that is not there"),
+                 (6, 12, 0x3215, "a register that is not one of the five"), (6, 12, 0x13210, "a register for an operation that is not there"),
                  (6, 15, 0x300, "a wait that is not one of the two"), (6, 24, PL, "an envelope in the PL where no user logic is used"),
                  (6, 28, 0xF, "an SLCR word where none is read"), (6, 2, 7, "the other stage"),
                  (7, 25, PL + 0x20, "an envelope beyond the design"), (7, 24, PL - 4, "an envelope below the PL"),

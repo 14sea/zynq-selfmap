@@ -6,13 +6,16 @@ counts are derived again from the raw words; the parameters the prober echoed mu
 readings are judged; and only then what the run was for.
 
 Both stages are the table-driven stage with one thing more: the register read after each operation is chosen by the
-host from four — FAR, IDCODE, CTL0, STAT — four bits an operation in parameter word 12.
+host from five — FAR, IDCODE, CTL0, STAT, and since S3.0 COR0 (docs/s3_plan.md, section 5) — four bits an operation in
+parameter word 12.
 
   * A value read from FAR must be the one the rule found in S1b.0 and S1b.0b gives: one step for every 101 words read,
     the pad included. That is the control: reading the other registers this way has changed nothing.
   * IDCODE has a known answer: its low 28 bits, as the JTAG scans of these boards gave them.
-  * CTL0 and STAT have none. Each must read the same every time; what CTL0 holds is the finding of S2.0, reported
-    with its bit 8 (GLUTMASK_B, UG470 table 5-27) said in words. Nothing is concluded from any other bit.
+  * CTL0, STAT and COR0 have none. Each must read the same every time; what CTL0 holds is the finding of S2.0,
+    reported with its bit 8 (GLUTMASK_B, UG470 table 5-27) said in words; what COR0 holds is the finding of S3.0,
+    reported with its fields (UG470 table 5-31) and SINGLE, bit 23, said in words. Nothing is concluded from any
+    other bit.
 
 Stage 6 runs with the carrier loaded, and every frame it delivers is held to its known content. Stage 7 runs with
 the probe design: no frame has a known content, and the reference frame is held to its own first reading.
@@ -46,8 +49,8 @@ PLB_WORDS = 16 + 2 * PL_LOG_MAX
 PLB_MAGIC = 0x4C504D53
 MAX_OPS, MAX_REPEATS = 8, 8
 MAX_RECORDS = 1 + MAX_OPS * MAX_REPEATS * 2 + 1
-REGS = {0: "FAR", 1: "IDCODE", 2: "CTL0", 3: "STAT"}
-READ_HEADER = {0: 0x28002001, 1: 0x28018001, 2: 0x2800A001, 3: 0x2800E001}
+REGS = {0: "FAR", 1: "IDCODE", 2: "CTL0", 3: "STAT", 4: "COR0"}
+READ_HEADER = {0: 0x28002001, 1: 0x28018001, 2: 0x2800A001, 3: 0x2800E001, 4: 0x28012001}
 # the low 28 bits of the device identification, as the JTAG scans of these boards gave it (0x13722093; the top four
 # bits are the revision, which is the die's own)
 IDCODE_LOW28 = 0x3722093
@@ -58,6 +61,12 @@ SLCR_NAMES = ("LVL_SHFTR_EN", "FPGA_RST_CTRL", "FPGA0_CLK_CTRL", "PLL_STATUS")
 # control register 0, as UG470's table 5-27 names its bits. Reported; only bit 8 is the finding.
 CTL0_BITS = {31: "EFUSE_KEY", 30: "ICAP_SELECT", 12: "OverTempPowerDown", 10: "ConfigFallback", 8: "GLUTMASK_B", 7: "FARSRC",
              6: "DEC", 5: "SBITS[1]", 4: "SBITS[0]", 3: "PERSIST", 0: "GTS_USR_B"}
+# configuration options register 0, as UG470's table 5-31 names its fields: (name, lowest bit, width). Reported; SINGLE
+# is the finding of S3.0 (docs/s3_plan.md, section 5): whether a capture needs RCAP before the next one.
+COR0_FIELDS = (("PWRDWN_STAT", 27, 1), ("DONE_PIPE", 25, 1), ("DRIVE_DONE", 24, 1), ("SINGLE", 23, 1), ("OSCFSEL", 17, 6),
+               ("SSCLKSRC", 15, 2), ("DONE_CYCLE", 12, 3), ("MATCH_CYCLE", 9, 3), ("LOCK_CYCLE", 6, 3), ("GTS_CYCLE", 3, 3),
+               ("GWE_CYCLE", 0, 3))
+SSCLKSRC = {0: "CCLK", 1: "UserClk", 2: "JTAGClk", 3: "JTAGClk"}
 
 # ---- the probe design s2a, as the prober is to use it (prober/sm.h; pl/s2a/design.json)
 PL_BASE, PL_SPAN = 0x40000000, 0x20
@@ -487,6 +496,15 @@ def judge(words: list[int], known: dict | None, planned: list[int], stage: int =
             entry["GLUTMASK_B"] = v >> 8 & 1
             entry["by_the_register_s_word"] = ("readback of LUT RAM and shift registers is not masked (bit 8 set)" if v >> 8 & 1
                                                else "readback of LUT RAM and shift registers is masked (bit 8 clear, the table's default)")
+        if reg == 4 and len(values) == 1:
+            v = next(iter(values))
+            entry["fields"] = {name: v >> low & (1 << width) - 1 for name, low, width in COR0_FIELDS}
+            named = sum(((1 << width) - 1) << low for _, low, width in COR0_FIELDS)
+            entry["bits_set_the_table_does_not_name"] = [b for b in range(32) if v >> b & 1 and not named >> b & 1]
+            entry["SINGLE"] = v >> 23 & 1
+            entry["start_up_clock"] = SSCLKSRC[v >> 15 & 3]
+            entry["by_the_register_s_word"] = ("readback is single-shot: RCAP must be sent between successive captures (bit 23 set)" if v >> 23 & 1
+                                               else "readback is not single-shot: each capture loads new values (bit 23 clear)")
         registers[REGS[reg]] = entry
     out["registers"] = registers
     out["registers_without_a_clean_value"] = [REGS[reg] for reg in sorted(wanted) if not registers[REGS[reg]]["read_cleanly"]]

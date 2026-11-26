@@ -15,9 +15,9 @@ CMD = {0: "NULL", 1: "WCFG", 2: "MFW", 3: "DGHIGH", 4: "RCFG", 5: "START", 6: "R
        9: "SWITCH", 10: "GRESTORE", 11: "SHUTDOWN", 12: "GCAPTURE", 13: "DESYNC", 15: "IPROG", 16: "CRCC", 17: "LTIMER"}
 OPS = {0: "nop", 1: "read", 2: "write", 3: "reserved"}
 # The registers a read-only stage may read one word of. FAR since S1b.0; IDCODE, CTL0 and STAT since S2.0 (owner,
-# 2026-11-20: docs/s2_plan.md, section 12, point 2). UG470's table 5-23 calls all four readable. No other is on the
-# list, MASK and the option registers among those that are not.
-READABLE = ("FAR", "IDCODE", "CTL0", "STAT")
+# 2026-11-20: docs/s2_plan.md, section 12, point 2); COR0 since S3.0 (owner, 2026-11-26: docs/s3_plan.md, section 12,
+# point 4). UG470's table 5-23 calls all five readable. No other is on the list, MASK and COR1 among those that are not.
+READABLE = ("FAR", "IDCODE", "CTL0", "STAT", "COR0")
 
 
 def decode(words: list[int]) -> list[dict]:

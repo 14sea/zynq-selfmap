@@ -33,6 +33,8 @@ CONSTANTS_S2_2 = {0xF70382BF}
 # registers above and the shift registers' data (PL_WRITABLE9; offset 0x18: a write there is a shift, and no set of S2.3
 # names it — tests/test_prober_s2_3.py), and that bound's complement, with which the block's word is held to it
 CONSTANTS_S2_3 = {0xF70D82BF, 0x01111010, 0xFEEEEFEF}
+# S3.0 (docs/s3_plan.md, section 5): the read header of COR0
+CONSTANTS_S3_0 = {0x28012001}
 PL_BASE = 0x40000000
 
 
@@ -133,9 +135,9 @@ class Image(unittest.TestCase):
         for value in self.literals:
             ok = (0x02000000 <= value < 0x02008000 or 0x10000000 <= value < 0x10400000
                   or value in DEVICE_ADDRESSES or value in SLCR_READ or value in CONSTANTS or value in CONSTANTS_S2 or value in CONSTANTS_S2_2
-                  or value in CONSTANTS_S2_3)
+                  or value in CONSTANTS_S2_3 or value in CONSTANTS_S3_0)
             self.assertTrue(ok, f"{value:#010x} is not accounted for")
-        pl = [f"{v:#010x}" for v in self.literals if 0x40000000 <= v < 0xC0000000 and v not in CONSTANTS | CONSTANTS_S2 | CONSTANTS_S2_2 | CONSTANTS_S2_3]
+        pl = [f"{v:#010x}" for v in self.literals if 0x40000000 <= v < 0xC0000000 and v not in CONSTANTS | CONSTANTS_S2 | CONSTANTS_S2_2 | CONSTANTS_S2_3 | CONSTANTS_S3_0]
         self.assertFalse(pl, "no word of a literal pool is an address in the PL: the few that lie in that range are the data constants above")
 
     def function_of(self, address: int) -> str:
@@ -354,6 +356,30 @@ class Image(unittest.TestCase):
                        "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"},
             records=rec21, result_words=64 + plb + rec21 * 480,
             console=["SM7 start", "SM7 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec21, 64 + plb + rec21 * 480)]), indent=1) + "\n")
+        # S3.0 (docs/s3_plan.md, section 5): the sets of S2.0 and S2.1, each with one operation more — one word of COR0,
+        # with no frame read — and nothing else changed. s3_0: the carrier, five operations, each three times. s3_0b: s2a.
+        p30 = list(p20)
+        p30[6] = 5
+        p30[10] |= 15 << 16
+        p30[12] |= 4 << 16                                         # FAR, IDCODE, CTL0, STAT, COR0
+        p30[20] = 0xB99
+        rec30 = 1 + 5 * 3 + 1
+        (BUILD / "expected_s3_0.json").write_text(json.dumps(dict(
+            e4, stage="S3.0, COR0 read through PCAP, the carrier loaded", params=[f"{w:08x}" for w in p30], records=rec30, result_words=64 + rec30 * 480,
+            frames=expected["frames"],
+            console=["SM6 start", "SM6 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec30, 64 + rec30 * 480)]), indent=1) + "\n")
+        p30b = list(p21)
+        p30b[6] = 4
+        p30b[10] |= 15 << 12
+        p30b[12] |= 4 << 12                                        # IDCODE, CTL0, STAT, COR0
+        p30b[19] = 0xB99
+        rec30b = 1 + 4 * 3 + 1
+        (BUILD / "expected_s3_0b.json").write_text(json.dumps(dict(
+            e21, stage="S3.0, COR0 read through PCAP, the design s2a loaded", params=[f"{w:08x}" for w in p30b],
+            pl_design={"sha256": built["bitstream"]["sha256"], "bytes": built["bitstream"]["bytes"], "file": "build/pl/s2a.bit", "card_name": "s2a.bit",
+                       "note": "the probe design s2a (pl/s2a), built here and loaded as an opaque file"},
+            records=rec30b, result_words=64 + plb + rec30b * 480,
+            console=["SM7 start", "SM7 end status=00000001 records=%08x anomalies=00000000 words=%08x" % (rec30b, 64 + plb + rec30b * 480)]), indent=1) + "\n")
         # S2.2 (section 19): stage 8 — the gates and the second envelope of S2.1; block type 0 whole, as the census has
         # it, as the envelope; three states of the design's RAM: all zero, all one, all zero. The set has no list of
         # reads: a run is of one share of the census's addresses, which the run script adds (s1a_run.with_share), and

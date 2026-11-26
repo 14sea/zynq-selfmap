@@ -6,7 +6,7 @@
  *
  *   twin gen <far-hex>                      print the readback stream and the cleanup stream
  *   twin genframes <far-hex> <n>            print the stream reading n frames (0: the pad alone; 15: no read), and the FAR-register read stream
- *   twin genreg <n>                         print the stream that reads one word of register n (0 FAR, 1 IDCODE, 2 CTL0, 3 STAT)
+ *   twin genreg <n>                         print the stream that reads one word of register n (0 FAR, 1 IDCODE, 2 CTL0, 3 STAT, 4 COR0)
  *   twin guard <lo> <hi> <max> <w0> <w1>..  run the guard on a stream; print its return value
  *   twin run <frames.txt> <params.txt> <result.bin>   run S1a; SM_FAULT selects injected faults
  *
@@ -30,8 +30,9 @@
  * given for it like for any other. How many such places there are, and what a read delivers there, is what S1b.2b
  * is to find out; the tests give the model several answers.
  *
- * S2.0 and S2.1 (docs/s2_plan.md). The engine answers a one-word read of IDCODE, CTL0 and STAT as well; what they
- * hold is SM_CREG=idcode:V,ctl0:V,stat:V (hex), each with a default. The four SLCR words stage 7 looks at can be
+ * S2.0 and S2.1 (docs/s2_plan.md). The engine answers a one-word read of IDCODE, CTL0 and STAT as well, and since
+ * S3.0 (docs/s3_plan.md) of COR0; what they hold is SM_CREG=idcode:V,ctl0:V,stat:V,cor0:V (hex), each with a default
+ * that is made up (COR0's is the word UG470's sample bitstream writes, for another part). The four SLCR words stage 7 looks at can be
  * read, and the eight registers of the probe design s2a: a scratch register, a counter, a LUT RAM of 64 x 4 bits
  * written through an address and a data register, four shift registers of 32 bits whose outputs can be read, and
  * the design's count of writes and shifts. This is the design as its source describes it, not the board.
@@ -129,7 +130,7 @@ static uint32_t shows(uint32_t position)
 static uint32_t queue[4096]; static unsigned q_n, q_at;
 
 /* configuration registers a read-only stage may read one word of, beside FAR (S2.0) */
-static uint32_t creg_idcode = 0x13722093u, creg_ctl0 = 0x00000501u, creg_stat = 0x401079FCu;
+static uint32_t creg_idcode = 0x13722093u, creg_ctl0 = 0x00000501u, creg_stat = 0x401079FCu, creg_cor0 = 0x02003FE5u;
 static unsigned n_stat_reads; static int disturbed;
 
 /* the PS side of the PL, and the probe design s2a */
@@ -246,9 +247,9 @@ static void engine_feed(const uint32_t *w, uint32_t n)
                 }
             } else if (op == 1u) {                       /* read header */
                 if (reg == 1u && count == 1u) { q_n = q_at = 0; queue[q_n++] = shows(far_reg); }      /* the FAR register */
-                else if ((reg == 12u || reg == 5u || reg == 7u) && count == 1u) {                      /* IDCODE, CTL0, STAT */
+                else if ((reg == 12u || reg == 5u || reg == 7u || reg == 9u) && count == 1u) {         /* IDCODE, CTL0, STAT, COR0 */
                     q_n = q_at = 0;
-                    queue[q_n++] = reg == 12u ? creg_idcode : reg == 5u ? creg_ctl0
+                    queue[q_n++] = reg == 12u ? creg_idcode : reg == 5u ? creg_ctl0 : reg == 9u ? creg_cor0
                                  : creg_stat ^ (fault_on("statmoves") ? n_stat_reads++ << 4 : 0u);
                     if (fault_on("regdisturbs")) disturbed = 1;
                 }
@@ -565,7 +566,8 @@ int main(int argc, char **argv)
         if (getenv("SM_CREG")) {
             const char *s = getenv("SM_CREG"); char *e;
             while (*s) {
-                uint32_t *which = !strncmp(s, "idcode:", 7) ? &creg_idcode : !strncmp(s, "ctl0:", 5) ? &creg_ctl0 : !strncmp(s, "stat:", 5) ? &creg_stat : 0;
+                uint32_t *which = !strncmp(s, "idcode:", 7) ? &creg_idcode : !strncmp(s, "ctl0:", 5) ? &creg_ctl0 : !strncmp(s, "stat:", 5) ? &creg_stat
+                                : !strncmp(s, "cor0:", 5) ? &creg_cor0 : 0;
                 if (!which) return 2;
                 *which = (uint32_t)strtoul(strchr(s, ':') + 1, &e, 16);
                 s = *e == ',' ? e + 1 : e;

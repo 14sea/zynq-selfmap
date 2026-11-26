@@ -322,7 +322,8 @@ class TheSets(unittest.TestCase):
         other = json.loads(s1a_run.STAGES["s2_3c"]["expected"].read_text())
         differ = [i for i, (a, b) in enumerate(zip(self.base["params"], other["params"])) if a != b]
         self.assertEqual((differ, self.base["params"][26], self.base["image_sha256"]), ([26], "53324231", other["image_sha256"]))
-        self.assertEqual(self.base["image_sha256"], "8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b", "the image of section 32: no new one")
+        # it ran on the image of section 32 (8bf3799c…), held from its stored runs in test_board_evidence; since S3.0 the
+        # tree's image is another (tests/test_prober_s3_0.py), and the set takes whatever image the tree has
         built = json.loads((ROOT / "pl" / "s2b" / "build.json").read_text())["bitstream"]
         self.assertEqual(self.base["pl_design"], {"sha256": built["sha256"], "bytes": built["bytes"], "file": "build/pl/s2b.bit", "card_name": "s2b.bit",
                                                   "note": "the probe design s2b (pl/s2b), built here and loaded as an opaque file"})

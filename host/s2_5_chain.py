@@ -369,6 +369,9 @@ def candidates_file(a: dict, known: dict) -> dict:
             "memories_not_found": c["memories_not_found"], "candidates_of_no_memory_found": c["candidates_of_no_memory_found"], "places": c["found"]}
 
 
+IMAGE_WORDS = ("image_sha256", "image_crc32", "image_bytes")     # the only words in which the set kept with part 1 may differ from the build's
+
+
 def taken_again(root: Path, candidates: Path | None = None, chain: Path | None = None, base: dict | None = None, known: dict | None = None) -> dict:
     """What part 2 may build on of the part 1 stored under `root`: {"why": "", "candidates", "chain"} — or "why" alone,
     with the reason, where it may build on nothing. Part 2 uses two things this chain wrote — the candidates with the
@@ -381,8 +384,24 @@ def taken_again(root: Path, candidates: Path | None = None, chain: Path | None =
     **What is given back is what was held, not a file to be opened again**: the candidates and the chain as the runs
     give them here, which each file was found to be. (External review of b8f014a: the files were held to the runs
     and then read a second time; changed by another program in between, they were taken as they then were.)
-    `candidates`, `chain`: the files part 2 is given, if they are not the two in `root`."""
-    base = json.loads(s1a_run.STAGES[STAGE]["expected"].read_text()) if base is None else base
+    `candidates`, `chain`: the files part 2 is given, if they are not the two in `root`.
+
+    **Which set the runs are held to** (S3.0, docs/s3_plan.md, section 13): the one kept with them, as the chain's
+    procedure copies it there before the first run — and that copy must be the set the build writes now in every
+    word but the three that say which prober image it is. Since S3.0 the image of the build is another than the one
+    part 1 ran on; part 1's runs are held to their own, which the copy names and which is kept beside them. Where no
+    set is kept with the runs, the build's is taken, as before."""
+    if base is None:
+        base = json.loads(s1a_run.STAGES[STAGE]["expected"].read_text())
+        kept = root / f"expected_{STAGE}.json"
+        if kept.is_file():
+            try:
+                theirs = json.loads(kept.read_text())
+            except ValueError:
+                return {"why": f"the set kept with the runs of part 1 ({kept.name}) is not a file that can be read"}
+            if {k: v for k, v in theirs.items() if k not in IMAGE_WORDS} != {k: v for k, v in base.items() if k not in IMAGE_WORDS}:
+                return {"why": f"the set kept with the runs of part 1 ({kept.name}) is not the set the build writes now, in more than which image it is"}
+            base = theirs
     known = known_of_the_device() if known is None else known
     a = assess(root, base, known)
     if a["state"] != "complete":

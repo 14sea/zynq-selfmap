@@ -212,7 +212,7 @@ class StageSixParameters(unittest.TestCase):
                          # this stage) and nothing but the count would stop it: the pad read at an address nobody named
                          ("nine operations and an envelope from 0", {"ops": [(REF, NONE, IDCODE)] * 8, "w6": 9, "w3": 0}),
                          ("no operation", {"w6": 0}),
-                         ("a register that is not on the list", {"ops": [(REF, NONE, 4)]}),
+                         ("a register that is not on the list", {"ops": [(REF, NONE, 5)]}),     # 4 is COR0 since S3.0
                          ("another that is not", {"ops": [(REF, NONE, 15)]}),
                          ("a register named beyond the last operation", {"w12": 0x13210}),
                          ("a frame count beyond the last operation", {"w10": 0xFFFFF1}),

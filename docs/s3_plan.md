@@ -300,3 +300,96 @@ The owner: all ten points of section 11 as recommended, and begin.
 
 The host side of S3.0 is built next. Its account follows here as a section "as built" before
 anything is put to the owner for review.
+
+## 13. S3.0 as built (2026-11-26; host side, nothing on a board yet)
+
+What section 5 and point 4 of section 12 asked for: one word of COR0 read through PCAP, beside IDCODE, CTL0 and
+STAT, under the carrier and under `s2a`. Nothing else in the prober changed.
+
+### What was built
+
+- **The prober** (`prober/sm.h`, `prober/sm_core.c`): the read header `W_RD_COR0_1` = `28012001` (UG470 table 6-1
+  with COR0's address `01001` of table 5-23, one word); `REG_COR0` as the fifth choice an operation may make, so that
+  `N_REGS` is 5; the generator sends that header for it; the guard accepts that header as the fifth of its list of
+  one-word register reads and nothing more. It still sends nothing that writes but `CMD` (RCFG, DESYNC) and `FAR`.
+- **A new image**: 19,260 bytes, sha256 `18cd254d4915518a369bccf4ed80cecb677b4c67bfc02abff2a224c8eccf5557`, crc32
+  `ec805203` (section 32's of S2 was 19,244 bytes, `8bf3799c…2a8b`). One literal more in it, the header; the test of
+  the image's literals accounts for it (`CONSTANTS_S3_0`).
+- **The reader** (`host/packets.py`): COR0 is the fifth register a read-only stage may read one word of. MASK and
+  COR1 stay among those that are not.
+- **The twin** (`prober/twin_hal.c`): answers a one-word read of COR0; what it holds is `SM_CREG=…,cor0:V`. Its default
+  is made up — the word UG470's sample bitstream writes for another part, `02003FE5`.
+- **The judge** (`host/s2_judge.py`, the judge of stages 6 and 7): COR0 is a register of its table, its read held to
+  the pinned stream with its header; like CTL0 and STAT it has no known answer and must read the same every time. Its
+  value is reported with every field of UG470's table 5-31 by name, the bits no field names, SINGLE (bit 23) said in
+  words, and the start-up clock (`SSCLKSRC`, bits 16:15) by its name.
+- **Two sets** (`host/s1a_run.py`; written with the others by `tests/test_prober_image.py`): `s3_0` is the set of S2.0
+  with a fifth operation, COR0 — the carrier loaded, five operations three times, 17 records; `s3_0b` the set of
+  S2.1 with a fourth — `s2a` loaded, the gates and the design's sequence of S2.1, four operations three times, 14
+  records. Their judges are S2.0's and S2.1's. Nothing else in either set differs from the set it is made from
+  (the tests say which words).
+
+### What the first run of the whole suite showed, and what was changed for it
+
+The suite with the new image failed six tests, all for one reason, and ran 30 minutes instead of about 11. S2.5's
+part 2 takes the stored runs of part 1 again before it builds on them (`s2_5_chain.taken_again`, sections 48 and 49
+of `docs/s2_plan.md`), and held them to the set as the build writes it now — which since this image names another
+image than the one kept with part 1's runs. So the stored part 1 "did not stand": the stored chain of part 2 could
+not be assessed again (`tests/test_board_evidence.py`), nor the stored runs of part 2 audited
+(`tests/test_evidence_audit.py`, five tests sharing one preparation).
+
+That is the check doing what it was made for, in a case it was not made for: a stage closed on one image, read again
+under another. **Changed** (`host/s2_5_chain.py`): part 1's runs are held to the set kept with them — copied beside
+the runs before the first run, as every chain's procedure has it — and that copy must be the build's set in every
+word but the three that say which image it is (`IMAGE_WORDS`); where no set is kept, the build's is taken, as
+before. A kept set that cannot be read, or that differs in anything else, is a reason part 1 does not stand. Two
+tests (`tests/test_s2_5_part2.py`): with the build's own set kept, part 1 stands; with a kept set that names another
+image, the kept image is held to it and fails; with a kept set differing in a parameter, in the design or in a word
+added, or not readable, part 1 does not stand and says why; and the part 1 the board made stands under the image of
+S3.0.
+
+Why the failing suite took 30 minutes: not the image, and not the long comparison I first took it for (a run with
+unittest's comparison output cut short took as long). Two training jobs of another project had been running on this
+machine since about 12:35 UTC, about sixteen of its twenty processors between them; the two slowest test modules,
+run on a copy of the tree as it was before S3.0 (`9c0255a`), took as long as on this one (457 and 533 seconds). They
+were not stopped: they are not this project's.
+
+### Tests
+
+1,264 (13 new: 11 in `tests/test_prober_s3_0.py`, 2 in `tests/test_s2_5_part2.py`). The whole suite, with
+`SELFMAP_NO_BOARD=1`: in this tree, 1,264 OK (2 skipped); in a copy made as the mutants tool makes its own (no
+`build/`, `XGCC` named, a `TMPDIR` of its own), 1,264 OK (4 skipped) — each in about 38 minutes, for the reason above.
+
+### Other tests changed by the new register
+
+- Three tests used register 4 as "a register that is not on the list" (`tests/test_prober_s2.py`,
+  `tests/test_s2_host.py`, `tests/test_prober_packets.py`); since COR0 is 4 they use 5.
+- `tests/test_prober_packets.py`: the list of registers both the guard and the reader take is five; a write to COR0
+  is among the writes both refuse.
+- `tests/test_s2_host.py`: the judge's case of "a header that reads another register" uses COR1, and a COR0 header in
+  CTL0's place is now on the list but still not the stream the plan has.
+- `tests/test_s2_4_host.py`, `tests/test_s2_5_host.py`: they held the build's image to be section 32's ("no new
+  one"). S2.4 and S2.5 ran on that image, and the stored runs say so (`tests/test_board_evidence.py` holds it); the
+  build's image is S3.0's.
+- New: `tests/test_prober_s3_0.py`, 11 tests — the stream, the guard and the reader, a register beyond COR0 refused
+  as a parameter, the judge's report of COR0 (a word made up with SINGLE clear and the start-up clock CCLK; one with
+  SINGLE set, another clock and a bit no field names), a COR0 that reads otherwise once, both sets word by word
+  against the sets they are made from, and a twin run of each set's own parameter words judged PASS. The image is
+  pinned there.
+
+### Mutants
+
+1,720 in the list, none stale by the tool's own rule. **23 are new** — 19 of S3.0 (the header, the generator, the
+guard, the list of registers, the reader, the judge's report, the two sets) and 4 of the change to `taken_again` —
+and the anchors of six older ones were on lines that changed: their anchors follow the lines, and two of them, which
+asked whether COR0 is refused, now ask it of COR1 under new names. **The tool has run none of them**: the owner
+(2026-11-26) — not now. By section 55 of `docs/s2_plan.md` every mutant the tool has never judged is run before the
+stage is graded; these are among them.
+
+### For the board, when the owner says
+
+The card holds `carrier.bit` and `s2a.bit` already; the image goes by YMODEM, as it does in every run. A precheck as
+before every step. Then one run of `s3_0` (the carrier), its result stored and committed as it stands and reported;
+then, on the owner's word of its own as in S2.0 and S2.1, one run of `s3_0b` (`s2a`). What is said beforehand is
+section 6 of `docs/s2_plan.md` for S2.0 and section 7 for S2.1, with one thing more for each: COR0 reads the same
+three times, and what its bit 23 says is the finding — section 5 above says what follows from either answer.

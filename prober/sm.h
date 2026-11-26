@@ -40,7 +40,9 @@
 #define W_RD_IDCODE_1      0x28018001u
 #define W_RD_CTL0_1        0x2800A001u
 #define W_RD_STAT_1        0x2800E001u
-enum { REG_FAR, REG_IDCODE, REG_CTL0, REG_STAT, N_REGS };   /* which register an operation reads after its frame read */
+/* S3.0 (docs/s3_plan.md, sections 5 and 12): one word of COR0 (01001, table 5-23), read the same way */
+#define W_RD_COR0_1        0x28012001u
+enum { REG_FAR, REG_IDCODE, REG_CTL0, REG_STAT, REG_COR0, N_REGS };   /* which register an operation reads after its frame read */
 #define CMD_RCFG           0x00000004u
 #define CMD_DESYNC         0x0000000Du
 #define FRAME_WORDS        101u

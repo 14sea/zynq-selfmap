@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A board run of one stage: exactly what the host types into U-Boot, in order.
 
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*|s2_0|s2_1] --dry-run          print the whole plan and exit; touches no serial port
-    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*|s2_0|s2_1] --go --out DIR     run it (refuses unless the image on disk is the one tests fixed)
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*|s2_*|s3_0|s3_0b] --dry-run          print the whole plan and exit; touches no serial port
+    s1a_run.py [--stage s1a|s1b0|s1b0b|s1b1|s1b1r|s1b2|rate*|dx*|s2_*|s3_0|s3_0b] --go --out DIR     run it (refuses unless the image on disk is the one tests fixed)
 
 The stages share everything but the parameter block, the judge and the size of a record; the prober
 image is the same and picks the stage from the parameter block.
@@ -117,6 +117,11 @@ STAGES = {"s1a": {"judge": s1a_judge, "expected": EXPECTED},
           # and what the judge holds the run to is the design's own facts, not the known frames. Before `go` the host
           # reads the four SLCR words and the design's identification register at the prompt (before_go).
           "s2_1": {"judge": s2_1_judge, "expected": ROOT / "build" / "prober" / "expected_s2_1.json", "known": ROOT / "pl" / "s2a" / "design.json"},
+          # S3.0 (docs/s3_plan.md, sections 5 and 12): COR0 read through PCAP with IDCODE, CTL0 and STAT — s3_0 the set
+          # of S2.0 with a fifth operation, the carrier loaded; s3_0b the set of S2.1 with a fourth, the design s2a
+          # loaded. Their judges are S2.0's and S2.1's: which register an operation reads is the host's table.
+          "s3_0": {"judge": s2_0_judge, "expected": ROOT / "build" / "prober" / "expected_s3_0.json"},
+          "s3_0b": {"judge": s2_1_judge, "expected": ROOT / "build" / "prober" / "expected_s3_0b.json", "known": ROOT / "pl" / "s2a" / "design.json"},
           # S2.2 (section 19): one run of the chain that reads block type 0 in three states of the design's RAM. The set
           # has no list of reads of its own: a run is of one share of the census's addresses, given at run time
           # (--share), see with_share() below. What the judge holds the run to is the design's facts and the census.

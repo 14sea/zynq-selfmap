@@ -625,6 +625,37 @@ class WhatPartOneFoundIsHeldToItsRuns(unittest.TestCase):
             self.assertRaisesRegex(ValueError, "does not stand", s1a_run.known_for, "s2_5c")       # a chain of another device than the census's
 
 
+    def test_the_runs_are_held_to_the_set_kept_with_them_which_may_differ_from_the_build_s_in_its_image_alone(self) -> None:
+        """S3.0 (docs/s3_plan.md, section 13): the build's image is no longer the one part 1 ran on. The set copied
+        beside part 1's runs names theirs; it is the one they are held to, and it must be the build's set in every
+        word but the three that say which image it is."""
+        whole = chain_1_of_the_device()
+        build = json.loads(s1a_run.STAGES["s2_5f"]["expected"].read_text())
+        def with_kept(change=None, text=None) -> Path:
+            root = a_copy(whole)
+            kept = dict(build) if change is None else change(dict(build))
+            (root / "expected_s2_5f.json").write_text(text if text is not None else json.dumps(kept, indent=1) + "\n")
+            return root
+        with self.of_the_device(with_kept()):
+            self.assertEqual(len(s1a_run.known_for("s2_5c")["candidates"]["memories"]), 440, "the build's own set, kept: as before")
+        another = lambda b: dict(b, image_sha256="0" * 64, image_crc32="00000000", image_bytes=b["image_bytes"] + 4)
+        with self.of_the_device(with_kept(another)):
+            self.assertRaisesRegex(ValueError, "the image kept with the runs is not the image the set declares", s1a_run.known_for, "s2_5c")
+        for change, why in ((lambda b: dict(b, params=b["params"][:7] + ["00000004"] + b["params"][8:]), "in more than which image it is"),
+                            (lambda b: {k: v for k, v in b.items() if k != "pl_design"}, "in more than which image it is"),
+                            (lambda b: dict(b, image_bytes=None, extra=1), "in more than which image it is")):
+            with self.subTest(why=why), self.of_the_device(with_kept(change)):
+                self.assertRaisesRegex(ValueError, why, s1a_run.known_for, "s2_5s")
+        with self.of_the_device(with_kept(text="{not json")):
+            self.assertRaisesRegex(ValueError, r"the set kept with the runs of part 1 \(expected_s2_5f.json\) is not a file that can be read", s1a_run.known_for, "s2_5c")
+
+    def test_the_part_1_the_board_made_stands_under_the_image_of_s3_0(self) -> None:
+        """What the six errors of the first suite after S3.0's image were: the stored part 1 held to the build's set."""
+        stored = ROOT / "evidence" / "s2_5_17A6"
+        self.assertNotEqual(json.loads((stored / "expected_s2_5f.json").read_text())["image_sha256"],
+                            json.loads(s1a_run.STAGES["s2_5f"]["expected"].read_text())["image_sha256"], "the build's image is another")
+        self.assertEqual(s2_5_chain.not_as_its_runs_give(stored), "")
+
     def test_part_2_is_given_what_was_held_to_the_runs_and_no_file_read_again(self) -> None:
         """Review of b8f014a: the files were held to the runs and then opened again. Another program that changes
         them just after they were held gave part 2 its own candidates, and seventeen untouched runs closed complete."""

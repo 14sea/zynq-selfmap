@@ -167,12 +167,13 @@ class StageTwoStreams(unittest.TestCase):
         self.assertEqual((guard(pad, maxr=101), packets.readonly_problems(pad, LO, HI, 101)), (0, []))
         self.assertNotEqual(guard(pad, maxr=100), 0)
 
-    def test_only_four_registers_and_only_one_word_of_each(self) -> None:
+    def test_only_five_registers_and_only_one_word_of_each(self) -> None:
         """Until 2026-11-20 this was "only the FAR register": a read of STAT or of IDCODE was refused by both. S2.0
-        reads one word of IDCODE, CTL0 and STAT (docs/s2_plan.md, section 12, point 2), and the list is now those four.
-        Everything else is refused as before — every other register of UG470's table 5-23, read at all; any of the four
-        read with another count; and a write to any of the three new ones."""
-        allowed = {0x28002001: "FAR", 0x28018001: "IDCODE", 0x2800A001: "CTL0", 0x2800E001: "STAT"}
+        reads one word of IDCODE, CTL0 and STAT (docs/s2_plan.md, section 12, point 2), and S3.0 one word of COR0
+        (docs/s3_plan.md, section 12, point 4): the list is now those five. Everything else is refused as before — every
+        other register of UG470's table 5-23 (MASK and COR1 among them), read at all; any of the five read with another
+        count; and a write to any of the four that are not FAR, COR0 among them."""
+        allowed = {0x28002001: "FAR", 0x28018001: "IDCODE", 0x2800A001: "CTL0", 0x2800E001: "STAT", 0x28012001: "COR0"}
         for header, what in allowed.items():
             with self.subTest(what):
                 self.assertEqual(self.both([0x20000000, header, 0x20000000, 0x20000000], 404), (True, True))
@@ -184,16 +185,16 @@ class StageTwoStreams(unittest.TestCase):
             with self.subTest(name):
                 self.assertEqual(self.both([0x20000000, 0x28000001 | reg << 13, 0x20000000, 0x20000000], 404), (False, False), f"a read of {name}")
         for header, what in ((0x3000A001, "a write to CTL0"), (0x3000C001, "a write to MASK"), (0x30018001, "a write to IDCODE"),
-                             (0x3000E001, "a write to STAT"), (0x30002001, "a FAR write without a value in the envelope")):
+                             (0x3000E001, "a write to STAT"), (0x30012001, "a write to COR0"), (0x30002001, "a FAR write without a value in the envelope")):
             with self.subTest(what):
                 self.assertEqual(self.both([0x20000000, header, 0x00000100, 0x20000000], 404), (False, False))
                 self.assertEqual(self.both([0x20000000, header, 0x20000000, 0x20000000], 404), (False, False))
 
     def test_the_generator_reads_the_register_it_is_asked_for_and_falls_back_on_far(self) -> None:
-        for reg, header in enumerate((0x28002001, 0x28018001, 0x2800A001, 0x2800E001)):
+        for reg, header in enumerate((0x28002001, 0x28018001, 0x2800A001, 0x2800E001, 0x28012001)):   # COR0 the fifth since S3.0
             out = subprocess.run([str(TWIN), "genreg", str(reg)], check=True, capture_output=True, text=True).stdout
             self.assertEqual([int(x, 16) for x in out.split()], [0x20000000, header, 0x20000000, 0x20000000])
-        for reg in (4, 5, 15, 99):                     # no such choice: the read it has always been
+        for reg in (5, 6, 15, 99):                     # no such choice: the read it has always been
             out = subprocess.run([str(TWIN), "genreg", str(reg)], check=True, capture_output=True, text=True).stdout
             self.assertEqual([int(x, 16) for x in out.split()][1], 0x28002001)
 

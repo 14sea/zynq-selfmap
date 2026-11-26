@@ -304,7 +304,8 @@ class WithAPlan(unittest.TestCase):
     def test_the_set_is_the_set_of_s2_3_and_the_plan_fills_it_in(self) -> None:
         other = json.loads(s1a_run.STAGES["s2_3c"]["expected"].read_text())
         self.assertEqual((self.base["params"], self.base["image_sha256"], self.base["pl_design"]), (other["params"], other["image_sha256"], other["pl_design"]))
-        self.assertEqual(self.base["image_sha256"], "8bf3799cd5a29b92d9196dfd432e8e4db13e977000bc67503c69cba819e62a8b", "the image of section 32: no new one")
+        # it ran on the image of section 32 (8bf3799c…), held from its stored runs in test_board_evidence; since S3.0 the
+        # tree's image is another (tests/test_prober_s3_0.py), and the set takes whatever image the tree has
         exp = s1a_run.with_plan("s2_4f", self.base, 3)
         par = [int(w, 16) for w in exp["params"]]
         self.assertEqual((par[2], par[7], par[16], par[18], par[19]), (9, 3, 176, 751, 0x01101000))

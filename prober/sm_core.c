@@ -43,8 +43,8 @@ void sm_far_read_stream(uint32_t out[FARRD_WORDS])
     out[3] = W_NOOP;
 }
 
-/* the same for one of the four registers a stage may read (S2.0): only the header differs. An unknown choice is the
- * FAR register, the one read there has always been. */
+/* the same for one of the five registers a stage may read (S2.0; COR0 since S3.0): only the header differs. An unknown
+ * choice is the FAR register, the one read there has always been. */
 void sm_reg_read_stream(uint32_t reg, uint32_t out[FARRD_WORDS])
 {
     sm_far_read_stream(out);
@@ -54,6 +54,8 @@ void sm_reg_read_stream(uint32_t reg, uint32_t out[FARRD_WORDS])
         out[1] = W_RD_CTL0_1;
     else if (reg == REG_STAT)
         out[1] = W_RD_STAT_1;
+    else if (reg == REG_COR0)
+        out[1] = W_RD_COR0_1;
 }
 
 void sm_cleanup_stream(uint32_t out[CLEANUP_WORDS])
@@ -129,8 +131,8 @@ uint32_t sm_guard(const uint32_t *w, uint32_t n, uint32_t far_lo, uint32_t far_h
             i += 2u;
         } else if (x == W_RD_FDRO_0) {
             hdr = 1; i++;
-        } else if (x == W_RD_FAR_1 || x == W_RD_IDCODE_1 || x == W_RD_CTL0_1 || x == W_RD_STAT_1) {
-            i++;                                        /* one word of a readable register: these four headers and no other */
+        } else if (x == W_RD_FAR_1 || x == W_RD_IDCODE_1 || x == W_RD_CTL0_1 || x == W_RD_STAT_1 || x == W_RD_COR0_1) {
+            i++;                                        /* one word of a readable register: these five headers and no other */
         } else {
             return REFUSE(i, 8u);
         }

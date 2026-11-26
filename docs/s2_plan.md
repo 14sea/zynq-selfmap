@@ -82,7 +82,8 @@ the place of "the complete set" here — have been run and every one is killed (
 beforehand (section 57), and nothing differs (section 58) — all 28,160 cells of S2.5 and
 the 256 of S2.3 lie where the database puts them, the 256 places of the shift registers
 are content bits of their LUTs, and the rule holds at every one of the 1,500 sites of this
-kind the database has. With that S2 is done.**
+kind the database has. With that S2 is done.** The review of S2 as a whole, for the owner, is
+`docs/s2_review.md` (2026-11-26).
 
 Every statement below about a document was checked against its text on 2026-11-20 (UG470
 v1.17, UG585 v1.15, UG908 v2026.1), every statement about the prober against its source at

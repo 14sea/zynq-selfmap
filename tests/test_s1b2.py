@@ -580,7 +580,7 @@ class TheRowSummaryAndTheGrader(unittest.TestCase):
                          "the sources include no file of the project's but sm.h")
         for path in list((ROOT / "host").glob("*.py")) + list((ROOT / "prober").iterdir()):
             text = path.read_text()
-            if path.name in ("grade_s1b1.py", "grade_s1b2.py", "grade_s1b3.py"):
+            if path.name in ("grade_s1b1.py", "grade_s1b2.py", "grade_s1b3.py", "grade_s2.py"):
                 continue
             for word in ("prjxray", "grade_s1b", "frame_count", "part.json"):
                 self.assertNotIn(word, text.lower(), path.name)

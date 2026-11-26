@@ -79,7 +79,7 @@ class Grade(unittest.TestCase):
         no judge, run script or prober source imports it or carries a frame count for a column."""
         for path in list((ROOT / "host").glob("*.py")) + list((ROOT / "prober").glob("*.[ch]")):
             text = path.read_text()
-            if path.name in ("grade_s1b1.py", "grade_s1b2.py", "grade_s1b3.py"):     # the graders (the later ones are held the same way in test_s1b2 and test_s1b3)
+            if path.name in ("grade_s1b1.py", "grade_s1b2.py", "grade_s1b3.py", "grade_s2.py"):     # the graders (the later ones are held the same way in test_s1b2, test_s1b3 and test_grade_s2)
                 continue
             self.assertNotIn("prjxray", text.lower(), path.name)
             self.assertNotIn("grade_s1b1", text, path.name)

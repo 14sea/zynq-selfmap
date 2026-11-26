@@ -43,6 +43,7 @@ TABLE24, CHAIN242 = "host/s2_4_table.py", "host/s2_4_chain2.py"
 PREDICT5 = "host/s2_5_predict.py"
 STATES25, JUDGE25, FIND25, CHAIN25 = "host/s2_5_states.py", "host/s2_5_judge.py", "host/s2_5_find.py", "host/s2_5_chain.py"
 TABLE25, RULE25, CHAIN252 = "host/s2_5_table.py", "host/s2_5_rule.py", "host/s2_5_chain2.py"
+GRADE_S2 = "host/grade_s2.py"
 
 MUTANTS = [
     # ---- the prober: generator and guard
@@ -1803,6 +1804,22 @@ MUTANTS = [
     (RUN, 'run s2.5: the CTL0 of part 1 is read again from the file after it was held to the runs', 'ctl0_in_s2_2(part_1["chain"] if part_1 else json.loads(', 'ctl0_in_s2_2(json.loads('),
     (CHAIN25, 'chain s2.5: what is given back of part 1 is the file opened again, not what the runs give', '        given[name[:-len(".json")]] = now', '        given[name[:-len(".json")]] = json.loads(path.read_text())'),
     (CHAIN252, 'chain2 s2.5: a chain whose next run has no plan is said to go on', '            s1a_run.with_plan(stage, bases[stage], share, known)\n        except', '            pass\n        except'),
+    (GRADE_S2, "grade s2: the frame of a line is not added to the tile's first address", 'else (int(b["baseaddr"], 16) + frame, b["offset"] + bit // 32, bit % 32)', 'else (int(b["baseaddr"], 16), b["offset"] + bit // 32, bit % 32)'),
+    (GRADE_S2, "grade s2: the tile's first word is not added", 'else (int(b["baseaddr"], 16) + frame, b["offset"] + bit // 32, bit % 32)', 'else (int(b["baseaddr"], 16) + frame, bit // 32, bit % 32)'),
+    (GRADE_S2, "grade s2: a site is named in the lines by its kind alone", "return f\"{t['sites'][site]}_X{sorted(t['sites'], key=xy).index(site)}\"", "return f\"{t['sites'][site]}_X0\""),
+    (GRADE_S2, "grade s2: a cell that lies elsewhere is counted as agreeing", '        if want == p:\n            out["agree"] += 1', '        if True:\n            out["agree"] += 1'),
+    (GRADE_S2, "grade s2: a memory with a cell elsewhere is said to agree at every place", '        if all(p == want for _, p, want in rows):', '        if True:'),
+    (GRADE_S2, "grade s2: another reading of the database is counted as the reading named", 'and move(*content[site][(lut, a)]) == p)', 'and content[site][(lut, a)] == p)'),
+    (GRADE_S2, "grade s2: a name that is not the build's is passed over", '        if prim["site"] != names[e["site"]]:', '        if False:'),
+    (GRADE_S2, "grade s2: a place in another LUT counts as the register's own", '        if p in whose and whose[p][0] == lut:', '        if p in whose:'),
+    (GRADE_S2, "grade s2: the moves are held against the frames of the tile, not the lowest of the four", 'and (f - low, b % HALF_WORD) == moves[a])', 'and (f, b % HALF_WORD) == moves[a])'),
+    (GRADE_S2, "grade s2: no part of the rule differs at any site", '    bad = [{"site": s, "the_rule": r, "the_database": d} for s, r, d in pairs if r != d]', '    bad = [{"site": s, "the_rule": r, "the_database": d} for s, r, d in pairs if False]'),
+    (GRADE_S2, "grade s2: the one word more is in no row", '        first = 2 * r + (1 if r > after[0] else 0)', '        first = 2 * r'),
+    (GRADE_S2, "grade s2: the database's column is taken to be the rule's", 'columns.append((s, column_by_rule(x), where[0] if where else None)); ok["the_column"]', 'columns.append((s, column_by_rule(x), column_by_rule(x))); ok["the_column"]'),
+    (GRADE_S2, "grade s2: the reckoning of the columns fits wherever it says something", '"section_53_agrees": None if said53 is None else idx == [said53]}', '"section_53_agrees": None if said53 is None else True}'),
+    (GRADE_S2, "grade s2: the rule's place at a site not measured is held against itself", '            good += mine == want\n', '            good += True\n'),
+    (GRADE_S2, "grade s2: entries that differ are listed among what agrees", '(agrees if r["differ"] == 0 and r["entries"] else differs).append(text if r["differ"] == 0', '(agrees if True else differs).append(text if r["differ"] == 0'),
+    (GRADE_S2, "grade s2: the command ends in zero whatever differs", '    return 0 if not result["differs"] else 1', '    return 0'),
 ]
 
 

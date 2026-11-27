@@ -512,10 +512,20 @@ stage 6; either stage running the set it is made from) and nine of F3 (PWRDWN_ST
 from bit 26; OSCFSEL narrower, and a bit higher; SSCLKSRC one bit wide, `11` called CCLK, `10` called UserClk;
 GWE_CYCLE two bits wide).
 
-**The tool has not yet run the 44 of the increment** at this section's commit: the tool wants a tree with nothing
-uncommitted. Its run and its record are added here when it is in. Before it, as a look of mine and not the tool's
-verdict: each of the 44 applied in a scratch copy and the test files of its own part run (the four of the register
-reads, or `tests/test_s2_5_part2.py` for the seven of the chain) — all 44 failed them, none with a test fewer.
+**The tool's run of the 44 of the increment** (added 2026-11-27, after this section's commit `2068eb6`, on which it
+ran): the unmutated tree in the tool's own copy 1,268 OK (4 skipped); **44 judged, 44 killed, none survived**, every
+one with all 1,268 tests run — among them the mutants of the prober that F6 would have left with fewer; the eight
+copies restored and passing. `evidence/host_checks/mutants_2026-11-27_s3_0_increment.txt`. The tool takes one
+substring of a name, and no substring gives these 44: the tool was loaded, its `taken` replaced by one that gives the
+44 by name, and its `main` run — everything else the tool's own; the record's first line names them. It took 4 hours
+39 minutes, not the two I had said: three jobs of another project ran on this machine for about three hours of it.
+Before the run, as a look of mine and not the tool's verdict, each of the 44 had failed the test files of its own
+part in a scratch copy.
+
+**Not run**: the other 1,691 of the list. The tool has judged every one of them before, as they stand, on an earlier
+tree (the records in `evidence/host_checks/`); of what they mutate, this section changed `host/s2_5_chain.py` and
+`host/s2_judge.py` by a few lines each. They are run with the complete set before S4 (point 4 of section 35 of
+`docs/s2_plan.md`).
 
 ### For the board, when the owner says
 

@@ -1,0 +1,50 @@
+# SELFMAP_NO_BOARD=1 SM_MUTANT_JOBS=8 python3 -B <a wrapper>   (the 44 mutants of the increment, docs/s3_plan.md section 14, F4: every mutant whose name contains "s3.0" (38) and the six older ones whose anchors moved with S3.0 — "the guard accepts a one-word read of any register", "s2: the guard accepts a read of COR1 too", "s2: the guard refuses the CTL0 read", "reader: COR1 may be read", "reader: MASK may be read", "reader: CTL0 may not be read". The tool takes one substring of a name: the wrapper loads tests/mutants.py, replaces its `taken` by one that gives these 44 by name, and runs its `main`; everything else is the tool's own)
+# started 2026-11-27T14:10:07Z on 2068eb617c90b0e2d304e8623455a6032631f79b with a working tree of nothing changed or new
+# ended 2026-11-27T18:48:41Z, exit 0: 44 judged, 44 killed, none with a test fewer. Slow: for about three hours of it three jobs of another project ran on this machine, about ten of its twenty processors between them
+unmutated: Ran 1268 OK (skipped=4); 0 test(s): 
+KILLED   the guard accepts a one-word read of any register              Ran 1268 FAILED (failures=20, skipped=4); 6 test(s): only_five_registers_and_only_one_word_of_ea, s3_0_is_the_set_of_s2_0_with_cor0_as_a_fift
+KILLED   s2: the guard accepts a read of COR1 too                       Ran 1268 FAILED (failures=7, skipped=4); 6 test(s): only_five_registers_and_only_one_word_of_ea, s3_0_is_the_set_of_s2_0_with_cor0_as_a_fift
+KILLED   s2: the guard refuses the CTL0 read                            Ran 1268 FAILED (failures=363, errors=110, skipped=4); 340 test(s): a_bit_5_that_does_not_clear_is_recorded_so_, a_bit_of_the_pairs_that_follows_no_cell_is_
+KILLED   reader: COR1 may be read                                       Ran 1268 FAILED (failures=3, skipped=4); 3 test(s): a_header_that_reads_another_register, only_five_registers_and_only_one_word_of_ea
+KILLED   reader: MASK may be read                                       Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): only_five_registers_and_only_one_word_of_ea, the_guard_and_the_reader_take_it_and_still_
+KILLED   reader: CTL0 may not be read                                   Ran 1268 FAILED (failures=221, errors=67, skipped=4); 214 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_bit_that_flips_once_in_the_all_one_state_
+KILLED   reader s3.0: COR0 may not be read                              Ran 1268 FAILED (failures=7, skipped=4); 6 test(s): a_header_that_reads_another_register, only_five_registers_and_only_one_word_of_ea
+KILLED   s3.0: the COR0 read is the FAR read                            Ran 1268 FAILED (failures=13, skipped=4); 11 test(s): every_field_is_taken_from_its_own_bits, s3_0_is_the_set_of_s2_0_with_cor0_as_a_fift
+KILLED   s3.0: the COR0 read sends the STAT header                      Ran 1268 FAILED (failures=13, skipped=4); 11 test(s): every_field_is_taken_from_its_own_bits, s3_0_is_the_set_of_s2_0_with_cor0_as_a_fift
+KILLED   s3.0: the guard refuses the COR0 read                          Ran 1268 FAILED (failures=12, errors=3, skipped=4); 13 test(s): a_cor0_that_moves_is_not_one_value, a_register_beyond_cor0_is_refused_as_a_para
+KILLED   s3.0: the COR0 header names COR1                               Ran 1268 FAILED (failures=9, errors=647, skipped=2); 444 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_block_type_of_a_few_frames_is_an_answer
+KILLED   s3.0: the COR0 header reads two words                          Ran 1268 FAILED (failures=8, errors=647, skipped=2); 444 test(s): a_bit_of_the_pairs_that_follows_no_cell_is_, a_block_type_of_a_few_frames_is_an_answer
+KILLED   s3.0: COR0 is not on the list of registers an operation may read Ran 1268 FAILED (failures=12, errors=3, skipped=4); 13 test(s): a_cor0_that_moves_is_not_one_value, a_register_beyond_cor0_is_refused_as_a_para
+KILLED   s3.0: a register beyond COR0 is on the list                    Ran 1268 FAILED (failures=8, skipped=4); 7 test(s): a_block_that_is_not_of_this_form_is_refused, a_register_beyond_cor0_is_refused_as_a_para
+KILLED   s2 judge s3.0: COR0's read is pinned to the STAT header        Ran 1268 FAILED (failures=4, skipped=4); 3 test(s): stage_seven_reads_it_with_the_design_loaded, stage_six_reads_cor0_and_says_what_its_fiel
+KILLED   s2 judge s3.0: COR0 is no register of the table                Ran 1268 FAILED (failures=5, errors=2, skipped=4); 6 test(s): a_cor0_that_moves_is_not_one_value, every_field_is_taken_from_its_own_bits
+KILLED   s2 judge s3.0: SINGLE is read from bit 22                      Ran 1268 FAILED (failures=1, skipped=4); 1 test(s): single_shot_and_another_clock_are_said
+KILLED   s2 judge s3.0: the words for SINGLE the wrong way round        Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): single_shot_and_another_clock_are_said, stage_six_reads_cor0_and_says_what_its_fiel
+KILLED   s2 judge s3.0: the start-up clock from the wrong bits          Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, single_shot_and_another_clock_are_said
+KILLED   s2 judge s3.0: SSCLKSRC 01 is called CCLK                      Ran 1268 FAILED (failures=1, skipped=4); 1 test(s): single_shot_and_another_clock_are_said
+KILLED   s2 judge s3.0: the field SINGLE one bit off                    Ran 1268 FAILED (failures=4, skipped=4); 4 test(s): every_field_is_taken_from_its_own_bits, single_shot_and_another_clock_are_said
+KILLED   s2 judge s3.0: a bit no field names is not said                Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, single_shot_and_another_clock_are_said
+KILLED   s2 judge s3.0: COR0 need not read the same every time          Ran 1268 FAILED (failures=1, skipped=4); 1 test(s): a_cor0_that_moves_is_not_one_value
+KILLED   chain s2.5 s3.0: the set kept with part 1 is not the one its runs are held to Ran 1268 FAILED (failures=2, errors=6, skipped=4); 8 test(s): every_result_is_the_one_whose_checksum_the_, how_many_there_are_and_which_have_no_result
+KILLED   chain s2.5 s3.0: the set kept with part 1 may differ from the build's in anything Ran 1268 FAILED (failures=3, skipped=4); 1 test(s): the_runs_are_held_to_the_set_kept_with_them
+KILLED   chain s2.5 s3.0: the kept set may differ in the design as well Ran 1268 FAILED (failures=1, skipped=4); 1 test(s): the_runs_are_held_to_the_set_kept_with_them
+KILLED   chain s2.5 s3.0: a kept set that cannot be read is passed by   Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): a_kept_set_that_is_no_record_or_that_the_sy, the_runs_are_held_to_the_set_kept_with_them
+KILLED   run s3.0: the set of s3_0 is judged as stage 7                 Ran 1268 FAILED (failures=3, skipped=4); 3 test(s): s3_0_is_the_set_of_s2_0_with_cor0_as_a_fift, the_dry_run_of_each_stage_names_its_image_i
+KILLED   run s3.0: s3_0b is judged without the design's facts           Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): s3_0b_is_the_set_of_s2_1_with_cor0_as_a_fou, the_twin_run_with_each_set_s_own_words_pass
+KILLED   chain s2.5 s3.0: a kept set the system will not give is not caught Ran 1268 FAILED (errors=1, skipped=4); 1 test(s): a_kept_set_that_is_no_record_or_that_the_sy
+KILLED   chain s2.5 s3.0: a kept set that is no record is asked for its words Ran 1268 FAILED (errors=4, skipped=4); 1 test(s): a_kept_set_that_is_no_record_or_that_the_sy
+KILLED   chain s2.5 s3.0: a kept set that is no record is taken for the build's Ran 1268 FAILED (failures=4, skipped=4); 1 test(s): a_kept_set_that_is_no_record_or_that_the_sy
+KILLED   run s3.0: the set of s3_0b is judged as stage 6                Ran 1268 FAILED (failures=3, skipped=4); 3 test(s): s3_0b_is_the_set_of_s2_1_with_cor0_as_a_fou, the_dry_run_of_each_stage_names_its_image_i
+KILLED   run s3.0: s3_0 runs the set of S2.0                            Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): the_dry_run_of_each_stage_names_its_image_i, the_twin_run_with_each_set_s_own_words_pass
+KILLED   run s3.0: s3_0b runs the set of S2.1                           Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): the_dry_run_of_each_stage_names_its_image_i, the_twin_run_with_each_set_s_own_words_pass
+KILLED   s2 judge s3.0: PWRDWN_STAT is read from bit 26                 Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, the_fields_of_the_table_lie_apart
+KILLED   s2 judge s3.0: DRIVE_DONE is read from bit 26                  Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, the_fields_of_the_table_lie_apart
+KILLED   s2 judge s3.0: DONE_PIPE is read from bit 26                   Ran 1268 FAILED (failures=3, skipped=4); 3 test(s): every_field_is_taken_from_its_own_bits, stage_six_reads_cor0_and_says_what_its_fiel
+KILLED   s2 judge s3.0: OSCFSEL is five bits wide                       Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, the_fields_of_the_table_lie_apart
+KILLED   s2 judge s3.0: OSCFSEL begins a bit higher                     Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, the_fields_of_the_table_lie_apart
+KILLED   s2 judge s3.0: SSCLKSRC is one bit wide                        Ran 1268 FAILED (failures=2, skipped=4); 2 test(s): every_field_is_taken_from_its_own_bits, the_fields_of_the_table_lie_apart
+KILLED   s2 judge s3.0: SSCLKSRC 11 is called CCLK                      Ran 1268 FAILED (failures=1, skipped=4); 1 test(s): every_field_is_taken_from_its_own_bits
+KILLED   s2 judge s3.0: SSCLKSRC 10 is called UserClk                   Ran 1268 FAILED (failures=1, skipped=4); 1 test(s): single_shot_and_another_clock_are_said
+KILLED   s2 judge s3.0: the field GWE_CYCLE is two bits wide            Ran 1268 FAILED (failures=3, skipped=4); 3 test(s): every_field_is_taken_from_its_own_bits, stage_six_reads_cor0_and_says_what_its_fiel
+restored: Ran 1268 OK (skipped=4); 0 test(s):  (8 copies)
+44 mutants, 0 survived

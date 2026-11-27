@@ -393,3 +393,131 @@ before every step. Then one run of `s3_0` (the carrier), its result stored and c
 then, on the owner's word of its own as in S2.0 and S2.1, one run of `s3_0b` (`s2a`). What is said beforehand is
 section 6 of `docs/s2_plan.md` for S2.0 and section 7 for S2.1, with one thing more for each: COR0 reads the same
 three times, and what its bit 23 says is the finding — section 5 above says what follows from either answer.
+
+## 14. The external review of S3.0, and what was changed for it (2026-11-27; host side, nothing on a board yet)
+
+The owner brought an external review of `73089a0`. It names nothing that stands in the way of a board run — the header,
+the guard as compiled, the fields of table 5-31, the two sets and the dry runs are as section 13 says — and five things
+wanting (F1 to F5 below). Each was reproduced against the source before it was taken; all five stand, two of them with
+a correction of degree. A sixth (F6) was found while the others were mended. What the review says it verified was
+not verified a second time here.
+
+### F1 — a kept set that is no record, or that the system will not give, was an exception of the program
+
+`s2_5_chain.taken_again` (section 13) caught `ValueError` alone when it read the set kept with part 1's runs, and then
+asked what it had read for its words. Reproduced: with `expected_s2_5f.json` holding `[]`, `null` or `123` it raised
+`AttributeError`; with a file the system refuses to give, `PermissionError`. Neither let anything through — the run
+script stops on either — but a reason was owed, as the same file gives one a few lines above and below
+(`(OSError, ValueError)`, then "is not a record"). **Changed**: `OSError` is caught with `ValueError` ("is not a file
+that can be read"), and what was read must be a record ("is not a set"). One test
+(`tests/test_s2_5_part2.py`): the four that are no record, through `taken_again` and through the run script's
+`known_for`; and a kept set that reads until the system refuses it.
+
+### F2 — the run script's entry for `s3_0b` was held by no test
+
+The test of the twin run named its own judge and its own file, and only `s3_0`'s entry was held to S2.0's judge.
+Reproduced: with `"s3_0b": {"judge": s2_0_judge, …` the whole suite passed — 1,264 OK (4 skipped) in a scratch copy,
+a look of mine and not the tool's verdict. Of degree: on the board that entry would not have passed unseen — a run of
+`s3_0b`'s set given to S2.0's judge is INVALID ("sizes do not add up for a stage-6 result"). **Changed**
+(`tests/test_prober_s3_0.py`): `s3_0b`'s judge is held to S2.1's; the twin run of each set is judged by the judge and
+read from the file the run script's entry names, and its record count is held (17, 14); and a new test runs the dry run
+of each stage and holds what it would send — the image of S3.0, the one design of the stage (`carrier.bit`,
+`s2a.bit`), the stage's number, the number of operations, three passes, the prober's size, the layout's header (64,
+2640), and that the design's identification register is read at the prompt for `s2a` alone.
+
+### F3 — fields of COR0 no test had set
+
+No word of the tests had PWRDWN_STAT, DRIVE_DONE, OSCFSEL or bit 26 set, nor SSCLKSRC `11`; SINGLE was held as a word
+said of it and not as the field. Reproduced, as a look of mine: PWRDWN_STAT read from bit 26, DRIVE_DONE from bit 26,
+OSCFSEL five bits wide, and SSCLKSRC `11` called CCLK each passed `tests/test_prober_s3_0.py`. The fields are a report
+and decide nothing; they are stored with the result, and a field read and not held is not checked. **Changed**: a
+word with every one of them set (`0DD5D58B`: bits 27, 26, 24, 23; OSCFSEL `101010`; SSCLKSRC `11`; the cycles 5, 2,
+6, 1, 3) is held field by field, with all ones and all zeroes; SINGLE is held as the field too. And one thing the
+reproduction showed besides: the bits the table names are added up, which is their union only while no two fields
+share a bit (a mutant that set two fields on one bit carried into a third). The table is right; a test now holds
+that its fields lie apart and leave exactly 26 and 28 to 31 unnamed, as UG470's table 5-31 has them reserved.
+
+### F4 — the mutants of S3.0, and the rehearsal
+
+The review is right that the rule asks for them before the board: point 1 of section 35 of `docs/s2_plan.md` is "after
+every change the mutants of what changed", and point 2 lets an image on the board with that. Section 13 named only
+section 55 (before grading). Of degree: they are not quick — the tool runs the whole suite for each, about 25 an hour
+at eight at a time. **The owner (2026-11-27): the increment only.** That is the 23 of section 13, the 6 older ones
+whose anchors moved with S3.0, and the 15 of this section — 44; their run and its record follow this section's commit
+and are reported under "Mutants" below. The 1,326 the tool has killed before stay where section 55 puts them: before
+S4.
+
+The rehearsal (`docs/s2_review.md`, section 7: a twin run stored under `evidence/` in a scratch copy and the whole
+suite run there, before every board step since S2.4) was not named in section 13. It belongs to the board step and is
+done when the owner has given the word for it, before the precheck; a run stored is one more in the count
+`tests/test_evidence_audit.py` holds (238 now), in the commit that stores it.
+
+### F5 — what is said beforehand, two documents behind, and the old chains' own commands
+
+**What is said beforehand of the two runs.** Section 13 pointed to sections 6 and 7 of `docs/s2_plan.md` and added one
+line. Said in full, before either run:
+
+- *Both runs.* The outcomes of section 6 (for `s3_0`) and of section 7 (for `s3_0b`) of `docs/s2_plan.md` hold as
+  written. IDCODE, CTL0 and STAT are expected as S2.0 and S2.1 read them on 2026-11-20 — `13722093`, `00000501`,
+  `46107ffc`, the same under both designs. The judge holds IDCODE to the known word; a CTL0 or a STAT that reads
+  otherwise than then, the same three times, is a finding and not a failure, and nothing is concluded from it without
+  the owner.
+- *COR0 reads the same three times.* If not, the run fails (the judge: it does not read the same every time), and
+  what it read each time is in the result.
+- *COR0 has bits set that table 5-31 does not name* (26, 28 to 31), or a field holds something the table has no word
+  for: recorded as read, as outcome 7 of S2.0 was for CTL0; nothing is concluded from it.
+- *Bit 23 (SINGLE).* Either value is the finding. Clear: captures repeat, as the design `s3a` will ask. Set: RCAP
+  may become a proposal of its own — decided by what COR0 reads under `s3a` in S3.1 (section 5), not here.
+- *COR0 under `s2a` is not what it was under the carrier* — in bit 23 or anywhere else. A finding, not a failure, as
+  outcome 7 of S2.1 was for CTL0: COR0 is a register the bitstream writes (UG470's sample bitstream does, table
+  5-19), the carrier was built in another project and `s2a` here. It would say that S3.0 cannot answer for `s3a`,
+  which S3.1 reads for itself in any case.
+
+**Two documents were behind.** `README.md` said S3 was not started and counted 1,244 tests; `proposal.md` said S3 to
+S6 had not been begun. Both now say what is so: S3 planned and agreed, S3.0 built and reviewed on the host and not
+on a board.
+
+**The old chains' own commands.** `host/s2_5_chain.py --dir evidence/s2_5_17A6` without `--go` — a look at a stored
+chain, which sends nothing — says "halted" and "it does not stand" since the image changed: it holds the stored runs
+to the set of the build. Reproduced; `host/s2_4_chain.py` on its stored chain says the same, and so will every chain
+that is given the build's set. **Not changed**: these are the commands that made the chains, the stages are closed, and
+nothing reads what they print; what takes a stored chain again for use is `taken_again` and the tests of the stored
+evidence, which hold the runs to the set kept with them. Whoever looks at a closed chain with its own command under a
+later image is told here what the answer means.
+
+### F6 — the tests of the sets were made ready once for their class (found here, not by the review)
+
+`TheSetsAndTheImage` in `tests/test_prober_s3_0.py` made the image and the sets ready in `setUpClass`, by
+`test_s1b2.the_set()`, which runs the image's own tests. Where one of those fails — as it does for a mutant of the
+prober — the class's tests did not run at all, the suite counted fewer tests, and the mutant tool calls that a mutant
+that did not build. It is the fault of section 25 of `docs/s2_plan.md`, which a test holds every test file to; that
+test looked for the image's tests by name and did not see them called through `the_set()`. Reproduced on `73089a0`
+in a scratch copy: with `W_RD_COR0_1` naming COR1 the file ran 7 tests of 11. **Changed**: the class makes ready
+before every test (`setUp`; the work is done once, `the_set()` keeps what it made or its error), and stages the
+designs there too, for a tree that has none staged; the rule's test (`tests/test_stage_designs.py`) now refuses
+`the_set(` in a class's or a module's preparation as well. No other class had it.
+
+### Tests
+
+1,268 (4 new: three in `tests/test_prober_s3_0.py` — every field from its own bits, the fields apart, the dry run of each
+stage — and one in `tests/test_s2_5_part2.py`). The whole suite, with `SELFMAP_NO_BOARD=1`, in this tree: 1,268 OK (2
+skipped), in about 13.5 minutes. In a copy made as the mutants tool makes its own it is the tool's first step, with
+the run below.
+
+### Mutants
+
+1,735 in the list, none stale by the tool's own rule. **15 are new**: three of F1 (the system's refusal not caught;
+a kept set that is no record asked for its words; such a set taken for the build's), three of F2 (`s3_0b` judged as
+stage 6; either stage running the set it is made from) and nine of F3 (PWRDWN_STAT, DRIVE_DONE and DONE_PIPE read
+from bit 26; OSCFSEL narrower, and a bit higher; SSCLKSRC one bit wide, `11` called CCLK, `10` called UserClk;
+GWE_CYCLE two bits wide).
+
+**The tool has not yet run the 44 of the increment** at this section's commit: the tool wants a tree with nothing
+uncommitted. Its run and its record are added here when it is in. Before it, as a look of mine and not the tool's
+verdict: each of the 44 applied in a scratch copy and the test files of its own part run (the four of the register
+reads, or `tests/test_s2_5_part2.py` for the seven of the chain) — all 44 failed them, none with a test fewer.
+
+### For the board, when the owner says
+
+As section 13 has it, with what is said beforehand above and the rehearsal named under F4. Nothing in this section
+changed the prober: the image is section 13's, 19,260 bytes, sha256 `18cd254d…5557`, crc32 `ec805203`.

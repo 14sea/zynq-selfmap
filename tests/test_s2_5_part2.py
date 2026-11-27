@@ -649,6 +649,31 @@ class WhatPartOneFoundIsHeldToItsRuns(unittest.TestCase):
         with self.of_the_device(with_kept(text="{not json")):
             self.assertRaisesRegex(ValueError, r"the set kept with the runs of part 1 \(expected_s2_5f.json\) is not a file that can be read", s1a_run.known_for, "s2_5c")
 
+    def test_a_kept_set_that_is_no_record_or_that_the_system_will_not_give_is_a_reason_and_no_exception(self) -> None:
+        """External review of 73089a0: a kept set that reads as a list, as null or as a number was asked for its
+        words (AttributeError), and one the system refuses to give was not caught (OSError). Either is a reason part 1
+        does not stand, said as the others are."""
+        whole = chain_1_of_the_device()
+        for text in ("[]", "null", "123", '"a set"'):
+            root = a_copy(whole)
+            (root / "expected_s2_5f.json").write_text(text)
+            with self.subTest(text=text):
+                self.assertEqual(s2_5_chain.taken_again(root), {"why": "the set kept with the runs of part 1 (expected_s2_5f.json) is not a set"})
+                with self.of_the_device(root):
+                    self.assertRaisesRegex(ValueError, r"the set kept with the runs of part 1 \(expected_s2_5f.json\) is not a set", s1a_run.known_for, "s2_5c")
+        root = a_copy(whole)
+        kept = root / "expected_s2_5f.json"
+        kept.write_text(s1a_run.STAGES["s2_5f"]["expected"].read_text())
+        self.assertEqual(s2_5_chain.taken_again(root)["why"], "", "the build's own set, kept and readable")
+        read = Path.read_text
+
+        def not_given(path, *a, **kw):
+            if path == kept:
+                raise PermissionError(13, "Permission denied", str(path))
+            return read(path, *a, **kw)
+        with mock.patch.object(Path, "read_text", not_given):
+            self.assertEqual(s2_5_chain.taken_again(root), {"why": "the set kept with the runs of part 1 (expected_s2_5f.json) is not a file that can be read"})
+
     def test_the_part_1_the_board_made_stands_under_the_image_of_s3_0(self) -> None:
         """What the six errors of the first suite after S3.0's image were: the stored part 1 held to the build's set."""
         stored = ROOT / "evidence" / "s2_5_17A6"

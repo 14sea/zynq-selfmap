@@ -26,7 +26,7 @@ No program and no judge uses it.
 Where a prediction is possible, the project makes the prediction before the measurement.
 The commit of the prediction is earlier than the run on the board.
 
-## Status on 2026-11-26
+## Status on 2026-11-27
 
 | Stage | Subject | Status |
 |---|---|---|
@@ -34,7 +34,7 @@ The commit of the prediction is earlier than the run on the board.
 | S1a | Frames that an earlier project measured | Complete. The prober read the same contents. |
 | S1b | Census of the frame addresses | Complete. Grading: no difference. |
 | S2 | Position of the bits of LUT RAM and of shift registers | Complete. All six steps, S2.0 to S2.5, are complete on the board. Grading: no difference. The owner closed S2 on 2026-11-26, after the review in `docs/s2_review.md`. |
-| S3 | State of flip-flops (not mandatory) | Not started |
+| S3 | State of flip-flops (not mandatory) | Planned (`docs/s3_plan.md`); the owner agreed to the plan on 2026-11-26. The first step, S3.0, is built on the host and was reviewed on 2026-11-27. S3.0 has not been on the board. |
 | S4 | First write to the configuration memory | Not started |
 | S5 | LUTs of SLICEL sites | Not started |
 | S6 | Grading and report | Not started |
@@ -121,7 +121,7 @@ The tests do not use a board. This command does all the tests:
     SELFMAP_NO_BOARD=1 python3 -B -m unittest discover -s tests
 
 `SELFMAP_NO_BOARD=1` makes sure that no test opens the serial console.
-There are 1,244 tests. They take approximately 10 minutes.
+There are 1,268 tests. They take approximately 12 minutes.
 
 These tools are necessary:
 

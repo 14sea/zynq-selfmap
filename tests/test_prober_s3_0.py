@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import unittest
@@ -78,8 +79,34 @@ class TheJudge(unittest.TestCase):
     def test_single_shot_and_another_clock_are_said(self) -> None:
         reg = judge6(Run(6, ops=OPS6, creg="cor0:10808000"))["registers"]["COR0"]
         self.assertEqual((reg["SINGLE"], reg["start_up_clock"], reg["fields"]["SSCLKSRC"], reg["bits_set_the_table_does_not_name"]), (1, "UserClk", 1, [28]))
+        self.assertEqual(reg["fields"]["SINGLE"], 1, "the field of the table, not only the word said of it")
         self.assertIn("RCAP must be sent", reg["by_the_register_s_word"])
         self.assertEqual(judge6(Run(6, ops=OPS6, creg="cor0:00010000"))["registers"]["COR0"]["start_up_clock"], "JTAGClk")
+
+    def test_every_field_is_taken_from_its_own_bits(self) -> None:
+        """External review of 73089a0: no word of the tests had PWRDWN_STAT, DRIVE_DONE, OSCFSEL or bit 26 set, nor
+        SSCLKSRC 11 — a field read from the wrong bits was not seen. A word with each of them set, DONE_PIPE clear:
+        bits 27, 26, 24, 23; OSCFSEL 101010; SSCLKSRC 11; the five cycles 5, 2, 6, 1, 3."""
+        word = 1 << 27 | 1 << 26 | 1 << 24 | 1 << 23 | 0b101010 << 17 | 0b11 << 15 | 5 << 12 | 2 << 9 | 6 << 6 | 1 << 3 | 3
+        self.assertEqual(word, 0x0DD5D58B)
+        reg = judge6(Run(6, ops=OPS6, creg="cor0:0dd5d58b"))["registers"]["COR0"]
+        self.assertEqual(reg["value"], "0x0dd5d58b")
+        self.assertEqual(reg["fields"], {"PWRDWN_STAT": 1, "DONE_PIPE": 0, "DRIVE_DONE": 1, "SINGLE": 1, "OSCFSEL": 42, "SSCLKSRC": 3,
+                                         "DONE_CYCLE": 5, "MATCH_CYCLE": 2, "LOCK_CYCLE": 6, "GTS_CYCLE": 1, "GWE_CYCLE": 3})
+        self.assertEqual((reg["SINGLE"], reg["start_up_clock"], reg["bits_set_the_table_does_not_name"]), (1, "JTAGClk", [26]))
+        ones = judge6(Run(6, ops=OPS6, creg="cor0:ffffffff"))["registers"]["COR0"]
+        self.assertEqual(ones["fields"], {"PWRDWN_STAT": 1, "DONE_PIPE": 1, "DRIVE_DONE": 1, "SINGLE": 1, "OSCFSEL": 63, "SSCLKSRC": 3,
+                                          "DONE_CYCLE": 7, "MATCH_CYCLE": 7, "LOCK_CYCLE": 7, "GTS_CYCLE": 7, "GWE_CYCLE": 7})
+        self.assertEqual(ones["bits_set_the_table_does_not_name"], [26, 28, 29, 30, 31])
+        none = judge6(Run(6, ops=OPS6, creg="cor0:00000000"))["registers"]["COR0"]
+        self.assertEqual((set(none["fields"].values()), none["bits_set_the_table_does_not_name"], none["start_up_clock"]), ({0}, [], "CCLK"))
+
+    def test_the_fields_of_the_table_lie_apart(self) -> None:
+        """The bits the table names are added up (`named`): that is their union only while no two fields share a bit."""
+        bits = [b for _, low, width in s2_judge.COR0_FIELDS for b in range(low, low + width)]
+        self.assertEqual(len(bits), len(set(bits)))
+        self.assertEqual(sorted(set(range(32)) - set(bits)), [26, 28, 29, 30, 31], "what UG470's table 5-31 calls reserved")
+        self.assertEqual(sorted(s2_judge.SSCLKSRC), [0, 1, 2, 3])
 
     def test_stage_seven_reads_it_with_the_design_loaded(self) -> None:
         v = judge7(Run(7, ops=OPS7, creg="cor0:02003fe5"))
@@ -98,10 +125,15 @@ class TheJudge(unittest.TestCase):
 
 
 class TheSetsAndTheImage(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
+    def setUp(self) -> None:
+        # Before every test, not once for the class (docs/s2_plan.md, section 25; found here on 2026-11-27, section 14 of
+        # the S3 plan): where the image's own tests fail — a mutant of the prober — each test here must be a test that
+        # ran and failed. Made ready in setUpClass, none of them ran, the suite counted fewer tests, and the mutant
+        # tool calls that a mutant that did not build. The work is done once: the_set() keeps what it made, or its error.
         subprocess.run(["make", "-s", "-C", str(ROOT / "prober"), "all"], check=True)
+        import stage_designs
         import test_s1b2
+        stage_designs.stage()                                    # the two designs, where a tree has none staged
         test_s1b2.the_set()                                      # the image and every set of it, written as the image's tests write them
 
     def test_the_image_is_the_one_of_s3_0(self) -> None:
@@ -123,17 +155,39 @@ class TheSetsAndTheImage(unittest.TestCase):
         self.assertEqual([k for k in range(32) if par[k] != old[k]], [6, 10, 12, 19])
         self.assertEqual((a["records"], a["pl_design"], a["image_sha256"]), (14, b["pl_design"], IMAGE_SHA256))
         self.assertEqual(s1a_run.known_for("s3_0b"), DESIGN)
+        self.assertIs(s1a_run.STAGES["s3_0b"]["judge"], s1a_run.STAGES["s2_1"]["judge"])
 
     def test_the_twin_run_with_each_set_s_own_words_passes(self) -> None:
-        for name, stage, judge in (("s3_0", 6, judge6), ("s3_0b", 7, judge7)):
+        """The set and the judge are the ones the run script has for the stage (external review of 73089a0: the test
+        named its own judge and its own file, and the run script's entry for s3_0b could name S2.0's judge unseen)."""
+        for name, stage, records in (("s3_0", 6, 17), ("s3_0b", 7, 14)):
             with self.subTest(name):
-                exp = json.loads((BUILD / f"expected_{name}.json").read_text())
+                entry = s1a_run.STAGES[name]
+                self.assertEqual(entry["expected"], BUILD / f"expected_{name}.json")
+                exp = json.loads(entry["expected"].read_text())
                 words = {f"w{k}": int(w, 16) for k, w in enumerate(exp["params"])}
                 r = Run(stage, ops=[], **words)
-                v = judge(r, s1a_run.known_for(name), [int(w, 16) for w in exp["params"]])
-                self.assertEqual((v["verdict"], v["problems"], r.rc), ("PASS", [], 0))
+                v = entry["judge"].judge(r.words, s1a_run.known_for(name), [int(w, 16) for w in exp["params"]])
+                self.assertEqual((v["verdict"], v["problems"], r.rc, r.n_records), ("PASS", [], 0, records))
                 self.assertEqual(v["expected_console"], exp["console"])
                 self.assertIn("COR0", v["registers"])
+
+    def test_the_dry_run_of_each_stage_names_its_image_its_design_and_its_words(self) -> None:
+        """What the run script would send for each of the two, with no board: the image of S3.0, the design of the
+        stage, the stage's number and how many operations it makes, and (s3_0b only) the first access to user logic."""
+        for name, design, stage, ops, header in (("s3_0", "carrier.bit", 6, 5, 64), ("s3_0b", "s2a.bit", 7, 4, 2640)):
+            with self.subTest(name):
+                p = subprocess.run([sys.executable, "-B", str(ROOT / "host" / "s1a_run.py"), "--stage", name, "--dry-run"], capture_output=True, text=True)
+                self.assertEqual((p.returncode, p.stdout.splitlines()[0], p.stdout.strip().splitlines()[-1]), (0, f"stage {name}", "Dry run: nothing was sent."), p.stderr)
+                self.assertIn(f"image {IMAGE_SHA256}  ({IMAGE_BYTES} bytes)", p.stdout)
+                cmds = [line.split("#")[0].split(". ", 1)[1].strip() for line in p.stdout.splitlines() if re.match(r" *\d+a?\. ", line)]
+                self.assertEqual(len([c for c in cmds if c.startswith("fatload mmc 0:1 04000000 ")]), 1)
+                self.assertIn(f"fatload mmc 0:1 04000000 {design}", cmds)
+                for line in (f"mw.l 10100008 {stage:08x} 1", f"mw.l 10100018 {ops:08x} 1", "mw.l 1010001c 00000003 1", "loady 02000000",
+                             f"crc32 02000000 {IMAGE_BYTES:x}", "go 02000000", f"crc32 10000000 <4*({header}+480*N)>"):
+                    self.assertIn(line, cmds, name)
+                self.assertEqual("md.l 40000000 1" in cmds, name == "s3_0b", "the design's identification register is read at the prompt for s2a alone")
+                self.assertLess(cmds.index("loady 02000000"), cmds.index("go 02000000"))
 
 
 if __name__ == "__main__":

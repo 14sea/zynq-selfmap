@@ -28,7 +28,7 @@ been run (`docs/s2_plan.md`, sections 55 and 56): what is compared was written b
 (section 57), and nothing differs (section 58; `evidence/s2_grade_2026-11-26/`) — the 28,160
 cells of S2.5 and the 256 of S2.3 lie where prjxray-db puts them, the 256 places of the
 shift registers are content bits of their LUTs, and the rule holds at all 1,500 sites of
-this kind. The owner closed S2 on 2026-11-26, after its review as a whole (`docs/s2_review.md`). S3 to S6 have not been begun, and nothing
+this kind. The owner closed S2 on 2026-11-26, after its review as a whole (`docs/s2_review.md`). S3 is planned (`docs/s3_plan.md`, agreed by the owner on 2026-11-26); its first step, S3.0, is built on the host and reviewed (sections 13 and 14 there, 2026-11-27) and has not been on a board. S4 to S6 have not been begun, and nothing
 has written configuration memory. The frame census is written as one document (`census/`). What S1b leaves open and what it leaves unexplained is listed in its review (sections 6 and 10). The steps of S1b, with their evidence, are listed at the head of `docs/s1b_plan.md`.
 The plan for S2 is `docs/s2_plan.md`, agreed by the owner on 2026-11-20 (its section 12);
 where it stands is said at its head.

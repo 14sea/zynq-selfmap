@@ -72,8 +72,10 @@ class TheReadinessStep(unittest.TestCase):
             for cls in (n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)):
                 for fn in (n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name in ("setUpClass", "tearDownClass")):
                     self.assertNotIn("test_prober_image", ast.unparse(fn), f"{path.name}: {cls.name}.{fn.name}")
-            for fn in (n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in ("setUpModule", "tearDownModule")):
+                    self.assertNotIn("the_set(", ast.unparse(fn), f"{path.name}: {cls.name}.{fn.name}")    # the same step by another name: it runs
+            for fn in (n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in ("setUpModule", "tearDownModule")):   # the image's tests
                 self.assertNotIn("test_prober_image", ast.unparse(fn), f"{path.name}: {fn.name}")
+                self.assertNotIn("the_set(", ast.unparse(fn), f"{path.name}: {fn.name}")
 
 
 class Staging(unittest.TestCase):

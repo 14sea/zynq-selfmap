@@ -390,15 +390,18 @@ def taken_again(root: Path, candidates: Path | None = None, chain: Path | None =
     procedure copies it there before the first run — and that copy must be the set the build writes now in every
     word but the three that say which prober image it is. Since S3.0 the image of the build is another than the one
     part 1 ran on; part 1's runs are held to their own, which the copy names and which is kept beside them. Where no
-    set is kept with the runs, the build's is taken, as before."""
+    set is kept with the runs, the build's is taken, as before. A kept set that cannot be read, or is no record, is a
+    reason given back like any other (external review of 73089a0: it was an exception of the program)."""
     if base is None:
         base = json.loads(s1a_run.STAGES[STAGE]["expected"].read_text())
         kept = root / f"expected_{STAGE}.json"
         if kept.is_file():
             try:
                 theirs = json.loads(kept.read_text())
-            except ValueError:
+            except (OSError, ValueError):                # external review of 73089a0: a file the system will not give was not caught,
                 return {"why": f"the set kept with the runs of part 1 ({kept.name}) is not a file that can be read"}
+            if not isinstance(theirs, dict):             # and one that reads as a list, a number or null was asked for its words
+                return {"why": f"the set kept with the runs of part 1 ({kept.name}) is not a set"}
             if {k: v for k, v in theirs.items() if k not in IMAGE_WORDS} != {k: v for k, v in base.items() if k not in IMAGE_WORDS}:
                 return {"why": f"the set kept with the runs of part 1 ({kept.name}) is not the set the build writes now, in more than which image it is"}
             base = theirs
